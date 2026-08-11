@@ -1,0 +1,7 @@
+{
+  "version":"0.21.0-alpha8","surface":"AGROWAY FIELD / OFFLINE_SYNC_CONFLICT_REVIEW","status":"READY_FOR_PRODUCT_APPROVAL",
+  "artifact":"AGROWAY_REPO_BOOTSTRAP_v0.21.0-alpha8_SYNC_REVIEW.zip","artifactSha256":"57ade70945740d05db71f026bf0f9e9291249d81879a5bb7b56f1cf0f0171e38",
+  "designDirection":"conflict-first-sync-review","domainEventsAdded":0,"workspacesAdded":0,
+  "validation":{"static":"28/28 PASS","browserQa":"70/70 PASS","browserAccumulated":"369/369 PASS","productStaticAccumulated":"170/170 PASS","postgresStructural":"102/102 PASS","specCompatibility":"23/23 PASS_NOT_REAL_VITEST","releaseReadiness":"READY_FOR_PRODUCT_DEVELOPMENT_WITH_RUNTIME_PENDING","privateCi":"PASS_WITH_PENDING"},
+  "trust":{"realServerContacted":false,"canonicalMutated":false,"envelopesRemoved":false,"receivedTimeInvented":false,"aiCanResolveConflict":false,"D10":"PENDING"}
+}

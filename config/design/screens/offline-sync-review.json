@@ -1,0 +1,18 @@
+{
+  "schema": "agroway-screen-design/1.0",
+  "screen": "OFFLINE_SYNC_CONFLICT_REVIEW",
+  "surface": "apps/field-web",
+  "version": "0.21.0-alpha8",
+  "job": "Review local outbox envelopes against an explicitly demonstrative canonical snapshot, classify idempotency/domain/version conflicts and prepare safe next actions without sending, deleting or force-overwriting anything.",
+  "trust": "DEMO_RECONSTRUCTED",
+  "taste": {"variance":3,"motion":1,"density":7},
+  "directionsConsidered": ["sync-progress-modal","technical-outbox-console","conflict-first-sync-review"],
+  "selectedDirection": "conflict-first-sync-review",
+  "assessmentStates": ["READY_FOR_SERVER_SUBMISSION","SERVER_REVALIDATION_REQUIRED","CANONICAL_VERSION_CHANGED","DUPLICATE_ACK_MATCH"],
+  "forbiddenStates": ["SYNCED_WITHOUT_REAL_ACK","FORCE_OVERWRITE"],
+  "guardrails": {"originalEnvelopeImmutableInReview":true,"envelopeRemovedByReview":false,"canonicalMutationByReview":false,"eventTimePreserved":true,"receivedTimeNotInvented":true,"idempotencyKeyStable":true,"aiCanResolveConflict":false},
+  "localReviewEnvelope": "LOCAL_SYNC_REVIEW_ACTION_RECORDED",
+  "canonicalDomainEventsAdded": 0,
+  "gates": {"D0_truth":"PASS","D1_productBrief":"PASS","D2_functionalArchitecture":"PASS","D3_ux":"PASS","D4_designDirection":"PASS","D5_designSystem":"PASS_WITH_SEMANTIC_COLOR_TOKENS_PENDING_EXACT_BRAND_VALUES","D6_contentAssets":"PASS_NO_EXTERNAL_ASSETS","D7_mockData":"PASS_DEMO_LABELED","D8_selfContainedPreview":"PASS","D9_qa":"PASS_BROWSER_INLINE_RENDER_1440_390_70_CHECKS","D10_humanProductApproval":"PENDING"},
+  "browserQA": {"mode":"PLAYWRIGHT_INLINE_RENDER","checks":"70/70 PASS","realServerAckRuntime":"PENDING","canonicalMutationRuntime":"PROHIBITED_IN_REVIEW"}
+}
