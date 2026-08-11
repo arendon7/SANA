@@ -13,6 +13,12 @@
   "v016Reconstruction": {
     "label": "v0.16R",
     "historicalOriginalZipExists": false,
+    "standalonePatch": {
+      "artifact": "AGROWAY_v0.16R-rc1_RECONSTRUCTION_FROM_V015.zip",
+      "sha256": "8f86e29b0efb728b663efd7eb6e78b6e8c101501e4e7cd9b9097e4aec379499e",
+      "zipEntries": 43,
+      "payloadFiles": 36
+    },
     "newDomainEvents": 12,
     "targetDomainEvents": 145,
     "newPermissions": 2,
