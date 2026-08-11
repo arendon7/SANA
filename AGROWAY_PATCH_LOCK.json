@@ -1,10 +1,10 @@
 {
   "patch": {
-    "version": "0.20.2-rc2",
-    "artifact": "AGROWAY_v0.20.2-rc2_REBASED_FROM_V015.zip",
-    "sha256": "0e39e545a27a7595d4cdbbdee46720a3c28129b039a77e37c8eeaf1527ad564f",
-    "zipEntries": 214,
-    "payloadFiles": 205
+    "version": "0.20.2-rc3",
+    "artifact": "AGROWAY_v0.20.2-rc3_OVERLAY_ENGINE_HARDENING.zip",
+    "sha256": "417324b6c37c6da6bcbfe7283ad533345a8afa1235e46377a647fba583460a00",
+    "zipEntries": 226,
+    "payloadFiles": 207
   },
   "base": {
     "version": "0.15.0-rc1",
@@ -18,10 +18,15 @@
     "permissionsAdded": 2,
     "workspacesAdded": 3
   },
+  "overlayTrust": {
+    "productionBaseTrustMode": "PRODUCTION_EXACT_V015_SHA",
+    "syntheticCompatibilityTrustMode": "SYNTHETIC_COMPATIBILITY_ONLY",
+    "productionGateAcceptsSyntheticFixture": false
+  },
   "materializationPolicy": {
-    "verifyBothArtifactsBeforeExtraction": true,
+    "verifyBaseBeforeOverlay": true,
     "failClosedOnAnyHashMismatch": true,
     "doNotMutateSourceArtifacts": true,
-    "outputVersion": "0.20.2-rc2"
+    "outputVersion": "0.20.2-rc3"
   }
 }
