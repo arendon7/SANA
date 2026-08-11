@@ -1,10 +1,10 @@
 {
   "patch": {
-    "version": "0.20.1-rc1",
-    "artifact": "AGROWAY_v0.20.1-rc1_INTEGRATION_HARDENING_PATCH.zip",
-    "sha256": "0a57ea26dec7c01dbf54c510563afc1153f8f0e350ef4971b99103fe6187f6c9",
-    "zipEntries": 164,
-    "payloadFiles": 155
+    "version": "0.20.2-rc1",
+    "artifact": "AGROWAY_v0.20.2-rc1_DOMAIN_INTEGRITY_CUMULATIVE_PATCH.zip",
+    "sha256": "8f4b28cc21a0607279cb9df6b809ae50d68b932b27993797cfaa2f0bc222d710",
+    "zipEntries": 179,
+    "payloadFiles": 170
   },
   "base": {
     "version": "0.16.0-rc1",
@@ -15,6 +15,6 @@
     "verifyBothArtifactsBeforeExtraction": true,
     "failClosedOnAnyHashMismatch": true,
     "doNotMutateSourceArtifacts": true,
-    "outputVersion": "0.20.1-rc1"
+    "outputVersion": "0.20.2-rc1"
   }
 }
