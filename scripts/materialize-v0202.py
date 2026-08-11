@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse,hashlib,json,subprocess,sys,tempfile,zipfile
 from pathlib import Path
 BASE_SHA='12f33aed9b60cfe4a0f97e65a65d35dd665cfa3cfeb9e218934a1b056d943d8d'
-PATCH_SHA='8f4b28cc21a0607279cb9df6b809ae50d68b932b27993797cfaa2f0bc222d710'
+PATCH_SHA='77d31f8a23b48c0a798e6c56b8cc92caf2a66befd2a9bce42ebea9814176833a'
 PATCH_ROOT='AGROWAY_v0.20.2-rc1_DOMAIN_INTEGRITY_CUMULATIVE_PATCH'
 def sha256(p:Path)->str:
  h=hashlib.sha256()

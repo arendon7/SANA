@@ -3,43 +3,9 @@
   "repository": "arendon7/SANA",
   "targetVersion": "0.20.2-rc1",
   "status": "WAITING_FOR_EXACT_V016_BASE",
-  "approvedBase": {
-    "artifact": "AGROWAY_REPO_BOOTSTRAP_v0.16.0-rc1.zip",
-    "sha256": "12f33aed9b60cfe4a0f97e65a65d35dd665cfa3cfeb9e218934a1b056d943d8d"
-  },
-  "lockedPatch": {
-    "artifact": "AGROWAY_v0.20.2-rc1_DOMAIN_INTEGRITY_CUMULATIVE_PATCH.zip",
-    "sha256": "8f4b28cc21a0607279cb9df6b809ae50d68b932b27993797cfaa2f0bc222d710",
-    "payloadFiles": 170,
-    "zipEntries": 179
-  },
-  "prepared": {
-    "baselineLock": true,
-    "integrationRunbook": true,
-    "v0202WorkflowInPatch": true,
-    "postgisDisposableRuntime": true,
-    "privateCiRunnerInPatch": true,
-    "v0202GuardrailInPatch": true,
-    "v0202ValidatorInPatch": true,
-    "migration0022InPatch": true,
-    "domainIntegrityRuntimeTestsInPatch": true,
-    "historicalProductAcceptanceMatrix": true
-  },
-  "notClaimedAsPassed": [
-    "positive cumulative overlay",
-    "npm ci against real lockfile",
-    "full workspace tsc/build graph",
-    "full Vitest",
-    "PostgreSQL/PostGIS migrations 0017-0022 runtime",
-    "cross-tenant/domain-integrity DB runtime",
-    "Vite/Expo builds",
-    "Graphify real",
-    "real agricultural pilot certification"
-  ],
-  "domain": {
-    "conceptualDomainEvents": 218,
-    "cumulativeNewWorkspacesOverV016": 12,
-    "v0202NewDomainEvents": 0,
-    "v0202NewWorkspaces": 0
-  }
+  "approvedBase": {"artifact": "AGROWAY_REPO_BOOTSTRAP_v0.16.0-rc1.zip", "sha256": "12f33aed9b60cfe4a0f97e65a65d35dd665cfa3cfeb9e218934a1b056d943d8d"},
+  "lockedPatch": {"artifact": "AGROWAY_v0.20.2-rc1_DOMAIN_INTEGRITY_CUMULATIVE_PATCH.zip", "sha256": "77d31f8a23b48c0a798e6c56b8cc92caf2a66befd2a9bce42ebea9814176833a", "payloadFiles": 170, "zipEntries": 179},
+  "prepared": {"baselineLock": true, "integrationRunbook": true, "v0202WorkflowInPatch": true, "postgisDisposableRuntime": true, "privateCiRunnerInPatch": true, "v0202GuardrailInPatch": true, "v0202ValidatorInPatch": true, "migration0022InPatch": true, "domainIntegrityRuntimeTestsInPatch": true, "historicalProductAcceptanceMatrix": true},
+  "notClaimedAsPassed": ["positive cumulative overlay", "npm ci against real lockfile", "full workspace tsc/build graph", "full Vitest", "PostgreSQL/PostGIS migrations 0017-0022 runtime", "cross-tenant/domain-integrity DB runtime", "Vite/Expo builds", "Graphify real", "real agricultural pilot certification"],
+  "domain": {"conceptualDomainEvents": 218, "cumulativeNewWorkspacesOverV016": 12, "v0202NewDomainEvents": 0, "v0202NewWorkspaces": 0}
 }

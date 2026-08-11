@@ -2,7 +2,7 @@
   "patch": {
     "version": "0.20.2-rc1",
     "artifact": "AGROWAY_v0.20.2-rc1_DOMAIN_INTEGRITY_CUMULATIVE_PATCH.zip",
-    "sha256": "8f4b28cc21a0607279cb9df6b809ae50d68b932b27993797cfaa2f0bc222d710",
+    "sha256": "77d31f8a23b48c0a798e6c56b8cc92caf2a66befd2a9bce42ebea9814176833a",
     "zipEntries": 179,
     "payloadFiles": 170
   },
