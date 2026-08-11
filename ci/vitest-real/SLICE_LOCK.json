@@ -1,0 +1,13 @@
+{
+  "purpose": "Run the exact observed AGROWAY .spec.ts suite with real Vitest while the reconstructed monorepo is progressively persisted as readable source in GitHub.",
+  "trustMode": "RECONSTRUCTED_TESTABLE_SOURCE_SLICE_NOT_FULL_MONOREPO",
+  "archiveEncoding": "base64",
+  "archiveDecodedSha256": "ab07db7f86535fc029ad2e9bc80a8007ac10e7b0dfef73c0c45e1087c13b5b60",
+  "vitestVersion": "4.1.7",
+  "typescriptVersion": "5.8.3",
+  "specFiles": 12,
+  "typescriptFiles": 76,
+  "workspaces": 14,
+  "sourceBaseline": "AGROWAY_REPO_BOOTSTRAP_v0.21.0-alpha10_LOCAL_DEV_BACKEND",
+  "productionEquivalent": false
+}
