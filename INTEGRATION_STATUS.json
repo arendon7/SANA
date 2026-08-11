@@ -1,40 +1,60 @@
 {
   "product": "AGROWAY",
   "repository": "arendon7/SANA",
-  "targetVersion": "0.20.2-rc5",
-  "status": "RECONSTRUCTED_FULL_BUILD_PASS_WITH_RUNTIME_PENDING",
+  "targetVersion": "0.20.2-rc6",
+  "status": "READY_FOR_PRODUCT_DEVELOPMENT_WITH_RUNTIME_PENDING",
   "historicalV015": {
     "version": "0.15.0-rc1",
     "sha256": "323006fdf3e3b13caaa5594c3be3d50dadac21498f2c26a23b83e2d5d3de09c4",
     "artifactRecovered": false,
     "blockingReconstructedDevelopment": false
   },
-  "reconstructedV015": {
-    "version": "0.15R-full-rc1",
-    "sha256": "ad1de9f9442f70613433f8721a021c09bb50b4d08ca196213b67aefca447db21",
-    "byteIdenticalToHistoricalV015": false,
-    "workspaces": 26,
-    "domainEvents": 133,
-    "permissions": 109,
-    "migrations": 21
-  },
   "reconstructedFullRepository": {
-    "artifact": "AGROWAY_REPO_BOOTSTRAP_v0.20.2-rc5_RECONSTRUCTED_FULL.zip",
-    "sha256": "356af3151945e1bf4bd86382d0a2b38e6a2af50a16b9eee7190b2f7e656428bb",
-    "zipEntries": 360,
-    "indexedFiles": 359,
+    "artifact": "AGROWAY_REPO_BOOTSTRAP_v0.20.2-rc6_DESIGN_ENGINEERING_FULL.zip",
+    "sha256": "e868e31d779e5818604c72e809becc4cc5fe4f3c6c1a1634757fd214516d7cec",
+    "zipEntries": 386,
     "workspaces": 41,
     "conceptualDomainEvents": 218,
     "trustMode": "RECONSTRUCTED_V015R_FULL_NOT_HISTORICAL_SHA",
     "productionEquivalent": false
   },
+  "designEngineering": {
+    "binarioAppFactoryV4": "ORCHESTRATOR",
+    "sanaBrandCanon": "VISUAL_AUTHORITY",
+    "taste": "DESIGN_DIRECTION",
+    "emilKowalski": "INTERACTION_MOTION_PROTOTYPING",
+    "impeccable": "CRITIQUE_ANTIPATTERN_HARDENING",
+    "vercelAgentSkills": "REACT_PERFORMANCE_ACCESSIBILITY_COMPOSITION",
+    "figma": "CONNECTED_OPTIONAL_EVIDENCE_SURFACE",
+    "playwright": "PLANNED_RUNTIME_VISUAL_QA",
+    "axeCore": "PLANNED_RUNTIME_ACCESSIBILITY_QA",
+    "lighthouseCi": "PLANNED_RUNTIME_PERFORMANCE_QA",
+    "webVitals": "PLANNED_RUNTIME_FIELD_PERFORMANCE"
+  },
+  "pinnedUpstreamCommits": {
+    "emilkowalski/skills": "78761e1b57f97dce65b983d640c70a68f39e8163",
+    "pbakaus/impeccable": "ae388ac58fb33aade50fc47e2be07c3192dcaabd",
+    "Leonxlnx/taste-skill": "e988add20dab0fa97d7a76781c48961c8184288e",
+    "vercel-labs/agent-skills": "7c180d9044c9ae2b442b567aad4e42a28dd5ed62"
+  },
+  "designGates": [
+    "D0_TRUTH",
+    "D1_ARCHITECTURE",
+    "D2_DIRECTION",
+    "D3_SYSTEM",
+    "D4_BUILD",
+    "D5_MOTION",
+    "D6_AUDIT",
+    "D7_VISUAL_QA",
+    "D8_PRODUCT_APPROVED",
+    "D9_DELIVERY",
+    "D10_PRODUCTION_APPROVED"
+  ],
   "passed": {
-    "offlinePackageLockGeneration": true,
-    "offlineNpmCiWorkspaceLinking": true,
-    "internalWorkspaceVersionMismatches": 0,
+    "designGovernanceGate": true,
+    "designPreflight": true,
     "fullRootTypeScriptStrict": true,
     "v015RThroughV0202Guardrails": true,
-    "v016RFocalRuntimeChecks": 9,
     "nodeTestVitestCompatSpecFiles": 11,
     "nodeTestVitestCompatTests": 23,
     "postgresStructuralMigrationFiles": 28,
@@ -42,12 +62,17 @@
     "tenantCurrentSettingValidEscapedOccurrences": 10,
     "tenantAwareForeignKeys": 33,
     "forceRlsTables": 35,
-    "privateCiStatus": "PASS_WITH_PENDING"
+    "privateCiStatus": "PASS_WITH_PENDING",
+    "releaseReadiness": "READY_FOR_PRODUCT_DEVELOPMENT_WITH_RUNTIME_PENDING"
   },
+  "pendingNetwork": [
+    "physical checkout of pinned third-party skills into local .agents/skills due runtime DNS restriction"
+  ],
   "pendingRuntime": [
     "real Vitest runtime",
     "PostgreSQL/PostGIS migrations 0001-0022 runtime",
     "cross-tenant PostgreSQL RLS adversarial tests",
+    "browser UI runtime for Playwright/axe/Lighthouse",
     "Vite/Expo production builds",
     "Graphify real regeneration",
     "real agricultural pilot certification"
