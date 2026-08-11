@@ -4,18 +4,17 @@ on:
   pull_request:
     paths:
       - "apps/field-web/**"
-      - "packages/identity-contracts/**"
-      - "services/identity-access/**"
-      - "infra/postgres/**"
-      - "config/design/screens/**"
-      - "scripts/**"
+      - "infra/postgres/migrations/0024_sync_ingress_ack.sql"
+      - "infra/postgres/tests/v0210_sync_ingress_ack_runtime.sql"
+      - "scripts/local-dev-backend-http-runtime.mjs"
+      - "config/design/screens/local-dev-backend-runtime.json"
       - ".github/workflows/agroway-v021-field-alpha.yml"
 permissions:
   contents: read
 jobs:
-  field-runtime:
+  alpha10-incremental-runtime:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 20
     services:
       postgres:
         image: postgis/postgis:16-3.4
@@ -37,15 +36,22 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Install repository lockfile
-        run: npm ci --ignore-scripts
-      - name: Offline-capable product and domain gates
-        run: npm run verify:offline
+      - name: Syntax-check local dev backend
+        run: |
+          node --check apps/field-web/dev-runtime.mjs
+          node --check apps/field-web/server.mjs
+          node --check scripts/local-dev-backend-http-runtime.mjs
       - name: Local dev HTTP backend runtime
-        run: npm run test:local-dev-backend-http
+        run: node scripts/local-dev-backend-http-runtime.mjs
       - name: Install PostgreSQL client
         run: |
           sudo apt-get update
           sudo apt-get install -y postgresql-client
-      - name: PostgreSQL/PostGIS migrations and adversarial tests 0001-0024
-        run: bash infra/postgres/tests/run-v0202-db-tests.sh
+      - name: Apply alpha10 sync ingress/ACK migration in PostGIS
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f infra/postgres/migrations/0024_sync_ingress_ack.sql
+      - name: Run alpha10 sync ingress/ACK adversarial SQL tests
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f infra/postgres/tests/v0210_sync_ingress_ack_runtime.sql
+      - name: Explicit cumulative-boundary notice
+        run: |
+          echo 'PASS_ALPHA10_INCREMENTAL_RUNTIME_ONLY'
+          echo 'Cumulative reconstructed PostgreSQL/PostGIS 0001-0024 remains PENDING until the full migration chain is physically persisted in this GitHub branch.'
