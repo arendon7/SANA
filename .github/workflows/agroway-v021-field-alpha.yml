@@ -9,6 +9,9 @@ on:
       - "scripts/local-dev-backend-http-runtime.mjs"
       - "config/design/screens/local-dev-backend-runtime.json"
       - ".github/workflows/agroway-v021-field-alpha.yml"
+concurrency:
+  group: agroway-field-v021-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
