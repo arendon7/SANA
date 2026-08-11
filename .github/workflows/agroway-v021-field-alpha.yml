@@ -1,0 +1,51 @@
+name: AGROWAY FIELD v0.21 alpha runtime
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "apps/field-web/**"
+      - "packages/identity-contracts/**"
+      - "services/identity-access/**"
+      - "infra/postgres/**"
+      - "config/design/screens/**"
+      - "scripts/**"
+      - ".github/workflows/agroway-v021-field-alpha.yml"
+permissions:
+  contents: read
+jobs:
+  field-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_DB: agroway_ci
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: agroway_ci
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres -d agroway_ci"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 30
+    env:
+      DATABASE_URL: postgresql://postgres:agroway_ci@localhost:5432/agroway_ci
+      CI: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install repository lockfile
+        run: npm ci --ignore-scripts
+      - name: Offline-capable product and domain gates
+        run: npm run verify:offline
+      - name: Local dev HTTP backend runtime
+        run: npm run test:local-dev-backend-http
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+      - name: PostgreSQL/PostGIS migrations and adversarial tests 0001-0024
+        run: bash infra/postgres/tests/run-v0202-db-tests.sh
