@@ -79,7 +79,31 @@ The reviewed contract does **not** establish a canonical Pineal sensor payload, 
 - Copilot never consumes Pineal raw payloads;
 - any future recovered Pineal protocol must enter through provider-specific mapping tests rather than changing canonical Measurement/Observation semantics.
 
-## 4. Provenance rule
+## 4. AgroWayAPP — 2021 field-operations UX evidence
+
+Google Drive source: `AgroWayAPP.pdf`
+
+Drive file id: `1Asufh0P5nI2lqAlbxfdHkDSvOdRjUMV0`
+
+The historical prototype shows that AGROWAY already treated field operations as a first-class product surface, including:
+
+- login/account verification plus network, permissions and location checks;
+- operator lists and operator profiles;
+- calendar and hourly task scheduling;
+- lot-specific tasks and follow-up;
+- irrigation, nutrition and pest/disease work queues;
+- questions/doubts as an operational communication channel;
+- task execution and comments;
+- irrigation history by crop/lot;
+- crop stage, humidity, plants, tank, ml/plant and irrigation-time capture;
+- field guides/resources attached to tasks;
+- inventory and useful-life/expiry tracking.
+
+### Product invariant recovered from the prototype
+
+SANA / AGROWAY must remain an **agricultural operating system**, not merely an AI assistant or sensor dashboard. AI, IoT, Control Tower and certification are layers over the operational field model; they do not replace operators, tasks, lots, execution evidence, inventory or agronomic work history.
+
+## 5. Provenance rule
 
 Historical Drive documents are classified as `HISTORICAL_PRODUCT_EVIDENCE`.
 
