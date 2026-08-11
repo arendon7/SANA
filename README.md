@@ -18,8 +18,19 @@ Repositorio técnico de la plataforma agrícola SANA / AGROWAY.
 
 Tras v0.20.1 se mantienen **218 Domain Events conceptuales** y **12 workspaces acumulativos** sobre v0.16.
 
+## Materialización segura
+
+El patch exacto v0.20.1 está fijado en `AGROWAY_PATCH_LOCK.json`. La integración usa `scripts/materialize-v0201.py`, que verifica **base y patch por SHA-256 antes de extraer** y falla cerrado ante cualquier diferencia.
+
+La materialización final requiere además:
+
+- CI/runtime completo;
+- PostgreSQL/PostGIS/RLS adversarial;
+- verificación de capacidades históricas en `docs/HISTORICAL_REQUIREMENTS_GAP_MATRIX.md`;
+- preservación del sistema operativo agrícola de campo: lotes, operarios, tareas, riego, nutrición, plagas, inventario, costos, offline/sync, RBAC y trazabilidad.
+
 ## Integridad
 
-v0.20.1 solo debe materializarse contra una base cuyo SHA-256 coincida exactamente con la base aprobada. El ZIP v0.16 no está actualmente recuperable desde este entorno, por lo que este repositorio todavía **no declara una materialización completa v0.20.1**.
+El ZIP v0.16 exacto no está actualmente recuperable desde este entorno, por lo que este repositorio todavía **no declara una materialización completa v0.20.1**.
 
 La maquinaria S10 fue validada con fixture sintético. Un piloto agrícola real solo puede marcarse `CERTIFIED` con evidencia real, replay íntegro y firma humana nominal ligada al digest determinista exacto.
