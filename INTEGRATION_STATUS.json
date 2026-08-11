@@ -1,11 +1,53 @@
 {
   "product": "AGROWAY",
   "repository": "arendon7/SANA",
-  "targetVersion": "0.20.2-rc1",
-  "status": "WAITING_FOR_EXACT_V016_BASE",
-  "approvedBase": {"artifact": "AGROWAY_REPO_BOOTSTRAP_v0.16.0-rc1.zip", "sha256": "12f33aed9b60cfe4a0f97e65a65d35dd665cfa3cfeb9e218934a1b056d943d8d"},
-  "lockedPatch": {"artifact": "AGROWAY_v0.20.2-rc1_DOMAIN_INTEGRITY_CUMULATIVE_PATCH.zip", "sha256": "77d31f8a23b48c0a798e6c56b8cc92caf2a66befd2a9bce42ebea9814176833a", "payloadFiles": 170, "zipEntries": 179},
-  "prepared": {"baselineLock": true, "integrationRunbook": true, "v0202WorkflowInPatch": true, "postgisDisposableRuntime": true, "privateCiRunnerInPatch": true, "v0202GuardrailInPatch": true, "v0202ValidatorInPatch": true, "migration0022InPatch": true, "domainIntegrityRuntimeTestsInPatch": true, "historicalProductAcceptanceMatrix": true},
-  "notClaimedAsPassed": ["positive cumulative overlay", "npm ci against real lockfile", "full workspace tsc/build graph", "full Vitest", "PostgreSQL/PostGIS migrations 0017-0022 runtime", "cross-tenant/domain-integrity DB runtime", "Vite/Expo builds", "Graphify real", "real agricultural pilot certification"],
-  "domain": {"conceptualDomainEvents": 218, "cumulativeNewWorkspacesOverV016": 12, "v0202NewDomainEvents": 0, "v0202NewWorkspaces": 0}
+  "targetVersion": "0.20.2-rc2",
+  "status": "WAITING_FOR_EXACT_V015_BASE",
+  "approvedBase": {
+    "artifact": "AGROWAY_REPO_BOOTSTRAP_v0.15.0-rc1.zip",
+    "sha256": "323006fdf3e3b13caaa5594c3be3d50dadac21498f2c26a23b83e2d5d3de09c4"
+  },
+  "v016Reconstruction": {
+    "label": "v0.16R",
+    "historicalOriginalZipExists": false,
+    "domainEventsAdded": 12,
+    "permissionsAdded": 2,
+    "workspacesAdded": 3,
+    "targetDomainEventsAfterLayer": 145
+  },
+  "lockedPatch": {
+    "artifact": "AGROWAY_v0.20.2-rc2_REBASED_FROM_V015.zip",
+    "sha256": "0e39e545a27a7595d4cdbbdee46720a3c28129b039a77e37c8eeaf1527ad564f",
+    "payloadFiles": 205,
+    "zipEntries": 214
+  },
+  "prepared": {
+    "baselineLock": true,
+    "reconstructedV016Contracts": true,
+    "reconstructedMigration0016": true,
+    "v016RGuardrail": true,
+    "v016RValidator": true,
+    "v016RFocalRuntime": true,
+    "v0202WorkflowInPatch": true,
+    "postgisDisposableRuntime": true,
+    "privateCiRunnerInPatch": true,
+    "historicalProductAcceptanceMatrix": true
+  },
+  "notClaimedAsPassed": [
+    "positive cumulative overlay against real v0.15 ZIP",
+    "npm ci against real v0.15-derived lockfile",
+    "full workspace tsc/build graph",
+    "full Vitest",
+    "PostgreSQL/PostGIS migrations 0016R-0022 runtime",
+    "cross-tenant/domain-integrity DB runtime",
+    "Vite/Expo builds",
+    "Graphify real",
+    "real agricultural pilot certification"
+  ],
+  "domain": {
+    "conceptualDomainEvents": 218,
+    "cumulativeNewWorkspacesOverV015": 15,
+    "v0202NewDomainEvents": 0,
+    "v0202NewWorkspaces": 0
+  }
 }
