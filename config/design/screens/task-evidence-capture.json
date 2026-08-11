@@ -1,0 +1,22 @@
+{
+  "schema": "agroway-screen-design/1.0",
+  "screen": "TASK_EVIDENCE_CAPTURE",
+  "surface": "apps/field-web",
+  "version": "0.21.0-alpha3",
+  "job": "Let a field operator execute a scheduled task and create a trustworthy offline evidence package linked to the exact task, plot, crop cycle and plan action without pretending that local capture equals server sync or approval.",
+  "trust": "DEMO_RECONSTRUCTED",
+  "taste": {"variance": 4, "motion": 2, "density": 6},
+  "directionsConsidered": ["generic-task-form", "camera-first-capture", "guided-evidence-execution"],
+  "selectedDirection": "guided-evidence-execution",
+  "rejected": {
+    "generic-task-form": "Treats agricultural execution as administration and weakens context/provenance.",
+    "camera-first-capture": "Optimizes for photo collection but underweights measurement, plan linkage and execution semantics."
+  },
+  "informationOrder": ["task + field context", "measured/applied result", "photo evidence", "field observation", "local package/trust", "prior evidence"],
+  "offline": {"blobStore": "INDEXED_DB", "queueCarriesBlob": false, "queueCarriesDigestAndMetadata": true, "serverSyncClaimed": false, "qaOpaqueOriginFallback": "MEMORY_FALLBACK_QA_ONLY"},
+  "evidenceBoundary": {"digest": "SHA-256", "blobLinkedByEvidenceId": true, "contextBound": ["taskId", "plotId", "cropCycleId", "planAction"], "localEnvelope": "LOCAL_TASK_EVIDENCE_CAPTURED", "canonicalDomainEventClaimed": false},
+  "authority": {"fieldEvidenceCanChangeDeterministicRule": false, "fieldEvidenceCertifiesPassport": false, "aiCanApproveExecution": false, "humanProductApprovalRequired": true},
+  "gates": {"D0_truth": "PASS", "D1_productBrief": "PASS", "D2_functionalArchitecture": "PASS", "D3_ux": "PASS", "D4_designDirection": "PASS", "D5_designSystem": "PASS_WITH_SEMANTIC_COLOR_TOKENS_PENDING_EXACT_BRAND_VALUES", "D6_contentAssets": "PASS_NO_EXTERNAL_ASSETS", "D7_mockData": "PASS_DEMO_LABELED", "D8_selfContainedPreview": "PASS", "D9_qa": "PASS_BROWSER_INLINE_RENDER_1440_390_37_CHECKS", "D10_humanProductApproval": "PENDING"},
+  "visualEvidence": ["docs/product/evidence/task-evidence/task-evidence-1440x900.png", "docs/product/evidence/task-evidence/task-evidence-390x844.png"],
+  "browserQA": {"mode": "PLAYWRIGHT_INLINE_RENDER", "checks": "37/37 PASS", "navigationRestriction": "ADMIN_POLICY_BLOCKS_LOCALHOST_AND_FILE", "indexedDbRuntime": "PENDING_NAVIGABLE_HTTP_ORIGIN", "webCryptoRuntime": "PENDING_NAVIGABLE_TRUSTWORTHY_ORIGIN", "qaFallback": "MEMORY_FALLBACK_QA_ONLY"}
+}

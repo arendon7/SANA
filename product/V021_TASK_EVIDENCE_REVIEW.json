@@ -1,0 +1,13 @@
+{
+  "version": "0.21.0-alpha3",
+  "surface": "AGROWAY FIELD / TASK_EVIDENCE_CAPTURE",
+  "status": "READY_FOR_PRODUCT_APPROVAL",
+  "artifact": "AGROWAY_REPO_BOOTSTRAP_v0.21.0-alpha3_TASK_EVIDENCE.zip",
+  "artifactSha256": "1b84784588d39cc1b7676f0c645d06f026f9b3329c6f4e242b0402c873dfd6c6",
+  "designDirection": "guided-evidence-execution",
+  "domainEventsAdded": 0,
+  "workspacesAdded": 0,
+  "validation": {"fieldHomeRegression": "14/14 PASS", "cropCycleRegression": "18/18 PASS", "taskStatic": "20/20 PASS", "browserQa": "37/37 PASS", "typescriptStrict": "PASS", "postgresStructural": "102/102 PASS", "specCompatibility": "23/23 PASS"},
+  "storage": {"blob": "INDEXED_DB_PRODUCTION_BOUNDARY", "outboxCarriesBlob": false, "digest": "SHA-256", "qaFallback": "MEMORY_FALLBACK_QA_ONLY"},
+  "trust": {"canonicalDomainEventClaimedForLocalEnvelope": false, "aiApproval": false, "passportCertified": false, "humanProductApproval": "PENDING"}
+}
