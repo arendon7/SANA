@@ -1,11 +1,11 @@
 {
-  "patch": {
-    "version": "0.20.2-rc4",
-    "artifact": "AGROWAY_v0.20.2-rc4_V015R_FULL_RECONSTRUCTION.zip",
-    "sha256": "855d0e65bc92ae25c044175935c0f3f159d4ebdad48eb5011bc83145e5b88dd2",
-    "zipEntries": 232,
-    "payloadFiles": 212,
-    "indexedFiles": 230
+  "currentDevelopmentBaseline": {
+    "version": "0.20.2-rc6",
+    "artifact": "AGROWAY_REPO_BOOTSTRAP_v0.20.2-rc6_DESIGN_ENGINEERING_FULL.zip",
+    "sha256": "e868e31d779e5818604c72e809becc4cc5fe4f3c6c1a1634757fd214516d7cec",
+    "zipEntries": 386,
+    "trustMode": "RECONSTRUCTED_V015R_FULL_NOT_HISTORICAL_SHA",
+    "productionEquivalent": false
   },
   "historicalBase": {
     "version": "0.15.0-rc1",
@@ -17,33 +17,26 @@
     "version": "0.15R-full-rc1",
     "artifact": "AGROWAY_v0.15R-full-rc1_RECONSTRUCTED_BASELINE.zip",
     "sha256": "ad1de9f9442f70613433f8721a021c09bb50b4d08ca196213b67aefca447db21",
-    "trustMode": "RECONSTRUCTED_CANONICAL_NOT_BYTE_IDENTICAL",
     "historicalEquivalentClaim": false
   },
-  "fullReconstructedRepository": {
-    "version": "0.20.2-rc4",
-    "artifact": "AGROWAY_REPO_BOOTSTRAP_v0.20.2-rc4_RECONSTRUCTED_FULL.zip",
-    "sha256": "b444f4e7cc68000ea8a030a53dccb96ffd905588fd146245883b7076c37ab783",
-    "trustMode": "RECONSTRUCTED_V015R_FULL_NOT_HISTORICAL_SHA",
-    "productionEquivalent": false
+  "designSkillPins": {
+    "emilkowalski/skills": "78761e1b57f97dce65b983d640c70a68f39e8163",
+    "pbakaus/impeccable": "ae388ac58fb33aade50fc47e2be07c3192dcaabd",
+    "Leonxlnx/taste-skill": "e988add20dab0fa97d7a76781c48961c8184288e",
+    "vercel-labs/agent-skills": "7c180d9044c9ae2b442b567aad4e42a28dd5ed62"
   },
-  "intermediateReconstruction": {
-    "label": "v0.16R",
-    "historicalOriginalZipExists": false,
-    "domainEventsAdded": 12,
-    "permissionsAdded": 2,
-    "workspacesAdded": 3
+  "designPolicy": {
+    "productApprovedIsNotProductionApproved": true,
+    "majorSurfaceRequiresMultipleDirections": true,
+    "noAutomaticMergeDeployRollback": true,
+    "brandCanonOverridesGenericSkillTaste": true,
+    "figmaIsEvidenceNotExecutableTruth": true,
+    "humanAuthorityRequiredForProduction": true
   },
   "overlayTrust": {
     "productionBaseTrustMode": "PRODUCTION_EXACT_V015_SHA",
     "reconstructedBaseTrustMode": "RECONSTRUCTED_V015R_FULL_NOT_HISTORICAL_SHA",
     "syntheticCompatibilityTrustMode": "SYNTHETIC_COMPATIBILITY_ONLY",
     "productionGateAcceptsReconstructedOrSyntheticBase": false
-  },
-  "materializationPolicy": {
-    "verifyBaseBeforeOverlay": true,
-    "failClosedOnAnyHashMismatch": true,
-    "doNotMutateSourceArtifacts": true,
-    "outputVersion": "0.20.2-rc4"
   }
 }
