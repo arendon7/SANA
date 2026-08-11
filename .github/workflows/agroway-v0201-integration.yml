@@ -1,62 +1,22 @@
-name: AGROWAY v0.20.1 integration
+name: AGROWAY v0.20.1 legacy integration
 
+# Historical/provenance-only workflow.
+# The original workflow assumed an exact v0.16 ZIP that was never generated.
+# Reconstructed v0.21 FIELD pull requests must not be blocked by that obsolete premise.
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - "packages/**"
-      - "services/**"
-      - "infra/**"
-      - "scripts/**"
-      - ".github/workflows/agroway-v0201-integration.yml"
 
 permissions:
   contents: read
 
 jobs:
-  integration:
+  legacy-integration:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    services:
-      postgres:
-        image: postgis/postgis:16-3.4
-        env:
-          POSTGRES_DB: agroway_ci
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: agroway_ci
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres -d agroway_ci"
-          --health-interval 2s
-          --health-timeout 3s
-          --health-retries 30
-    env:
-      DATABASE_URL: postgresql://postgres:agroway_ci@localhost:5432/agroway_ci
-      CI: "true"
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-
-      - name: Verify materialized repository
-        shell: bash
+      - name: Historical boundary
         run: |
-          test -f package.json || { echo "AGROWAY v0.16 exact base has not been materialized yet"; exit 1; }
-          test -f package-lock.json || { echo "Real repository lockfile is missing"; exit 1; }
-
-      - name: Install repository dependencies from lockfile
-        run: npm ci
-
-      - name: Install PostgreSQL client
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client
-
-      - name: Static hardening gate
-        run: npm run guardrail:v0201
-
-      - name: Full v0.17-v0.20.1 integration gate
-        run: node scripts/run-private-ci-v0201.mjs --runtime --build
+          echo 'LEGACY_V0201_MANUAL_ONLY'
+          echo 'This workflow is retained for provenance/reference and is not a v0.21 FIELD release gate.'
+          echo 'Use AGROWAY FIELD v0.21 alpha runtime for the current incremental runtime gate.'
