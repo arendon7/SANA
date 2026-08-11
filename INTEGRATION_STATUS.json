@@ -1,0 +1,34 @@
+{
+  "product": "AGROWAY",
+  "repository": "arendon7/SANA",
+  "targetVersion": "0.20.1-rc1",
+  "status": "WAITING_FOR_EXACT_V016_BASE",
+  "approvedBase": {
+    "artifact": "AGROWAY_REPO_BOOTSTRAP_v0.16.0-rc1.zip",
+    "sha256": "12f33aed9b60cfe4a0f97e65a65d35dd665cfa3cfeb9e218934a1b056d943d8d"
+  },
+  "prepared": {
+    "baselineLock": true,
+    "integrationRunbook": true,
+    "v0201Workflow": true,
+    "postgisDisposableRuntime": true,
+    "privateCiRunner": true,
+    "v0201Guardrail": true,
+    "v0201Validator": true
+  },
+  "notClaimedAsPassed": [
+    "positive cumulative overlay",
+    "npm ci against real lockfile",
+    "full workspace tsc",
+    "full Vitest",
+    "PostgreSQL/PostGIS migrations 0017-0021 runtime",
+    "cross-tenant RLS runtime",
+    "Vite/Expo builds",
+    "Graphify real",
+    "real agricultural pilot certification"
+  ],
+  "domain": {
+    "conceptualDomainEvents": 218,
+    "cumulativeNewWorkspacesOverV016": 12
+  }
+}
