@@ -1,7 +1,7 @@
 {
   "product": "AGROWAY",
   "repository": "arendon7/SANA",
-  "targetVersion": "0.20.2-rc2",
+  "targetVersion": "0.20.2-rc3",
   "status": "WAITING_FOR_EXACT_V015_BASE",
   "approvedBase": {
     "artifact": "AGROWAY_REPO_BOOTSTRAP_v0.15.0-rc1.zip",
@@ -16,10 +16,17 @@
     "targetDomainEventsAfterLayer": 145
   },
   "lockedPatch": {
-    "artifact": "AGROWAY_v0.20.2-rc2_REBASED_FROM_V015.zip",
-    "sha256": "0e39e545a27a7595d4cdbbdee46720a3c28129b039a77e37c8eeaf1527ad564f",
-    "payloadFiles": 205,
-    "zipEntries": 214
+    "artifact": "AGROWAY_v0.20.2-rc3_OVERLAY_ENGINE_HARDENING.zip",
+    "sha256": "417324b6c37c6da6bcbfe7283ad533345a8afa1235e46377a647fba583460a00",
+    "payloadFiles": 207,
+    "zipEntries": 226
+  },
+  "overlayValidation": {
+    "sharedOverlayEngine": true,
+    "syntheticCompatibilityOverlay": "PASS_SYNTHETIC_ONLY",
+    "syntheticOverlayDeterministic": true,
+    "productionShaGateRejectsSyntheticBase": true,
+    "productionTrustValidatorRejectsSyntheticMaterialization": true
   },
   "prepared": {
     "baselineLock": true,
@@ -28,6 +35,8 @@
     "v016RGuardrail": true,
     "v016RValidator": true,
     "v016RFocalRuntime": true,
+    "overlayEngineSmoke": true,
+    "materializationTrustValidator": true,
     "v0202WorkflowInPatch": true,
     "postgisDisposableRuntime": true,
     "privateCiRunnerInPatch": true,
