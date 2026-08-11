@@ -103,7 +103,32 @@ The historical prototype shows that AGROWAY already treated field operations as 
 
 SANA / AGROWAY must remain an **agricultural operating system**, not merely an AI assistant or sensor dashboard. AI, IoT, Control Tower and certification are layers over the operational field model; they do not replace operators, tasks, lots, execution evidence, inventory or agronomic work history.
 
-## 5. Provenance rule
+## 5. SaaS contract — tenant, access and portability evidence
+
+Google Drive source: `CONTRATO SaaS SOFTWARE AGROWAY 030523.docx`
+
+Drive file id: `1mMmmIrUyGJDpHGNVdF9KyWsBrVM_Qd0Z`
+
+Historical contractual behavior includes:
+
+- AGROWAY defined as a crop traceability and administration SaaS for small/medium organizations;
+- subscriber-controlled access levels for invited users;
+- accounts constrained by authorized users/modules/companies;
+- subscription/module-based service boundaries;
+- customer responsibility for activity performed with its accounts;
+- data entered under the customer's authority;
+- ability to download/export information when service ends so customer data is not lost.
+
+### Modern invariants recovered from the SaaS contract
+
+- tenant isolation and RBAC are product requirements, not optional infrastructure details;
+- invited/delegated users must remain attributable to the subscriber/tenant;
+- module entitlements must not weaken domain authorization;
+- data export/portability must be preserved in the modern platform;
+- cross-tenant references must be impossible at both RLS and relational-integrity layers;
+- account/subscription state must never rewrite historical traceability records.
+
+## 6. Provenance rule
 
 Historical Drive documents are classified as `HISTORICAL_PRODUCT_EVIDENCE`.
 
