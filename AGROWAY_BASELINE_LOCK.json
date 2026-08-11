@@ -1,22 +1,37 @@
 {
   "product": "AGROWAY",
   "brand": "SANA",
-  "approvedBase": {
-    "version": "0.16.0-rc1",
-    "artifact": "AGROWAY_REPO_BOOTSTRAP_v0.16.0-rc1.zip",
-    "sha256": "12f33aed9b60cfe4a0f97e65a65d35dd665cfa3cfeb9e218934a1b056d943d8d",
-    "zipEntries": 363,
-    "payloadFiles": 361,
-    "domainEvents": 145,
-    "workspacesServices": 28
+  "approvedRealBase": {
+    "version": "0.15.0-rc1",
+    "artifact": "AGROWAY_REPO_BOOTSTRAP_v0.15.0-rc1.zip",
+    "sha256": "323006fdf3e3b13caaa5594c3be3d50dadac21498f2c26a23b83e2d5d3de09c4",
+    "domainEvents": 133,
+    "permissions": 109,
+    "canonItems": 19,
+    "migrations": 21
+  },
+  "v016Reconstruction": {
+    "label": "v0.16R",
+    "historicalOriginalZipExists": false,
+    "newDomainEvents": 12,
+    "targetDomainEvents": 145,
+    "newPermissions": 2,
+    "newWorkspaces": 3,
+    "workspaces": [
+      "services/knowledge-registry",
+      "services/ai-gateway",
+      "services/agronomy-copilot"
+    ]
   },
   "preparedIntegration": {
-    "version": "0.20.1-rc1",
+    "version": "0.20.2-rc2",
     "conceptualDomainEvents": 218,
-    "cumulativeNewWorkspaces": 12,
-    "status": "WAITING_FOR_EXACT_BASE_ARTIFACT"
+    "cumulativeNewWorkspacesOverV015": 15,
+    "status": "WAITING_FOR_EXACT_V015_BASE_ARTIFACT"
   },
   "rules": {
+    "neverRequireNonexistentV016Zip": true,
+    "labelV016AsReconstructed": true,
     "failClosedOnBaseHashMismatch": true,
     "failClosedOnPatchHashMismatch": true,
     "technicalCiIsNecessaryButNotSufficient": true,
