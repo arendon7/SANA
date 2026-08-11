@@ -1,0 +1,18 @@
+{
+  "schema": "agroway-screen-design/1.0",
+  "screen": "TRACEABILITY_PASSPORT_ASSEMBLY",
+  "surface": "apps/field-web",
+  "version": "0.21.0-alpha6",
+  "job": "Assemble the exact traceability evidence chain for one tenant/farm/plot/crop-cycle, show deterministic completeness and eligibility, and preserve the human certification boundary without ever issuing a certificate locally.",
+  "trust": "DEMO_RECONSTRUCTED",
+  "taste": {"variance": 4, "motion": 1, "density": 6},
+  "directionsConsidered": ["certificate-card", "traceability-timeline", "evidence-completeness-workspace"],
+  "selectedDirection": "evidence-completeness-workspace",
+  "informationOrder": ["cycle identity", "required evidence sections", "canonical versus local-pending status", "assembly digest", "gaps", "human certification boundary"],
+  "eligibilityStates": ["MISSING_EVIDENCE", "ASSEMBLY_READY", "ELIGIBLE_FOR_HUMAN_CERTIFICATION"],
+  "forbiddenStates": ["CERTIFIED"],
+  "authority": {"aiCanSign": false, "localUiCanIssueCertificate": false, "humanSignerRequired": true, "certificationDecisionDigestSource": "SERVER_ONLY"},
+  "provenance": {"rawProviderPayloadVisible": false, "assemblyDigest": "SHA-256", "assemblyDigestEqualsCertificationDecisionDigest": false},
+  "gates": {"D0_truth": "PASS", "D1_productBrief": "PASS", "D2_functionalArchitecture": "PASS", "D3_ux": "PASS", "D4_designDirection": "PASS", "D5_designSystem": "PASS_WITH_SEMANTIC_COLOR_TOKENS_PENDING_EXACT_BRAND_VALUES", "D6_contentAssets": "PASS_NO_EXTERNAL_ASSETS", "D7_mockData": "PASS_DEMO_LABELED", "D8_selfContainedPreview": "PASS", "D9_qa": "PASS_BROWSER_INLINE_RENDER_1440_390_36_CHECKS", "D10_humanProductApproval": "PENDING"},
+  "browserQA": {"mode": "PLAYWRIGHT_INLINE_RENDER", "canonicalPassportRuntime": "PENDING_BACKEND_SYNC", "certificateIssuanceRuntime": "PROHIBITED_IN_FIELD_UI", "checks": "36/36 PASS"}
+}
