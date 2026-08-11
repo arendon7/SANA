@@ -4,8 +4,8 @@ on:
   pull_request:
     paths:
       - "apps/field-web/**"
-      - "infra/postgres/migrations/0024_sync_ingress_ack.sql"
-      - "infra/postgres/tests/v0210_sync_ingress_ack_runtime.sql"
+      - "infra/postgres/migrations/**"
+      - "infra/postgres/tests/**"
       - "scripts/local-dev-backend-http-runtime.mjs"
       - "config/design/screens/local-dev-backend-runtime.json"
       - ".github/workflows/agroway-v021-field-alpha.yml"
@@ -15,9 +15,9 @@ concurrency:
 permissions:
   contents: read
 jobs:
-  alpha10-incremental-runtime:
+  cumulative-runtime:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     services:
       postgres:
         image: postgis/postgis:16-3.4
@@ -39,22 +39,39 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+
+      - name: Verify reconstructed migration inventory
+        shell: bash
+        run: |
+          set -euo pipefail
+          count=$(find infra/postgres/migrations -maxdepth 1 -type f -name '*.sql' | wc -l | tr -d ' ')
+          test "$count" = "30" || { echo "expected 30 physical migration files, found $count"; exit 1; }
+          test -f infra/postgres/migrations/0001_extensions.sql
+          test -f infra/postgres/migrations/0016_knowledge_ai_copilot_reconstructed.sql
+          test -f infra/postgres/migrations/0022_domain_integrity_hardening.sql
+          test -f infra/postgres/migrations/0023_access_entitlements_portability.sql
+          test -f infra/postgres/migrations/0024_sync_ingress_ack.sql
+          echo "PASS_RECONSTRUCTED_MIGRATION_INVENTORY_30"
+
       - name: Syntax-check local dev backend
         run: |
           node --check apps/field-web/dev-runtime.mjs
           node --check apps/field-web/server.mjs
           node --check scripts/local-dev-backend-http-runtime.mjs
+
       - name: Local dev HTTP backend runtime
         run: node scripts/local-dev-backend-http-runtime.mjs
+
       - name: Install PostgreSQL client
         run: |
           sudo apt-get update
           sudo apt-get install -y postgresql-client
-      - name: Apply alpha10 sync ingress/ACK migration in PostGIS
-        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f infra/postgres/migrations/0024_sync_ingress_ack.sql
-      - name: Run alpha10 sync ingress/ACK adversarial SQL tests
-        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f infra/postgres/tests/v0210_sync_ingress_ack_runtime.sql
-      - name: Explicit cumulative-boundary notice
+
+      - name: Cumulative PostgreSQL/PostGIS runtime 0001-0024
+        shell: bash
+        run: bash infra/postgres/tests/run-v0202-db-tests.sh
+
+      - name: Runtime boundary
         run: |
-          echo 'PASS_ALPHA10_INCREMENTAL_RUNTIME_ONLY'
-          echo 'Cumulative reconstructed PostgreSQL/PostGIS 0001-0024 remains PENDING until the full migration chain is physically persisted in this GitHub branch.'
+          echo 'PASS_RECONSTRUCTED_POSTGIS_CUMULATIVE_0001_0024'
+          echo 'This proves the reconstructed migration chain and adversarial DB suites in CI; it does not prove byte identity with the lost historical v0.15 artifact or real agricultural pilot certification.'
