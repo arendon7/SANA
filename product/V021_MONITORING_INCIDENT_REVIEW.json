@@ -1,0 +1,7 @@
+{
+  "version":"0.21.0-alpha5","surface":"AGROWAY FIELD / MONITORING_INCIDENT_RESOLUTION","status":"READY_FOR_PRODUCT_APPROVAL",
+  "artifact":"AGROWAY_REPO_BOOTSTRAP_v0.21.0-alpha5_MONITORING_INCIDENT.zip","artifactSha256":"89afbf1ea12aa639825ce99a0ba95135bb3fd6d2fce75faca3bc2b1081d3b810",
+  "designDirection":"deterministic-incident-workspace","domainEventsAdded":0,"workspacesAdded":0,
+  "validation":{"static":"18/18 PASS","browserQa":"50/50 PASS","typescriptStrict":"PASS","postgresStructural":"102/102 PASS","specCompatibility":"23/23 PASS","privateCi":"PASS_WITH_PENDING"},
+  "trust":{"canonicalStateAfterLocalCloseProposal":"OPEN","aiCanResolve":false,"rawProviderPayloadVisible":false,"canonicalRuntime":"PENDING","humanProductApproval":"PENDING"}
+}

@@ -1,0 +1,11 @@
+{
+  "schema":"agroway-screen-design/1.0","screen":"MONITORING_INCIDENT_RESOLUTION","surface":"apps/field-web","version":"0.21.0-alpha5",
+  "job":"Let an operator review a deterministic agronomic incident from normalized facts through human field verification and record a local decision without allowing AI or an offline device to mutate the canonical incident state.",
+  "trust":"DEMO_RECONSTRUCTED","taste":{"variance":4,"motion":2,"density":6},
+  "directionsConsidered":["alert-card-detail","sensor-debug-console","deterministic-incident-workspace"],"selectedDirection":"deterministic-incident-workspace",
+  "informationOrder":["canonical incident state","normalized fact + event/received time","deterministic rule","human verification","rule-constrained local decision","pending decision history"],
+  "authority":{"deterministicRuleAuthoritative":true,"aiCanResolve":false,"offlineCanMutateCanonicalIncident":false,"humanVerificationRequired":true},
+  "localEnvelope":{"kind":"LOCAL_MONITORING_INCIDENT_DECISION_RECORDED","canonicalDomainEventClaimed":false},
+  "gates":{"D0_truth":"PASS","D1_productBrief":"PASS","D2_functionalArchitecture":"PASS","D3_ux":"PASS","D4_designDirection":"PASS","D5_designSystem":"PASS_WITH_SEMANTIC_COLOR_TOKENS_PENDING_EXACT_BRAND_VALUES","D6_contentAssets":"PASS_NO_EXTERNAL_ASSETS","D7_mockData":"PASS_DEMO_LABELED","D8_selfContainedPreview":"PASS","D9_qa":"PASS_BROWSER_INLINE_RENDER_1440_390_50_CHECKS","D10_humanProductApproval":"PENDING"},
+  "browserQA":{"mode":"PLAYWRIGHT_INLINE_RENDER","checks":"50/50 PASS","canonicalIncidentRuntime":"PENDING_BACKEND_SYNC","providerIngestionRuntime":"PENDING"}
+}
