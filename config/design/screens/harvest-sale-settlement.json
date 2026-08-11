@@ -1,0 +1,18 @@
+{
+  "schema": "agroway-screen-design/1.0",
+  "screen": "HARVEST_SALE_SETTLEMENT_WORKSPACE",
+  "surface": "apps/field-web",
+  "version": "0.21.0-alpha7",
+  "job": "Record harvest output, bind a sale to the exact output lot and crop cycle, and prepare settlement with deterministic integer money while keeping all offline records explicitly local until canonical Production/Commerce acceptance.",
+  "trust": "DEMO_RECONSTRUCTED",
+  "taste": {"variance":4,"motion":2,"density":6},
+  "directionsConsidered": ["three-admin-forms","commerce-dashboard","linked-output-commerce-chain"],
+  "selectedDirection": "linked-output-commerce-chain",
+  "informationOrder": ["immutable cycle context","harvest output + evidence","local sellable balance","buyer/PO + quantity + deterministic price","settlement inherited from sale","canonical acceptance boundary","Passport projection"],
+  "guardrails": {"positiveHarvestQuantity":true,"saleCannotExceedLocalUnsoldHarvest":true,"currency":"COP","moneyStorage":"INTEGER_MINOR_UNITS","settlementInheritsSaleCurrencyAndAmount":true,"duplicateLocalSettlementBlocked":true,"offlineCanonicalMutation":false,"aiCanApprovePriceSaleSettlement":false},
+  "localEnvelopes": ["LOCAL_HARVEST_OUTPUT_RECORDED","LOCAL_SALE_RECORDED","LOCAL_SETTLEMENT_RECORDED"],
+  "canonicalDomainEventsAdded": 0,
+  "passport": {"localHarvestStatus":"LOCAL_PENDING","canonicalHarvestRequiredForCompleteCanonical":true,"certificateIssuedByUi":false},
+  "gates": {"D0_truth":"PASS","D1_productBrief":"PASS","D2_functionalArchitecture":"PASS","D3_ux":"PASS","D4_designDirection":"PASS","D5_designSystem":"PASS_WITH_SEMANTIC_COLOR_TOKENS_PENDING_EXACT_BRAND_VALUES","D6_contentAssets":"PASS_NO_EXTERNAL_ASSETS","D7_mockData":"PASS_DEMO_LABELED","D8_selfContainedPreview":"PASS","D9_qa":"PASS_BROWSER_INLINE_RENDER_1440_390_85_CHECKS","D10_humanProductApproval":"PENDING"},
+  "browserQA": {"mode":"PLAYWRIGHT_INLINE_RENDER","checks":"85/85 PASS","productionCanonicalRuntime":"PENDING_BACKEND_SYNC","commerceCanonicalRuntime":"PENDING_BACKEND_SYNC"}
+}
