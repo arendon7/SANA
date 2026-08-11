@@ -1,0 +1,24 @@
+{
+  "product": "AGROWAY",
+  "brand": "SANA",
+  "approvedBase": {
+    "version": "0.16.0-rc1",
+    "artifact": "AGROWAY_REPO_BOOTSTRAP_v0.16.0-rc1.zip",
+    "sha256": "12f33aed9b60cfe4a0f97e65a65d35dd665cfa3cfeb9e218934a1b056d943d8d",
+    "zipEntries": 363,
+    "payloadFiles": 361,
+    "domainEvents": 145,
+    "workspacesServices": 28
+  },
+  "preparedIntegration": {
+    "version": "0.20.1-rc1",
+    "conceptualDomainEvents": 218,
+    "cumulativeNewWorkspaces": 12,
+    "status": "WAITING_FOR_EXACT_BASE_ARTIFACT"
+  },
+  "rules": {
+    "failClosedOnBaseHashMismatch": true,
+    "realPilotCertificationRequiresHumanSigner": true,
+    "syntheticFixtureIsNotRealCertification": true
+  }
+}
