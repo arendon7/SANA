@@ -1,15 +1,31 @@
 {
   "patch": {
-    "version": "0.20.2-rc3",
-    "artifact": "AGROWAY_v0.20.2-rc3_OVERLAY_ENGINE_HARDENING.zip",
-    "sha256": "417324b6c37c6da6bcbfe7283ad533345a8afa1235e46377a647fba583460a00",
-    "zipEntries": 226,
-    "payloadFiles": 207
+    "version": "0.20.2-rc4",
+    "artifact": "AGROWAY_v0.20.2-rc4_V015R_FULL_RECONSTRUCTION.zip",
+    "sha256": "855d0e65bc92ae25c044175935c0f3f159d4ebdad48eb5011bc83145e5b88dd2",
+    "zipEntries": 232,
+    "payloadFiles": 212,
+    "indexedFiles": 230
   },
-  "base": {
+  "historicalBase": {
     "version": "0.15.0-rc1",
     "artifact": "AGROWAY_REPO_BOOTSTRAP_v0.15.0-rc1.zip",
-    "sha256": "323006fdf3e3b13caaa5594c3be3d50dadac21498f2c26a23b83e2d5d3de09c4"
+    "sha256": "323006fdf3e3b13caaa5594c3be3d50dadac21498f2c26a23b83e2d5d3de09c4",
+    "artifactRecovered": false
+  },
+  "reconstructedBase": {
+    "version": "0.15R-full-rc1",
+    "artifact": "AGROWAY_v0.15R-full-rc1_RECONSTRUCTED_BASELINE.zip",
+    "sha256": "ad1de9f9442f70613433f8721a021c09bb50b4d08ca196213b67aefca447db21",
+    "trustMode": "RECONSTRUCTED_CANONICAL_NOT_BYTE_IDENTICAL",
+    "historicalEquivalentClaim": false
+  },
+  "fullReconstructedRepository": {
+    "version": "0.20.2-rc4",
+    "artifact": "AGROWAY_REPO_BOOTSTRAP_v0.20.2-rc4_RECONSTRUCTED_FULL.zip",
+    "sha256": "b444f4e7cc68000ea8a030a53dccb96ffd905588fd146245883b7076c37ab783",
+    "trustMode": "RECONSTRUCTED_V015R_FULL_NOT_HISTORICAL_SHA",
+    "productionEquivalent": false
   },
   "intermediateReconstruction": {
     "label": "v0.16R",
@@ -20,13 +36,14 @@
   },
   "overlayTrust": {
     "productionBaseTrustMode": "PRODUCTION_EXACT_V015_SHA",
+    "reconstructedBaseTrustMode": "RECONSTRUCTED_V015R_FULL_NOT_HISTORICAL_SHA",
     "syntheticCompatibilityTrustMode": "SYNTHETIC_COMPATIBILITY_ONLY",
-    "productionGateAcceptsSyntheticFixture": false
+    "productionGateAcceptsReconstructedOrSyntheticBase": false
   },
   "materializationPolicy": {
     "verifyBaseBeforeOverlay": true,
     "failClosedOnAnyHashMismatch": true,
     "doNotMutateSourceArtifacts": true,
-    "outputVersion": "0.20.2-rc3"
+    "outputVersion": "0.20.2-rc4"
   }
 }
