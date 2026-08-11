@@ -1,63 +1,48 @@
 {
   "product": "AGROWAY",
   "repository": "arendon7/SANA",
-  "targetVersion": "0.20.2-rc4",
-  "status": "RECONSTRUCTED_FULL_BUILD_AVAILABLE_WITH_RUNTIME_PENDING",
+  "targetVersion": "0.20.2-rc5",
+  "status": "RECONSTRUCTED_FULL_BUILD_PASS_WITH_RUNTIME_PENDING",
   "historicalV015": {
     "version": "0.15.0-rc1",
-    "artifact": "AGROWAY_REPO_BOOTSTRAP_v0.15.0-rc1.zip",
     "sha256": "323006fdf3e3b13caaa5594c3be3d50dadac21498f2c26a23b83e2d5d3de09c4",
     "artifactRecovered": false,
     "blockingReconstructedDevelopment": false
   },
   "reconstructedV015": {
     "version": "0.15R-full-rc1",
-    "artifact": "AGROWAY_v0.15R-full-rc1_RECONSTRUCTED_BASELINE.zip",
     "sha256": "ad1de9f9442f70613433f8721a021c09bb50b4d08ca196213b67aefca447db21",
     "byteIdenticalToHistoricalV015": false,
     "workspaces": 26,
     "domainEvents": 133,
     "permissions": 109,
-    "migrations": 21,
-    "canon": 19,
-    "memory": 16
-  },
-  "v016Reconstruction": {
-    "label": "v0.16R",
-    "historicalOriginalZipExists": false,
-    "domainEventsAdded": 12,
-    "permissionsAdded": 2,
-    "workspacesAdded": 3,
-    "targetDomainEventsAfterLayer": 145
-  },
-  "lockedPatch": {
-    "artifact": "AGROWAY_v0.20.2-rc4_V015R_FULL_RECONSTRUCTION.zip",
-    "sha256": "855d0e65bc92ae25c044175935c0f3f159d4ebdad48eb5011bc83145e5b88dd2",
-    "indexedFiles": 230,
-    "zipEntries": 232,
-    "payloadFiles": 212
+    "migrations": 21
   },
   "reconstructedFullRepository": {
-    "artifact": "AGROWAY_REPO_BOOTSTRAP_v0.20.2-rc4_RECONSTRUCTED_FULL.zip",
-    "sha256": "b444f4e7cc68000ea8a030a53dccb96ffd905588fd146245883b7076c37ab783",
-    "zipEntries": 357,
+    "artifact": "AGROWAY_REPO_BOOTSTRAP_v0.20.2-rc5_RECONSTRUCTED_FULL.zip",
+    "sha256": "356af3151945e1bf4bd86382d0a2b38e6a2af50a16b9eee7190b2f7e656428bb",
+    "zipEntries": 360,
+    "indexedFiles": 359,
     "workspaces": 41,
     "conceptualDomainEvents": 218,
     "trustMode": "RECONSTRUCTED_V015R_FULL_NOT_HISTORICAL_SHA",
     "productionEquivalent": false
   },
   "passed": {
-    "productionShaGateRejectsReconstructedBase": true,
-    "reconstructedOverlayDeterministic": true,
-    "reconstructedMaterializationTrust": true,
     "offlinePackageLockGeneration": true,
     "offlineNpmCiWorkspaceLinking": true,
     "internalWorkspaceVersionMismatches": 0,
     "fullRootTypeScriptStrict": true,
     "v015RThroughV0202Guardrails": true,
     "v016RFocalRuntimeChecks": 9,
-    "investmentPilotReplayFocalRuntimeChecks": 13,
-    "migration0016RlsQuotingFixedAndGuarded": true
+    "nodeTestVitestCompatSpecFiles": 11,
+    "nodeTestVitestCompatTests": 23,
+    "postgresStructuralMigrationFiles": 28,
+    "postgresStructuralChecks": 102,
+    "tenantCurrentSettingValidEscapedOccurrences": 10,
+    "tenantAwareForeignKeys": 33,
+    "forceRlsTables": 35,
+    "privateCiStatus": "PASS_WITH_PENDING"
   },
   "pendingRuntime": [
     "real Vitest runtime",
