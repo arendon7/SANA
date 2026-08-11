@@ -7,14 +7,28 @@
     "artifact": "AGROWAY_REPO_BOOTSTRAP_v0.16.0-rc1.zip",
     "sha256": "12f33aed9b60cfe4a0f97e65a65d35dd665cfa3cfeb9e218934a1b056d943d8d"
   },
+  "lockedPatch": {
+    "artifact": "AGROWAY_v0.20.1-rc1_INTEGRATION_HARDENING_PATCH.zip",
+    "sha256": "0a57ea26dec7c01dbf54c510563afc1153f8f0e350ef4971b99103fe6187f6c9",
+    "payloadFiles": 155
+  },
   "prepared": {
     "baselineLock": true,
+    "patchArtifactLock": true,
+    "twoArtifactFailClosedMaterializer": true,
     "integrationRunbook": true,
     "v0201Workflow": true,
     "postgisDisposableRuntime": true,
     "privateCiRunner": true,
     "v0201Guardrail": true,
-    "v0201Validator": true
+    "v0201Validator": true,
+    "historicalSourceMap": true,
+    "historicalRequirementsGapMatrix": true
+  },
+  "materializationAcceptance": {
+    "technicalCiRequired": true,
+    "historicalCoreCapabilitiesMustBeVerified": true,
+    "syntheticPilotCannotSatisfyRealCertification": true
   },
   "notClaimedAsPassed": [
     "positive cumulative overlay",
@@ -23,6 +37,8 @@
     "full Vitest",
     "PostgreSQL/PostGIS migrations 0017-0021 runtime",
     "cross-tenant RLS runtime",
+    "offline/deferred sync runtime",
+    "historical field-operations acceptance matrix",
     "Vite/Expo builds",
     "Graphify real",
     "real agricultural pilot certification"
