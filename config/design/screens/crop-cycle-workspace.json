@@ -1,0 +1,17 @@
+{
+  "schema": "agroway-screen-design/1.0",
+  "screen": "CROP_CYCLE_WORKSPACE",
+  "surface": "apps/field-web",
+  "version": "0.21.0-alpha2",
+  "job": "Let a field operator and agronomic reviewer understand where a crop cycle is, compare the active plan with normalized field evidence, record local evidence, and trace deterministic decisions without losing lot context.",
+  "trust": "DEMO_RECONSTRUCTED",
+  "taste": {"variance": 4, "motion": 3, "density": 6},
+  "directionsConsidered": ["cycle-kpi-dashboard", "agronomy-notebook", "longitudinal-crop-workspace"],
+  "selectedDirection": "longitudinal-crop-workspace",
+  "informationOrder": ["cycle identity and phenological stage", "operational exception", "plan versus current stage", "normalized monitoring facts", "deterministic decisions", "chronological evidence and provenance"],
+  "offline": {"shellCache": true, "localPlanEvidence": true, "localObservationCapture": true, "serverSyncClaimed": false},
+  "aiBoundary": {"state": "DRAFT_SUGGESTION", "humanApprovalRequired": true, "rawProviderPayloadVisible": false, "deterministicRulesAuthoritative": true},
+  "passportBoundary": {"previewOnly": true, "realCertificationClaimed": false, "humanSignerRequiredForRealCertification": true},
+  "gates": {"D0_truth": "PASS", "D1_productBrief": "PASS", "D2_functionalArchitecture": "PASS", "D3_ux": "PASS", "D4_designDirection": "PASS", "D5_designSystem": "PASS_WITH_SEMANTIC_COLOR_TOKENS_PENDING_EXACT_BRAND_VALUES", "D6_contentAssets": "PASS_NO_EXTERNAL_ASSETS", "D7_mockData": "PASS_DEMO_LABELED", "D8_selfContainedPreview": "PASS", "D9_qa": "PASS_BROWSER_INLINE_RENDER_1440_390_29_CHECKS", "D10_humanProductApproval": "PENDING"},
+  "browserQA": {"mode": "PLAYWRIGHT_INLINE_RENDER", "checks": "29/29 PASS", "navigationRestriction": "ADMIN_POLICY_BLOCKS_LOCALHOST_AND_FILE", "serviceWorkerRuntime": "PENDING_NAVIGABLE_BROWSER_ENVIRONMENT"}
+}
