@@ -1,20 +1,27 @@
 {
   "patch": {
-    "version": "0.20.2-rc1",
-    "artifact": "AGROWAY_v0.20.2-rc1_DOMAIN_INTEGRITY_CUMULATIVE_PATCH.zip",
-    "sha256": "77d31f8a23b48c0a798e6c56b8cc92caf2a66befd2a9bce42ebea9814176833a",
-    "zipEntries": 179,
-    "payloadFiles": 170
+    "version": "0.20.2-rc2",
+    "artifact": "AGROWAY_v0.20.2-rc2_REBASED_FROM_V015.zip",
+    "sha256": "0e39e545a27a7595d4cdbbdee46720a3c28129b039a77e37c8eeaf1527ad564f",
+    "zipEntries": 214,
+    "payloadFiles": 205
   },
   "base": {
-    "version": "0.16.0-rc1",
-    "artifact": "AGROWAY_REPO_BOOTSTRAP_v0.16.0-rc1.zip",
-    "sha256": "12f33aed9b60cfe4a0f97e65a65d35dd665cfa3cfeb9e218934a1b056d943d8d"
+    "version": "0.15.0-rc1",
+    "artifact": "AGROWAY_REPO_BOOTSTRAP_v0.15.0-rc1.zip",
+    "sha256": "323006fdf3e3b13caaa5594c3be3d50dadac21498f2c26a23b83e2d5d3de09c4"
+  },
+  "intermediateReconstruction": {
+    "label": "v0.16R",
+    "historicalOriginalZipExists": false,
+    "domainEventsAdded": 12,
+    "permissionsAdded": 2,
+    "workspacesAdded": 3
   },
   "materializationPolicy": {
     "verifyBothArtifactsBeforeExtraction": true,
     "failClosedOnAnyHashMismatch": true,
     "doNotMutateSourceArtifacts": true,
-    "outputVersion": "0.20.2-rc1"
+    "outputVersion": "0.20.2-rc2"
   }
 }
