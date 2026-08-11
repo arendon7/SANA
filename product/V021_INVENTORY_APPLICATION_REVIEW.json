@@ -1,0 +1,11 @@
+{
+  "version":"0.21.0-alpha4",
+  "surface":"AGROWAY FIELD / INVENTORY_APPLICATION_WORKFLOW",
+  "status":"READY_FOR_PRODUCT_APPROVAL",
+  "artifact":"AGROWAY_REPO_BOOTSTRAP_v0.21.0-alpha4_INVENTORY_APPLICATION.zip",
+  "artifactSha256":"d369cce27e17fa676be1fdfa63d12e88bbf41f8e91a9cf6dad340c0792ec72c2",
+  "designDirection":"supply-linked-application-workspace",
+  "domainEventsAdded":0,"workspacesAdded":0,
+  "validation":{"static":"20/20 PASS","browserQa":"45/45 PASS","typescriptStrict":"PASS","postgresStructural":"102/102 PASS","specCompatibility":"23/23 PASS","privateCi":"PASS_WITH_PENDING"},
+  "trust":{"canonicalInventoryMutatedOffline":false,"negativeProjectedInventoryAllowed":false,"localEnvelopeCanonicalDomainEvent":false,"canonicalSupplyRuntime":"PENDING","humanProductApproval":"PENDING"}
+}
