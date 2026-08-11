@@ -18,6 +18,9 @@
   },
   "rules": {
     "failClosedOnBaseHashMismatch": true,
+    "failClosedOnPatchHashMismatch": true,
+    "technicalCiIsNecessaryButNotSufficient": true,
+    "historicalCoreAcceptanceMatrixRequired": true,
     "realPilotCertificationRequiresHumanSigner": true,
     "syntheticFixtureIsNotRealCertification": true
   }
