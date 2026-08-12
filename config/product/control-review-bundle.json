@@ -51,6 +51,7 @@
     "config/design/screens/evidence-decision-ledger.json",
     "config/design/screens/human-approval-queue.json",
     "config/design/screens/submission-handoff.json",
-    "config/design/screens/unified-control-flow.json"
+    "config/design/screens/unified-control-flow.json",
+    "config/product/control-operational-acceptance.json"
   ]
 }
