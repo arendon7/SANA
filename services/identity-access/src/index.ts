@@ -44,6 +44,20 @@ function unique<T>(items:readonly T[]):T[]{return [...new Set(items)]}
 function roleCeiling(roles:readonly Role[]):Set<Permission>{return new Set(roles.flatMap(role=>ROLE_PERMISSION_CEILING[role]??[]))}
 export function effectivePermissions(membership:Membership):readonly Permission[]{if(!membership.active)return[];const ceiling=roleCeiling(membership.roles);return unique(membership.grantedPermissions.filter(permission=>ceiling.has(permission))).sort()}
 export function requirePermission(membership:Membership,check:PermissionCheck):void{if(membership.tenantId!==check.tenantId||membership.actorId!==check.actorId)throw new Error('MEMBERSHIP_SCOPE_MISMATCH');if(!membership.active)throw new Error('MEMBERSHIP_INACTIVE');if(!effectivePermissions(membership).includes(check.permission))throw new Error('PERMISSION_DENIED')}
+
+export interface MembershipPermissionAuthorizer {
+  tenantId:string;
+  actorId:string;
+  require(permission:Permission):void;
+}
+export function createMembershipPermissionAuthorizer(membership:Membership):MembershipPermissionAuthorizer{
+  return Object.freeze({
+    tenantId:membership.tenantId,
+    actorId:membership.actorId,
+    require(permission:Permission):void{requirePermission(membership,{tenantId:membership.tenantId,actorId:membership.actorId,permission});},
+  });
+}
+
 export function createInvitation(input:Readonly<{membership:Membership;invitationId:string;email:string;roles:readonly Exclude<Role,'OWNER'>[];grantedPermissions:readonly Permission[];createdAt:string;expiresAt:string}>):TenantInvitation{requirePermission(input.membership,{tenantId:input.membership.tenantId,actorId:input.membership.actorId,permission:'identity:manage'});const email=input.email.trim().toLowerCase();if(!/^\S+@\S+\.\S+$/.test(email))throw new Error('INVALID_INVITATION_EMAIL');if(!input.roles.length)throw new Error('INVITATION_ROLE_REQUIRED');if(isoMs(input.expiresAt)<=isoMs(input.createdAt))throw new Error('INVALID_INVITATION_EXPIRY');const ceiling=roleCeiling(input.roles);const granted=unique(input.grantedPermissions);if(granted.some(permission=>!ceiling.has(permission)))throw new Error('INVITATION_PERMISSION_EXCEEDS_ROLE');return Object.freeze({tenantId:input.membership.tenantId,invitationId:input.invitationId,email,invitedByActorId:input.membership.actorId,roles:unique(input.roles),grantedPermissions:granted,state:'PENDING',createdAt:input.createdAt,expiresAt:input.expiresAt})}
 export function resolveEntitlement(subscription:TenantSubscription,capability:ProductCapability,asOf:string):EntitlementDecision{const now=isoMs(asOf),from=isoMs(subscription.effectiveFrom),until=subscription.effectiveUntil?isoMs(subscription.effectiveUntil):null;if(subscription.status!=='ACTIVE'||now<from||(until!==null&&now>=until))return Object.freeze({allowed:false,capability,reason:'SUBSCRIPTION_INACTIVE'});if(PLAN_CAPABILITIES[subscription.plan].includes(capability))return Object.freeze({allowed:true,capability,reason:'PLAN_INCLUDED'});if(subscription.addOns.some(addOn=>ADD_ON_CAPABILITIES[addOn]===capability))return Object.freeze({allowed:true,capability,reason:'ADD_ON_INCLUDED'});return Object.freeze({allowed:false,capability,reason:'NOT_ENTITLED'})}
 export function requireEntitlement(subscription:TenantSubscription,capability:ProductCapability,asOf:string):void{if(!resolveEntitlement(subscription,capability,asOf).allowed)throw new Error('ENTITLEMENT_DENIED')}
