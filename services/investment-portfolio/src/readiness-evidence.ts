@@ -6,7 +6,6 @@ import type {
 import type {
   CapitalReadinessSqlExecutor,
   CapitalReadinessSqlResult,
-  CapitalReadinessSqlScalar,
   CapitalReadinessSqlTransaction,
 } from './readiness-persistence.js';
 
@@ -37,7 +36,6 @@ function iso(value:string,code:string):string{if(!Number.isFinite(Date.parse(val
 function digest(value:string):string{if(!SHA256.test(value))throw new Error('READINESS_EVIDENCE_DIGEST_INVALID');return value;}
 function unique(values:readonly string[],code:string):readonly string[]{const normalized=values.map(v=>nonBlank(v,code));if(!normalized.length)throw new Error(`${code}_REQUIRED`);if(new Set(normalized).size!==normalized.length)throw new Error(`${code}_DUPLICATE`);return Object.freeze(normalized.sort());}
 function rowCount(result:CapitalReadinessSqlResult<object>,expected:number,code:string):void{if(result.rowCount!==expected)throw new Error(`${code}:EXPECTED_${expected}_GOT_${result.rowCount}`);}
-function sameScope(a:Readonly<{tenantId:string;projectId:string;assessmentVersion:number;gapId:string}>,b:Readonly<{tenantId:string;projectId:string;assessmentVersion:number;gapId:string}>,code:string):void{if(a.tenantId!==b.tenantId||a.projectId!==b.projectId||a.assessmentVersion!==b.assessmentVersion||a.gapId!==b.gapId)throw new Error(code);}
 
 async function inTenantTransaction<T>(executor:CapitalReadinessSqlExecutor,tenantId:string,work:(tx:CapitalReadinessSqlTransaction)=>Promise<T>):Promise<T>{
   const tenant=nonBlank(tenantId,'READINESS_EVIDENCE_TENANT_REQUIRED');
@@ -120,8 +118,9 @@ export async function registerAuthorizedReadinessEvidenceReceipt(
 }
 
 /**
- * Links validated receipts to one canonical gap by appending an
- * EVIDENCE_SUBMITTED transition. This does not resolve or waive the gap.
+ * Links validated receipts submitted by the authenticated actor to one canonical
+ * gap by appending an EVIDENCE_SUBMITTED transition. This does not resolve or
+ * waive the gap.
  */
 export async function submitAuthorizedReadinessGapEvidence(
   executor:CapitalReadinessSqlExecutor,
@@ -130,6 +129,7 @@ export async function submitAuthorizedReadinessGapEvidence(
   command:SubmitReadinessGapEvidence,
 ):Promise<void>{
   if(authority.tenantId!==gap.tenantId)throw new Error('READINESS_EVIDENCE_AUTHORITY_TENANT_MISMATCH');
+  nonBlank(authority.actorId,'READINESS_EVIDENCE_AUTHORITY_ACTOR_REQUIRED');
   authority.require(READINESS_EVIDENCE_SUBMIT_PERMISSION);
   if(command.tenantId!==gap.tenantId||command.projectId!==gap.projectId||command.assessmentVersion!==gap.assessmentVersion||command.gapId!==gap.gapId)throw new Error('READINESS_EVIDENCE_COMMAND_SCOPE_MISMATCH');
   if(command.fromState!==gap.state)throw new Error('READINESS_EVIDENCE_COMMAND_STATE_STALE');
@@ -144,8 +144,8 @@ export async function submitAuthorizedReadinessGapEvidence(
       SELECT evidence_ref AS "evidenceRef"
       FROM agroway_invest.readiness_evidence_receipt
       WHERE tenant_id=$1 AND project_id=$2 AND assessment_id=$3 AND assessment_version=$4 AND gap_id=$5
-        AND validation_state='VALIDATED' AND evidence_ref = ANY($6::text[])
-      ORDER BY evidence_ref`,[gap.tenantId,gap.projectId,command.assessmentId,gap.assessmentVersion,gap.gapId,evidenceRefs]);
+        AND submitted_by_actor_ref=$6 AND validation_state='VALIDATED' AND evidence_ref = ANY($7::text[])
+      ORDER BY evidence_ref`,[gap.tenantId,gap.projectId,command.assessmentId,gap.assessmentVersion,gap.gapId,authority.actorId,evidenceRefs]);
     const found=receipts.rows.map(row=>row.evidenceRef).sort();
     if(found.length!==evidenceRefs.length||found.some((ref,index)=>ref!==evidenceRefs[index]))throw new Error('READINESS_EVIDENCE_RECEIPT_SET_MISMATCH');
     const latest=await tx.query<GapTransitionRow>(`/* readiness-evidence:latest-gap-transition */
