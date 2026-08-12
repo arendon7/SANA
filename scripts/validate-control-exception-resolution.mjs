@@ -1,0 +1,10 @@
+import {readFile,stat} from 'node:fs/promises';
+const root=new URL('../',import.meta.url);
+const files=['apps/control-web/src/exception-resolution-model.ts','apps/control-web/public/index.html','apps/control-web/public/app.js','apps/control-web/public/styles.css','apps/control-web/public/service-worker.js','apps/control-web/server.mjs','config/design/screens/exception-resolution-workspace.json'];
+let checks=0;const pass=(name,ok)=>{checks++;if(!ok)throw new Error(`FAIL:${name}`);console.log(`PASS ${name}`)};
+for(const f of files){await stat(new URL(f,root));pass(`file:${f}`,true)}
+const model=await readFile(new URL('apps/control-web/src/exception-resolution-model.ts',root),'utf8');const app=await readFile(new URL('apps/control-web/public/app.js',root),'utf8');const html=await readFile(new URL('apps/control-web/public/index.html',root),'utf8');const cfg=JSON.parse(await readFile(new URL('config/design/screens/exception-resolution-workspace.json',root),'utf8'));
+for(const token of ['HUMAN_ACTOR_REQUIRED','RESOLUTION_OWNER_REQUIRED','RESOLUTION_ROOT_CAUSE_REQUIRED','RESOLUTION_EVIDENCE_REQUIRED','RESOLUTION_NOTE_REQUIRED','CRITICAL_EXCEPTION_CANNOT_BE_SUPPRESSED','DRAFT_SUGGESTION','ADVISORY_ONLY','canonicalMutated:false','localOnly:true'])pass(`model:${token}`,model.includes(token));
+for(const token of ['DRAFT_SUGGESTION','ADVISORY_ONLY','CRITICAL_EXCEPTION_CANNOT_BE_SUPPRESSED','RESOLUTION_OWNER_REQUIRED','RESOLUTION_EVIDENCE_REQUIRED','localOnly=true','canonicalMutated=false'])pass(`ui:${token}`,app.includes(token)||html.includes(token));
+pass('config:screen',cfg.screenId==='CONTROL_EXCEPTION_RESOLUTION_WORKSPACE');pass('config:route',cfg.route==='/control/exceptions');pass('config:d10',cfg.d10HumanProductApproval==='PENDING');pass('config:guardrails',Array.isArray(cfg.guardrails)&&cfg.guardrails.length>=5);pass('config:humanActions',cfg.humanActions.includes('RESOLVE')&&cfg.humanActions.includes('REOPEN'));
+console.log(`PASS_CONTROL_EXCEPTION_RESOLUTION_STATIC ${checks}/${checks}`);

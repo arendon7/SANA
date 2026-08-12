@@ -1,0 +1,9 @@
+import http from 'node:http';
+import { readFile, stat } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+const here=path.dirname(fileURLToPath(import.meta.url));const root=path.join(here,'public');const port=Number(process.env.PORT||4273);
+const types={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.webmanifest':'application/manifest+json; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml'};
+const headers={'cache-control':'no-store','x-content-type-options':'nosniff','referrer-policy':'no-referrer','x-frame-options':'DENY','permissions-policy':'geolocation=(), microphone=(), camera=()'};
+const server=http.createServer(async(req,res)=>{try{const url=new URL(req.url||'/',`http://${req.headers.host||'127.0.0.1'}`);if(!['GET','HEAD'].includes(req.method||'')){res.writeHead(405,headers);return res.end();}let rel=decodeURIComponent(url.pathname).replace(/^\/+/, '');if(!rel||rel==='control'||rel.startsWith('control/'))rel='index.html';let target=path.resolve(root,rel);if(!target.startsWith(path.resolve(root)))throw new Error('PATH_REJECTED');try{if((await stat(target)).isDirectory())target=path.join(target,'index.html')}catch{target=path.join(root,'index.html')}const body=await readFile(target);res.writeHead(200,{...headers,'content-type':types[path.extname(target)]||'application/octet-stream','content-length':body.length});if(req.method==='HEAD')return res.end();res.end(body);}catch(error){const body=Buffer.from(JSON.stringify({error:error.message,trust:'DEMO_RECONSTRUCTED'}));res.writeHead(500,{...headers,'content-type':'application/json','content-length':body.length});res.end(body);}});
+server.listen(port,'127.0.0.1',()=>console.log(`GREENATICS CONTROL v0.22 alpha3 http://127.0.0.1:${port}/control/exceptions`));
