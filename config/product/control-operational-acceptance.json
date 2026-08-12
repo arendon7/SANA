@@ -20,13 +20,12 @@
     {"id":"PRODUCTION_IDENTITY_SESSION_ADAPTER","status":"PENDING_PRODUCTION","reason":"No real production OIDC/SAML identity provider/session adapter is connected in alpha9. Review fixtures are not production credentials."},
     {"id":"CANONICAL_WRITE_ADAPTER","status":"PENDING_PRODUCTION","reason":"CONTROL deliberately has no canonical execution/write adapter; authorization can stop at AUTHORIZED_FOR_ADAPTER and executionState remains NOT_EXECUTED."},
     {"id":"EXTERNAL_ACK_ADAPTER","status":"PENDING_PRODUCTION","reason":"ACK_PENDING is explicit and no external ACK is claimed."},
-    {"id":"DIRECT_MONOREPO_ROOT_LOCK","status":"SEPARATE_DEBT","reason":"The legacy/direct-monorepo root-lock workflow remains a separate red persistence debt and is not reclassified by CONTROL alpha9 PASS."}
+    {"id":"DIRECT_MONOREPO_ROOT_LOCK","status":"PASS_REPO_HARDENING","reason":"The directly persisted reconstructed 41-workspace graph is complete and reproducible under the canonical root lock. GitHub Actions run 31565161405 passed topology/lock/toolchain validation, 41-workspace inventory, npm ci --offline, and pinned TypeScript 5.8.3 strict.","evidence":["PASS_DIRECT_ROOT_PERSISTENCE 380/380","PASS_DIRECT_WORKSPACE_INVENTORY_41","npm ci --ignore-scripts --offline: 41 packages added / 83 audited / 0 vulnerabilities","PASS_DIRECT_RECONSTRUCTED_41_WORKSPACE_ROOT_NPM_CI_PINNED_TSC","GitHub Actions run 31565161405"]}
   ],
   "productionBlockers": [
     "PRODUCTION_IDENTITY_SESSION_ADAPTER_ABSENT",
     "CANONICAL_WRITE_ADAPTER_INTENTIONALLY_ABSENT",
     "EXTERNAL_ACK_ADAPTER_ABSENT",
-    "DIRECT_MONOREPO_ROOT_LOCK_DEBT",
     "D10_HUMAN_PRODUCT_APPROVAL_PENDING"
   ],
   "authority": {"approval":"HUMAN_ONLY","ai":"ADVISORY_ONLY","authorizationOutputCeiling":"AUTHORIZED_FOR_ADAPTER","executionState":"NOT_EXECUTED","canonicalMutated":false},

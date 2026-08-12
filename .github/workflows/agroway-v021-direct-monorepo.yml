@@ -10,6 +10,8 @@ on:
       - "apps/**"
       - "packages/**"
       - "services/**"
+      - "config/reconstruction/direct-root-persistence.json"
+      - "scripts/validate-direct-root-persistence.mjs"
       - ".github/workflows/agroway-v021-direct-monorepo.yml"
 concurrency:
   group: agroway-v021-direct-${{ github.event.pull_request.number || github.ref }}
@@ -25,6 +27,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+
+      - name: Validate direct persistence topology, lock parity, and pinned toolchain
+        run: node scripts/validate-direct-root-persistence.mjs
 
       - name: Verify direct 41-workspace inventory
         shell: bash
@@ -55,10 +60,11 @@ jobs:
       - name: Offline workspace installation from canonical root lockfile
         run: npm ci --ignore-scripts --offline
 
-      - name: Direct root TypeScript strict
-        run: npm run typecheck
+      - name: Pinned TypeScript 5.8.3 strict
+        run: npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit
 
       - name: Direct root boundary
         run: |
-          echo 'PASS_DIRECT_RECONSTRUCTED_41_WORKSPACE_ROOT_NPM_CI_TSC'
-          echo 'This proves the directly persisted reconstructed workspace graph. It does not claim byte identity with the lost historical v0.15 release.'
+          echo 'PASS_DIRECT_RECONSTRUCTED_41_WORKSPACE_ROOT_NPM_CI_PINNED_TSC'
+          echo 'Offline proof applies to the local workspace graph/install. TypeScript strict is separately pinned to 5.8.3, matching the approved CONTROL toolchain.'
+          echo 'This does not claim byte identity with the lost historical v0.15 release.'

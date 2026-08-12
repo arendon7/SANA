@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "targetVersion": "0.21.0-alpha10",
+  "trust": "RECONSTRUCTED_DIRECT_PERSISTENCE_NOT_HISTORICAL_BYTE_IDENTITY",
+  "source": {
+    "artifact": "AGROWAY_REPO_BOOTSTRAP_v0.20.2-rc4_RECONSTRUCTED_FULL.zip",
+    "sha256": "b444f4e7cc68000ea8a030a53dccb96ffd905588fd146245883b7076c37ab783",
+    "sourceTrust": "RECONSTRUCTED_V015R_FULL_NOT_HISTORICAL_SHA",
+    "normalization": "workspace manifests normalized to 0.21.0-alpha10; alpha9 identity-access source preserved"
+  },
+  "restoredWorkspaces": [
+    "services/identity-access",
+    "services/investment-portfolio",
+    "services/control-tower-projector",
+    "services/control-tower-copilot",
+    "services/knowledge-evidence-resolver",
+    "services/pilot-certifier",
+    "services/pilot-replay-auditor"
+  ],
+  "canonicalWorkspaceCorrection": {
+    "externalDataContracts": "packages/external-data-contracts",
+    "incorrectDuplicateServicePathCreated": false
+  },
+  "toolchain": {
+    "nodeMajor": 22,
+    "npmReference": "10.9.2",
+    "typescript": "5.8.3",
+    "typescriptInvocation": "npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit",
+    "offlineScope": "WORKSPACE_LINK_INSTALL_ONLY"
+  },
+  "invariants": {
+    "workspaceCount": 41,
+    "localDependencyVersion": "0.21.0-alpha10",
+    "packageLockRequired": true,
+    "offlineNpmCiRequired": true,
+    "rootTypeScriptStrictRequired": true,
+    "pinnedTypeScriptCompilerRequired": true
+  },
+  "historicalProductionEquivalenceClaimed": false
+}

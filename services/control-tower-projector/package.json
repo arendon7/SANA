@@ -1,0 +1,12 @@
+{
+  "name": "@agroway/control-tower-projector",
+  "version": "0.21.0-alpha10",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@agroway/invest-control-contracts": "0.21.0-alpha10",
+    "@agroway/investment-portfolio": "0.21.0-alpha10"
+  },
+  "scripts": {"typecheck": "tsc -p tsconfig.json --noEmit"},
+  "exports": {".": "./src/index.ts"}
+}

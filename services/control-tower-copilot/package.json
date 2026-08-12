@@ -1,0 +1,8 @@
+{
+  "name": "@agroway/control-tower-copilot",
+  "version": "0.21.0-alpha10",
+  "private": true,
+  "type": "module",
+  "dependencies": {"@agroway/copilot-knowledge-contracts": "0.21.0-alpha10"},
+  "scripts": {"typecheck": "tsc -p tsconfig.json --noEmit"}
+}

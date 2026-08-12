@@ -1,0 +1,2 @@
+import type { EvidenceFreshness } from '@agroway/copilot-knowledge-contracts';
+export function evaluateFreshness(observedAt:string|undefined,asOf:string,maxAgeSeconds:number|undefined):EvidenceFreshness {if(!observedAt || maxAgeSeconds===undefined) return 'UNKNOWN';const observed=Date.parse(observedAt), now=Date.parse(asOf);if(!Number.isFinite(observed)||!Number.isFinite(now)) return 'UNKNOWN';const age=Math.max(0,(now-observed)/1000);return age<=maxAgeSeconds?'FRESH':'STALE';}
