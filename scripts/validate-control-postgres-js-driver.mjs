@@ -28,7 +28,7 @@ check('index:export',index.includes("export * from './postgres-js-pool-factory.j
 check('vendor:commit-pin',materializer.includes("const COMMIT='e7dfa14519f363229ccc3ead7b1b2f2051937efb'"));
 check('vendor:git-blob-integrity',materializer.includes("createHash('sha1')")&&materializer.includes('POSTGRES_JS_VENDOR_UPSTREAM_INTEGRITY_MISMATCH'));
 check('vendor:license-preserved',materializer.includes("'UNLICENSE':'efb98088164f5786b17e83ed384971fc3c74f93c'"));
-check('vendor:no-floating-tag-download',materializer.includes(`raw.githubusercontent.com/porsager/postgres/\${COMMIT}`)===false&&materializer.includes('${COMMIT}/${relative}'));
+check('vendor:commit-addressed-download',materializer.includes('raw.githubusercontent.com/porsager/postgres/${COMMIT}/${relative}')&&!materializer.includes('raw.githubusercontent.com/porsager/postgres/${TAG}/'));
 check('npm:root-no-external-deps',root.dependencies===undefined||Object.keys(root.dependencies).length===0);
 check('npm:service-no-postgres-package',!Object.keys(service.dependencies||{}).some(x=>x==='postgres'||x==='pg'));
 check('npm:workspaces-stable',root.workspaces.length===41);
