@@ -1,0 +1,50 @@
+name: AGROWAY CONTROL alpha16 strict typing fixer
+on:
+  push:
+    branches:
+      - feature/control-v022-alpha16
+permissions:
+  contents: write
+jobs:
+  patch-alpha16:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/control-v022-alpha16
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Patch strict CachedJwks typing and runtime callback
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('services/identity-access/src/oidc-production-wiring.ts')
+          s=p.read_text()
+          old="""        const next:Object=Object.freeze({keys,fetchedAtMs,expiresAtMs:fetchedAtMs+this.policy.cacheTtlMs});
+        this.cache=next as CachedJwks;
+        return this.cache;"""
+          new="""        const next:CachedJwks=Object.freeze({keys,fetchedAtMs,expiresAtMs:fetchedAtMs+this.policy.cacheTtlMs});
+        this.cache=next;
+        return next;"""
+          if old not in s: raise SystemExit('CACHED_JWKS_PATTERN_NOT_FOUND')
+          p.write_text(s.replace(old,new,1))
+          r=Path('scripts/control-oidc-production-wiring-runtime.mjs')
+          t=r.read_text()
+          old2="let resolveConcurrent;const concurrentFetcher=async()=>await new Promise(resolve=>{resolveConcurrent=()=>resolve(jsonResponse({keys:[jwk]}))});"
+          new2="let resolveConcurrent=()=>{throw new Error('CONCURRENT_RESOLVER_NOT_READY')};const concurrentFetcher=async()=>await new Promise(resolve=>{resolveConcurrent=()=>resolve(jsonResponse({keys:[jwk]}))});"
+          if old2 not in t: raise SystemExit('RUNTIME_CALLBACK_PATTERN_NOT_FOUND')
+          r.write_text(t.replace(old2,new2,1))
+          PY
+          git diff --check
+          grep -F 'const next:CachedJwks=Object.freeze' services/identity-access/src/oidc-production-wiring.ts
+          grep -F "resolveConcurrent=()=>{throw new Error('CONCURRENT_RESOLVER_NOT_READY')}" scripts/control-oidc-production-wiring-runtime.mjs
+      - name: Persist source fixes only
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add services/identity-access/src/oidc-production-wiring.ts scripts/control-oidc-production-wiring-runtime.mjs
+          git commit -m 'fix(control): satisfy strict alpha16 OIDC wiring types'
+          git push origin HEAD:feature/control-v022-alpha16
