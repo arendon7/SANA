@@ -277,7 +277,7 @@ export function createProductionOidcWiring(env:ProductionOidcEnvironment,fetcher
       evidence=Object.freeze({state:'JWKS_CONNECTED_READ_ONLY_PROBE',issuer:configuration.provider.issuer,jwksUri:configuration.provider.jwksUri,keyCount:probe.keyCount,fetchedAt:probe.fetchedAt,expiresAt:probe.expiresAt,realTokenVerified:false,canonicalMutated:false,executionState:'NOT_EXECUTED'});
       return evidence;
     },
-    async verifySession(input){
+    async verifySession(input:ProductionOidcSessionVerificationInput){
       if(!evidence) throw new Error('PRODUCTION_OIDC_CONNECTIVITY_CERTIFICATION_REQUIRED');
       return verifyOidcProductionSession({idToken:input.idToken,expectedNonce:input.expectedNonce,requestedAt:input.requestedAt,provider:configuration.provider,jwks:resolver});
     }
