@@ -1,0 +1,79 @@
+{
+  "product": "GREENATICS CONTROL",
+  "version": "0.22.0-alpha17",
+  "capability": "PRODUCTION_EXTERNAL_ACK_PROVIDER_CONFIGURATION_AND_CONNECTIVITY_WIRING",
+  "status": "PASS_REVIEW_PENDING_REAL_PROVIDER_BINDING_AND_CONNECTIVITY",
+  "configurationBoundary": {
+    "source": "EXTERNAL_ENVIRONMENT_ONLY",
+    "providerIdRequired": true,
+    "endpointHttpsRequired": true,
+    "metadataHttpsRequired": true,
+    "metadataSameOriginRequired": true,
+    "urlCredentialsForbidden": true,
+    "urlQueryAndFragmentForbidden": true,
+    "loopbackForbidden": true,
+    "authModes": ["NONE", "BEARER"],
+    "bearerCredentialInjectedOnly": true,
+    "verificationKeysInjectedOnly": true,
+    "verificationAlgorithm": "Ed25519",
+    "maxVerificationKeys": 8
+  },
+  "metadataPreflight": {
+    "protocol": "AGROWAY_CONTROL_ACK_PROVIDER_METADATA_V1",
+    "method": "GET",
+    "readOnly": true,
+    "redirectsForbidden": true,
+    "browserInvocationAllowed": false,
+    "providerExactMatch": true,
+    "ackProtocolExactMatch": true,
+    "verificationKeySetExactMatch": true,
+    "readyStateRequired": true,
+    "unknownFieldsRejected": true,
+    "boundedTimeout": true,
+    "boundedResponseBytes": true,
+    "concurrentProbeCoalescing": true,
+    "realAckProducedByPreflight": false
+  },
+  "transportGate": {
+    "transportMaterializationRequiresSuccessfulPreflight": true,
+    "ackProtocol": "AGROWAY_CONTROL_ACK_V1",
+    "adapter": "HttpsExternalAckTransport",
+    "canonicalExecutionByAck": false
+  },
+  "authority": {
+    "approval": "HUMAN_ONLY",
+    "ai": "ADVISORY_ONLY",
+    "browserWriteAllowed": false,
+    "externalAckAdapterImplemented": true,
+    "productionExternalAckProviderWiringImplemented": true,
+    "externalAckProviderConfigured": false,
+    "externalAckProviderConnectivityCertified": false,
+    "realExternalAckObserved": false,
+    "canonicalWriteExecutedByAck": false,
+    "executionState": "NOT_EXECUTED",
+    "canonicalMutated": false,
+    "productionExecutionAvailable": false
+  },
+  "reproducibility": {
+    "canonicalRootLockChanged": false,
+    "canonicalWorkspaceCount": 41,
+    "externalNpmDependencyAdded": false,
+    "nodeStandardLibraryCryptoOnly": true
+  },
+  "evidence": [
+    "services/external-data-gateway/src/control-external-ack-production-wiring.ts",
+    "scripts/validate-control-external-ack-production-wiring.mjs",
+    "scripts/control-external-ack-production-wiring-runtime.mjs",
+    "config/product/control-alpha17-external-ack-production-wiring.json"
+  ],
+  "explicitGaps": [
+    "No real production external ACK provider endpoint or metadata URI is bound.",
+    "No real provider bearer credential is stored in the repository.",
+    "No real provider verification key set is claimed as bound.",
+    "No real provider connectivity or metadata preflight has been certified.",
+    "No real external ACK has been observed or claimed.",
+    "Production PostgreSQL real binding/connectivity remains pending.",
+    "Production identity provider real binding/connectivity remains pending.",
+    "D10 human product approval remains pending."
+  ]
+}

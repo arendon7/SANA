@@ -9,3 +9,4 @@ export * from './providers/remote-sensing.js';
 export * from './lifecycle.js';
 export * from './freshness.js';
 export * from './control-external-ack-adapter.js';
+export * from './control-external-ack-production-wiring.js';
