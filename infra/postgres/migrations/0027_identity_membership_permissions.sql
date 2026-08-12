@@ -1,6 +1,11 @@
 BEGIN;
 
--- UX2B-0 identity persistence foundation.
+-- UX2B-0 identity persistence hardening.
+-- `granted_permissions` was introduced generically by migration 0023. This
+-- migration intentionally reasserts that durable column idempotently and adds
+-- the stricter membership-array constraints required before Capital Readiness
+-- request authority can depend on it.
+--
 -- Existing memberships receive NO implicit Capital Readiness authority.
 -- Explicit grants are stored as data and still remain constrained by the
 -- application role ceiling when a request-scoped authorizer is created.
@@ -31,6 +36,6 @@ DO $$ BEGIN
 END $$;
 
 COMMENT ON COLUMN agroway_identity.membership.granted_permissions IS
-  'Explicit permission grants. Empty by default; roles alone do not grant Capital Readiness mutation authority.';
+  'Explicit permission grants introduced in 0023 and hardened for request authority in 0027. Empty by default; roles alone do not grant Capital Readiness mutation authority.';
 
 COMMIT;
