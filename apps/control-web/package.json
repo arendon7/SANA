@@ -1,0 +1,9 @@
+{
+  "name": "@agroway/control-web",
+  "private": true,
+  "version": "0.21.0-alpha10",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}
