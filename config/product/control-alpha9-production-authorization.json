@@ -1,0 +1,31 @@
+{
+  "product": "GREENATICS CONTROL",
+  "version": "0.22.0-alpha9",
+  "scope": "PRODUCTION_AUTHORIZATION_BOUNDARY_REVIEW",
+  "trust": "DEMO_RECONSTRUCTED",
+  "service": "services/identity-access/src/index.ts",
+  "runtimeFunction": "authorizeProductionOperation",
+  "status": "PASS_REVIEW_PENDING_REAL_IDP_ADAPTER",
+  "outputCeiling": "AUTHORIZED_FOR_ADAPTER",
+  "neverExecutes": true,
+  "requiredInvariants": [
+    "PRODUCTION_SESSION_ACTIVE_AUTHENTICATED",
+    "IDP_ATTESTATION_REQUIRED",
+    "AAL2_OR_AAL3_WITH_MFA",
+    "ACTOR_TENANT_MEMBERSHIP_EXACT_SCOPE",
+    "MUTATING_PERMISSION_WITHIN_ROLE_CEILING",
+    "TARGET_TENANT_PROJECT_EXACT_SCOPE",
+    "SHA256_PROPOSAL_AND_CONTEXT_BINDING",
+    "IDEMPOTENCY_KEY_REQUIRED",
+    "HUMAN_ONLY_APPROVAL",
+    "HIGH_RISK_TWO_DISTINCT_HUMANS",
+    "HIGH_RISK_SEPARATION_OF_DUTIES",
+    "APPROVAL_FRESHNESS_REQUIRED",
+    "NOT_EXECUTED",
+    "CANONICAL_MUTATED_FALSE"
+  ],
+  "realProvider": {"connected": false, "status": "PENDING_PRODUCTION", "acceptableProtocols": ["OIDC", "SAML"]},
+  "authority": {"approval": "HUMAN_ONLY", "ai": "ADVISORY_ONLY", "executionState": "NOT_EXECUTED", "canonicalMutated": false},
+  "domainDelta": {"canonicalDomainEventsAdded": 0, "workspacesAdded": 0},
+  "d10": "PENDING"
+}

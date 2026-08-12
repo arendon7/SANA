@@ -58,9 +58,9 @@ jobs:
           python -m playwright install --with-deps chromium
       - name: Native Chromium Home + Project reintegration over real CONTROL HTTP
         run: python scripts/control-reintegration-http-browser-qa.py
-      - name: Build deterministic alpha8 CONTROL review bundle
+      - name: Build deterministic CONTROL review bundle
         run: node scripts/build-control-review-bundle.mjs
-      - name: Smoke-test six-route review bundle
+      - name: Smoke-test recovered Home + Project in current bundle
         run: |
           PORT=4276 node dist/control-review-bundle/server.mjs > /tmp/control-alpha8-bundle.log 2>&1 &
           PID=$!
@@ -72,11 +72,11 @@ jobs:
           curl -fsS http://127.0.0.1:4276/control/evidence >/dev/null
           curl -fsS http://127.0.0.1:4276/control/approvals >/dev/null
           curl -fsS http://127.0.0.1:4276/control/handoff >/dev/null
-          node -e "const m=require('./dist/control-review-bundle/REVIEW_MANIFEST.json');const a=require('./dist/control-review-bundle/config/product/control-operational-acceptance.json');if(m.version!=='0.22.0-alpha8'||m.routes.length!==6||a.productionReady!==false||a.productionBlockers.length!==5)process.exit(1);console.log('PASS_CONTROL_ALPHA8_BUNDLE',m.fileCount,m.aggregateSha256,a.productionBlockers.length)"
+          node -e "const m=require('./dist/control-review-bundle/REVIEW_MANIFEST.json');const a=require('./dist/control-review-bundle/config/product/control-operational-acceptance.json');if(!['0.22.0-alpha8','0.22.0-alpha9'].includes(m.version)||m.routes.length<6||a.productionReady!==false||a.productionBlockers.length!==5)process.exit(1);console.log('PASS_CONTROL_ALPHA8_COMPAT_BUNDLE',m.version,m.fileCount,m.aggregateSha256,a.productionBlockers.length)"
       - name: Trust boundary
         run: |
           echo 'PASS_CONTROL_ALPHA8_RECOVERED_HOME_PROJECT'
-          echo 'PR9 exact blobs recovered; adapted runtime remains DEMO_RECONSTRUCTED, HUMAN_ONLY, ADVISORY_ONLY, NOT_EXECUTED, canonicalMutated=false, D10=PENDING.'
+          echo 'PR9 exact blobs remain immutable provenance; later CONTROL layers may advance around them without changing recovery truth.'
       - uses: actions/upload-artifact@v4
         if: always()
         with:

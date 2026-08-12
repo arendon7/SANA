@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#173D2B">
+  <title>Production Authorization Boundary · GREENATICS CONTROL</title>
+  <link rel="stylesheet" href="/authorization.css">
+  <link rel="manifest" href="/manifest.webmanifest">
+</head>
+<body>
+  <header class="top">
+    <div>
+      <p class="eyebrow">GREENATICS CONTROL · v0.22.0-alpha9</p>
+      <h1>Production Authorization Boundary</h1>
+      <p class="lede">Frontera determinística previa a cualquier adapter productivo. Esta superficie no contiene credenciales reales y no ejecuta ni modifica estado canónico.</p>
+    </div>
+    <nav aria-label="Navegación de revisión"><a href="/control">Control Tower</a><a href="/control/exceptions">Flujo de decisiones</a></nav>
+  </header>
+  <main>
+    <section class="status-grid" aria-label="Estado de autoridad">
+      <article><span>Sesión</span><strong>AAL2 + MFA</strong><small>IdP attested requerido</small></article>
+      <article><span>Autoridad</span><strong>HUMAN_ONLY</strong><small>AI = ADVISORY_ONLY</small></article>
+      <article><span>Salida máxima</span><strong>AUTHORIZED_FOR_ADAPTER</strong><small>Nunca EXECUTED</small></article>
+      <article><span>Estado canónico</span><strong>canonicalMutated=false</strong><small>financialMutationAvailable=false</small></article>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><div><p class="eyebrow">REVIEW_GATE · DEMO_RECONSTRUCTED</p><h2>Controles obligatorios</h2></div><span class="badge pending">D10 · PENDING</span></div>
+      <div class="rules">
+        <div><b>1</b><span>Sesión activa, autenticada, IdP attested, AAL2/AAL3 y MFA.</span></div><div><b>2</b><span>Actor + membership + tenant deben coincidir exactamente.</span></div><div><b>3</b><span>Permiso mutante efectivo dentro del ceiling del rol.</span></div><div><b>4</b><span>Tenant y proyecto objetivo deben coincidir con el contexto autorizado.</span></div><div><b>5</b><span>Digest SHA-256 de propuesta + contexto y clave de idempotencia válidos.</span></div><div><b>6</b><span>Aprobaciones HUMAN_ONLY; HIGH requiere dos humanos distintos y separación de funciones.</span></div>
+      </div>
+    </section>
+    <section class="panel simulator" aria-labelledby="sim-title">
+      <div class="panel-head"><div><p class="eyebrow">LOCAL REVIEW FIXTURES</p><h2 id="sim-title">Simulador de frontera</h2></div><span class="badge safe">NO NETWORK WRITE</span></div>
+      <p>Los botones solo prueban fixtures locales de UX. La implementación autoritativa se valida en CI compilando <code>services/identity-access/src/index.ts</code>.</p>
+      <div class="actions"><button data-case="valid">Fixture válido</button><button data-case="expired">Sesión expirada</button><button data-case="crossTenant">Cross-tenant</button><button data-case="aiApproval">Aprobación IA</button><button data-case="highRiskOne">HIGH con 1 aprobador</button></div>
+      <output id="decision" class="decision" aria-live="polite">REVIEW_ONLY · esperando fixture</output>
+    </section>
+    <section class="panel"><h2>Lo que alpha9 sí y no prueba</h2><div class="truth"><article><h3>PASS_REVIEW</h3><p>La frontera de autorización, scoping, MFA, permisos, digests, idempotencia y aprobación humana se ejecuta como código de servicio y tiene pruebas negativas.</p></article><article><h3>PENDING_PRODUCTION</h3><p>No existe todavía un adapter real de proveedor de identidad/sesión productiva ni se habilita el adapter canónico de escritura.</p></article></div></section>
+  </main>
+  <footer>approval=HUMAN_ONLY · ai=ADVISORY_ONLY · executionState=NOT_EXECUTED · canonicalMutated=false</footer>
+  <script type="module" src="/authorization.js"></script>
+</body>
+</html>

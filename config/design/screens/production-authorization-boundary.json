@@ -1,0 +1,40 @@
+{
+  "product": "GREENATICS CONTROL",
+  "version": "0.22.0-alpha9",
+  "screen": "PRODUCTION_AUTHORIZATION_BOUNDARY",
+  "route": "/control/authorization",
+  "trust": "DEMO_RECONSTRUCTED",
+  "surfaceState": "REVIEW_ONLY",
+  "realIdentityProviderConnected": false,
+  "authorizationOutput": "AUTHORIZED_FOR_ADAPTER",
+  "executionState": "NOT_EXECUTED",
+  "canonicalMutated": false,
+  "financialMutationAvailable": false,
+  "approvalAuthority": "HUMAN_ONLY",
+  "aiAuthority": "ADVISORY_ONLY",
+  "requiredSession": {
+    "authenticated": true,
+    "providerAttested": true,
+    "minimumAssurance": "AAL2",
+    "mfaVerified": true,
+    "state": "ACTIVE"
+  },
+  "requiredScopeBindings": [
+    "ACTOR",
+    "MEMBERSHIP",
+    "TENANT",
+    "PROJECT",
+    "PERMISSION",
+    "PROPOSAL_DIGEST",
+    "AUTHORIZATION_CONTEXT_DIGEST",
+    "IDEMPOTENCY_KEY"
+  ],
+  "riskPolicy": {
+    "STANDARD": {"humanApprovals": 1, "freshnessHours": 24},
+    "HIGH": {"humanApprovals": 2, "freshnessHours": 4, "separationOfDuties": true}
+  },
+  "providerAdapter": "PENDING_PRODUCTION",
+  "canonicalWriteAdapter": "ABSENT_BY_DESIGN",
+  "d10": "PENDING",
+  "domainDelta": {"canonicalDomainEventsAdded": 0, "workspacesAdded": 0}
+}
