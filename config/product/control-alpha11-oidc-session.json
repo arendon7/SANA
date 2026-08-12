@@ -1,0 +1,48 @@
+{
+  "product": "GREENATICS CONTROL",
+  "version": "0.22.0-alpha11",
+  "scope": "OIDC_PRODUCTION_SESSION_ADAPTER_REVIEW",
+  "trust": "DEMO_RECONSTRUCTED",
+  "authoritativeService": "services/identity-access/src/oidc-session-adapter.ts",
+  "authoritativeFunction": "verifyOidcProductionSession",
+  "status": "PASS_REVIEW_PENDING_REAL_PROVIDER_CONFIGURATION",
+  "verification": {
+    "tokenType": "OIDC_ID_TOKEN",
+    "signatureRequired": true,
+    "allowedAlgorithms": ["RS256", "ES256"],
+    "jwksKeyIdRequired": true,
+    "httpsIssuerRequired": true,
+    "httpsJwksRequired": true,
+    "issuerExact": true,
+    "audienceExact": true,
+    "authorizedPartyEnforcedForMultipleAudience": true,
+    "nonceRequired": true,
+    "expRequired": true,
+    "iatRequired": true,
+    "nbfHonored": true,
+    "maxClockSkewSeconds": 120,
+    "maxTokenAgeSeconds": 3600,
+    "tenantClaimConfigurable": true,
+    "sessionClaimConfigurable": true,
+    "aal2Minimum": true,
+    "mfaEvidenceRequired": true
+  },
+  "output": {
+    "type": "ProductionSession",
+    "provider": "OIDC",
+    "providerAttested": true,
+    "authenticated": true,
+    "feedsAuthorizationBoundary": "authorizeProductionOperation",
+    "authorizationOutputCeiling": "AUTHORIZED_FOR_ADAPTER"
+  },
+  "realProvider": {
+    "configured": false,
+    "secretsStoredInRepository": false,
+    "status": "PENDING_PRODUCTION",
+    "requiredConfiguration": ["issuer", "audience", "jwksUri", "tenantClaim", "sessionIdClaim", "acrAssurance", "mfaAmrValues"]
+  },
+  "browser": {"acceptsTokens": false, "createsProductionSession": false, "reviewOnly": true},
+  "authority": {"approval": "HUMAN_ONLY", "ai": "ADVISORY_ONLY", "executionState": "NOT_EXECUTED"},
+  "domainDelta": {"canonicalDomainEventsAdded": 0, "workspacesAdded": 0},
+  "d10": "PENDING"
+}
