@@ -96,6 +96,7 @@ export function redactProductionPostgresConfig(config:ProductionPostgresConfig):
 export function createProductionPostgresWiring(env:Readonly<Record<string,string|undefined>>,factory:ProductionPostgresPoolFactory):ProductionPostgresWiring {
   const config=resolveProductionPostgresConfig(env);
   const pool=factory.create(config);
+  let connectivityCertified=false;
   return Object.freeze({
     state:'CONFIGURED_NOT_CONNECTED' as const,
     redacted:redactProductionPostgresConfig(config),
@@ -107,10 +108,12 @@ export function createProductionPostgresWiring(env:Readonly<Record<string,string
         const row=result.rows[0];
         if(!row||row.database!==config.database) throw new Error('PRODUCTION_POSTGRES_DATABASE_IDENTITY_MISMATCH');
         if(row.application_name!==config.applicationName) throw new Error('PRODUCTION_POSTGRES_APPLICATION_NAME_MISMATCH');
+        connectivityCertified=true;
         return Object.freeze({state:'CONNECTED_READ_ONLY_PROBE',database:config.database,applicationName:'agroway-control',tlsRequired:true,canonicalWriteExecuted:false});
       }finally{client.release();}
     },
     createCanonicalUnitOfWorkAfterConnectivityCertification():CanonicalInvestmentUnitOfWork{
+      if(!connectivityCertified) throw new Error('PRODUCTION_POSTGRES_CONNECTIVITY_CERTIFICATION_REQUIRED');
       return createPostgresCanonicalInvestmentUnitOfWork(pool);
     }
   });
