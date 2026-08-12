@@ -7,12 +7,8 @@ export const PINNED_POSTGRES_JS_COMMIT='e7dfa14519f363229ccc3ead7b1b2f2051937efb
 export const PINNED_POSTGRES_JS_LICENSE='Unlicense' as const;
 
 interface PostgresJsResult<Row> extends Array<Row> { count?:number|null }
-interface PostgresJsReserved {
-  unsafe<Row=Record<string,unknown>>(text:string,args?:unknown[],options?:{prepare?:boolean}):Promise<PostgresJsResult<Row>>;
-  release():void|Promise<void>;
-}
 interface PostgresJsSql {
-  reserve():Promise<PostgresJsReserved>;
+  unsafe<Row=Record<string,unknown>>(text:string,args?:unknown[],options?:{prepare?:boolean}):Promise<PostgresJsResult<Row>>;
   end(options?:{timeout?:number}):Promise<void>;
 }
 interface PostgresJsOptions {
@@ -31,6 +27,7 @@ interface PostgresJsOptions {
 type PostgresJsConstructor=(options:PostgresJsOptions)=>PostgresJsSql;
 type PostgresJsModule={default:PostgresJsConstructor};
 export type PostgresJsModuleLoader=()=>Promise<PostgresJsModule>;
+type SlotWaiter={resolve:()=>void;reject:(error:Error)=>void;timer:ReturnType<typeof setTimeout>};
 
 export interface PinnedPostgresJsPoolFactory extends ProductionPostgresPoolFactory {
   readonly driver:{readonly name:'postgres.js';readonly version:'3.4.9';readonly commit:string;readonly license:'Unlicense';readonly dependencyCount:0};
@@ -53,21 +50,24 @@ export const loadPinnedPostgresJsModule:PostgresJsModuleLoader=async()=>{
 class PostgresJsClientBridge implements PostgresClientLike {
   private released=false;
   constructor(
-    private readonly reserved:PostgresJsReserved,
+    private readonly sql:PostgresJsSql,
     private readonly queryTimeoutMs:number,
-    private readonly destroyPool:()=>Promise<void>
+    private readonly releaseSql:(sql:PostgresJsSql,hard:boolean)=>Promise<void>
   ){}
   async query<Row=Record<string,unknown>>(text:string,values:unknown[]=[]):Promise<PostgresQueryResult<Row>>{
     if(this.released) throw new Error('POSTGRES_JS_CLIENT_ALREADY_RELEASED');
     let timer:ReturnType<typeof setTimeout>|undefined;
     try{
       const result=await Promise.race([
-        this.reserved.unsafe<Row>(text,values,{prepare:values.length>0}),
+        this.sql.unsafe<Row>(text,values,{prepare:values.length>0}),
         new Promise<never>((_,reject)=>{timer=setTimeout(()=>reject(new Error('POSTGRES_JS_QUERY_TIMEOUT')),this.queryTimeoutMs+250)})
       ]);
       return {rows:Array.from(result),rowCount:typeof result.count==='number'?result.count:result.length};
     }catch(error){
-      if(error instanceof Error&&error.message==='POSTGRES_JS_QUERY_TIMEOUT') await this.destroyPool();
+      if(error instanceof Error&&error.message==='POSTGRES_JS_QUERY_TIMEOUT'){
+        this.released=true;
+        await this.releaseSql(this.sql,true);
+      }
       throw error;
     }finally{
       if(timer!==undefined) clearTimeout(timer);
@@ -76,42 +76,76 @@ class PostgresJsClientBridge implements PostgresClientLike {
   release():void{
     if(this.released) return;
     this.released=true;
-    void this.reserved.release();
+    void this.releaseSql(this.sql,false);
   }
 }
 
 class PostgresJsPoolBridge implements PostgresPoolLike {
   private destroyed=false;
+  private activeSlots=0;
+  private readonly activeSql=new Set<PostgresJsSql>();
+  private readonly waiters:SlotWaiter[]=[];
   constructor(
-    readonly sql:PostgresJsSql,
-    private readonly connectTimeoutMs:number,
-    private readonly queryTimeoutMs:number
+    private readonly construct:PostgresJsConstructor,
+    private readonly config:ProductionPostgresConfig
   ){}
-  private async destroy():Promise<void>{
-    if(this.destroyed) return;
-    this.destroyed=true;
-    await this.sql.end({timeout:0}).catch(()=>undefined);
-  }
-  async connect():Promise<PostgresClientLike>{
+
+  private async acquireSlot():Promise<void>{
     if(this.destroyed) throw new Error('POSTGRES_JS_POOL_DESTROYED');
+    if(this.activeSlots<this.config.maxPoolSize){this.activeSlots++;return}
+    await new Promise<void>((resolve,reject)=>{
+      let waiter:SlotWaiter;
+      const timer=setTimeout(()=>{
+        const index=this.waiters.indexOf(waiter);
+        if(index>=0)this.waiters.splice(index,1);
+        reject(new Error('POSTGRES_JS_POOL_ACQUIRE_TIMEOUT'));
+      },this.config.connectionTimeoutMs+250);
+      waiter={resolve:()=>{clearTimeout(timer);resolve()},reject,timer};
+      this.waiters.push(waiter);
+    });
+    if(this.destroyed) throw new Error('POSTGRES_JS_POOL_DESTROYED');
+    this.activeSlots++;
+  }
+
+  private releaseSlot():void{
+    this.activeSlots=Math.max(0,this.activeSlots-1);
+    const waiter=this.waiters.shift();
+    waiter?.resolve();
+  }
+
+  private async closeSql(sql:PostgresJsSql,hard:boolean):Promise<void>{
+    if(!this.activeSql.delete(sql)) return;
+    try{await sql.end({timeout:hard?0:5})}catch{}
+    finally{this.releaseSlot()}
+  }
+
+  async connect():Promise<PostgresClientLike>{
+    await this.acquireSlot();
+    if(this.destroyed){this.releaseSlot();throw new Error('POSTGRES_JS_POOL_DESTROYED')}
+    const options={...postgresJsOptionsFromProductionConfig(this.config),max:1} as PostgresJsOptions;
+    const sql=this.construct(options);
+    this.activeSql.add(sql);
     let timer:ReturnType<typeof setTimeout>|undefined;
     try{
-      const reserved=await Promise.race([
-        this.sql.reserve(),
-        new Promise<never>((_,reject)=>{timer=setTimeout(()=>reject(new Error('POSTGRES_JS_CONNECT_TIMEOUT')),this.connectTimeoutMs+250)})
+      await Promise.race([
+        sql.unsafe('SELECT 1 AS sana_connection_probe',[],{prepare:false}),
+        new Promise<never>((_,reject)=>{timer=setTimeout(()=>reject(new Error('POSTGRES_JS_CONNECT_TIMEOUT')),this.config.connectionTimeoutMs+250)})
       ]);
-      return new PostgresJsClientBridge(reserved,this.queryTimeoutMs,()=>this.destroy());
+      return new PostgresJsClientBridge(sql,this.config.statementTimeoutMs,(target,hard)=>this.closeSql(target,hard));
     }catch(error){
-      await this.destroy();
+      await this.closeSql(sql,true);
       throw error;
     }finally{
       if(timer!==undefined) clearTimeout(timer);
     }
   }
+
   async close():Promise<void>{
     if(this.destroyed) return;
     this.destroyed=true;
-    await this.sql.end({timeout:5});
+    const error=new Error('POSTGRES_JS_POOL_DESTROYED');
+    while(this.waiters.length){const waiter=this.waiters.shift()!;clearTimeout(waiter.timer);waiter.reject(error)}
+    await Promise.all([...this.activeSql].map(sql=>this.closeSql(sql,true)));
   }
 }
 
@@ -138,7 +172,7 @@ export async function createPinnedPostgresJsPoolFactory(loader:PostgresJsModuleL
   return Object.freeze({
     driver:Object.freeze({name:'postgres.js' as const,version:PINNED_POSTGRES_JS_VERSION,commit:PINNED_POSTGRES_JS_COMMIT,license:PINNED_POSTGRES_JS_LICENSE,dependencyCount:0 as const}),
     create(config:ProductionPostgresConfig):PostgresPoolLike{
-      const pool=new PostgresJsPoolBridge(module.default(postgresJsOptionsFromProductionConfig(config)),config.connectionTimeoutMs,config.statementTimeoutMs);
+      const pool=new PostgresJsPoolBridge(module.default,config);
       pools.add(pool);
       return pool;
     },
