@@ -6,7 +6,9 @@ on:
       - "apps/control-web/**"
       - "config/design/screens/unified-control-flow.json"
       - "config/product/control-review-bundle.json"
+      - "config/product/control-operational-acceptance.json"
       - "scripts/validate-control-unified-flow.mjs"
+      - "scripts/validate-control-operational-acceptance.mjs"
       - "scripts/control-unified-flow-http-browser-qa.py"
       - "scripts/build-control-review-bundle.mjs"
       - "docs/product/V022_UNIFIED_CONTROL_FLOW_VALIDATION.md"
@@ -38,6 +40,7 @@ jobs:
           node --check apps/control-web/public/handoff.js
           node --check apps/control-web/public/service-worker.js
           node --check scripts/validate-control-unified-flow.mjs
+          node --check scripts/validate-control-operational-acceptance.mjs
           node --check scripts/build-control-review-bundle.mjs
           python -m py_compile scripts/control-unified-flow-http-browser-qa.py
       - name: Pinned TypeScript strict
@@ -52,6 +55,8 @@ jobs:
         run: node scripts/validate-control-submission-handoff.mjs
       - name: Alpha7 unified flow guardrails
         run: node scripts/validate-control-unified-flow.mjs
+      - name: Full CONTROL operational acceptance truth gate
+        run: node scripts/validate-control-operational-acceptance.mjs
       - name: Install pinned Playwright Chromium
         run: |
           python -m pip install --disable-pip-version-check playwright==1.57.0
@@ -71,11 +76,11 @@ jobs:
           curl -fsS http://127.0.0.1:4274/control/evidence >/dev/null
           curl -fsS http://127.0.0.1:4274/control/approvals >/dev/null
           curl -fsS http://127.0.0.1:4274/control/handoff >/dev/null
-          node -e "const m=require('./dist/control-review-bundle/REVIEW_MANIFEST.json');if(m.trust!=='DEMO_RECONSTRUCTED'||m.d10!=='PENDING'||m.authority.executionState!=='NOT_EXECUTED'||m.authority.canonicalMutated!==false)process.exit(1);console.log('PASS_CONTROL_REVIEW_BUNDLE_SMOKE',m.fileCount,m.aggregateSha256)"
+          node -e "const m=require('./dist/control-review-bundle/REVIEW_MANIFEST.json');const a=require('./dist/control-review-bundle/config/product/control-operational-acceptance.json');if(m.trust!=='DEMO_RECONSTRUCTED'||m.d10!=='PENDING'||m.authority.executionState!=='NOT_EXECUTED'||m.authority.canonicalMutated!==false||a.productionReady!==false||a.overallStatus!=='REVIEW_READY_WITH_EXPLICIT_GAPS')process.exit(1);console.log('PASS_CONTROL_REVIEW_BUNDLE_SMOKE',m.fileCount,m.aggregateSha256,a.overallStatus)"
       - name: Trust boundary
         run: |
           echo 'PASS_CONTROL_UNIFIED_FLOW_ALPHA7_NATIVE_HTTP'
-          echo 'Exception -> Evidence -> Human Approval -> Handoff preserves HUMAN_ONLY, ADVISORY_ONLY, NOT_EXECUTED, canonicalMutated=false, D10=PENDING.'
+          echo 'Decision-flow is review-ready; full CONTROL remains REVIEW_READY_WITH_EXPLICIT_GAPS and NOT production-ready. HUMAN_ONLY, ADVISORY_ONLY, NOT_EXECUTED, canonicalMutated=false, D10=PENDING.'
       - uses: actions/upload-artifact@v4
         if: always()
         with:
