@@ -52,11 +52,26 @@ export const loadPinnedPostgresJsModule:PostgresJsModuleLoader=async()=>{
 
 class PostgresJsClientBridge implements PostgresClientLike {
   private released=false;
-  constructor(private readonly reserved:PostgresJsReserved){}
+  constructor(
+    private readonly reserved:PostgresJsReserved,
+    private readonly queryTimeoutMs:number,
+    private readonly destroyPool:()=>Promise<void>
+  ){}
   async query<Row=Record<string,unknown>>(text:string,values:unknown[]=[]):Promise<PostgresQueryResult<Row>>{
     if(this.released) throw new Error('POSTGRES_JS_CLIENT_ALREADY_RELEASED');
-    const result=await this.reserved.unsafe<Row>(text,values,{prepare:values.length>0});
-    return {rows:Array.from(result),rowCount:typeof result.count==='number'?result.count:result.length};
+    let timer:ReturnType<typeof setTimeout>|undefined;
+    try{
+      const result=await Promise.race([
+        this.reserved.unsafe<Row>(text,values,{prepare:values.length>0}),
+        new Promise<never>((_,reject)=>{timer=setTimeout(()=>reject(new Error('POSTGRES_JS_QUERY_TIMEOUT')),this.queryTimeoutMs+250)})
+      ]);
+      return {rows:Array.from(result),rowCount:typeof result.count==='number'?result.count:result.length};
+    }catch(error){
+      if(error instanceof Error&&error.message==='POSTGRES_JS_QUERY_TIMEOUT') await this.destroyPool();
+      throw error;
+    }finally{
+      if(timer!==undefined) clearTimeout(timer);
+    }
   }
   release():void{
     if(this.released) return;
@@ -67,7 +82,16 @@ class PostgresJsClientBridge implements PostgresClientLike {
 
 class PostgresJsPoolBridge implements PostgresPoolLike {
   private destroyed=false;
-  constructor(readonly sql:PostgresJsSql,private readonly connectTimeoutMs:number){}
+  constructor(
+    readonly sql:PostgresJsSql,
+    private readonly connectTimeoutMs:number,
+    private readonly queryTimeoutMs:number
+  ){}
+  private async destroy():Promise<void>{
+    if(this.destroyed) return;
+    this.destroyed=true;
+    await this.sql.end({timeout:0}).catch(()=>undefined);
+  }
   async connect():Promise<PostgresClientLike>{
     if(this.destroyed) throw new Error('POSTGRES_JS_POOL_DESTROYED');
     let timer:ReturnType<typeof setTimeout>|undefined;
@@ -76,10 +100,9 @@ class PostgresJsPoolBridge implements PostgresPoolLike {
         this.sql.reserve(),
         new Promise<never>((_,reject)=>{timer=setTimeout(()=>reject(new Error('POSTGRES_JS_CONNECT_TIMEOUT')),this.connectTimeoutMs+250)})
       ]);
-      return new PostgresJsClientBridge(reserved);
+      return new PostgresJsClientBridge(reserved,this.queryTimeoutMs,()=>this.destroy());
     }catch(error){
-      this.destroyed=true;
-      await this.sql.end({timeout:0}).catch(()=>undefined);
+      await this.destroy();
       throw error;
     }finally{
       if(timer!==undefined) clearTimeout(timer);
@@ -115,7 +138,7 @@ export async function createPinnedPostgresJsPoolFactory(loader:PostgresJsModuleL
   return Object.freeze({
     driver:Object.freeze({name:'postgres.js' as const,version:PINNED_POSTGRES_JS_VERSION,commit:PINNED_POSTGRES_JS_COMMIT,license:PINNED_POSTGRES_JS_LICENSE,dependencyCount:0 as const}),
     create(config:ProductionPostgresConfig):PostgresPoolLike{
-      const pool=new PostgresJsPoolBridge(module.default(postgresJsOptionsFromProductionConfig(config)),config.connectionTimeoutMs);
+      const pool=new PostgresJsPoolBridge(module.default(postgresJsOptionsFromProductionConfig(config)),config.connectionTimeoutMs,config.statementTimeoutMs);
       pools.add(pool);
       return pool;
     },
