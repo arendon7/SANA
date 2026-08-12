@@ -35,6 +35,7 @@ export interface CapitalPilotIntake {
   consentSetRef?:string;
   dataPackVersion:string;
   state:CapitalPilotIntakeState;
+  pausedFromState?:Exclude<CapitalPilotIntakeState,'PAUSED'|'WITHDRAWN'>;
   createdAt:ISODateTime;
   updatedAt:ISODateTime;
   supersedesIntakeId?:UUID;
@@ -83,7 +84,13 @@ export interface EvidenceGateDecision {
 
 export interface EvidenceManifestItem {
   evidenceRef:string;
+  sourceKind:ReadinessEvidenceSourceKind;
+  projectEvidenceKind?:EvidenceKind;
   role:string;
+  observedAt:ISODateTime;
+  provenanceRef:string;
+  digestSha256:string;
+  quality:ReadinessEvidenceQuality;
   confidenceBps:number;
   gateDecisions:readonly EvidenceGateDecision[];
 }
@@ -157,6 +164,7 @@ export interface ReadinessGateAssessment {
 export interface GateEvaluationResult {
   assessments:readonly ReadinessGateAssessment[];
   gaps:readonly ReadinessGap[];
+  effectiveCoverageBps:number;
 }
 
 export interface ReadinessAssessment {
@@ -212,6 +220,7 @@ export interface ProductiveRiskProfile {
   asOf:ISODateTime;
   dimensions:readonly ProductiveRiskDimension[];
   openCriticalRiskRefs:readonly UUID[];
+  sourceRiskDigestSha256:string;
   limitations:readonly string[];
   digestSha256:string;
 }
