@@ -29,7 +29,25 @@
     "postgresRuntime": "PENDING_ENVIRONMENT"
   },
   "browser": {"canInvokeAdapter": false, "reviewOnly": true},
-  "authority": {"approval": "HUMAN_ONLY", "ai": "ADVISORY_ONLY"},
+  "authority": {"approval": "HUMAN_ONLY", "ai": "ADVISORY_ONLY", "executionState": "NOT_EXECUTED", "canonicalMutated": false},
+  "certification": {
+    "headSha": "172ca05c224ba5e86ec5d01c6f64c721dad94eae",
+    "workflowRunId": 31604245831,
+    "triggeredWorkflows": {"passed": 9, "total": 9},
+    "directRootPersistence": "380/380 PASS",
+    "productionAuthorizationStatic": "74/74 PASS",
+    "canonicalWriteStatic": "101/101 PASS",
+    "operationalAcceptance": "49/49 PASS",
+    "productionAuthorizationRuntime": "26/26 PASS",
+    "canonicalWriteRuntime": "18/18 PASS",
+    "browserRuntime": "41/41 PASS",
+    "reviewBundleRoutes": "8/8 PASS",
+    "reviewBundleIndexedFiles": 55,
+    "reviewBundleAggregateSha256": "d10c46f6f4bec99cd86188dc17d0263a2b08ba6a29e492cef8d255b7dacc23c8",
+    "reviewBundleArtifactSha256": "16ee88f545c79659433fa38dd364bae122beaa52d7ff9365af4b8a19230a91a8",
+    "writeEvidenceArtifactSha256": "7ba5ae3d816ab929860fe2f25a235f7fefe37df9d46ab46aae5d59caf14f294b"
+  },
+  "productionReady": false,
   "domainDelta": {"canonicalDomainEventsAdded": 0, "workspacesAdded": 0},
   "d10": "PENDING"
 }
