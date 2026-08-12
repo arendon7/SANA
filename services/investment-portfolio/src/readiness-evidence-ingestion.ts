@@ -67,6 +67,11 @@ function deterministicUuid(canonical:string):string{
   const hex=chars.join('');
   return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20,32)}`;
 }
+function sha256Bytes(bytes:Uint8Array):string{
+  const hash=createHash('sha256');
+  (hash.update as unknown as (data:Uint8Array)=>unknown)(bytes);
+  return hash.digest('hex');
+}
 function startsWithBytes(bytes:Uint8Array,expected:readonly number[]):boolean{return bytes.length>=expected.length&&expected.every((value,index)=>bytes[index]===value);}
 function ascii(bytes:Uint8Array,start:number,length:number):string{return String.fromCharCode(...bytes.slice(start,start+length));}
 function signatureMatches(contentType:string,bytes:Uint8Array):boolean{
@@ -141,7 +146,7 @@ export class ReadinessEvidenceIngestionService {
 
     const bytes=await collectBounded(input.content,this.ingestionPolicy.maxBytes);
     if(!signatureMatches(contentType,bytes))throw new Error('READINESS_INGEST_CONTENT_SIGNATURE_MISMATCH');
-    const digestSha256=createHash('sha256').update(bytes).digest('hex');
+    const digestSha256=sha256Bytes(bytes);
     const byteLength=bytes.byteLength;
     const identity=JSON.stringify([input.gap.tenantId,input.gap.projectId,assessmentId,input.gap.assessmentVersion,input.gap.gapId,idempotencyKey]);
     const receiptId=deterministicUuid(identity);
