@@ -22,7 +22,7 @@ await deny('issuer-mismatch','OIDC_ISSUER_MISMATCH',input(mint('RS256',{...paylo
 await deny('audience-mismatch','OIDC_AUDIENCE_MISMATCH',input(mint('RS256',{...payload(),aud:'wrong-api'})));
 await deny('multi-audience-needs-azp','OIDC_AUDIENCE_MISMATCH',input(mint('RS256',{...payload(),aud:[AUD,'secondary-api']})));
 await deny('nonce-bound','OIDC_NONCE_MISMATCH',input(mint('RS256',{...payload(),nonce:'other-nonce'})));
-await deny('expired-token','OIDC_TOKEN_EXPIRED',input(mint('RS256',{...payload(),exp:NOW_S-31})));
+await deny('expired-token','OIDC_TOKEN_EXPIRED',input(mint('RS256',{...payload(),iat:NOW_S-180,nbf:NOW_S-185,exp:NOW_S-31})));
 await deny('future-nbf','OIDC_TOKEN_NOT_YET_VALID',input(mint('RS256',{...payload(),nbf:NOW_S+31})));
 await deny('future-iat','OIDC_TOKEN_ISSUED_IN_FUTURE',input(mint('RS256',{...payload(),iat:NOW_S+31,exp:NOW_S+300})));
 await deny('token-too-old','OIDC_TOKEN_TOO_OLD',input(mint('RS256',{...payload(),iat:NOW_S-700,nbf:NOW_S-700,exp:NOW_S+200})));
