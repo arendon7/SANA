@@ -29,6 +29,6 @@ const selfApproval=approval(req,{approverId:req.requesterId});check('block:self-
 const d10Same=approval(req,{approverId:d.approverId});check('block:d10-approver-reuse',authz.authorize({readiness:r,d10:d,bindings:b,request:req,approval:d10Same}).state==='BLOCKED_ACTIVATION_CEREMONY');
 const approvalAi=approval(req,{actorType:'AI'});check('block:approval-ai',authz.authorize({readiness:r,d10:d,bindings:b,request:req,approval:approvalAi}).state==='BLOCKED_ACTIVATION_CEREMONY');
 const approvalTamper={...ap,approvalDigestSha256:'f'.repeat(64)};check('block:approval-digest',authz.authorize({readiness:r,d10:d,bindings:b,request:req,approval:approvalTamper}).state==='BLOCKED_ACTIVATION_CEREMONY');
-const otherCandidate={...candidate,headSha:'9'.repeat(40)};assert.throws(()=>new ControlProductionActivationAuthorizer(otherCandidate,fixedNow),/PRODUCTION_READINESS_/);check('candidate:strict',true);
+const invalidCandidate={...candidate,headSha:'not-a-sha'};assert.throws(()=>new ControlProductionActivationAuthorizer(invalidCandidate,fixedNow),/PRODUCTION_READINESS_HEAD_SHA_INVALID/);check('candidate:strict',true);
 const openedAgain=authz.authorize({readiness:r,d10:d,bindings:b,request:req,approval:ap});check('deterministic:same-fixed-authorization',openedAgain.authorization.authorizationDigestSha256===opened.authorization.authorizationDigestSha256&&openedAgain.authorization.leaseId===opened.authorization.leaseId);
 console.log(`PASS_CONTROL_PRODUCTION_ACTIVATION_RUNTIME ${passed}/${passed}`);
