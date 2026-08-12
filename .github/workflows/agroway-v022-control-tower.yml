@@ -1,0 +1,85 @@
+name: AGROWAY CONTROL v0.22 product review
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "apps/control-web/**"
+      - "config/design/screens/control-tower-home.json"
+      - "scripts/validate-control-tower-home.mjs"
+      - "scripts/control-tower-browser-qa.mjs"
+      - ".github/workflows/agroway-v022-control-tower.yml"
+permissions:
+  contents: read
+jobs:
+  control-product-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Direct reconstructed root install
+        run: npm ci --ignore-scripts --offline
+      - name: Strict root TypeScript
+        run: npm run typecheck
+      - name: Control Tower static guardrail
+        run: node scripts/validate-control-tower-home.mjs
+      - name: Syntax check executable surface
+        run: |
+          node --check apps/control-web/public/app.js
+          node --check apps/control-web/public/service-worker.js
+          node --check apps/control-web/server.mjs
+          node --check scripts/control-tower-browser-qa.mjs
+      - name: Install pinned Playwright Chromium runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/agroway-control-playwright
+          cp scripts/control-tower-browser-qa.mjs /tmp/agroway-control-playwright/
+          printf '%s\n' '{"private":true,"type":"module"}' > /tmp/agroway-control-playwright/package.json
+          cd /tmp/agroway-control-playwright
+          corepack enable
+          corepack prepare pnpm@10.15.0 --activate
+          pnpm add --ignore-scripts --save-exact playwright@1.57.0
+          pnpm exec playwright --version | grep -F 'Version 1.57.0'
+          pnpm exec playwright install --with-deps chromium
+      - name: Start Control Tower review server
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/agroway-control-evidence
+          mkdir -p /tmp/agroway-control-evidence
+          PORT=4273 node apps/control-web/server.mjs >/tmp/agroway-control-server.log 2>&1 &
+          echo $! >/tmp/agroway-control-server.pid
+          for i in $(seq 1 40); do
+            curl -fsS http://127.0.0.1:4273/control >/dev/null && exit 0
+            sleep .25
+          done
+          cat /tmp/agroway-control-server.log || true
+          exit 1
+      - name: Native Chromium Control Tower QA
+        working-directory: /tmp/agroway-control-playwright
+        env:
+          AGROWAY_CONTROL_BASE_URL: http://127.0.0.1:4273/control
+          AGROWAY_CONTROL_EVIDENCE: /tmp/agroway-control-evidence
+        run: node control-tower-browser-qa.mjs
+      - name: Product review boundary
+        run: |
+          echo 'READY_FOR_CONTROL_PRODUCT_APPROVAL_D10_PENDING'
+          echo 'CI PASS does not approve product direction, mutate canonical state, or certify a real agricultural pilot.'
+      - name: Stop Control Tower server
+        if: always()
+        run: |
+          if test -f /tmp/agroway-control-server.pid; then kill "$(cat /tmp/agroway-control-server.pid)" 2>/dev/null || true; fi
+          cat /tmp/agroway-control-server.log 2>/dev/null || true
+      - name: Upload Control Tower evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agroway-control-v022-alpha1-browser-evidence
+          path: |
+            /tmp/agroway-control-evidence
+            /tmp/agroway-control-server.log
+          if-no-files-found: warn
+          retention-days: 14
