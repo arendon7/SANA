@@ -23,7 +23,12 @@ for(const file of files){
   if(direction!==undefined)check(typeof direction==='string'&&direction.trim().length>0,`${file}:design-direction`);
   if('requiredViewports' in doc){check(Array.isArray(doc.requiredViewports)&&doc.requiredViewports.length>0,`${file}:required-viewports`);if(Array.isArray(doc.requiredViewports))for(const viewport of doc.requiredViewports)check(/^\d{2,5}x\d{2,5}$/.test(String(viewport)),`${file}:viewport:${viewport}`);}
   if('invariants' in doc)check(Array.isArray(doc.invariants)&&doc.invariants.every(x=>typeof x==='string'&&x.trim()),`${file}:invariants`);
-  if('guardrails' in doc)check(Array.isArray(doc.guardrails)&&doc.guardrails.every(x=>typeof x==='string'&&x.trim()),`${file}:guardrails`);
+  if('guardrails' in doc){
+    const g=doc.guardrails;
+    const validArray=Array.isArray(g)&&g.length>0&&g.every(x=>typeof x==='string'&&x.trim());
+    const validObject=g&&typeof g==='object'&&!Array.isArray(g)&&Object.keys(g).length>0&&Object.entries(g).every(([key,value])=>key.trim()&&(['boolean','string','number'].includes(typeof value))&&value!==null);
+    check(validArray||validObject,`${file}:guardrails`);
+  }
   const d10=doc.humanProductApproval??doc.gates?.D10_humanProductApproval??doc.d10??doc.d10HumanProductApproval;
   if(d10!==undefined)check(approvalStates.has(String(d10)),`${file}:human-product-approval`,String(d10));
   const status=String(doc.status||'');
@@ -37,4 +42,4 @@ for(const file of files){
   check(Boolean(doc.status||d10!==undefined||doc.gates||doc.productionExecutionAvailable!==undefined||doc.browserCanInvokeAdapter!==undefined),`${file}:review-or-authority-state-present`);
 }
 if(failures.length){for(const failure of failures)console.error(`FAIL ${failure.name}${failure.detail?` :: ${failure.detail}`:''}`);console.error(`FAIL_DESIGN_GOVERNANCE ${checks.length}/${checks.length+failures.length}`);process.exit(1);}
-console.log(JSON.stringify({status:'PASS',screenContracts:files.length,checks:checks.length,schemasAccepted:['ID_BASED','SCREEN_BASED','SCREEN_ID_BASED'],authority:'HUMAN_PRODUCT_APPROVAL_PRESERVED',networkUsed:false},null,2));console.log(`PASS_DESIGN_GOVERNANCE ${checks.length}/${checks.length}`);
+console.log(JSON.stringify({status:'PASS',screenContracts:files.length,checks:checks.length,schemasAccepted:['ID_BASED','SCREEN_BASED','SCREEN_ID_BASED'],guardrailSchemasAccepted:['STRING_ARRAY','KEYED_PRIMITIVE_OBJECT'],authority:'HUMAN_PRODUCT_APPROVAL_PRESERVED',networkUsed:false},null,2));console.log(`PASS_DESIGN_GOVERNANCE ${checks.length}/${checks.length}`);
