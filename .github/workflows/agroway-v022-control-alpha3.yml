@@ -1,0 +1,55 @@
+name: AGROWAY CONTROL v0.22 alpha3
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "apps/control-web/**"
+      - "config/design/screens/exception-resolution-workspace.json"
+      - "scripts/validate-control-exception-resolution.mjs"
+      - "scripts/control-exception-http-browser-qa.py"
+      - "docs/product/V022_EXCEPTION_RESOLUTION_VALIDATION.md"
+      - ".github/workflows/agroway-v022-control-alpha3.yml"
+concurrency:
+  group: agroway-control-v022-alpha3-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  exception-resolution-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Offline workspace install
+        run: npm ci --ignore-scripts --offline
+      - name: TypeScript strict
+        run: npm run typecheck
+      - name: Alpha3 static authority guardrails
+        run: node scripts/validate-control-exception-resolution.mjs
+      - name: Existing reconstructed spec compatibility
+        run: node scripts/run-spec-compat.mjs
+      - name: PostgreSQL structural regression
+        run: node scripts/lint-postgres-structural.mjs
+      - name: Install pinned Playwright Chromium
+        run: |
+          python -m pip install --disable-pip-version-check playwright==1.57.0
+          python -m playwright install --with-deps chromium
+      - name: Native Chromium to real CONTROL HTTP
+        run: python scripts/control-exception-http-browser-qa.py
+      - name: Trust boundary
+        run: |
+          echo 'PASS_CONTROL_EXCEPTION_ALPHA3_NATIVE_HTTP'
+          echo 'AI remains DRAFT_SUGGESTION / ADVISORY_ONLY. D10 remains PENDING. No canonical mutation is claimed.'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: agroway-control-v022-alpha3-browser-evidence
+          path: docs/product/evidence/exception-resolution
+          if-no-files-found: warn
+          retention-days: 14
