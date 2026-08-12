@@ -9,6 +9,7 @@ import type {
   StageAcceptancePolicy,
   StageEvaluation,
 } from '@agroway/pilot-certification-contracts';
+import { REQUIRED_PILOT_STAGES } from '@agroway/pilot-certification-contracts';
 
 export type Sha256HexAsync=(canonical:string)=>Promise<string>;
 const SHA256=/^[a-f0-9]{64}$/;
@@ -39,9 +40,11 @@ export async function evaluatePilotCertification(enrollment:PilotEnrollment,poli
   if(!policy.requireAllStages||!policy.requireHumanCertification||!policy.requireTenantIsolation) throw new Error('UNSAFE_PILOT_POLICY');
   const configured=new Map(policy.requiredStages.map(stage=>[stage.stage,stage] as const));
   const missingPolicyStages:string[]=[];
-  for(const stage of policy.requiredStages) if(!configured.has(stage.stage)) missingPolicyStages.push(stage.stage);
+  for(const stage of REQUIRED_PILOT_STAGES) if(!configured.has(stage)) missingPolicyStages.push(stage);
+  const duplicatePolicyStageCount=policy.requiredStages.length-configured.size;
   const evaluations=policy.requiredStages.map(stage=>evaluateStage(stage,evidence,enrollment.tenantId,enrollment.pilotId,evaluatedAt));
   const reasons:string[]=[...missingPolicyStages.map(stage=>`POLICY_STAGE_MISSING:${stage}`)];
+  if(duplicatePolicyStageCount>0) reasons.push('POLICY_STAGE_DUPLICATED');
   if(evaluations.some(item=>item.status==='FAIL')) reasons.push('ONE_OR_MORE_STAGES_FAILED');
   const tenantIsolationPass=evidence.some(item=>item.tenantId===enrollment.tenantId&&item.pilotId===enrollment.pilotId&&item.kind==='TENANT_ISOLATION'&&item.outcome==='PASS');
   if(!tenantIsolationPass) reasons.push('TENANT_ISOLATION_NOT_VERIFIED');
