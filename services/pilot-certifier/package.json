@@ -1,0 +1,9 @@
+{
+  "name": "@agroway/pilot-certifier",
+  "version": "0.21.0-alpha10",
+  "private": true,
+  "type": "module",
+  "dependencies": {"@agroway/pilot-certification-contracts": "0.21.0-alpha10"},
+  "scripts": {"typecheck": "tsc -p tsconfig.json --noEmit"},
+  "exports": {".": "./src/index.ts"}
+}

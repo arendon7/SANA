@@ -1,0 +1,3 @@
+import type { InvestmentImpactSnapshotLink, LinkInvestmentEvidence, LinkInvestmentImpactSnapshot, ProjectEvidenceLink } from '@agroway/invest-control-contracts';
+export function linkEvidence(cmd:LinkInvestmentEvidence):ProjectEvidenceLink { if(!cmd.evidenceRef.trim()) throw new Error('EVIDENCE_REF_REQUIRED'); return {linkId:cmd.linkId,tenantId:cmd.tenantId,projectId:cmd.projectId,kind:cmd.kind,evidenceRef:cmd.evidenceRef,linkedAt:cmd.at}; }
+export function linkImpactSnapshot(cmd:LinkInvestmentImpactSnapshot):InvestmentImpactSnapshotLink { if(!cmd.impactSnapshotRef.trim()) throw new Error('IMPACT_SNAPSHOT_REF_REQUIRED'); return {linkId:cmd.linkId,tenantId:cmd.tenantId,projectId:cmd.projectId,impactSnapshotRef:cmd.impactSnapshotRef,linkedAt:cmd.at}; }
