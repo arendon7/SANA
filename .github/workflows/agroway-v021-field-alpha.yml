@@ -104,16 +104,22 @@ jobs:
           test "$spec_count" = "12" || { echo "expected 12 specs, found $spec_count"; exit 1; }
           echo 'PASS_REAL_VITEST_SOURCE_SLICE_SHA_AND_INVENTORY'
 
-      - name: Install pinned Vitest runtime
+      - name: Install pinned Vitest runtime without npm Arborist
         working-directory: /tmp/agroway-vitest/agroway_vitest_real_slice
+        shell: bash
         run: |
-          npm install --ignore-scripts
-          npx vitest --version | tee /tmp/vitest-version.txt
+          set -euo pipefail
+          corepack enable
+          corepack prepare pnpm@10.15.0 --activate
+          pnpm --version | tee /tmp/pnpm-version.txt
+          grep -Fx '10.15.0' /tmp/pnpm-version.txt
+          pnpm install --ignore-scripts --frozen-lockfile=false
+          pnpm exec vitest --version | tee /tmp/vitest-version.txt
           grep -Eq 'vitest/4\.1\.7|vitest 4\.1\.7' /tmp/vitest-version.txt
 
       - name: Real Vitest 12-spec runtime
         working-directory: /tmp/agroway-vitest/agroway_vitest_real_slice
-        run: npx vitest run --config vitest.config.ts --reporter=verbose
+        run: pnpm exec vitest run --config vitest.config.ts --reporter=verbose
 
       - name: Vitest trust boundary
         run: |
