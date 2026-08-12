@@ -43,6 +43,8 @@ for(const ws of workspaces){
   if(!lockEntry) fail('WORKSPACE_LOCK_ENTRY_MISSING',ws);
   if(lockEntry.name!==pkg.name||lockEntry.version!==pkg.version) fail('WORKSPACE_LOCK_IDENTITY_MISMATCH',ws);
   if(JSON.stringify(stableObject(lockEntry.dependencies))!==JSON.stringify(stableObject(pkg.dependencies))) fail('WORKSPACE_LOCK_DEPENDENCY_MISMATCH',ws);
+  const workspaceLink=lock.packages?.[`node_modules/${pkg.name}`];
+  if(!workspaceLink?.link||workspaceLink.resolved!==ws) fail('WORKSPACE_LOCK_LINK_MISSING_OR_INVALID',`${ws}:${pkg.name}`);
 }
 if(names.size!==EXPECTED_WORKSPACES) fail('WORKSPACE_NAME_COUNT_MISMATCH',`${names.size}`);
 
@@ -67,4 +69,5 @@ for(const [ws,classification] of repaired){
 
 console.log(`PASS_DIRECT_WORKSPACE_INVENTORY_${EXPECTED_WORKSPACES}`);
 console.log(`PASS_WORKSPACE_LOCK_PARITY_${EXPECTED_WORKSPACES}`);
+console.log(`PASS_WORKSPACE_LOCK_LINKS_${EXPECTED_WORKSPACES}`);
 console.log(`PASS_ISSUE_24_RECONSTRUCTION_${repaired.size}`);

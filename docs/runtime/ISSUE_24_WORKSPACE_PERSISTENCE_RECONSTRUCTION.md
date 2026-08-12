@@ -29,6 +29,8 @@ The CONTROL alpha branches inherited this incomplete direct root. The defect was
 
 No exact historical Git blob for the six missing service implementations was found during repository/history search. Therefore their provenance is reconstruction, not recovery.
 
+The first repair CI run then exposed a second, independent persistence defect already present in the root lockfile: `services/impact-ledger` had a workspace package entry but lacked its required `node_modules/@agroway/impact-ledger` workspace-link entry. That made `npm ci` reject the lockfile even after all 41 package/index paths existed. The repair therefore also restores that single missing workspace link without changing the declared dependency topology.
+
 ## Provenance classification
 
 | Workspace | Classification | Primary reconstruction evidence |
@@ -40,6 +42,8 @@ No exact historical Git blob for the six missing service implementations was fou
 | `services/control-tower-copilot` | same | copilot contracts, migration `0019`, `DRAFT_SUGGESTION` + human-approval boundary |
 | `services/pilot-certifier` | same | `pilot-certification-contracts`, migration `0020_pilot_certification.sql`, human attestation invariant |
 | `services/pilot-replay-auditor` | same | pilot replay contracts and migration `0020`, deterministic replay integrity requirement |
+
+The `impact-ledger` change is not source reconstruction. It is a lockfile workspace-link correction required to represent the already-declared and already-persisted workspace.
 
 ## Reconstructed behavioral boundaries
 
@@ -73,7 +77,9 @@ Replay events are checked for scope, unique IDs, contiguous sequence, digest sha
 
 ## Lockfile decision
 
-The historical root lockfile is preserved. Reconstructed `package.json` files intentionally match its existing workspace names, versions and dependency edges. The new persistence verifier checks package/lock parity for all 41 declared workspaces and validates internal workspace links in the lockfile.
+The existing workspace identities, versions and dependency edges remain unchanged. The lockfile is corrected so that **every one of the 41 declared workspaces also has its required `node_modules/@agroway/*` link entry**. The only missing link discovered by `npm ci` was `@agroway/impact-ledger`; it is restored to resolve to `services/impact-ledger`.
+
+The lockfile may be reserialized/reordered by this repair, but no dependency edge is added or removed relative to the surviving lock contract. The persistence verifier checks package/lock parity for all 41 workspaces plus all 41 workspace-link entries.
 
 This avoids silently shrinking the graph or laundering a new dependency topology as historical source.
 
@@ -87,21 +93,22 @@ A repository-local verifier now checks:
 4. `0.21.0-alpha10` on every workspace;
 5. unique `@agroway/*` names;
 6. package identity/dependency parity with `package-lock.json`;
-7. internal lock links;
-8. substantive non-placeholder source for all seven repaired workspaces.
+7. a valid lockfile workspace-link entry for every declared workspace;
+8. internal dependency lock links;
+9. substantive non-placeholder source for all seven repaired workspaces.
 
-The existing canonical workflow additionally runs:
+The canonical workflow additionally runs:
 
 - `npm ci --ignore-scripts --offline`
 - root strict TypeScript via `npm run typecheck`
 
-During authoring, the reconstructed TypeScript implementations were also compiled in an isolated TypeScript 5.8.3 strict harness against the current fetched contract definitions with `noUncheckedIndexedAccess` and `exactOptionalPropertyTypes`; that authoring result is advisory only. Pull-request CI is the canonical acceptance evidence.
+During authoring, the reconstructed TypeScript implementations were compiled in an isolated TypeScript 5.8.3 strict harness against the current fetched contract definitions with `noUncheckedIndexedAccess` and `exactOptionalPropertyTypes`; that authoring result is advisory only. Pull-request CI is the canonical acceptance evidence.
 
 ## Historical claim discipline
 
 This repair does not edit historical validation documents to pretend the missing bytes were always present. The correct statement is:
 
-> The alpha10 contract declared a 41-workspace reconstructed runtime, but direct Git persistence was incomplete. Issue #24 reconstructs the missing persisted source from the surviving lockfile, contracts, migrations and product trust surfaces. The repaired source is canonical reconstructed source, not a byte-for-byte recovery of lost historical files.
+> The alpha10 contract declared a 41-workspace reconstructed runtime, but direct Git persistence was incomplete. Issue #24 reconstructs the missing persisted source from the surviving lockfile, contracts, migrations and product trust surfaces and corrects the lockfile link needed for the already-existing impact-ledger workspace. The repaired source is canonical reconstructed source, not a byte-for-byte recovery of lost historical files.
 
 ## Exit criteria
 
@@ -109,6 +116,7 @@ Issue #24 may be considered technically satisfied only when the repair PR demons
 
 - direct inventory PASS;
 - package/lock parity PASS;
+- all 41 workspace links PASS;
 - `npm ci --ignore-scripts --offline` PASS;
 - root strict TypeScript PASS;
 - no historical regression introduced by this repair;
