@@ -1,0 +1,23 @@
+{
+  "screenId":"CONTROL_EXCEPTION_RESOLUTION_WORKSPACE",
+  "version":"0.22.0-alpha3",
+  "surface":"GREENATICS_CONTROL",
+  "route":"/control/exceptions",
+  "trust":"DEMO_RECONSTRUCTED",
+  "purpose":"Turn deterministic Control Tower exceptions into human-governed, evidence-backed resolution cases.",
+  "primaryActor":"Greenatics operator/director/agronomist",
+  "primaryDecision":"Understand, assign, evidence and human-resolve an exception without allowing AI to execute canonical state transitions.",
+  "informationArchitecture":["portfolio exception list","severity/SLA","deterministic reason","owner","resolution readiness","AI draft suggestion","root cause","evidence links","human actions","timeline"],
+  "states":["OPEN","ACKNOWLEDGED","RESOLVED","SUPPRESSED"],
+  "humanActions":["ACKNOWLEDGE","ASSIGN","ADD_EVIDENCE","SET_ROOT_CAUSE","RESOLVE","SUPPRESS","REOPEN"],
+  "guardrails":[
+    "AI output is DRAFT_SUGGESTION and ADVISORY_ONLY",
+    "AI cannot acknowledge, assign, resolve, suppress or reopen",
+    "RESOLVE requires human actor, owner, root cause, evidence and resolution note",
+    "CRITICAL exceptions cannot be suppressed in alpha3",
+    "all alpha3 mutations remain localOnly=true and canonicalMutated=false",
+    "deterministic exception reason remains authoritative"
+  ],
+  "responsive":{"desktop":"two-column list/detail","mobile":"stacked list/detail","minTouchTargetPx":44},
+  "d10HumanProductApproval":"PENDING"
+}
