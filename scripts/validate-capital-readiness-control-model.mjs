@@ -24,10 +24,11 @@ const projectId='11111111-1111-4111-8111-111111111111';
 const digestA='a'.repeat(64),digestB='b'.repeat(64),digestC='c'.repeat(64),digestD='d'.repeat(64),digestE='e'.repeat(64);
 const gateIds=['G1_ACTOR','G2_ASSET','G3_AGRONOMY','G4_BUDGET','G5_MARKET','G6_RISK','G7_TRACEABILITY','G8_IMPACT','G9_FINANCIAL_STRUCTURE'];
 const riskIds=['PRODUCER','OPERATION','AGRONOMY','DATA','FINANCIAL','MARKET','CLIMATE','TRACEABILITY','MANAGEMENT'];
+const financialLimitations=Object.freeze(['CAPITAL_READY_IS_NOT_FINANCING_APPROVAL','NO_RETURN_OR_REPAYMENT_GUARANTEE','NO_CUSTODY_OR_DISBURSEMENT_AUTHORITY']);
 const gates=Object.freeze(gateIds.map(gateId=>Object.freeze({gateId,result:gateId==='G5_MARKET'?'BLOCKED':gateId==='G8_IMPACT'?'PASS_WITH_CONDITIONS':'PASS',rationale:`${gateId} rationale`,evidenceRefs:Object.freeze([`evidence:${gateId}`]),confidenceBps:9000,blockingGapRefs:Object.freeze(gateId==='G5_MARKET'?['gap:g5']:[]),conditionGapRefs:Object.freeze(gateId==='G8_IMPACT'?['gap:g8']:[]),assessedAt:'2026-08-12T10:00:00.000Z',assessedBy:'human:reviewer',methodVersion:'method-v1'})));
 const pkg=Object.freeze({
   packageId:'capital-readiness:project:v1',tenantId,projectId,assessmentId:'assessment:v1',assessmentVersion:1,assessmentDigestSha256:digestC,policyVersion:'policy-v1',methodologyVersion:'method-v1',projectSnapshotRef:'snapshot:v1',generatedAt:'2026-08-12T12:00:00.000Z',decision:'NOT_CAPITAL_READY',projectState:'UNDER_REVIEW',projectEligibility:'NOT_EVALUATED',
-  productionRef:Object.freeze({producerId:'producer:1',farmId:'farm:1',plotIds:Object.freeze(['plot:1']),cropCycleIds:Object.freeze(['cycle:1'])}),currency:'COP',requiredMinor:25_000_000_00,approvedBudgetVersion:1,evidenceManifestDigestSha256:digestA,riskProfileDigestSha256:digestB,gateAssessments:gates,openConditionGapRefs:Object.freeze(['gap:g8']),limitations:Object.freeze(['CAPITAL_READY_IS_NOT_FINANCING_APPROVAL']),provenanceRefs:Object.freeze(['assessment:'+digestC,'manifest:'+digestA,'risk:'+digestB]),financialAuthority:'READINESS_ONLY_NO_FINANCING_APPROVAL',digestSha256:digestD,
+  productionRef:Object.freeze({producerId:'producer:1',farmId:'farm:1',plotIds:Object.freeze(['plot:1']),cropCycleIds:Object.freeze(['cycle:1'])}),currency:'COP',requiredMinor:25_000_000_00,approvedBudgetVersion:1,evidenceManifestDigestSha256:digestA,riskProfileDigestSha256:digestB,gateAssessments:gates,openConditionGapRefs:Object.freeze(['gap:g8']),limitations:financialLimitations,provenanceRefs:Object.freeze(['assessment:'+digestC,'manifest:'+digestA,'risk:'+digestB]),financialAuthority:'READINESS_ONLY_NO_FINANCING_APPROVAL',digestSha256:digestD,
 });
 const manifest=Object.freeze({manifestId:'manifest:v1',tenantId,projectId,policyVersion:'policy-v1',asOf:'2026-08-12T11:00:00.000Z',items:Object.freeze([]),acceptedEvidenceRefs:Object.freeze(gateIds.map(x=>`evidence:${x}`)),rejectedEvidenceRefs:Object.freeze(['evidence:rejected']),coverageByGate:Object.freeze([]),totalCoverageBps:8889,limitations:Object.freeze(['G5_MARKET:MARKET_EVIDENCE_INCOMPLETE']),digestSha256:digestA});
 const riskProfile=Object.freeze({profileId:'risk:v1',tenantId,projectId,asOf:'2026-08-12T11:00:00.000Z',dimensions:Object.freeze(riskIds.map((dimension,index)=>Object.freeze({dimension,state:dimension==='MARKET'?'LIMITING':'FAVORABLE',trend:'STABLE',evidenceRefs:Object.freeze([`risk-evidence:${index}`]),confidenceBps:8500,principalDrivers:Object.freeze(dimension==='MARKET'?['BUYER_EVIDENCE_GAP']:[]),mitigations:Object.freeze([]),unresolvedRiskRefs:Object.freeze(dimension==='MARKET'?['risk:market']:[])}))),openCriticalRiskRefs:Object.freeze([]),sourceRiskDigestSha256:digestE,limitations:Object.freeze([]),digestSha256:digestB});
@@ -55,6 +56,8 @@ assert(model.evidence.coverageBps===8889&&model.evidence.acceptedCount===9&&mode
 assert(model.trust.readOnly===true&&model.trust.canonicalMutationAvailable===false&&model.trust.financialMutationAvailable===false,'READ_ONLY_MUTATION_BOUNDARY');
 assert(model.trust.aiAuthority==='ADVISORY_ONLY'&&model.trust.financialAuthority==='READINESS_ONLY_NO_FINANCING_APPROVAL','AI_FINANCIAL_AUTHORITY_BOUNDARY');
 assert(model.trust.financingApproval===false&&model.trust.investmentRecommendation===false&&model.trust.disbursementAuthority===false&&model.trust.returnGuarantee===false,'NO_FINANCIAL_PROMISE_OR_EXECUTION');
+assert(model.decisionLabel.includes('SANA readiness'),'DECISION_COPY_PRESERVES_READINESS_SCOPE');
+assert(model.limitations.every(x=>typeof x==='string')&&financialLimitations.every(x=>model.limitations.includes(x)),'FINANCIAL_LIMITATIONS_VISIBLE');
 assert(JSON.stringify({pkg,manifest,riskProfile,gaps,exceptions})===sourceBefore,'SOURCE_INPUTS_NOT_MUTATED');
 pass('READ_ONLY_MODEL_HAPPY_PATH');
 
@@ -69,6 +72,11 @@ expectThrow(()=>mod.buildCapitalReadinessControlModel({package:pkg,manifest,risk
 expectThrow(()=>mod.buildCapitalReadinessControlModel({package:pkg,manifest:Object.freeze({...manifest,tenantId:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'}),riskProfile,gaps,controlExceptions:exceptions}),'CAPITAL_READINESS_VIEW_TENANT_MISMATCH');
 expectThrow(()=>mod.buildCapitalReadinessControlModel({package:pkg,manifest:Object.freeze({...manifest,projectId:'project:other'}),riskProfile,gaps,controlExceptions:exceptions}),'CAPITAL_READINESS_VIEW_PROJECT_MISMATCH');
 pass('DIGEST_AND_SCOPE_FAIL_CLOSED');
+
+expectThrow(()=>mod.buildCapitalReadinessControlModel({package:Object.freeze({...pkg,financialAuthority:'BROKEN'}),manifest,riskProfile,gaps,controlExceptions:exceptions}),'CAPITAL_READINESS_VIEW_FINANCIAL_AUTHORITY_INVALID');
+expectThrow(()=>mod.buildCapitalReadinessControlModel({package:Object.freeze({...pkg,limitations:Object.freeze(financialLimitations.slice(0,2))}),manifest,riskProfile,gaps,controlExceptions:exceptions}),'CAPITAL_READINESS_VIEW_REQUIRED_LIMITATION_MISSING');
+expectThrow(()=>mod.buildCapitalReadinessControlModel({package:Object.freeze({...pkg,decision:'UNKNOWN'}),manifest,riskProfile,gaps,controlExceptions:exceptions}),'CAPITAL_READINESS_VIEW_DECISION_INVALID');
+pass('FINANCIAL_TRUST_METADATA_FAILS_CLOSED');
 
 expectThrow(()=>mod.buildCapitalReadinessControlModel({package:pkg,manifest,riskProfile,gaps:Object.freeze(gaps.map((gap,index)=>index===0?Object.freeze({...gap,assessmentVersion:2}):gap)),controlExceptions:exceptions}),'CAPITAL_READINESS_VIEW_GAP_VERSION_MISMATCH');
 expectThrow(()=>mod.buildCapitalReadinessControlModel({package:pkg,manifest,riskProfile,gaps:Object.freeze(gaps.slice(0,1)),controlExceptions:exceptions}),'CAPITAL_READINESS_VIEW_GAP_SET_MISMATCH');
