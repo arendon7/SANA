@@ -27,7 +27,7 @@ const arg=(name, fallback)=>{
   const found=process.argv.find(x=>x.startsWith(prefix));
   return found?found.slice(prefix.length):fallback;
 };
-const mode=process.argv.includes('--verify')?'verify':'materialize';
+const refresh=process.argv.includes('--refresh');
 const destination=path.resolve(arg('dest',DEFAULT_DEST));
 
 function gitBlobSha1(bytes){
@@ -46,10 +46,12 @@ async function verifyExisting(){
   for(const [relative,expected] of Object.entries(FILES)) await readVerified(path.join(destination,relative),expected);
   const provenance=JSON.parse(await fs.readFile(path.join(destination,'PROVENANCE.json'),'utf8'));
   if(provenance.version!==VERSION||provenance.tag!==TAG||provenance.commit!==COMMIT||provenance.upstream!==UPSTREAM) throw new Error('POSTGRES_JS_VENDOR_PROVENANCE_MISMATCH');
+  if(provenance.integrity!=='GIT_BLOB_SHA1'||provenance.dependencyCount!==0) throw new Error('POSTGRES_JS_VENDOR_PROVENANCE_INTEGRITY_MISMATCH');
+  for(const [relative,expected] of Object.entries(FILES)) if(provenance.files?.[relative]!==expected) throw new Error(`POSTGRES_JS_VENDOR_PROVENANCE_FILE_MISMATCH:${relative}`);
   console.log(`PASS_POSTGRES_JS_VENDOR_VERIFY ${VERSION} ${COMMIT} ${Object.keys(FILES).length}/${Object.keys(FILES).length}`);
 }
 
-async function materialize(){
+async function refreshFromUpstream(){
   await fs.rm(destination,{recursive:true,force:true});
   for(const [relative,expected] of Object.entries(FILES)){
     const url=`https://raw.githubusercontent.com/porsager/postgres/${COMMIT}/${relative}`;
@@ -68,8 +70,8 @@ async function materialize(){
   };
   await fs.writeFile(path.join(destination,'PROVENANCE.json'),JSON.stringify(provenance,null,2)+'\n','utf8');
   await verifyExisting();
-  console.log(`PASS_POSTGRES_JS_VENDOR_MATERIALIZED ${destination}`);
+  console.log(`PASS_POSTGRES_JS_VENDOR_REFRESHED ${destination}`);
 }
 
-if(mode==='verify') await verifyExisting();
-else await materialize();
+if(refresh) await refreshFromUpstream();
+else await verifyExisting();
