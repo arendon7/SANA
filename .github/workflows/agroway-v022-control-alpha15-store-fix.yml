@@ -1,0 +1,56 @@
+name: AGROWAY CONTROL alpha15 ACK store validation-order fixer
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/agroway-v022-control-alpha15-store-fix.yml"
+permissions:
+  contents: write
+jobs:
+  patch-store:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feature/control-v022-alpha15'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - name: Move receipt hydration before COMMIT
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('services/external-data-gateway/src/control-external-ack-adapter.ts')
+          s=p.read_text()
+          replacements=[
+          ("""      const result=await client.query<ExternalAckReceiptRow>(`${RECEIPT_SELECT} WHERE tenant_id=$1::uuid AND packet_id=$2 LIMIT 1`,[tenantId,packetId]);
+      await client.query('COMMIT');begun=false;
+      return result.rows[0]===undefined?undefined:hydrateReceipt(result.rows[0]);""",
+           """      const result=await client.query<ExternalAckReceiptRow>(`${RECEIPT_SELECT} WHERE tenant_id=$1::uuid AND packet_id=$2 LIMIT 1`,[tenantId,packetId]);
+      const hydrated=result.rows[0]===undefined?undefined:hydrateReceipt(result.rows[0]);
+      await client.query('COMMIT');begun=false;
+      return hydrated;"""),
+          ("""      if(inserted.rows[0]!==undefined){await client.query('COMMIT');begun=false;return {stored:true,receipt:hydrateReceipt(inserted.rows[0])};}""",
+           """      if(inserted.rows[0]!==undefined){const hydrated=hydrateReceipt(inserted.rows[0]);await client.query('COMMIT');begun=false;return {stored:true,receipt:hydrated};}"""),
+          ("""      if(existing.rows[0]===undefined)throw new Error('EXTERNAL_ACK_RECEIPT_CONFLICT_WITHOUT_ROW');
+      await client.query('COMMIT');begun=false;
+      return {stored:false,existing:hydrateReceipt(existing.rows[0])};""",
+           """      if(existing.rows[0]===undefined)throw new Error('EXTERNAL_ACK_RECEIPT_CONFLICT_WITHOUT_ROW');
+      const hydratedExisting=hydrateReceipt(existing.rows[0]);
+      await client.query('COMMIT');begun=false;
+      return {stored:false,existing:hydratedExisting};""")]
+          for old,new in replacements:
+              if old not in s: raise SystemExit('EXPECTED_STORE_PATTERN_NOT_FOUND')
+              s=s.replace(old,new,1)
+          p.write_text(s)
+          PY
+          git diff --check
+          grep -F 'const hydrated=result.rows[0]===undefined?undefined:hydrateReceipt(result.rows[0]);' services/external-data-gateway/src/control-external-ack-adapter.ts
+          grep -F 'const hydrated=hydrateReceipt(inserted.rows[0]);' services/external-data-gateway/src/control-external-ack-adapter.ts
+          grep -F 'const hydratedExisting=hydrateReceipt(existing.rows[0]);' services/external-data-gateway/src/control-external-ack-adapter.ts
+      - name: Persist source fix
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add services/external-data-gateway/src/control-external-ack-adapter.ts
+          git commit -m 'fix(control): validate ACK receipts before transaction commit'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
