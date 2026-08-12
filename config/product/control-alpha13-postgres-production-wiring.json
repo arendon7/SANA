@@ -1,0 +1,54 @@
+{
+  "product": "GREENATICS CONTROL",
+  "version": "0.22.0-alpha13",
+  "capability": "PRODUCTION_POSTGRES_CONFIGURATION_AND_WIRING",
+  "status": "PASS_REVIEW_PENDING_REAL_SECRET_BINDING",
+  "environment": {
+    "source": "EXTERNAL_RUNTIME_SECRETS_ONLY",
+    "repositorySecretsStored": false,
+    "required": [
+      "AGROWAY_POSTGRES_HOST",
+      "AGROWAY_POSTGRES_DATABASE",
+      "AGROWAY_POSTGRES_USER",
+      "AGROWAY_POSTGRES_PASSWORD",
+      "AGROWAY_POSTGRES_CA_PEM"
+    ]
+  },
+  "transport": {
+    "tlsRequired": true,
+    "rejectUnauthorized": true,
+    "hostnameVerification": true,
+    "localhostForbidden": true
+  },
+  "poolPolicy": {
+    "maxConnectionsCeiling": 20,
+    "connectionTimeoutMsCeiling": 15000,
+    "statementTimeoutMsCeiling": 30000,
+    "applicationName": "agroway-control"
+  },
+  "connectivityGate": {
+    "probe": "READ_ONLY",
+    "canonicalWriteBeforeProbe": false,
+    "canonicalWriteExecutedByAlpha13": false,
+    "databaseIdentityVerified": true,
+    "applicationIdentityVerified": true
+  },
+  "authority": {
+    "approval": "HUMAN_ONLY",
+    "ai": "ADVISORY_ONLY",
+    "browserWriteAllowed": false,
+    "productionExecutionAvailable": false
+  },
+  "evidence": [
+    "services/investment-portfolio/src/postgres-production-wiring.ts",
+    "scripts/validate-control-postgres-production-wiring.mjs",
+    "scripts/control-postgres-production-wiring-runtime.mjs"
+  ],
+  "explicitGaps": [
+    "No real production PostgreSQL host, username, password or CA is stored in the repository.",
+    "No real production connectivity has been certified by this review-only branch.",
+    "No canonical production write is executed by alpha13.",
+    "External ACK remains absent.",
+    "D10 human product approval remains pending."
+  ]
+}
