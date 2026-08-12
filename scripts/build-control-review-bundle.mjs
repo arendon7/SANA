@@ -24,7 +24,9 @@ for(const src of cfg.runtimeFiles){
   await copy(src,dst);
 }
 for(const src of cfg.contractFiles){
-  const dst=src.startsWith('apps/control-web/src/')?src.replace('apps/control-web/src/','contracts/'):src.replace('config/design/screens/','design/');
+  const dst=src.startsWith('apps/control-web/src/')?src.replace('apps/control-web/src/','contracts/'):
+    src.startsWith('config/design/screens/')?src.replace('config/design/screens/','design/'):
+    src;
   await copy(src,dst);
 }
 await copy(cfgPath,'config/control-review-bundle.json');
@@ -50,5 +52,5 @@ const manifest={
   files:entries
 };
 await fsp.writeFile(path.join(out,'REVIEW_MANIFEST.json'),JSON.stringify(manifest,null,2)+'\n');
-await fsp.writeFile(path.join(out,'README.md'),`# GREENATICS CONTROL ${cfg.version} — Review Bundle\n\nTrust: **${cfg.trust}**  \nD10 Human Product Approval: **${cfg.d10}**  \nExecution state: **${cfg.authority.executionState}**\n\nRun:\n\n\`\`\`bash\nPORT=4273 node server.mjs\n\`\`\`\n\nOpen: http://127.0.0.1:4273${cfg.entryRoute}\n\nThis artifact is for product review. It contains no productive execution adapter and does not mutate canonical state.\n\nAggregate SHA-256: \`${aggregateSha256}\`\n`);
+await fsp.writeFile(path.join(out,'README.md'),`# GREENATICS CONTROL ${cfg.version} — Review Bundle\n\nTrust: **${cfg.trust}**  \nD10 Human Product Approval: **${cfg.d10}**  \nExecution state: **${cfg.authority.executionState}**\n\nRun:\n\n\`\`\`bash\nPORT=4273 node server.mjs\n\`\`\`\n\nOpen: http://127.0.0.1:4273${cfg.entryRoute}\n\nThis artifact is for product review. It includes the server-side PostgreSQL transaction adapter as reviewable source, but no production database configuration or credentials; the review server never invokes a canonical write.\n\nAggregate SHA-256: \`${aggregateSha256}\`\n`);
 console.log(`PASS_CONTROL_REVIEW_BUNDLE files=${entries.length} aggregateSha256=${aggregateSha256}`);
