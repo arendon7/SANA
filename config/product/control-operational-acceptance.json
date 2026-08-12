@@ -1,0 +1,97 @@
+{
+  "product": "GREENATICS CONTROL",
+  "version": "0.22.0-alpha7",
+  "scope": "FULL_CONTROL_PRODUCT_ACCEPTANCE",
+  "trust": "DEMO_RECONSTRUCTED",
+  "overallStatus": "REVIEW_READY_WITH_EXPLICIT_GAPS",
+  "productionReady": false,
+  "d10": "PENDING",
+  "capabilities": [
+    {
+      "id": "CONTROL_TOWER_VISIBILITY",
+      "status": "PENDING_INTEGRATION",
+      "reason": "alpha1 prototype was validated previously, but its source is not materialized in the current alpha7 branch/review bundle.",
+      "expectedSource": "apps/control-web/src/home-model.ts"
+    },
+    {
+      "id": "INVESTMENT_PROJECT_WORKSPACE",
+      "status": "PENDING_INTEGRATION",
+      "reason": "alpha2 prototype was validated previously, but its source is not materialized in the current alpha7 branch/review bundle.",
+      "expectedSource": "apps/control-web/src/investment-project-workspace-model.ts"
+    },
+    {
+      "id": "EXCEPTION_RESOLUTION",
+      "status": "PASS_REVIEW",
+      "evidence": ["alpha3 static 29/29", "native HTTP authority flow PASS"]
+    },
+    {
+      "id": "EVIDENCE_PROVENANCE_LEDGER",
+      "status": "PASS_REVIEW",
+      "evidence": ["alpha4 static 36/36", "SHA-256 append-only decision ledger PASS"]
+    },
+    {
+      "id": "HUMAN_APPROVAL_QUEUE",
+      "status": "PASS_REVIEW",
+      "evidence": ["alpha5 static 37/37", "distinct-human approval and separation-of-duties PASS"]
+    },
+    {
+      "id": "SUBMISSION_HANDOFF",
+      "status": "PASS_REVIEW",
+      "evidence": ["alpha6 static 32/32", "PREPARED -> EXPORTED -> ACK_PENDING without execution PASS"]
+    },
+    {
+      "id": "UNIFIED_CONTROL_FLOW",
+      "status": "PASS_REVIEW",
+      "evidence": ["alpha7 static 47/47", "native Chromium HTTP journey 68/68 PASS"]
+    },
+    {
+      "id": "AI_AUTHORITY_BOUNDARY",
+      "status": "PASS_REVIEW",
+      "evidence": ["AI remains DRAFT_SUGGESTION / ADVISORY_ONLY", "no AI approval or execution path"]
+    },
+    {
+      "id": "PWA_RESPONSIVE_REVIEW",
+      "status": "PASS_REVIEW",
+      "evidence": ["Service Worker PASS", "1440x900 + 390x844 PASS", "zero overflow/browser errors"]
+    },
+    {
+      "id": "PRODUCTION_AUTHORIZATION",
+      "status": "PENDING_PRODUCTION",
+      "reason": "Current CONTROL review surfaces use reconstructed/local review state; production identity/session authorization is not part of alpha7 acceptance."
+    },
+    {
+      "id": "CANONICAL_WRITE_ADAPTER",
+      "status": "PENDING_PRODUCTION",
+      "reason": "CONTROL deliberately has no canonical execution/write adapter; executionState remains NOT_EXECUTED."
+    },
+    {
+      "id": "EXTERNAL_ACK_ADAPTER",
+      "status": "PENDING_PRODUCTION",
+      "reason": "ACK_PENDING is explicit and no external ACK is claimed."
+    },
+    {
+      "id": "DIRECT_MONOREPO_ROOT_LOCK",
+      "status": "SEPARATE_DEBT",
+      "reason": "The legacy/direct-monorepo root-lock workflow remains a separate red persistence debt and is not reclassified by CONTROL alpha7 PASS."
+    }
+  ],
+  "productionBlockers": [
+    "CONTROL_TOWER_HOME_NOT_MATERIALIZED_IN_ALPHA7_BRANCH",
+    "INVESTMENT_PROJECT_WORKSPACE_NOT_MATERIALIZED_IN_ALPHA7_BRANCH",
+    "PRODUCTION_AUTHORIZATION_NOT_ACCEPTED",
+    "CANONICAL_WRITE_ADAPTER_INTENTIONALLY_ABSENT",
+    "EXTERNAL_ACK_ADAPTER_ABSENT",
+    "DIRECT_MONOREPO_ROOT_LOCK_DEBT",
+    "D10_HUMAN_PRODUCT_APPROVAL_PENDING"
+  ],
+  "authority": {
+    "approval": "HUMAN_ONLY",
+    "ai": "ADVISORY_ONLY",
+    "executionState": "NOT_EXECUTED",
+    "canonicalMutated": false
+  },
+  "domainDelta": {
+    "canonicalDomainEventsAdded": 0,
+    "workspacesAdded": 0
+  }
+}
