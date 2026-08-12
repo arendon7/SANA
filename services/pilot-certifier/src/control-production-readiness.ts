@@ -69,12 +69,14 @@ export type ProductionReadinessAssessment=Readonly<{
   canonicalMutated:false;
 }>;
 
+export type ProductionReadinessAssessmentMaterial=Omit<ProductionReadinessAssessment,'assessmentDigestSha256'>;
+
 const SHA1=/^[a-f0-9]{40}$/;
 const SHA256=/^[a-f0-9]{64}$/;
 const VERSION=/^0\.22\.0-alpha\d+$/;
 const SAFE_ID=/^[A-Za-z0-9][A-Za-z0-9_.:@/-]{2,127}$/;
 
-function assertCandidate(candidate:ControlReleaseCandidate):void {
+export function validateControlReleaseCandidate(candidate:ControlReleaseCandidate):void {
   if(!VERSION.test(candidate.version)) throw new Error('PRODUCTION_READINESS_VERSION_INVALID');
   if(!SHA1.test(candidate.headSha)) throw new Error('PRODUCTION_READINESS_HEAD_SHA_INVALID');
   if(!SHA256.test(candidate.reviewBundleSha256)) throw new Error('PRODUCTION_READINESS_BUNDLE_DIGEST_INVALID');
@@ -91,8 +93,12 @@ export function computeD10ApprovalDigest(approval:Omit<D10HumanProductApproval,'
   return sha256Canonical(approvalMaterial(approval));
 }
 
+export function computeProductionReadinessAssessmentDigest(assessment:ProductionReadinessAssessmentMaterial):string {
+  return sha256Canonical(assessment);
+}
+
 export function validateD10HumanProductApproval(approval:D10HumanProductApproval,candidate:ControlReleaseCandidate,now:Date):void {
-  assertCandidate(candidate);
+  validateControlReleaseCandidate(candidate);
   if(approval.protocol!==CONTROL_D10_APPROVAL_PROTOCOL) throw new Error('D10_APPROVAL_PROTOCOL_INVALID');
   if(approval.decision!=='APPROVED') throw new Error('D10_APPROVAL_DECISION_INVALID');
   if(approval.actorType!=='HUMAN') throw new Error('D10_HUMAN_ACTOR_REQUIRED');
@@ -122,7 +128,7 @@ function ackEvidenceValid(value:ExternalAckConnectivityEvidence):boolean {
 }
 
 export class ControlProductionReadinessOrchestrator {
-  constructor(private readonly ports:ProductionReadinessPorts,private readonly candidate:ControlReleaseCandidate,private readonly now:()=>Date=()=>new Date()) { assertCandidate(candidate); }
+  constructor(private readonly ports:ProductionReadinessPorts,private readonly candidate:ControlReleaseCandidate,private readonly now:()=>Date=()=>new Date()) { validateControlReleaseCandidate(candidate); }
 
   async assess(d10?:D10HumanProductApproval):Promise<ProductionReadinessAssessment> {
     const assessedAt=this.now();
@@ -142,7 +148,7 @@ export class ControlProductionReadinessOrchestrator {
       try { validateD10HumanProductApproval(d10,this.candidate,assessedAt);checks.push({id:'D10_HUMAN_PRODUCT_APPROVAL',status:'PASS'});state='READY_FOR_EXPLICIT_ACTIVATION_REVIEW'; }
       catch { checks.push({id:'D10_HUMAN_PRODUCT_APPROVAL',status:'FAIL'});state='BLOCKED_INVALID_D10_EVIDENCE'; }
     }
-    const material={protocol:CONTROL_PRODUCTION_READINESS_PROTOCOL,candidate:this.candidate,state,checks,assessedAt:assessedAt.toISOString(),productionExecutionEnabled:false as const,canonicalWritePermitted:false as const,browserActivationAllowed:false as const,realProductionTokenVerified:false as const,realExternalAckObserved:false as const,canonicalMutated:false as const};
-    return Object.freeze({...material,checks:Object.freeze(checks.map(x=>Object.freeze({...x}))),assessmentDigestSha256:sha256Canonical(material)});
+    const material:ProductionReadinessAssessmentMaterial={protocol:CONTROL_PRODUCTION_READINESS_PROTOCOL,candidate:this.candidate,state,checks,assessedAt:assessedAt.toISOString(),productionExecutionEnabled:false,canonicalWritePermitted:false,browserActivationAllowed:false,realProductionTokenVerified:false,realExternalAckObserved:false,canonicalMutated:false};
+    return Object.freeze({...material,checks:Object.freeze(checks.map(x=>Object.freeze({...x}))),assessmentDigestSha256:computeProductionReadinessAssessmentDigest(material)});
   }
 }
