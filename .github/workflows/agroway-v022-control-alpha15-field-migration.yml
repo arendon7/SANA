@@ -1,0 +1,48 @@
+name: AGROWAY CONTROL alpha15 field migration updater
+on:
+  pull_request:
+    paths:
+      - "infra/postgres/migrations/0026_control_external_ack_receipt.sql"
+      - ".github/workflows/agroway-v022-control-alpha15-field-migration.yml"
+permissions:
+  contents: write
+jobs:
+  patch-field-chain:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feature/control-v022-alpha15'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - name: Extend cumulative FIELD chain to migration 0026
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('.github/workflows/agroway-v021-field-alpha.yml')
+          s=p.read_text()
+          repl={
+            'test "$count" = "31" || { echo "expected 31 physical migration files, found $count"; exit 1; }':'test "$count" = "32" || { echo "expected 32 physical migration files, found $count"; exit 1; }',
+            'test -f infra/postgres/migrations/0025_control_write_receipt.sql\n          echo "PASS_RECONSTRUCTED_MIGRATION_INVENTORY_31"':'test -f infra/postgres/migrations/0025_control_write_receipt.sql\n          test -f infra/postgres/migrations/0026_control_external_ack_receipt.sql\n          echo "PASS_RECONSTRUCTED_MIGRATION_INVENTORY_32"',
+            'Cumulative PostgreSQL/PostGIS runtime 0001-0025':'Cumulative PostgreSQL/PostGIS runtime 0001-0026',
+            "PASS_RECONSTRUCTED_POSTGIS_CUMULATIVE_0001_0025":"PASS_RECONSTRUCTED_POSTGIS_CUMULATIVE_0001_0026",
+            'This proves the reconstructed migration chain through the alpha12 CONTROL receipt boundary':'This proves the reconstructed migration chain through the alpha15 CONTROL external ACK receipt boundary'
+          }
+          for old,new in repl.items():
+            if old not in s: raise SystemExit(f'MISSING_EXPECTED_TEXT: {old}')
+            s=s.replace(old,new,1)
+          p.write_text(s)
+          PY
+          git diff --check
+          grep -F 'expected 32 physical migration files' .github/workflows/agroway-v021-field-alpha.yml
+          grep -F '0026_control_external_ack_receipt.sql' .github/workflows/agroway-v021-field-alpha.yml
+          grep -F 'Cumulative PostgreSQL/PostGIS runtime 0001-0026' .github/workflows/agroway-v021-field-alpha.yml
+      - name: Push exact FIELD workflow patch
+        run: |
+          if git diff --quiet -- .github/workflows/agroway-v021-field-alpha.yml; then echo PASS_FIELD_CHAIN_ALREADY_0026; exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .github/workflows/agroway-v021-field-alpha.yml
+          git commit -m 'ci(field): extend cumulative migration chain through 0026'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
