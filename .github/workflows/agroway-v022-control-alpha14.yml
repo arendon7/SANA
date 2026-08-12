@@ -120,6 +120,16 @@ jobs:
           echo "ALPHA14_PG_PORT=5432" >> "$GITHUB_ENV"
           echo "ALPHA14_PG_PASSWORD=$TEST_DB_PASSWORD" >> "$GITHUB_ENV"
           echo "ALPHA14_PG_CA_B64=$(base64 -w0 /tmp/alpha14-tls/ca.crt)" >> "$GITHUB_ENV"
+      - name: PostgreSQL 16 TLS and SCRAM independent preflight
+        run: |
+          docker run --rm --network host --add-host db.alpha14.test:127.0.0.1 \
+            -e PGPASSWORD="$ALPHA14_PG_PASSWORD" \
+            -e PGSSLMODE=verify-full \
+            -e PGSSLROOTCERT=/tls/ca.crt \
+            -v /tmp/alpha14-tls/ca.crt:/tls/ca.crt:ro \
+            postgres:16-alpine \
+            psql -h db.alpha14.test -p "$ALPHA14_PG_PORT" -U agroway_control -d agroway_alpha14 -v ON_ERROR_STOP=1 \
+            -c "SELECT current_database() AS database,current_user AS db_user,(SELECT ssl FROM pg_stat_ssl WHERE pid=pg_backend_pid()) AS ssl;"
       - name: PostgreSQL 16 verified-TLS driver integration
         run: node scripts/control-postgres-js-tls-integration.mjs .tmp/control-alpha14/services/investment-portfolio/src/index.js
       - name: Build deterministic alpha14 CONTROL review bundle
