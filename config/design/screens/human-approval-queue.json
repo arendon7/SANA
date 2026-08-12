@@ -1,0 +1,27 @@
+{
+  "screenId":"CONTROL_HUMAN_APPROVAL_QUEUE",
+  "version":"0.22.0-alpha5",
+  "surface":"GREENATICS_CONTROL",
+  "route":"/control/approvals",
+  "trust":"DEMO_RECONSTRUCTED",
+  "purpose":"Review risk-ranked proposals and collect human approval records without executing domain actions.",
+  "proposalStates":["PENDING_HUMAN_REVIEW","AWAITING_SECOND_HUMAN_APPROVAL","APPROVED_FOR_SUBMISSION","CHANGES_REQUESTED","REJECTED"],
+  "executionState":"NOT_EXECUTED",
+  "riskPolicy":{"LOW":1,"MEDIUM":1,"HIGH":2,"CRITICAL":2},
+  "guardrails":[
+    "AI proposals must remain DRAFT_SUGGESTION",
+    "approval records require HUMAN approvers",
+    "HIGH and CRITICAL require two distinct HUMAN approvers",
+    "HIGH and CRITICAL require deterministic precheck PASS",
+    "HIGH and CRITICAL require FRESH evidence accepted for review",
+    "HIGH and CRITICAL human requesters cannot self-approve",
+    "approval binds evidenceContextHashSha256 and proposalDigestSha256",
+    "approval records form a SHA-256 predecessor chain",
+    "APPROVED_FOR_SUBMISSION never changes executionState from NOT_EXECUTED",
+    "alpha5 remains localOnly=true and canonicalMutated=false"
+  ],
+  "responsive":{"desktop":"proposal list/detail/signatures","mobile":"stacked list/detail/signatures","minTouchTargetPx":44},
+  "domainEventDelta":0,
+  "workspaceDelta":0,
+  "d10HumanProductApproval":"PENDING"
+}
