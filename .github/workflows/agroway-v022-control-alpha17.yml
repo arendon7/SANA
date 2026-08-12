@@ -83,9 +83,9 @@ jobs:
           node scripts/control-oidc-production-wiring-runtime.mjs .tmp/control-alpha17/services/identity-access/src/index.js
       - name: Production External ACK provider configuration/preflight runtime matrix
         run: node scripts/control-external-ack-production-wiring-runtime.mjs .tmp/control-alpha17/services/external-data-gateway/src/index.js
-      - name: Build deterministic alpha17 CONTROL review bundle
+      - name: Build deterministic successor CONTROL review bundle
         run: node scripts/build-control-review-bundle.mjs
-      - name: Smoke alpha17 bundle truth and browser ACK lock
+      - name: Smoke alpha17 boundary in successor bundle
         run: |
           PORT=4287 node dist/control-review-bundle/server.mjs > /tmp/control-alpha17-bundle.log 2>&1 &
           PID=$!
@@ -96,11 +96,11 @@ jobs:
           code=$(curl -sS -o /tmp/alpha17-ack-forbidden.json -w '%{http_code}' http://127.0.0.1:4287/api/control/external-ack)
           test "$code" = "404"
           node -e "const x=require('/tmp/alpha17-ack-forbidden.json');if(x.error!=='EXTERNAL_ACK_BROWSER_ENDPOINT_FORBIDDEN'||x.externalAckAdapterImplemented!==true||x.productionExternalAckProviderWiringImplemented!==true||x.externalAckProviderConfigured!==false||x.externalAckProviderConnectivityCertified!==false||x.realExternalAckObserved!==false||x.executionState!=='NOT_EXECUTED'||x.canonicalMutated!==false)process.exit(1);console.log('PASS_CONTROL_ALPHA17_BROWSER_ACK_FORBIDDEN')"
-          node -e "const m=require('./dist/control-review-bundle/REVIEW_MANIFEST.json');const a=require('./dist/control-review-bundle/config/product/control-operational-acceptance.json');if(m.version!=='0.22.0-alpha17'||m.routes.length!==9||m.authority.productionExternalAckProviderWiringImplemented!==true||m.authority.externalAckProviderConfigured!==false||m.authority.externalAckProviderConnectivityCertified!==false||m.authority.realExternalAckObserved!==false||m.authority.executionState!=='NOT_EXECUTED'||m.authority.canonicalMutated!==false||a.productionReady!==false||a.productionBlockers.length!==4||!a.productionBlockers.includes('EXTERNAL_ACK_PROVIDER_REAL_BINDING_AND_CONNECTIVITY_PENDING')||a.productionBlockers.includes('EXTERNAL_ACK_PROVIDER_CONFIGURATION_PENDING'))process.exit(1);console.log('PASS_CONTROL_ALPHA17_BUNDLE',m.fileCount,m.aggregateSha256,a.productionBlockers.length)"
+          node -e "const m=require('./dist/control-review-bundle/REVIEW_MANIFEST.json');const a=require('./dist/control-review-bundle/config/product/control-operational-acceptance.json');const n=Number(/^0\\.22\\.0-alpha(\\d+)$/.exec(m.version)?.[1]);const readinessOk=n<18||(m.authority.readinessOrchestratorImplemented===true&&m.authority.d10EvidenceContractImplemented===true&&m.authority.productionActivationImplemented===false&&m.authority.productionExecutionAvailable===false&&a.d10==='PENDING');if(!Number.isInteger(n)||n<17||m.routes.length!==9||m.authority.productionExternalAckProviderWiringImplemented!==true||m.authority.externalAckProviderConfigured!==false||m.authority.externalAckProviderConnectivityCertified!==false||m.authority.realExternalAckObserved!==false||m.authority.executionState!=='NOT_EXECUTED'||m.authority.canonicalMutated!==false||a.productionReady!==false||a.productionBlockers.length!==4||!a.productionBlockers.includes('EXTERNAL_ACK_PROVIDER_REAL_BINDING_AND_CONNECTIVITY_PENDING')||a.productionBlockers.includes('EXTERNAL_ACK_PROVIDER_CONFIGURATION_PENDING')||!readinessOk)process.exit(1);console.log('PASS_CONTROL_ALPHA17_SUCCESSOR_BUNDLE',m.version,m.fileCount,m.aggregateSha256,a.productionBlockers.length)"
       - name: Trust boundary
         run: |
           echo 'PASS_CONTROL_ALPHA17_EXTERNAL_ACK_PROVIDER_WIRING'
-          echo 'Provider configuration and read-only metadata preflight are review-certified. No real provider endpoint/credential/key binding, connectivity or ACK is configured or claimed; browser invocation and canonical execution remain forbidden.'
+          echo 'Provider configuration and read-only metadata preflight remain review-certified. Successor readiness orchestration does not configure a real provider, observe an ACK or enable production execution.'
       - uses: actions/upload-artifact@v4
         if: success()
         with:
