@@ -36,8 +36,10 @@ const aggregateMaterial=entries.map(e=>`${e.path}\0${e.sha256}\0${e.bytes}`).joi
 const aggregateSha256=sha(Buffer.from(aggregateMaterial));
 const manifest={schemaVersion:1,product:cfg.product,version:cfg.version,artifact:cfg.artifact,trust:cfg.trust,d10:cfg.d10,entryRoute:cfg.entryRoute,routes:cfg.routes,authority:cfg.authority,domainDelta:cfg.domainDelta,generatedFrom:'GIT_WORKTREE',deterministic:true,aggregateSha256,fileCount:entries.length,files:entries};
 await fsp.writeFile(path.join(out,'REVIEW_MANIFEST.json'),JSON.stringify(manifest,null,2)+'\n');
-const pgTruth=cfg.authority.productionDatabaseConfigured===true
-  ? 'Production PostgreSQL configuration/wiring is implemented as external-secret-only and TLS-verified source. No real production secrets are included, connectivity is not certified here, and the review server never invokes a canonical write.'
-  : 'The server-side PostgreSQL transaction adapter is reviewable source, but no production database configuration or credentials are present; the review server never invokes a canonical write.';
+const pgTruth=cfg.authority.productionPoolDriverMaterialized===true
+  ? 'The production PostgreSQL configuration contract and pinned Postgres.js driver bridge are reviewable source. The driver is not connected to a real production database here; no real secrets are bundled, production connectivity is uncertified, and the review server never invokes a canonical write.'
+  : cfg.authority.productionDatabaseConfigurationContractImplemented===true
+    ? 'Production PostgreSQL configuration/wiring is implemented as external-secret-only and TLS-verified source. No real production secrets are included, connectivity is not certified here, and the review server never invokes a canonical write.'
+    : 'The server-side PostgreSQL transaction adapter is reviewable source, but no production database configuration or credentials are present; the review server never invokes a canonical write.';
 await fsp.writeFile(path.join(out,'README.md'),`# GREENATICS CONTROL ${cfg.version} — Review Bundle\n\nTrust: **${cfg.trust}**  \nD10 Human Product Approval: **${cfg.d10}**  \nExecution state: **${cfg.authority.executionState}**\n\nRun:\n\n\`\`\`bash\nPORT=4273 node server.mjs\n\`\`\`\n\nOpen: http://127.0.0.1:4273${cfg.entryRoute}\n\n${pgTruth}\n\nAggregate SHA-256: \`${aggregateSha256}\`\n`);
 console.log(`PASS_CONTROL_REVIEW_BUNDLE files=${entries.length} aggregateSha256=${aggregateSha256}`);
