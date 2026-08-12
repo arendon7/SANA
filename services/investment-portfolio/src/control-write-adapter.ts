@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import type { DeclareCapitalRequirement, InvestmentProject } from '@agroway/invest-control-contracts';
 import { declareRequirement } from './ledger.js';
 
@@ -61,6 +62,16 @@ export interface CanonicalInvestmentUnitOfWork {
   transaction<T>(work:(tx:CanonicalInvestmentTransaction)=>Promise<T>):Promise<T>;
 }
 
+const SHA256_HEX=/^[a-f0-9]{64}$/i;
+
+export function capitalRequirementAuthorizationContext(cmd:DeclareCapitalRequirement):readonly [string,string,string,number,string,string] {
+  return Object.freeze(['DECLARE_CAPITAL_REQUIREMENT',cmd.tenantId,cmd.projectId,cmd.amountMinor,cmd.currency,cmd.at] as const);
+}
+
+export function computeCapitalRequirementAuthorizationContextDigest(cmd:DeclareCapitalRequirement):string {
+  return createHash('sha256').update(JSON.stringify(capitalRequirementAuthorizationContext(cmd))).digest('hex');
+}
+
 function requireAuthorization(auth:CanonicalWriteAuthorization,cmd:DeclareCapitalRequirement):void {
   if(auth.state!=='AUTHORIZED_FOR_ADAPTER'||auth.adapterInvocationAllowed!==true) throw new Error('CANONICAL_WRITE_AUTHORIZATION_REQUIRED');
   if(auth.executionState!=='NOT_EXECUTED'||auth.canonicalMutated!==false) throw new Error('CANONICAL_WRITE_PRECONDITION_STATE_INVALID');
@@ -68,8 +79,10 @@ function requireAuthorization(auth:CanonicalWriteAuthorization,cmd:DeclareCapita
   if(auth.tenantId!==cmd.tenantId||auth.projectId!==cmd.projectId) throw new Error('CANONICAL_WRITE_SCOPE_MISMATCH');
   if(auth.requiredPermission!=='finance:update') throw new Error('CANONICAL_WRITE_PERMISSION_MISMATCH');
   if(!auth.actorId.trim()||!auth.operationId.trim()) throw new Error('CANONICAL_WRITE_ACTOR_OPERATION_REQUIRED');
-  if(!/^[a-f0-9]{64}$/i.test(auth.authorizationContextDigestSha256)) throw new Error('CANONICAL_WRITE_CONTEXT_DIGEST_INVALID');
+  if(!SHA256_HEX.test(auth.authorizationContextDigestSha256)) throw new Error('CANONICAL_WRITE_CONTEXT_DIGEST_INVALID');
   if(!/^[A-Za-z0-9][A-Za-z0-9._:-]{15,127}$/.test(auth.idempotencyKey)) throw new Error('CANONICAL_WRITE_IDEMPOTENCY_KEY_INVALID');
+  const exactCommandDigest=computeCapitalRequirementAuthorizationContextDigest(cmd);
+  if(auth.authorizationContextDigestSha256.toLowerCase()!==exactCommandDigest) throw new Error('CANONICAL_WRITE_CONTEXT_COMMAND_MISMATCH');
 }
 
 function assertIdempotentReplay(existing:CanonicalWriteReceipt,auth:CanonicalWriteAuthorization,cmd:DeclareCapitalRequirement):CanonicalWriteReceipt {
