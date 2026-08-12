@@ -142,7 +142,7 @@ export class ControlProductionReadinessOrchestrator {
       try { validateD10HumanProductApproval(d10,this.candidate,assessedAt);checks.push({id:'D10_HUMAN_PRODUCT_APPROVAL',status:'PASS'});state='READY_FOR_EXPLICIT_ACTIVATION_REVIEW'; }
       catch { checks.push({id:'D10_HUMAN_PRODUCT_APPROVAL',status:'FAIL'});state='BLOCKED_INVALID_D10_EVIDENCE'; }
     }
-    const material={protocol:CONTROL_PRODUCTION_READINESS_PROTOCOL,candidate:this.candidate,state,checks,assessedAt:assessedAt.toISOString(),productionExecutionEnabled:false,canonicalWritePermitted:false,browserActivationAllowed:false,realProductionTokenVerified:false,realExternalAckObserved:false,canonicalMutated:false};
+    const material={protocol:CONTROL_PRODUCTION_READINESS_PROTOCOL,candidate:this.candidate,state,checks,assessedAt:assessedAt.toISOString(),productionExecutionEnabled:false as const,canonicalWritePermitted:false as const,browserActivationAllowed:false as const,realProductionTokenVerified:false as const,realExternalAckObserved:false as const,canonicalMutated:false as const};
     return Object.freeze({...material,checks:Object.freeze(checks.map(x=>Object.freeze({...x}))),assessmentDigestSha256:sha256Canonical(material)});
   }
 }
