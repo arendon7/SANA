@@ -9,6 +9,13 @@
   "command": "DECLARE_CAPITAL_REQUIREMENT",
   "event": "CapitalRequirementDeclared",
   "status": "PASS_REVIEW_PENDING_POSTGRES_TRANSACTION_ADAPTER",
+  "authorizationBinding": {
+    "field": "authorizationContextDigestSha256",
+    "algorithm": "SHA-256",
+    "canonicalFrame": ["DECLARE_CAPITAL_REQUIREMENT", "tenantId", "projectId", "amountMinor", "currency", "at"],
+    "exactCommandPayloadRequired": true,
+    "payloadDriftRejected": true
+  },
   "referencePort": {
     "transactional": true,
     "idempotent": true,
