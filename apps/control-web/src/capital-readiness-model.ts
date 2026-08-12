@@ -14,6 +14,8 @@ const SHA256=/^[a-f0-9]{64}$/;
 const GATE_ORDER:readonly ReadinessGateId[]=['G1_ACTOR','G2_ASSET','G3_AGRONOMY','G4_BUDGET','G5_MARKET','G6_RISK','G7_TRACEABILITY','G8_IMPACT','G9_FINANCIAL_STRUCTURE'] as const;
 const RISK_ORDER:readonly ProductiveRiskDimensionId[]=['PRODUCER','OPERATION','AGRONOMY','DATA','FINANCIAL','MARKET','CLIMATE','TRACEABILITY','MANAGEMENT'] as const;
 const ACTIVE_GAP_STATES=new Set(['OPEN','IN_REMEDIATION','EVIDENCE_SUBMITTED']);
+const READINESS_DECISIONS=new Set(['NOT_CAPITAL_READY','CAPITAL_READY_WITH_CONDITIONS','CAPITAL_READY','REASSESSMENT_REQUIRED']);
+const REQUIRED_FINANCIAL_LIMITATIONS=Object.freeze(['CAPITAL_READY_IS_NOT_FINANCING_APPROVAL','NO_RETURN_OR_REPAYMENT_GUARANTEE','NO_CUSTODY_OR_DISBURSEMENT_AUTHORITY']);
 
 export interface CapitalReadinessGateView {
   gateId:ReadinessGateId;
@@ -112,10 +114,10 @@ function sameStrings(left:readonly string[],right:readonly string[]):boolean{con
 function activeGap(gap:ReadinessGap):boolean{return ACTIVE_GAP_STATES.has(gap.state);}
 function gapView(gap:ReadinessGap):CapitalReadinessGapView{return Object.freeze({gapId:gap.gapId,gateId:gap.gateId,code:gap.code,severity:gap.severity,blocking:gap.blocking,state:gap.state,description:gap.description,...(gap.ownerRef?{ownerRef:gap.ownerRef}:{}),...(gap.dueAt?{dueAt:gap.dueAt}:{})});}
 function decisionLabel(decision:CapitalReadinessPackage['decision']):string{
-  if(decision==='CAPITAL_READY')return 'Capital ready under SANA readiness policy';
-  if(decision==='CAPITAL_READY_WITH_CONDITIONS')return 'Capital ready with conditions under SANA readiness policy';
-  if(decision==='REASSESSMENT_REQUIRED')return 'Readiness reassessment required';
-  return 'Not capital ready under current SANA readiness policy';
+  if(decision==='CAPITAL_READY')return 'SANA readiness: ready — not financing approval';
+  if(decision==='CAPITAL_READY_WITH_CONDITIONS')return 'SANA readiness: ready with conditions — not financing approval';
+  if(decision==='REASSESSMENT_REQUIRED')return 'SANA readiness: reassessment required';
+  return 'SANA readiness: not ready under current policy';
 }
 
 function validateScope(input:BuildCapitalReadinessControlModelInput):void {
@@ -124,6 +126,10 @@ function validateScope(input:BuildCapitalReadinessControlModelInput):void {
   if(manifest.projectId!==pkg.projectId||risk.projectId!==pkg.projectId)throw new Error('CAPITAL_READINESS_VIEW_PROJECT_MISMATCH');
   if(pkg.evidenceManifestDigestSha256!==manifest.digestSha256)throw new Error('CAPITAL_READINESS_VIEW_MANIFEST_DIGEST_MISMATCH');
   if(pkg.riskProfileDigestSha256!==risk.digestSha256)throw new Error('CAPITAL_READINESS_VIEW_RISK_DIGEST_MISMATCH');
+  if(pkg.financialAuthority!=='READINESS_ONLY_NO_FINANCING_APPROVAL')throw new Error('CAPITAL_READINESS_VIEW_FINANCIAL_AUTHORITY_INVALID');
+  if(!READINESS_DECISIONS.has(pkg.decision))throw new Error('CAPITAL_READINESS_VIEW_DECISION_INVALID');
+  for(const limitation of REQUIRED_FINANCIAL_LIMITATIONS)if(!pkg.limitations.includes(limitation))throw new Error(`CAPITAL_READINESS_VIEW_REQUIRED_LIMITATION_MISSING:${limitation}`);
+  if(!Number.isSafeInteger(manifest.totalCoverageBps)||manifest.totalCoverageBps<0||manifest.totalCoverageBps>10_000)throw new Error('CAPITAL_READINESS_VIEW_EVIDENCE_COVERAGE_INVALID');
   assertDigest(pkg.assessmentDigestSha256,'CAPITAL_READINESS_VIEW_ASSESSMENT_DIGEST_INVALID');
   assertDigest(pkg.digestSha256,'CAPITAL_READINESS_VIEW_PACKAGE_DIGEST_INVALID');
   assertDigest(manifest.digestSha256,'CAPITAL_READINESS_VIEW_MANIFEST_DIGEST_INVALID');
