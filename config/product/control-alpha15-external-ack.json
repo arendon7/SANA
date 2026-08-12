@@ -1,0 +1,81 @@
+{
+  "product": "GREENATICS CONTROL",
+  "version": "0.22.0-alpha15",
+  "capability": "EXTERNAL_ACK_ADAPTER",
+  "status": "PASS_REVIEW_PENDING_REAL_PROVIDER_CONFIGURATION",
+  "protocol": {
+    "name": "AGROWAY_CONTROL_ACK_V1",
+    "transport": "HTTPS_POST",
+    "signature": "Ed25519",
+    "requestDigest": "SHA-256",
+    "receiptDigest": "SHA-256",
+    "nonceBinding": true,
+    "idempotencyBinding": true,
+    "packetDigestBinding": true,
+    "unknownResponseFieldsRejected": true
+  },
+  "transportBoundary": {
+    "httpsRequired": true,
+    "endpointCredentialsForbidden": true,
+    "loopbackEndpointForbidden": true,
+    "boundedTimeout": true,
+    "boundedResponseBytes": true,
+    "bearerSecretInjectedOnly": true,
+    "browserInvocationAllowed": false
+  },
+  "verificationBoundary": {
+    "providerExactMatch": true,
+    "providerKeyExactMatch": true,
+    "requestIdExactMatch": true,
+    "tenantExactMatch": true,
+    "packetExactMatch": true,
+    "idempotencyExactMatch": true,
+    "packetDigestExactMatch": true,
+    "requestDigestExactMatch": true,
+    "nonceExactMatch": true,
+    "ackTimestampBounded": true,
+    "ed25519SignatureRequired": true
+  },
+  "durability": {
+    "migration": "infra/postgres/migrations/0026_control_external_ack_receipt.sql",
+    "table": "agroway_core.control_external_ack_receipt",
+    "tenantRls": true,
+    "tenantPacketUnique": true,
+    "tenantIdempotencyUnique": true,
+    "providerExternalReferenceUnique": true,
+    "canonicalMutationForbidden": true,
+    "executionState": "NOT_EXECUTED"
+  },
+  "authority": {
+    "approval": "HUMAN_ONLY",
+    "ai": "ADVISORY_ONLY",
+    "browserWriteAllowed": false,
+    "externalAckAdapterImplemented": true,
+    "externalAckProviderConfigured": false,
+    "realExternalAckObserved": false,
+    "canonicalWriteExecutedByAck": false,
+    "canonicalMutated": false,
+    "productionExecutionAvailable": false
+  },
+  "reproducibility": {
+    "canonicalRootLockChanged": false,
+    "canonicalWorkspaceCount": 41,
+    "externalNpmDependencyAdded": false,
+    "nodeStandardLibraryCryptoOnly": true
+  },
+  "evidence": [
+    "services/external-data-gateway/src/control-external-ack-adapter.ts",
+    "infra/postgres/migrations/0026_control_external_ack_receipt.sql",
+    "scripts/validate-control-external-ack.mjs",
+    "scripts/control-external-ack-runtime.mjs",
+    "scripts/control-external-ack-postgres-store-runtime.mjs"
+  ],
+  "explicitGaps": [
+    "No real external ACK provider endpoint is configured.",
+    "No real provider bearer credential or signing public key is stored in the repository.",
+    "No real provider ACK has been observed or claimed.",
+    "Production PostgreSQL secrets/connectivity remain separately pending.",
+    "Production identity provider configuration remains pending.",
+    "D10 human product approval remains pending."
+  ]
+}
