@@ -1,0 +1,66 @@
+name: AGROWAY CAPITAL_READINESS UX2B-1A evidence boundary
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "packages/invest-control-contracts/src/commands.ts"
+      - "packages/invest-control-contracts/src/readiness-evidence.ts"
+      - "packages/invest-control-contracts/src/index.ts"
+      - "services/identity-access/src/capital-readiness-access.ts"
+      - "services/investment-portfolio/src/readiness-authority.ts"
+      - "services/investment-portfolio/src/readiness-evidence.ts"
+      - "services/investment-portfolio/src/index.ts"
+      - "infra/postgres/migrations/0029_capital_readiness_evidence_receipt.sql"
+      - "scripts/validate-capital-readiness-evidence-ux2b1a.mjs"
+      - "scripts/validate-capital-readiness-evidence-postgres.py"
+      - ".github/workflows/agroway-capital-readiness-ux2b1a.yml"
+concurrency:
+  group: agroway-capital-readiness-ux2b1a-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  evidence-boundary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Canonical offline workspace install
+        run: npm ci --ignore-scripts --offline
+
+      - name: Syntax check UX2B-1A validators and alpha15 server
+        run: |
+          node --check apps/control-web/server.mjs
+          node --check scripts/validate-capital-readiness-evidence-ux2b1a.mjs
+          python -m py_compile scripts/validate-capital-readiness-evidence-postgres.py
+
+      - name: Evidence receipt + submit authority adversarial runtime
+        run: node scripts/validate-capital-readiness-evidence-ux2b1a.mjs
+
+      - name: Integrated INT1.7 authority regression
+        run: node scripts/validate-capital-readiness-authority-ux2b0.mjs
+
+      - name: Pinned TypeScript 5.8.3 strict
+        run: npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit
+
+      - name: Browser upload and mutation remain unavailable
+        shell: bash
+        run: |
+          set -euo pipefail
+          PORT=4291 node apps/control-web/server.mjs >/tmp/capital-ux2b1a.log 2>&1 &
+          PID=$!
+          trap 'kill $PID 2>/dev/null || true' EXIT
+          for i in {1..40}; do curl -fsS http://127.0.0.1:4291/control/capital >/dev/null && break || sleep .25; done
+          code=$(curl -sS -o /tmp/capital-api.json -w '%{http_code}' -X POST http://127.0.0.1:4291/api/capital/projects/test/gaps/test/evidence)
+          test "$code" = "405" || test "$code" = "404"
+          if [ "$code" = "404" ]; then grep -F 'CAPITAL_READINESS_BROWSER_MUTATION_NOT_ENABLED' /tmp/capital-api.json; fi
+          ! grep -R --exclude='agroway-capital-readiness-ux2b1a.yml' -E 'multipart/form-data|presigned|putImmutable\(' apps/control-web >/dev/null
+
+      - name: Trust boundary
+        run: |
+          echo 'PASS_CAPITAL_READINESS_UX2B1A_EVIDENCE_BOUNDARY'
+          echo 'Validated evidence receipt metadata and dedicated evidence-submit authority are modeled. No browser upload route, object-store provider, file bytes in PostgreSQL, auto-resolution, financing approval, money movement, custody, wallet, or D10 claim.'

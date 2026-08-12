@@ -15,8 +15,8 @@ export interface ChangeInvestmentRiskState { riskId:UUID; projectId:UUID; tenant
 export interface LinkInvestmentEvidence { linkId:UUID; projectId:UUID; tenantId:UUID; kind:EvidenceKind; evidenceRef:string; at:ISODateTime; }
 export interface LinkInvestmentImpactSnapshot { linkId:UUID; projectId:UUID; tenantId:UUID; impactSnapshotRef:string; at:ISODateTime; }
 
-// CAPITAL_READINESS INT1.7 application commands. Actor identity is derived from
-// the authenticated membership by the authority service and is intentionally not
+// CAPITAL_READINESS application commands. Actor identity is derived from the
+// authenticated membership by the authority service and is intentionally not
 // accepted as caller-controlled command data.
 export interface StartCapitalReadinessIntake {
   intakeId:UUID;
@@ -106,14 +106,32 @@ export interface FinalizeCapitalReadinessDecision {
   reason:string;
 }
 
+/** Generic remediation may only put a gap into active remediation. Evidence submission is specialized below. */
 export interface AdvanceReadinessGapRemediation {
   tenantId:UUID;
   projectId:UUID;
   assessmentId:string;
   assessmentVersion:number;
   gapId:string;
-  fromState:Exclude<ReadinessGapState,'RESOLVED'|'WAIVED'|'SUPERSEDED'>;
-  target:Extract<ReadinessGapState,'IN_REMEDIATION'|'EVIDENCE_SUBMITTED'>;
+  fromState:Extract<ReadinessGapState,'OPEN'|'EVIDENCE_SUBMITTED'>;
+  target:'IN_REMEDIATION';
+  transitionId:string;
+  at:ISODateTime;
+  note?:string;
+}
+
+/**
+ * Submits already validated canonical evidence receipts against one gap. This
+ * command does not resolve or waive the gap.
+ */
+export interface SubmitReadinessGapEvidence {
+  tenantId:UUID;
+  projectId:UUID;
+  assessmentId:string;
+  assessmentVersion:number;
+  gapId:string;
+  fromState:Extract<ReadinessGapState,'OPEN'|'IN_REMEDIATION'>;
+  evidenceRefs:readonly string[];
   transitionId:string;
   at:ISODateTime;
   note?:string;

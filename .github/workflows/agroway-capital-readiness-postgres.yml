@@ -1,10 +1,12 @@
-name: AGROWAY CAPITAL_READINESS PostgreSQL UX2B-0
+name: AGROWAY CAPITAL_READINESS PostgreSQL UX2B-1A
 on:
   workflow_dispatch:
   pull_request:
     paths:
       - "infra/postgres/migrations/**"
+      - "infra/postgres/tests/**"
       - "scripts/validate-capital-readiness-postgres.py"
+      - "scripts/validate-capital-readiness-evidence-postgres.py"
       - ".github/workflows/agroway-capital-readiness-postgres.yml"
 concurrency:
   group: agroway-capital-readiness-postgres-${{ github.event.pull_request.number || github.ref }}
@@ -49,15 +51,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          count=$(find infra/postgres/migrations -maxdepth 1 -type f -name '*.sql' | wc -l | tr -d ' ')
+          test "$count" = "37" || { echo "expected 37 physical migration files, found $count"; exit 1; }
           test -f infra/postgres/migrations/0025_control_write_receipt.sql
           test -f infra/postgres/migrations/0026_control_external_ack_receipt.sql
           test -f infra/postgres/migrations/0027_identity_membership_permissions.sql
           test -f infra/postgres/migrations/0028_capital_readiness_persistence.sql
           test -f infra/postgres/migrations/0028a_capital_readiness_transition_locking.sql
           test -f infra/postgres/migrations/0028b_capital_readiness_tenant_trigger_guard.sql
+          test -f infra/postgres/migrations/0029_capital_readiness_evidence_receipt.sql
           test ! -f infra/postgres/migrations/0025_capital_readiness_persistence.sql
 
-      - name: Apply complete AGROWAY migration chain through UX2B-0
+      - name: Apply complete AGROWAY migration chain through UX2B-1A
         shell: bash
         run: |
           set -euo pipefail
@@ -69,7 +74,7 @@ jobs:
             psql "$DATABASE_URL" -X -v ON_ERROR_STOP=1 -f "$migration"
           done
           psql "$DATABASE_URL" -X -v ON_ERROR_STOP=1 -Atc "SELECT extname FROM pg_extension WHERE extname='postgis';" | grep -Fx postgis
-          psql "$DATABASE_URL" -X -v ON_ERROR_STOP=1 -Atc "SELECT to_regclass('agroway_invest.readiness_assessment') IS NOT NULL;" | grep -Fx t
+          psql "$DATABASE_URL" -X -v ON_ERROR_STOP=1 -Atc "SELECT to_regclass('agroway_invest.readiness_evidence_receipt') IS NOT NULL;" | grep -Fx t
 
       - name: Verify membership explicit-grant persistence
         shell: bash
@@ -77,21 +82,24 @@ jobs:
           set -euo pipefail
           psql "$DATABASE_URL" -X -v ON_ERROR_STOP=1 <<'SQL'
           INSERT INTO agroway_identity.membership(tenant_id,actor_id,roles,active)
-          VALUES ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','ux2b0:no-implicit-grant',ARRAY['OWNER']::text[],true);
+          VALUES ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','ux2b1a:no-implicit-grant',ARRAY['OWNER']::text[],true);
           DO $$
           DECLARE grants text[];
           BEGIN
             SELECT granted_permissions INTO grants
             FROM agroway_identity.membership
-            WHERE tenant_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' AND actor_id='ux2b0:no-implicit-grant';
-            IF cardinality(grants) <> 0 THEN RAISE EXCEPTION 'UX2B0_IMPLICIT_PERMISSION_GRANT_FORBIDDEN'; END IF;
+            WHERE tenant_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' AND actor_id='ux2b1a:no-implicit-grant';
+            IF cardinality(grants) <> 0 THEN RAISE EXCEPTION 'UX2B1A_IMPLICIT_PERMISSION_GRANT_FORBIDDEN'; END IF;
           END $$;
           SQL
 
-      - name: Run CAPITAL_READINESS adversarial PostgreSQL harness
+      - name: Run base CAPITAL_READINESS adversarial PostgreSQL harness
         run: python scripts/validate-capital-readiness-postgres.py
+
+      - name: Run UX2B-1A evidence receipt adversarial PostgreSQL harness
+        run: python scripts/validate-capital-readiness-evidence-postgres.py
 
       - name: Trust boundary
         run: |
-          echo 'PASS_CAPITAL_READINESS_POSTGRES_UX2B0'
-          echo 'Persistence proves explicit membership grants plus tenant-scoped readiness history/integrity only. It does not enable browser mutation, approve financing, move money, create custody/wallet authority, grant AI decision authority, or imply D10/Production Ready.'
+          echo 'PASS_CAPITAL_READINESS_POSTGRES_UX2B1A'
+          echo 'Persistence proves explicit membership grants, tenant-scoped readiness history and immutable validated evidence metadata. PostgreSQL stores no file bytes. Receipt/submission does not resolve a gap, approve financing, move money, create custody/wallet authority, grant AI decision authority, expose browser upload, or imply D10/Production Ready.'

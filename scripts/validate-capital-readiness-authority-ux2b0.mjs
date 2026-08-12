@@ -26,11 +26,13 @@ await deny(()=>a.advanceAuthorizedCapitalReadinessIntake(new DB(),investor,creat
 await deny(()=>a.advanceAuthorizedCapitalReadinessIntake(new DB(),reviewer,Object.freeze({...created,state:'HUMAN_REVIEW'}),{tenantId,projectId,intakeId,intakeVersion:1,target:'CAPITAL_READY',transitionId:'bad2',at:'2026-08-12T10:00:00Z'}),'READINESS_DIRECT_SENSITIVE_TRANSITION_FORBIDDEN');
 const gap=Object.freeze({gapId:'g1',tenantId,projectId,assessmentVersion:1,gateId:'G7_TRACEABILITY',code:'TRACEABILITY_PENDING',severity:'WARNING',blocking:true,state:'OPEN',description:'pending',sourceRef:'G7',requiredEvidenceRoles:Object.freeze(['LOT_EVIDENCE']),resolutionEvidenceRefs:Object.freeze([]),openedAt:'2026-08-12T10:00:00Z'});
 const gapdb=sql=>sql.includes('latest-gap-transition')?{rows:[{transitionId:'g0',tenantId,projectId,assessmentId:'a1',assessmentVersion:1,gapId:'g1',sequence:0,fromState:null,toState:'OPEN',actorRef:'human:reviewer',resolutionEvidenceRefs:[],note:null,occurredAt:gap.openedAt}],rowCount:1}:{rows:[],rowCount:1};
-await a.advanceAuthorizedReadinessGapRemediation(new DB(gapdb),agro,gap,{tenantId,projectId,assessmentId:'a1',assessmentVersion:1,gapId:'g1',fromState:'OPEN',target:'EVIDENCE_SUBMITTED',transitionId:'g1t',at:'2026-08-12T10:10:00Z'});
+await a.advanceAuthorizedReadinessGapRemediation(new DB(gapdb),agro,gap,{tenantId,projectId,assessmentId:'a1',assessmentVersion:1,gapId:'g1',fromState:'OPEN',target:'IN_REMEDIATION',transitionId:'g1t',at:'2026-08-12T10:10:00Z'});
+await deny(()=>a.advanceAuthorizedReadinessGapRemediation(new DB(gapdb),agro,gap,{tenantId,projectId,assessmentId:'a1',assessmentVersion:1,gapId:'g1',fromState:'OPEN',target:'EVIDENCE_SUBMITTED',transitionId:'g1-illegal',at:'2026-08-12T10:10:00Z'}),'READINESS_GAP_DIRECT_SENSITIVE_TRANSITION_FORBIDDEN:EVIDENCE_SUBMITTED');
 await deny(()=>a.waiveAuthorizedReadinessGap(new DB(gapdb),agro,gap,{tenantId,projectId,assessmentId:'a1',assessmentVersion:1,gapId:'g1',fromState:'OPEN',transitionId:'gw',at:'2026-08-12T10:11:00Z',note:'x'}),'PERMISSION_DENIED');
 await deny(()=>a.resolveAuthorizedReadinessGap(new DB(gapdb),agro,gap,{tenantId,projectId,assessmentId:'a1',assessmentVersion:1,gapId:'g1',fromState:'OPEN',transitionId:'gr',at:'2026-08-12T10:12:00Z',resolutionEvidenceRefs:Object.freeze([]),note:'x'}),'READINESS_GAP_RESOLUTION_EVIDENCE_REQUIRED');
 const b=a.CAPITAL_READINESS_APPLICATION_AUTHORITY_BOUNDARY;
 ok(!b.actorIdentityCallerControlled&&!b.controlToInvestMutationBridge&&!b.aiFinalReadinessAuthority&&!b.investorMutationAuthority,'AUTHORITY_SEPARATION');
+ok(b.evidenceSubmissionUsesDedicatedAuthority===true&&b.genericRemediationCanSubmitEvidence===false,'EVIDENCE_AUTHORITY_SEPARATION');
 ok(!b.financingApproval&&!b.investmentRecommendation&&!b.custody&&!b.paymentExecution&&!b.disbursementAuthority,'FINANCIAL_BOUNDARY');
 console.log('PASS_CAPITAL_READINESS_AUTHORITY_UX2B0');
 await rm(tmp,{recursive:true,force:true});
