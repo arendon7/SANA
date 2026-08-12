@@ -8,6 +8,7 @@ await rm(tmp,{recursive:true,force:true});
 const compile=spawnSync('tsc',[
   'services/investment-portfolio/src/readiness-persistence.ts',
   'services/investment-portfolio/src/readiness-evidence-review.ts',
+  'services/investment-portfolio/src/node-crypto.d.ts',
   'services/identity-access/src/capital-readiness-access.ts',
   '--ignoreConfig','--target','ES2022','--module','NodeNext','--moduleResolution','NodeNext','--skipLibCheck','true','--strict','true','--rootDir','.','--outDir',tmp,'--noEmitOnError','true'
 ],{encoding:'utf8'});
