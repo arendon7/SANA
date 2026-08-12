@@ -1,0 +1,1 @@
+export type TraceabilityPassport=Readonly<{tenantId:string;passportId:string;cropCycleId:string;producerId:string;farmId:string;plotId:string;harvestLotIds:readonly string[];eventDigestSha256:string;issuedAt:string}>;
