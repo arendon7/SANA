@@ -77,7 +77,7 @@ END $$;
 RESET ROLE;
 
 -- The cumulative schema now contains the historical 35 FORCE-RLS tables plus
--- the six canonical Capital Readiness tables introduced by migration 0028.
+-- seven Capital Readiness tables introduced by migrations 0028 and 0029.
 DO $$
 DECLARE forced_count integer;
 BEGIN
@@ -87,14 +87,14 @@ BEGIN
   WHERE n.nspname IN ('agroway_external','agroway_invest','agroway_control','agroway_copilot','agroway_pilot')
     AND c.relkind='r'
     AND c.relforcerowsecurity;
-  IF forced_count <> 41 THEN
-    RAISE EXCEPTION 'expected 41 FORCE-RLS tables, found %', forced_count;
+  IF forced_count <> 42 THEN
+    RAISE EXCEPTION 'expected 42 FORCE-RLS tables, found %', forced_count;
   END IF;
 END $$;
 
 -- Do not rely on the aggregate count alone. Every Capital Readiness table must
 -- individually retain ENABLE+FORCE RLS and the exact tenant policy created by
--- the canonical migration.
+-- its canonical migration.
 DO $$
 DECLARE
   table_name text;
@@ -110,7 +110,8 @@ BEGIN
     'readiness_assessment',
     'readiness_gate_assessment',
     'readiness_gap',
-    'readiness_gap_transition'
+    'readiness_gap_transition',
+    'readiness_evidence_receipt'
   ]
   LOOP
     SELECT c.relrowsecurity,c.relforcerowsecurity
@@ -164,4 +165,4 @@ BEGIN
   END IF;
 END $$;
 
-SELECT 'PASS v0.20.1 FORCE RLS + tenant isolation + Capital Readiness RLS + raw boundary' AS result;
+SELECT 'PASS v0.20.1 FORCE RLS + tenant isolation + Capital Readiness evidence RLS + raw boundary' AS result;
