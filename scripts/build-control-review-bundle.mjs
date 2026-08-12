@@ -44,8 +44,10 @@ const pgTruth=cfg.authority.productionPoolDriverMaterialized===true
   : cfg.authority.productionDatabaseConfigurationContractImplemented===true
     ? 'Production PostgreSQL configuration/wiring is implemented as external-secret-only and TLS-verified source. No real production secrets are included, connectivity is not certified here, and the review server never invokes a canonical write.'
     : 'The server-side PostgreSQL transaction adapter is reviewable source, but no production database configuration or credentials are present; the review server never invokes a canonical write.';
-const ackTruth=cfg.authority.externalAckAdapterImplemented===true
-  ? 'The external ACK adapter, Ed25519 verification boundary and durable tenant-RLS receipt contract are reviewable source. No real external provider endpoint, bearer credential or signing key is configured, no real ACK is claimed, and the browser cannot invoke the adapter.'
-  : 'External ACK remains a future production boundary and the review browser does not invent acknowledgement.';
+const ackTruth=cfg.authority.productionExternalAckProviderWiringImplemented===true
+  ? 'The external ACK adapter and provider configuration/connectivity wiring are reviewable source. Provider metadata preflight is HTTPS GET read-only, same-origin and exact-bound to provider/protocol/key IDs before transport materialization. No real provider endpoint, credential, key binding, connectivity or ACK is claimed, and the browser cannot invoke the adapter.'
+  : cfg.authority.externalAckAdapterImplemented===true
+    ? 'The external ACK adapter, Ed25519 verification boundary and durable tenant-RLS receipt contract are reviewable source. No real external provider endpoint, bearer credential or signing key is configured, no real ACK is claimed, and the browser cannot invoke the adapter.'
+    : 'External ACK remains a future production boundary and the review browser does not invent acknowledgement.';
 await fsp.writeFile(path.join(out,'README.md'),`# GREENATICS CONTROL ${cfg.version} — Review Bundle\n\nTrust: **${cfg.trust}**  \nD10 Human Product Approval: **${cfg.d10}**  \nExecution state: **${cfg.authority.executionState}**\n\nRun:\n\n\`\`\`bash\nPORT=4273 node server.mjs\n\`\`\`\n\nOpen: http://127.0.0.1:4273${cfg.entryRoute}\n\n${idpTruth}\n\n${pgTruth}\n\n${ackTruth}\n\nAggregate SHA-256: \`${aggregateSha256}\`\n`);
 console.log(`PASS_CONTROL_REVIEW_BUNDLE files=${entries.length} aggregateSha256=${aggregateSha256}`);

@@ -139,15 +139,18 @@ jobs:
           const m=require('./dist/control-review-bundle/REVIEW_MANIFEST.json');
           const a=require('./dist/control-review-bundle/config/product/control-operational-acceptance.json');
           const x=require('/tmp/alpha15-ack-forbidden.json');
-          const n=Number(/^0\.22\.0-alpha(\d+)$/.exec(m.version)?.[1]);
-          if(!Number.isInteger(n)||n<15||x.error!=='EXTERNAL_ACK_BROWSER_ENDPOINT_FORBIDDEN'||m.authority.externalAckAdapterImplemented!==true||m.authority.externalAckProviderConfigured!==false||m.authority.realExternalAckObserved!==false||m.authority.executionState!=='NOT_EXECUTED'||m.authority.canonicalMutated!==false||a.productionReady!==false||!a.productionBlockers.includes('EXTERNAL_ACK_PROVIDER_CONFIGURATION_PENDING'))process.exit(1);
+          const n=Number(m.version.split('alpha')[1]);
+          const ackOk=n<17
+            ? a.productionBlockers.includes('EXTERNAL_ACK_PROVIDER_CONFIGURATION_PENDING')
+            : m.authority.productionExternalAckProviderWiringImplemented===true&&m.authority.externalAckProviderConnectivityCertified===false&&a.productionBlockers.includes('EXTERNAL_ACK_PROVIDER_REAL_BINDING_AND_CONNECTIVITY_PENDING')&&!a.productionBlockers.includes('EXTERNAL_ACK_PROVIDER_CONFIGURATION_PENDING');
+          if(!Number.isInteger(n)||n<15||x.error!=='EXTERNAL_ACK_BROWSER_ENDPOINT_FORBIDDEN'||m.authority.externalAckAdapterImplemented!==true||m.authority.externalAckProviderConfigured!==false||m.authority.realExternalAckObserved!==false||m.authority.executionState!=='NOT_EXECUTED'||m.authority.canonicalMutated!==false||a.productionReady!==false||!ackOk)process.exit(1);
           if(n>=16&&(m.authority.productionIdentityProviderWiringImplemented!==true||m.authority.realIdentityProviderConnectivityCertified!==false||m.authority.realProductionTokenVerified!==false||!a.productionBlockers.includes('PRODUCTION_IDENTITY_PROVIDER_REAL_BINDING_AND_CONNECTIVITY_PENDING')))process.exit(1);
           console.log('PASS_CONTROL_ALPHA15_SUCCESSOR_BUNDLE',m.version,m.fileCount,m.aggregateSha256,a.productionBlockers.length);
           NODE
       - name: Trust boundary
         run: |
           echo 'PASS_CONTROL_ALPHA15_VERIFIED_EXTERNAL_ACK_ADAPTER'
-          echo 'Verified ACK remains evidence only; successor identity wiring does not configure a real ACK provider or imply production execution.'
+          echo 'Verified ACK remains evidence only; successor provider wiring does not claim real provider connectivity or imply production execution.'
       - uses: actions/upload-artifact@v4
         if: success()
         with:
