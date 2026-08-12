@@ -1,0 +1,15 @@
+import fs from 'node:fs';
+const required=['apps/field-web/server.mjs','apps/field-web/dev-runtime.mjs','apps/field-web/public/index.html'];let passed=0;const check=(n,v)=>{if(!v){console.error(`FAIL ${n}`);process.exitCode=1}else{passed++;console.log(`PASS ${n}`)}};
+for(const f of required)check(`file:${f}`,fs.existsSync(f));
+const server=fs.readFileSync(required[0],'utf8'),runtime=fs.readFileSync(required[1],'utf8');
+for(const token of ["server.listen(port,'127.0.0.1'",'/api/dev/status','/api/dev/invitations','/api/dev/exports','/api/dev/sync/envelopes','LOCAL_DEV_BACKEND_NOT_PRODUCTION','BODY_TOO_LARGE','AGROWAY_DEV_ALLOW_RESET'])check(`server:${token}`,server.includes(token));
+check('server:no-wildcard-bind',!server.includes("server.listen(port,'0.0.0.0'")&&!server.includes('::'));
+check('server:body-limit-1mib',server.includes('1024*1024'));
+check('server:no-store',server.includes("'cache-control':'no-store'"));
+for(const token of ['class DevRuntimeStore','status()','createInvitation','createFullTenantExport','submitEnvelope','digestSha256','tenantId'])check(`runtime:${token}`,runtime.includes(token));
+check('runtime:not-production',!runtime.includes('PRODUCTION_RUNTIME_GATE_OPEN'));
+const pkg=JSON.parse(fs.readFileSync('package.json','utf8'));
+check('script:validate',pkg.scripts?.['validate:local-dev-backend']==='node scripts/validate-local-dev-backend.mjs');
+check('script:http',pkg.scripts?.['test:local-dev-backend-http']==='node scripts/local-dev-backend-http-runtime.mjs');
+check('script:browser',pkg.scripts?.['qa:local-dev-backend-browser']==='python scripts/local-dev-backend-browser-qa.py');
+if(process.exitCode)process.exit(1);console.log(`PASS_LOCAL_DEV_BACKEND_STATIC ${passed}/${passed}`);
