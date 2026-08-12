@@ -74,6 +74,10 @@ export interface BuildRemediationTaskProjectionInput {
 
 const GATE_ORDER:readonly ReadinessGateId[]=['G1_ACTOR','G2_ASSET','G3_AGRONOMY','G4_BUDGET','G5_MARKET','G6_RISK','G7_TRACEABILITY','G8_IMPACT','G9_FINANCIAL_STRUCTURE'];
 const ACTIVE_STATES=new Set<ReadinessGap['state']>(['OPEN','IN_REMEDIATION','EVIDENCE_SUBMITTED']);
+const KNOWN_GAP_STATES=new Set<ReadinessGap['state']>(['OPEN','IN_REMEDIATION','EVIDENCE_SUBMITTED','RESOLVED','WAIVED','SUPERSEDED']);
+const KNOWN_SEVERITIES=new Set<ReadinessGapSeverity>(['INFO','WARNING','CRITICAL']);
+const ACTION_KINDS=new Set<RemediationActionKind>(['PROVIDE_INFORMATION','PROVIDE_DOCUMENT','COORDINATE_TECHNICAL_VISIT','SANA_REVIEW']);
+const RESPONSIBILITIES=new Set<RemediationResponsibility>(['PRODUCER','SANA_ANALYST','AGRONOMIST','SHARED']);
 const SEVERITY_ORDER:Readonly<Record<ReadinessGapSeverity,number>>={CRITICAL:0,WARNING:1,INFO:2};
 
 function nonBlank(value:string,code:string):string{const normalized=value.trim();if(!normalized)throw new Error(code);return normalized;}
@@ -99,7 +103,24 @@ function validatePresentation(item:RemediationPresentation):void{
   nonBlank(item.code,'REMEDIATION_PRESENTATION_CODE_REQUIRED');
   nonBlank(item.title,'REMEDIATION_PRESENTATION_TITLE_REQUIRED');
   nonBlank(item.instruction,'REMEDIATION_PRESENTATION_INSTRUCTION_REQUIRED');
+  if(!ACTION_KINDS.has(item.actionKind))throw new Error(`REMEDIATION_PRESENTATION_ACTION_INVALID:${String(item.actionKind)}`);
+  if(!RESPONSIBILITIES.has(item.responsibility))throw new Error(`REMEDIATION_PRESENTATION_RESPONSIBILITY_INVALID:${String(item.responsibility)}`);
   for(const example of item.evidenceExamples)nonBlank(example,'REMEDIATION_PRESENTATION_EVIDENCE_EXAMPLE_REQUIRED');
+}
+function validateGap(gap:ReadinessGap,input:BuildRemediationTaskProjectionInput):void{
+  nonBlank(gap.gapId,'REMEDIATION_GAP_ID_REQUIRED');
+  nonBlank(gap.code,'REMEDIATION_GAP_CODE_REQUIRED');
+  nonBlank(gap.sourceRef,'REMEDIATION_GAP_SOURCE_REQUIRED');
+  nonBlank(gap.description,'REMEDIATION_GAP_DESCRIPTION_REQUIRED');
+  if(gap.tenantId!==input.tenantId||gap.projectId!==input.projectId)throw new Error('REMEDIATION_GAP_SCOPE_MISMATCH');
+  if(gap.assessmentVersion!==input.assessmentVersion)throw new Error('REMEDIATION_GAP_VERSION_MISMATCH');
+  if(!GATE_ORDER.includes(gap.gateId))throw new Error(`REMEDIATION_GAP_GATE_INVALID:${String(gap.gateId)}`);
+  if(!KNOWN_GAP_STATES.has(gap.state))throw new Error(`REMEDIATION_GAP_STATE_INVALID:${String(gap.state)}`);
+  if(!KNOWN_SEVERITIES.has(gap.severity))throw new Error(`REMEDIATION_GAP_SEVERITY_INVALID:${String(gap.severity)}`);
+  validIso(gap.openedAt,'REMEDIATION_GAP_OPENED_AT_INVALID');
+  if(gap.dueAt)validIso(gap.dueAt,'REMEDIATION_GAP_DUE_AT_INVALID');
+  if(gap.resolvedAt)validIso(gap.resolvedAt,'REMEDIATION_GAP_RESOLVED_AT_INVALID');
+  for(const role of gap.requiredEvidenceRoles)nonBlank(role,'REMEDIATION_REQUIRED_EVIDENCE_ROLE_INVALID');
 }
 
 export function buildRemediationTaskProjection(input:BuildRemediationTaskProjectionInput):RemediationTaskProjection{
@@ -117,9 +138,7 @@ export function buildRemediationTaskProjection(input:BuildRemediationTaskProject
   const active=input.gaps.filter(gap=>{
     if(seenGapIds.has(gap.gapId))throw new Error(`REMEDIATION_DUPLICATE_GAP:${gap.gapId}`);
     seenGapIds.add(gap.gapId);
-    if(gap.tenantId!==input.tenantId||gap.projectId!==input.projectId)throw new Error('REMEDIATION_GAP_SCOPE_MISMATCH');
-    if(gap.assessmentVersion!==input.assessmentVersion)throw new Error('REMEDIATION_GAP_VERSION_MISMATCH');
-    if(gap.dueAt)validIso(gap.dueAt,'REMEDIATION_GAP_DUE_AT_INVALID');
+    validateGap(gap,input);
     return ACTIVE_STATES.has(gap.state);
   });
   const tasks=active.map(gap=>{
