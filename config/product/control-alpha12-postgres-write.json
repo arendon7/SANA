@@ -1,0 +1,45 @@
+{
+  "product": "GREENATICS CONTROL",
+  "version": "0.22.0-alpha12",
+  "capability": "CANONICAL_POSTGRES_TRANSACTION_ADAPTER",
+  "status": "PASS_REVIEW",
+  "scope": "DECLARE_CAPITAL_REQUIREMENT",
+  "canonicalTables": {
+    "project": "agroway_invest.project",
+    "outbox": "agroway_core.outbox",
+    "receipt": "agroway_invest.control_write_receipt"
+  },
+  "transaction": {
+    "beginCommitRollback": true,
+    "tenantRlsBoundWithSetConfig": true,
+    "projectLock": "SELECT_FOR_UPDATE",
+    "idempotencyLock": "PG_ADVISORY_XACT_LOCK",
+    "projectOutboxReceiptAtomic": true,
+    "deterministicOutboxEventId": true
+  },
+  "idempotency": {
+    "uniqueScope": ["tenant_id", "idempotency_key"],
+    "operationUniqueness": ["tenant_id", "operation_id"],
+    "replayReturnsDurableReceipt": true,
+    "conflictFailsClosed": true
+  },
+  "authority": {
+    "approval": "HUMAN_ONLY",
+    "ai": "ADVISORY_ONLY",
+    "browserWriteAllowed": false,
+    "productionDatabaseConfigured": false,
+    "productionExecutionAvailable": false
+  },
+  "evidence": [
+    "services/investment-portfolio/src/postgres-control-write-adapter.ts",
+    "infra/postgres/migrations/0025_control_write_receipt.sql",
+    "scripts/control-postgres-write-runtime.mjs",
+    "scripts/validate-control-postgres-write.mjs"
+  ],
+  "explicitGaps": [
+    "No production PostgreSQL DSN, credentials or pool wiring is stored or enabled.",
+    "No browser route invokes the adapter.",
+    "External ACK remains absent.",
+    "D10 human product approval remains pending."
+  ]
+}
