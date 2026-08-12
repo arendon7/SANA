@@ -42,11 +42,33 @@ export interface ReadinessEvidenceObjectWrite {
   tenantId:UUID;
   receiptId:UUID;
   contentType:string;
+  expectedDigestSha256:string;
+  expectedByteLength:number;
   content:AsyncIterable<Uint8Array>;
 }
 
-/** Provider-neutral storage port for UX2B-1B. No implementation/provider is selected in UX2B-1A. */
+/**
+ * Provider-neutral immutable storage port. `putImmutable` must be idempotent for
+ * the same tenant+receiptId+expected digest and must reject content drift rather
+ * than replacing an existing object. Provider credentials/configuration never
+ * enter the domain contract.
+ */
 export interface ReadinessEvidenceObjectStorePort {
   putImmutable(input:ReadinessEvidenceObjectWrite):Promise<ValidatedEvidenceObject>;
   deleteIfUnreferenced(input:Readonly<{objectRef:string;digestSha256:string}>):Promise<void>;
+}
+
+export type ReadinessEvidenceScanState='CLEAN'|'REJECTED'|'UNKNOWN';
+export interface ReadinessEvidenceScanResult {
+  state:ReadinessEvidenceScanState;
+  scannerRef:string;
+}
+export interface ReadinessEvidenceContentScannerPort {
+  scan(input:Readonly<{
+    receiptId:UUID;
+    contentType:string;
+    digestSha256:string;
+    byteLength:number;
+    content:Uint8Array;
+  }>):Promise<ReadinessEvidenceScanResult>;
 }
