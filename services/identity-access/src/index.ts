@@ -51,10 +51,17 @@ export interface MembershipPermissionAuthorizer {
   require(permission:Permission):void;
 }
 export function createMembershipPermissionAuthorizer(membership:Membership):MembershipPermissionAuthorizer{
-  return Object.freeze({
+  const snapshot:Membership=Object.freeze({
     tenantId:membership.tenantId,
     actorId:membership.actorId,
-    require(permission:Permission):void{requirePermission(membership,{tenantId:membership.tenantId,actorId:membership.actorId,permission});},
+    roles:Object.freeze([...membership.roles]),
+    grantedPermissions:Object.freeze([...membership.grantedPermissions]),
+    active:membership.active,
+  });
+  return Object.freeze({
+    tenantId:snapshot.tenantId,
+    actorId:snapshot.actorId,
+    require(permission:Permission):void{requirePermission(snapshot,{tenantId:snapshot.tenantId,actorId:snapshot.actorId,permission});},
   });
 }
 
