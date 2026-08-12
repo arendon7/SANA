@@ -1,0 +1,12 @@
+{
+  "name": "GREENATICS CONTROL — AGROWAY",
+  "short_name": "CONTROL",
+  "description": "Control Tower de red agrícola de GREENATICS / AGROWAY.",
+  "start_url": "/control",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F4F1E8",
+  "theme_color": "#173D2B",
+  "lang": "es-CO",
+  "icons": []
+}
