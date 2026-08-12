@@ -36,7 +36,7 @@ await expectProviderFailure('packet-digest-mismatch',{responseOverrides:{packetD
 await expectProviderFailure('request-digest-mismatch',{responseOverrides:{requestDigestSha256:'b'.repeat(64)}},/EXTERNAL_ACK_REQUEST_DIGEST_MISMATCH/);
 await expectProviderFailure('provider-mismatch',{responseOverrides:{providerId:'other.provider'}},/EXTERNAL_ACK_PROVIDER_MISMATCH/);
 await expectProviderFailure('unknown-key',{responseOverrides:{providerKeyId:'unknown-key'}},/EXTERNAL_ACK_UNKNOWN_KEY/);
-await expectProviderFailure('signature-tamper',{mutateResponse:r=>({...r,signatureBase64Url:r.signatureBase64Url.slice(0,-1)+(r.signatureBase64Url.endsWith('A')?'B':'A')})},/EXTERNAL_ACK_SIGNATURE_INVALID/);
+await expectProviderFailure('signature-tamper',{mutateResponse:r=>{const bytes=Buffer.from(r.signatureBase64Url,'base64url');bytes[0]^=1;return{...r,signatureBase64Url:bytes.toString('base64url')}}},/EXTERNAL_ACK_SIGNATURE_INVALID/);
 await expectProviderFailure('unknown-field',{mutateResponse:r=>({...r,unexpected:'forbidden'})},/EXTERNAL_ACK_RESPONSE_UNKNOWN_FIELD/);
 await expectProviderFailure('http-status',{ok:false,status:503},/EXTERNAL_ACK_HTTP_STATUS_503/);
 await expectProviderFailure('oversize-header',{length:'99999'},/EXTERNAL_ACK_RESPONSE_TOO_LARGE/);
