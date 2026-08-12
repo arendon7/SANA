@@ -1,0 +1,34 @@
+{
+  "screen": "UNIFIED_CONTROL_FLOW",
+  "version": "0.22.0-alpha7",
+  "routes": ["/control/exceptions", "/control/evidence", "/control/approvals", "/control/handoff"],
+  "purpose": "Preserve a single review context across exception, evidence, human approval and submission handoff without granting execution authority.",
+  "stages": ["EXCEPTION", "EVIDENCE", "APPROVAL", "HANDOFF"],
+  "contextKeys": ["exceptionId", "evidenceIds", "proposalId", "packetId", "correlationId"],
+  "authority": {
+    "approval": "HUMAN_ONLY",
+    "ai": "ADVISORY_ONLY",
+    "executionState": "NOT_EXECUTED",
+    "canonicalMutated": false,
+    "localOnly": true
+  },
+  "guardrails": [
+    "CONTROL_FLOW_HUMAN_AUTHORITY_REQUIRED",
+    "CONTROL_FLOW_AI_AUTHORITY_VIOLATION",
+    "CONTROL_FLOW_EXECUTION_FORBIDDEN",
+    "CONTROL_FLOW_CANONICAL_MUTATION_FORBIDDEN",
+    "CONTROL_FLOW_EXCEPTION_REQUIRED_BEFORE_EVIDENCE",
+    "CONTROL_FLOW_EVIDENCE_REQUIRED_BEFORE_APPROVAL",
+    "CONTROL_FLOW_APPROVAL_REQUIRED_BEFORE_HANDOFF"
+  ],
+  "qa": {
+    "transport": "HTTP_REAL",
+    "viewports": ["1440x900", "390x844"],
+    "requiredJourney": "agro -> ev-agro-431 -> ap-agro-431 -> handoff packet ACK_PENDING",
+    "serviceWorker": true,
+    "consoleErrors": 0,
+    "horizontalOverflow": false
+  },
+  "domainDelta": {"canonicalDomainEventsAdded": 0, "workspacesAdded": 0},
+  "d10": "PENDING"
+}
