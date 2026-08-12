@@ -1,0 +1,159 @@
+name: AGROWAY CONTROL v0.22 alpha15
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "services/external-data-gateway/**"
+      - "infra/postgres/migrations/0026_control_external_ack_receipt.sql"
+      - "config/product/control-alpha15-external-ack.json"
+      - "config/product/control-operational-acceptance.json"
+      - "config/product/control-review-bundle.json"
+      - "apps/control-web/server.mjs"
+      - "apps/control-web/public/handoff.html"
+      - "apps/control-web/public/handoff.css"
+      - "apps/control-web/public/service-worker.js"
+      - "scripts/validate-control-external-ack.mjs"
+      - "scripts/control-external-ack-runtime.mjs"
+      - "scripts/control-external-ack-postgres-store-runtime.mjs"
+      - "scripts/validate-control-operational-acceptance.mjs"
+      - "scripts/build-control-review-bundle.mjs"
+      - ".github/workflows/agroway-v022-control-alpha15.yml"
+concurrency:
+  group: agroway-control-v022-alpha15-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  verified-external-ack-adapter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: agroway_alpha15
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d agroway_alpha15"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Syntax-check alpha15
+        run: |
+          node --check apps/control-web/server.mjs
+          node --check scripts/validate-control-external-ack.mjs
+          node --check scripts/control-external-ack-runtime.mjs
+          node --check scripts/control-external-ack-postgres-store-runtime.mjs
+          node --check scripts/validate-control-operational-acceptance.mjs
+          node --check scripts/build-control-review-bundle.mjs
+      - name: Direct-root persistence topology and lock parity
+        run: node scripts/validate-direct-root-persistence.mjs
+      - name: Offline canonical workspace install
+        run: npm ci --ignore-scripts --offline
+      - name: Verify persisted Postgres.js vendor
+        run: node scripts/materialize-postgres-js-v349.mjs --verify
+      - name: Pinned TypeScript strict
+        run: npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit
+      - name: Alpha3-alpha14 regression gates
+        run: |
+          node scripts/validate-control-exception-resolution.mjs
+          node scripts/validate-control-evidence-ledger.mjs
+          node scripts/validate-control-human-approval.mjs
+          node scripts/validate-control-submission-handoff.mjs
+          node scripts/validate-control-unified-flow.mjs
+          node scripts/validate-control-reintegration.mjs
+          node scripts/validate-control-production-authorization.mjs
+          node scripts/validate-control-canonical-write.mjs
+          node scripts/validate-control-oidc-session.mjs
+          node scripts/validate-control-postgres-write.mjs
+          node scripts/validate-control-postgres-production-wiring.mjs
+          node scripts/validate-control-postgres-js-driver.mjs
+      - name: Alpha15 external ACK static guardrail
+        run: node scripts/validate-control-external-ack.mjs
+      - name: Full CONTROL operational truth gate
+        run: node scripts/validate-control-operational-acceptance.mjs
+      - name: Compile services for runtime
+        run: |
+          rm -rf .tmp/control-alpha15
+          npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit false --outDir .tmp/control-alpha15
+          mkdir -p .tmp/control-alpha15/vendor
+          cp -R vendor/postgres-js-3.4.9 .tmp/control-alpha15/vendor/
+      - name: Production boundary regression runtimes
+        run: |
+          node scripts/control-production-authorization-runtime.mjs .tmp/control-alpha15/services/identity-access/src/index.js
+          node scripts/control-canonical-write-runtime.mjs .tmp/control-alpha15/services/investment-portfolio/src/index.js
+          node scripts/control-oidc-session-runtime.mjs .tmp/control-alpha15/services/identity-access/src/index.js
+          node scripts/control-postgres-write-runtime.mjs .tmp/control-alpha15/services/investment-portfolio/src/index.js
+          node scripts/control-postgres-production-wiring-runtime.mjs .tmp/control-alpha15/services/investment-portfolio/src/index.js
+          node scripts/control-postgres-js-driver-runtime.mjs .tmp/control-alpha15/services/investment-portfolio/src/index.js
+      - name: External ACK adversarial runtime matrix
+        run: node scripts/control-external-ack-runtime.mjs .tmp/control-alpha15/services/external-data-gateway/src/index.js
+      - name: External ACK PostgreSQL store protocol runtime
+        run: node scripts/control-external-ack-postgres-store-runtime.mjs .tmp/control-alpha15/services/external-data-gateway/src/index.js
+      - name: PostgreSQL 16 ACK receipt migration and RLS smoke
+        env:
+          PGPASSWORD: postgres
+        run: |
+          set -euo pipefail
+          psql -h 127.0.0.1 -U postgres -d agroway_alpha15 -v ON_ERROR_STOP=1 -c 'CREATE SCHEMA agroway_core;'
+          psql -h 127.0.0.1 -U postgres -d agroway_alpha15 -v ON_ERROR_STOP=1 -f infra/postgres/migrations/0026_control_external_ack_receipt.sql
+          psql -h 127.0.0.1 -U postgres -d agroway_alpha15 -v ON_ERROR_STOP=1 <<'SQL'
+          CREATE ROLE alpha15_ack_app NOLOGIN;
+          GRANT USAGE ON SCHEMA agroway_core TO alpha15_ack_app;
+          GRANT SELECT,INSERT ON agroway_core.control_external_ack_receipt TO alpha15_ack_app;
+          SET ROLE alpha15_ack_app;
+          BEGIN;
+          SELECT set_config('app.tenant_id','11111111-1111-4111-8111-111111111111',true);
+          INSERT INTO agroway_core.control_external_ack_receipt(receipt_id,tenant_id,packet_id,proposal_id,project_id,destination,provider_id,provider_key_id,request_id,idempotency_key,packet_digest_sha256,request_digest_sha256,ack_receipt_digest_sha256,outcome,external_reference,acknowledged_at,received_at,verification_state,execution_state,canonical_mutated)
+          VALUES('ack:provider.alpha15:db-smoke','11111111-1111-4111-8111-111111111111','packet-alpha15-db','proposal-alpha15-db','project-alpha15-db','FINANCE_ADAPTER','provider.alpha15','key-2026-08','ackreq_db_smoke','idem_alpha15_db_smoke','aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa','bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb','cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc','ACCEPTED','ext_alpha15_db','2026-08-12T18:30:00Z','2026-08-12T18:30:01Z','VERIFIED_EXTERNAL_ACK','NOT_EXECUTED',false);
+          DO $$ BEGIN
+            IF (SELECT count(*) FROM agroway_core.control_external_ack_receipt WHERE packet_id='packet-alpha15-db') <> 1 THEN RAISE EXCEPTION 'tenant1 receipt not visible'; END IF;
+          END $$;
+          COMMIT;
+          BEGIN;
+          SELECT set_config('app.tenant_id','22222222-2222-4222-8222-222222222222',true);
+          DO $$ BEGIN
+            IF (SELECT count(*) FROM agroway_core.control_external_ack_receipt WHERE packet_id='packet-alpha15-db') <> 0 THEN RAISE EXCEPTION 'cross-tenant receipt visible'; END IF;
+          END $$;
+          COMMIT;
+          RESET ROLE;
+          SQL
+          policy_count=$(psql -h 127.0.0.1 -U postgres -d agroway_alpha15 -tA -c "SELECT count(*) FROM pg_policies WHERE schemaname='agroway_core' AND tablename='control_external_ack_receipt' AND policyname='control_external_ack_receipt_tenant_rls'")
+          test "$policy_count" = "1"
+          constraint_count=$(psql -h 127.0.0.1 -U postgres -d agroway_alpha15 -tA -c "SELECT count(*) FROM pg_constraint WHERE conrelid='agroway_core.control_external_ack_receipt'::regclass AND conname IN ('control_external_ack_tenant_packet_uq','control_external_ack_tenant_idempotency_uq','control_external_ack_provider_reference_uq')")
+          test "$constraint_count" = "3"
+          echo 'PASS_CONTROL_ALPHA15_POSTGRES_ACK_RLS'
+      - name: Build deterministic alpha15 CONTROL review bundle
+        run: node scripts/build-control-review-bundle.mjs
+      - name: Smoke alpha15 review bundle truth
+        run: |
+          PORT=4286 node dist/control-review-bundle/server.mjs > /tmp/control-alpha15-bundle.log 2>&1 &
+          PID=$!
+          trap 'kill $PID 2>/dev/null || true' EXIT
+          for i in {1..40}; do curl -fsS http://127.0.0.1:4286/control >/dev/null && break || sleep .25; done
+          for route in /control /control/projects/inv-yar-001 /control/identity-adapter /control/authorization /control/write-adapter /control/exceptions /control/evidence /control/approvals /control/handoff; do curl -fsS "http://127.0.0.1:4286$route" >/dev/null; done
+          code=$(curl -sS -o /tmp/alpha15-ack-forbidden.json -w '%{http_code}' http://127.0.0.1:4286/api/control/external-ack)
+          test "$code" = "404"
+          node -e "const x=require('/tmp/alpha15-ack-forbidden.json');if(x.error!=='EXTERNAL_ACK_BROWSER_ENDPOINT_FORBIDDEN'||x.externalAckAdapterImplemented!==true||x.externalAckProviderConfigured!==false||x.realExternalAckObserved!==false||x.canonicalMutated!==false)process.exit(1);console.log('PASS_CONTROL_ALPHA15_BROWSER_ACK_FORBIDDEN')"
+          node -e "const m=require('./dist/control-review-bundle/REVIEW_MANIFEST.json');const a=require('./dist/control-review-bundle/config/product/control-operational-acceptance.json');if(m.version!=='0.22.0-alpha15'||m.routes.length!==9||m.authority.externalAckAdapterImplemented!==true||m.authority.externalAckProviderConfigured!==false||m.authority.realExternalAckObserved!==false||m.authority.executionState!=='NOT_EXECUTED'||m.authority.canonicalMutated!==false||a.productionReady!==false||a.productionBlockers.length!==4||!a.productionBlockers.includes('EXTERNAL_ACK_PROVIDER_CONFIGURATION_PENDING'))process.exit(1);console.log('PASS_CONTROL_ALPHA15_BUNDLE',m.fileCount,m.aggregateSha256,a.productionBlockers.length)"
+      - name: Trust boundary
+        run: |
+          echo 'PASS_CONTROL_ALPHA15_VERIFIED_EXTERNAL_ACK_ADAPTER'
+          echo 'The server-side ACK adapter, signature verification and durable receipt are review-certified. No real provider endpoint/credential/key/ACK is configured or claimed; ACK evidence never implies canonical execution.'
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: agroway-control-v022-alpha15-review-bundle
+          path: |
+            dist/control-review-bundle
+            config/product/control-alpha15-external-ack.json
+            infra/postgres/migrations/0026_control_external_ack_receipt.sql
+          if-no-files-found: error
+          retention-days: 14

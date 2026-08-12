@@ -8,3 +8,4 @@ export * from './providers/weather.js';
 export * from './providers/remote-sensing.js';
 export * from './lifecycle.js';
 export * from './freshness.js';
+export * from './control-external-ack-adapter.js';

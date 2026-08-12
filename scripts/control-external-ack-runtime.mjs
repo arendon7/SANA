@@ -1,0 +1,48 @@
+import assert from 'node:assert/strict';
+import path from 'node:path';
+import {pathToFileURL} from 'node:url';
+import {generateKeyPairSync,sign} from 'node:crypto';
+const target=process.argv[2];if(!target)throw new Error('COMPILED_EXTERNAL_DATA_GATEWAY_INDEX_REQUIRED');
+const api=await import(pathToFileURL(path.resolve(target)).href);
+const {CONTROL_EXTERNAL_ACK_PROTOCOL,ControlExternalAckAdapter,HttpsExternalAckTransport,canonicalExternalAckSignatureFrame,validateExternalAckProviderConfig}=api;
+const {publicKey,privateKey}=generateKeyPairSync('ed25519');
+const publicKeyPem=publicKey.export({type:'spki',format:'pem'}).toString();
+const baseConfig={providerId:'provider.alpha15',endpoint:'https://provider.alpha15.test/ack',timeoutMs:1000,maxResponseBytes:4096,maxAckAgeMs:300000,clockSkewMs:30000,verificationKeys:[{keyId:'key-2026-08',algorithm:'Ed25519',publicKeyPem}],bearerToken:'alpha15-test-bearer-token-123456'};
+const packet={packetId:'handoff:proposal-001:idem_alpha15_0001',tenantId:'11111111-1111-4111-8111-111111111111',proposalId:'proposal-001',projectId:'project-001',destination:'FINANCE_ADAPTER',state:'ACK_PENDING',idempotencyKey:'idem_alpha15_0001',packetDigestSha256:'a'.repeat(64),exportedAt:'2026-08-12T18:20:00.000Z',executionState:'NOT_EXECUTED',canonicalMutated:false};
+const fixedNonce='ab'.repeat(24);
+const fixedNow=()=>new Date('2026-08-12T18:30:00.000Z');
+class MemoryStore{constructor(){this.map=new Map()}key(t,p){return `${t}\0${p}`}async get(t,p){return this.map.get(this.key(t,p))}async putIfAbsent(r){const k=this.key(r.tenantId,r.packetId);const existing=this.map.get(k);if(existing)return{stored:false,existing};this.map.set(k,r);return{stored:true,receipt:r}}}
+const headers=(length=null)=>({get(name){return name.toLowerCase()==='content-length'?length:null}});
+function signedResponse(envelope,overrides={}){const unsigned={protocol:CONTROL_EXTERNAL_ACK_PROTOCOL,providerId:'provider.alpha15',providerKeyId:'key-2026-08',requestId:envelope.requestId,tenantId:envelope.tenantId,packetId:envelope.packetId,idempotencyKey:envelope.idempotencyKey,packetDigestSha256:envelope.packetDigestSha256,requestDigestSha256:envelope.requestDigestSha256,outcome:'ACCEPTED',externalReference:'ext_ack_001',acknowledgedAt:'2026-08-12T18:30:00.000Z',responseNonce:envelope.responseNonce,...overrides};const signatureBase64Url=sign(null,Buffer.from(canonicalExternalAckSignatureFrame(unsigned)),privateKey).toString('base64url');return{...unsigned,signatureBase64Url}}
+function makeFetch({responseOverrides={},mutateResponse,ok=true,status=200,length=null,never=false,capture=[]}={}){return async(url,init)=>{capture.push({url,init});if(never)return await new Promise(()=>{});const envelope=JSON.parse(init.body);let body=signedResponse(envelope,responseOverrides);if(mutateResponse)body=mutateResponse(body,envelope);const text=JSON.stringify(body);return{ok,status,headers:headers(length??String(Buffer.byteLength(text))),async text(){return text}}}}
+let passed=0;const check=(name,value)=>{assert.ok(value,name);passed++;console.log(`PASS ${name}`)};
+validateExternalAckProviderConfig(baseConfig);check('config:valid',true);
+for(const [name,config,error] of [
+  ['https-required',{...baseConfig,endpoint:'http://provider.alpha15.test/ack'},/EXTERNAL_ACK_HTTPS_REQUIRED/],
+  ['loopback-forbidden',{...baseConfig,endpoint:'https://127.0.0.1/ack'},/EXTERNAL_ACK_LOOPBACK_ENDPOINT_FORBIDDEN/],
+  ['credentials-in-url-forbidden',{...baseConfig,endpoint:'https://u:p@provider.alpha15.test/ack'},/EXTERNAL_ACK_ENDPOINT_CREDENTIALS_FORBIDDEN/],
+  ['key-required',{...baseConfig,verificationKeys:[]},/EXTERNAL_ACK_VERIFICATION_KEY_REQUIRED/]
+]){assert.throws(()=>validateExternalAckProviderConfig(config),error);check(`config:${name}`,true)}
+const capture=[];const store=new MemoryStore();const transport=new HttpsExternalAckTransport(baseConfig,makeFetch({capture}));const adapter=new ControlExternalAckAdapter(transport,store,baseConfig,fixedNow,()=>fixedNonce);const first=await adapter.submit(packet);
+check('success:recorded',first.state==='ACK_RECORDED'&&!first.replayed);check('success:verified',first.receipt.verificationState==='VERIFIED_EXTERNAL_ACK'&&first.receipt.outcome==='ACCEPTED');check('success:no-canonical-mutation',first.receipt.executionState==='NOT_EXECUTED'&&first.receipt.canonicalMutated===false);check('success:transport-once',capture.length===1);check('success:https-endpoint',capture[0].url===baseConfig.endpoint);check('success:idempotency-header',capture[0].init.headers['idempotency-key']===packet.idempotencyKey);check('success:digest-header',capture[0].init.headers['x-agroway-request-digest']===JSON.parse(capture[0].init.body).requestDigestSha256);check('success:bearer-injected',capture[0].init.headers.authorization===`Bearer ${baseConfig.bearerToken}`);check('success:secret-not-in-receipt',!JSON.stringify(first.receipt).includes(baseConfig.bearerToken));check('success:nonce-bound',JSON.parse(capture[0].init.body).responseNonce===fixedNonce);check('success:receipt-digest',/^[a-f0-9]{64}$/.test(first.receipt.ackReceiptDigestSha256));
+const replay=await adapter.submit(packet);check('replay:existing-receipt',replay.replayed&&replay.receipt.receiptId===first.receipt.receiptId);check('replay:no-second-http',capture.length===1);
+await assert.rejects(()=>adapter.submit({...packet,state:'PREPARED'}),/EXTERNAL_ACK_REQUIRES_ACK_PENDING_PACKET/);check('packet:ack-pending-required',true);
+await assert.rejects(()=>adapter.submit({...packet,canonicalMutated:true}),/EXTERNAL_ACK_CANONICAL_EXECUTION_FORBIDDEN/);check('packet:canonical-mutation-forbidden',true);
+async function expectProviderFailure(name,opts,error,config=baseConfig,now=fixedNow){const s=new MemoryStore();const t=new HttpsExternalAckTransport(config,makeFetch(opts));const a=new ControlExternalAckAdapter(t,s,config,now,()=>fixedNonce);await assert.rejects(()=>a.submit(packet),error);check(`reject:${name}`,true)}
+await expectProviderFailure('nonce-mismatch',{responseOverrides:{responseNonce:'cd'.repeat(24)}},/EXTERNAL_ACK_NONCE_MISMATCH/);
+await expectProviderFailure('tenant-mismatch',{responseOverrides:{tenantId:'22222222-2222-4222-8222-222222222222'}},/EXTERNAL_ACK_TENANT_MISMATCH/);
+await expectProviderFailure('packet-mismatch',{responseOverrides:{packetId:'handoff:other:idem_alpha15_0001'}},/EXTERNAL_ACK_PACKET_MISMATCH/);
+await expectProviderFailure('packet-digest-mismatch',{responseOverrides:{packetDigestSha256:'b'.repeat(64)}},/EXTERNAL_ACK_PACKET_DIGEST_MISMATCH/);
+await expectProviderFailure('request-digest-mismatch',{responseOverrides:{requestDigestSha256:'b'.repeat(64)}},/EXTERNAL_ACK_REQUEST_DIGEST_MISMATCH/);
+await expectProviderFailure('provider-mismatch',{responseOverrides:{providerId:'other.provider'}},/EXTERNAL_ACK_PROVIDER_MISMATCH/);
+await expectProviderFailure('unknown-key',{responseOverrides:{providerKeyId:'unknown-key'}},/EXTERNAL_ACK_UNKNOWN_KEY/);
+await expectProviderFailure('signature-tamper',{mutateResponse:r=>({...r,signatureBase64Url:r.signatureBase64Url.slice(0,-1)+(r.signatureBase64Url.endsWith('A')?'B':'A')})},/EXTERNAL_ACK_SIGNATURE_INVALID/);
+await expectProviderFailure('unknown-field',{mutateResponse:r=>({...r,unexpected:'forbidden'})},/EXTERNAL_ACK_RESPONSE_UNKNOWN_FIELD/);
+await expectProviderFailure('http-status',{ok:false,status:503},/EXTERNAL_ACK_HTTP_STATUS_503/);
+await expectProviderFailure('oversize-header',{length:'99999'},/EXTERNAL_ACK_RESPONSE_TOO_LARGE/);
+await expectProviderFailure('future-ack',{responseOverrides:{acknowledgedAt:'2026-08-12T18:40:00.000Z'}},/EXTERNAL_ACK_FUTURE_TIMESTAMP/);
+let clockCalls=0;const staleClock=()=>new Date(clockCalls++===0?'2026-08-12T18:00:00.000Z':'2026-08-12T18:30:00.000Z');await expectProviderFailure('stale',{responseOverrides:{acknowledgedAt:'2026-08-12T18:00:00.000Z'}},/EXTERNAL_ACK_STALE/,baseConfig,staleClock);
+const timeoutConfig={...baseConfig,timeoutMs:250};const timeoutStarted=Date.now();await expectProviderFailure('timeout',{never:true},/EXTERNAL_ACK_HTTP_TIMEOUT/,timeoutConfig);check('timeout:bounded',Date.now()-timeoutStarted<2000);
+const rejectStore=new MemoryStore();const rejectTransport=new HttpsExternalAckTransport(baseConfig,makeFetch({responseOverrides:{outcome:'REJECTED',externalReference:'ext_reject_001'}}));const rejectAdapter=new ControlExternalAckAdapter(rejectTransport,rejectStore,baseConfig,fixedNow,()=>fixedNonce);const rejected=await rejectAdapter.submit({...packet,packetId:'handoff:proposal-002:idem_alpha15_0002',proposalId:'proposal-002',idempotencyKey:'idem_alpha15_0002'});check('provider-rejection:verified-evidence',rejected.receipt.outcome==='REJECTED'&&rejected.receipt.verificationState==='VERIFIED_EXTERNAL_ACK');check('provider-rejection:not-execution',rejected.receipt.executionState==='NOT_EXECUTED'&&rejected.receipt.canonicalMutated===false);
+const conflictStore=new MemoryStore();const conflictCapture=[];const conflictAdapter=new ControlExternalAckAdapter(new HttpsExternalAckTransport(baseConfig,makeFetch({capture:conflictCapture})),conflictStore,baseConfig,fixedNow,()=>fixedNonce);await conflictAdapter.submit({...packet,packetId:'handoff:proposal-003:idem_alpha15_0003',proposalId:'proposal-003',idempotencyKey:'idem_alpha15_0003'});await assert.rejects(()=>conflictAdapter.submit({...packet,packetId:'handoff:proposal-003:idem_alpha15_0003',proposalId:'proposal-003',idempotencyKey:'idem_alpha15_0003',packetDigestSha256:'c'.repeat(64)}),/EXTERNAL_ACK_EXISTING_RECEIPT_CONFLICT/);check('replay:payload-drift-rejected',true);
+console.log(`PASS_CONTROL_EXTERNAL_ACK_RUNTIME ${passed}/${passed}`);
