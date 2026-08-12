@@ -76,8 +76,10 @@ RETURNS trigger
 LANGUAGE plpgsql
 AS $$
 DECLARE
-  prior agroway_invest.capital_pilot_intake_transition%ROWTYPE;
-  paused_from agroway_invest.capital_pilot_intake_transition%ROWTYPE;
+  prior_sequence integer;
+  prior_to_state text;
+  prior_occurred_at timestamptz;
+  paused_from_state text;
   intake_created_at timestamptz;
   legal boolean := false;
 BEGIN
@@ -98,7 +100,8 @@ BEGIN
       USING ERRCODE = '23514';
   END IF;
 
-  SELECT * INTO prior
+  SELECT sequence, to_state, occurred_at
+  INTO prior_sequence, prior_to_state, prior_occurred_at
   FROM agroway_invest.capital_pilot_intake_transition
   WHERE tenant_id = NEW.tenant_id
     AND project_id = NEW.project_id
@@ -115,45 +118,45 @@ BEGIN
     RETURN NEW;
   END IF;
 
-  IF NEW.sequence <> prior.sequence + 1 THEN
+  IF NEW.sequence <> prior_sequence + 1 THEN
     RAISE EXCEPTION 'INTAKE_TRANSITION_SEQUENCE_NOT_CONTIGUOUS'
       USING ERRCODE = '23514';
   END IF;
 
-  IF NEW.from_state IS DISTINCT FROM prior.to_state THEN
+  IF NEW.from_state IS DISTINCT FROM prior_to_state THEN
     RAISE EXCEPTION 'INTAKE_TRANSITION_FROM_STATE_STALE'
       USING ERRCODE = '23514';
   END IF;
 
-  IF NEW.occurred_at < prior.occurred_at THEN
+  IF NEW.occurred_at < prior_occurred_at THEN
     RAISE EXCEPTION 'INTAKE_TRANSITION_TIME_REGRESSION'
       USING ERRCODE = '23514';
   END IF;
 
-  IF prior.to_state = 'WITHDRAWN' THEN
+  IF prior_to_state = 'WITHDRAWN' THEN
     RAISE EXCEPTION 'WITHDRAWN_INTAKE_IS_TERMINAL'
       USING ERRCODE = '23514';
   END IF;
 
-  IF prior.to_state = 'PAUSED' THEN
+  IF prior_to_state = 'PAUSED' THEN
     IF NEW.to_state = 'WITHDRAWN' THEN
       legal := true;
     ELSE
-      SELECT * INTO paused_from
+      SELECT to_state INTO paused_from_state
       FROM agroway_invest.capital_pilot_intake_transition
       WHERE tenant_id = NEW.tenant_id
         AND project_id = NEW.project_id
         AND intake_id = NEW.intake_id
-        AND sequence = prior.sequence - 1;
+        AND sequence = prior_sequence - 1;
 
-      IF NOT FOUND OR NEW.to_state IS DISTINCT FROM paused_from.to_state THEN
+      IF NOT FOUND OR NEW.to_state IS DISTINCT FROM paused_from_state THEN
         RAISE EXCEPTION 'INVALID_INTAKE_RESUME_TARGET'
           USING ERRCODE = '23514';
       END IF;
       legal := true;
     END IF;
   ELSE
-    legal := CASE prior.to_state
+    legal := CASE prior_to_state
       WHEN 'CREATED' THEN NEW.to_state IN ('CANONICAL_REUSE_SCAN','PAUSED','WITHDRAWN')
       WHEN 'CANONICAL_REUSE_SCAN' THEN NEW.to_state IN ('DATA_COMPLETION','PAUSED','WITHDRAWN')
       WHEN 'DATA_COMPLETION' THEN NEW.to_state IN ('EVIDENCE_VALIDATION','PAUSED','WITHDRAWN')
@@ -171,7 +174,7 @@ BEGIN
   END IF;
 
   IF NOT legal THEN
-    RAISE EXCEPTION 'INVALID_INTAKE_TRANSITION:%:%', prior.to_state, NEW.to_state
+    RAISE EXCEPTION 'INVALID_INTAKE_TRANSITION:%:%', prior_to_state, NEW.to_state
       USING ERRCODE = '23514';
   END IF;
 
@@ -256,7 +259,9 @@ RETURNS trigger
 LANGUAGE plpgsql
 AS $$
 DECLARE
-  prior agroway_invest.readiness_gap_transition%ROWTYPE;
+  prior_sequence integer;
+  prior_to_state text;
+  prior_occurred_at timestamptz;
   gap_opened_at timestamptz;
   legal boolean := false;
 BEGIN
@@ -278,7 +283,8 @@ BEGIN
       USING ERRCODE = '23514';
   END IF;
 
-  SELECT * INTO prior
+  SELECT sequence, to_state, occurred_at
+  INTO prior_sequence, prior_to_state, prior_occurred_at
   FROM agroway_invest.readiness_gap_transition
   WHERE tenant_id = NEW.tenant_id
     AND project_id = NEW.project_id
@@ -297,27 +303,27 @@ BEGIN
     RETURN NEW;
   END IF;
 
-  IF NEW.sequence <> prior.sequence + 1 THEN
+  IF NEW.sequence <> prior_sequence + 1 THEN
     RAISE EXCEPTION 'READINESS_GAP_TRANSITION_SEQUENCE_NOT_CONTIGUOUS'
       USING ERRCODE = '23514';
   END IF;
 
-  IF NEW.from_state IS DISTINCT FROM prior.to_state THEN
+  IF NEW.from_state IS DISTINCT FROM prior_to_state THEN
     RAISE EXCEPTION 'READINESS_GAP_TRANSITION_FROM_STATE_STALE'
       USING ERRCODE = '23514';
   END IF;
 
-  IF NEW.occurred_at < prior.occurred_at THEN
+  IF NEW.occurred_at < prior_occurred_at THEN
     RAISE EXCEPTION 'READINESS_GAP_TRANSITION_TIME_REGRESSION'
       USING ERRCODE = '23514';
   END IF;
 
-  IF prior.to_state IN ('RESOLVED','WAIVED','SUPERSEDED') THEN
+  IF prior_to_state IN ('RESOLVED','WAIVED','SUPERSEDED') THEN
     RAISE EXCEPTION 'READINESS_GAP_TERMINAL_STATE'
       USING ERRCODE = '23514';
   END IF;
 
-  legal := CASE prior.to_state
+  legal := CASE prior_to_state
     WHEN 'OPEN' THEN NEW.to_state IN ('IN_REMEDIATION','EVIDENCE_SUBMITTED','RESOLVED','WAIVED','SUPERSEDED')
     WHEN 'IN_REMEDIATION' THEN NEW.to_state IN ('EVIDENCE_SUBMITTED','RESOLVED','WAIVED','SUPERSEDED')
     WHEN 'EVIDENCE_SUBMITTED' THEN NEW.to_state IN ('IN_REMEDIATION','RESOLVED','WAIVED','SUPERSEDED')
@@ -325,7 +331,7 @@ BEGIN
   END;
 
   IF NOT legal THEN
-    RAISE EXCEPTION 'INVALID_READINESS_GAP_TRANSITION:%:%', prior.to_state, NEW.to_state
+    RAISE EXCEPTION 'INVALID_READINESS_GAP_TRANSITION:%:%', prior_to_state, NEW.to_state
       USING ERRCODE = '23514';
   END IF;
 
@@ -618,7 +624,7 @@ BEGIN
       AND g.project_id = NEW.project_id
       AND g.assessment_id = NEW.assessment_id
       AND g.assessment_version = NEW.version
-      AND (g.assessed_at > NEW.reviewed_at)
+      AND g.assessed_at > NEW.reviewed_at
   ) THEN
     RAISE EXCEPTION 'READINESS_GATE_ASSESSED_AFTER_FINAL_REVIEW'
       USING ERRCODE = '23514';
