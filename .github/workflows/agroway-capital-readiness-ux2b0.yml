@@ -67,8 +67,8 @@ jobs:
       - name: UX2B-0 durable membership and request authority
         run: node scripts/validate-capital-readiness-ux2b0-identity.mjs
 
-      - name: Root TypeScript strict
-        run: npm run typecheck
+      - name: Pinned TypeScript 5.8.3 strict
+        run: npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit
 
       - name: Install pinned Playwright Chromium
         run: |
