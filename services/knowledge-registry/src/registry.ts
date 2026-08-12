@@ -1,0 +1,3 @@
+import type {KnowledgeDocument,KnowledgeRevision} from './model.js';
+export function assertRevision(document:KnowledgeDocument,revision:KnowledgeRevision):void{if(document.tenantId!==revision.tenantId||document.documentId!==revision.documentId)throw new Error('KNOWLEDGE_SCOPE_MISMATCH');if(!Number.isInteger(revision.revision)||revision.revision<1)throw new Error('INVALID_REVISION');if(!/^[0-9a-f]{64}$/.test(revision.contentSha256))throw new Error('INVALID_SHA256');if(!revision.canonicalText.trim())throw new Error('EMPTY_KNOWLEDGE');}
+export function canRetrieve(document:KnowledgeDocument,revision:KnowledgeRevision):boolean{assertRevision(document,revision);return document.lifecycle==='PUBLISHED'&&document.currentRevision===revision.revision;}

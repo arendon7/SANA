@@ -1,0 +1,16 @@
+export type TenantId=string;
+export type ActorId=string;
+export type Role='OWNER'|'ADMIN'|'AGRONOMIST'|'OPERATOR'|'VIEWER'|'INVESTOR';
+export type Permission=string;
+export type Membership=Readonly<{tenantId:TenantId;actorId:ActorId;roles:readonly Role[];grantedPermissions:readonly Permission[];active:boolean}>;
+export type InvitationState='PENDING'|'ACCEPTED'|'REVOKED'|'EXPIRED';
+export type TenantInvitation=Readonly<{tenantId:TenantId;invitationId:string;email:string;invitedByActorId:ActorId;roles:readonly Exclude<Role,'OWNER'>[];grantedPermissions:readonly Permission[];state:InvitationState;createdAt:string;expiresAt:string;acceptedActorId?:ActorId}>;
+export type PlanTier='CAMPO'|'PRO'|'NETWORK'|'ENTERPRISE';
+export type AddOn='PASSPORT'|'SENSORS'|'SANA_INTELLIGENCE'|'SANA_IMPACT';
+export type ProductCapability='FIELD_CORE'|'ADVANCED_AGRONOMY'|'MULTI_FARM_CONTROL'|'ENTERPRISE_ADMIN'|'TRACEABILITY_PASSPORT'|'SENSOR_INGESTION'|'AI_COPILOT'|'IMPACT_ACCOUNTING';
+export type TenantSubscription=Readonly<{tenantId:TenantId;plan:PlanTier;addOns:readonly AddOn[];status:'ACTIVE'|'PAST_DUE'|'SUSPENDED'|'CANCELLED';seatLimit:number;effectiveFrom:string;effectiveUntil?:string}>;
+export type EntitlementDecision=Readonly<{allowed:boolean;capability:ProductCapability;reason:'PLAN_INCLUDED'|'ADD_ON_INCLUDED'|'SUBSCRIPTION_INACTIVE'|'NOT_ENTITLED'}>;
+export type DataExportFormat='JSON'|'CSV';
+export type DataExportScope='LOCAL_FIELD_DATA'|'FULL_TENANT_DATA';
+export type DataExportState='REQUESTED'|'PROCESSING'|'READY'|'FAILED'|'EXPIRED';
+export type DataExportRequest=Readonly<{tenantId:TenantId;exportRequestId:string;requestedByActorId:ActorId;format:DataExportFormat;scope:DataExportScope;state:DataExportState;requestedAt:string;completedAt?:string;objectRef?:string;digestSha256?:string}>;

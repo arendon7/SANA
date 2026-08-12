@@ -1,0 +1,17 @@
+{
+  "schema": "agroway-screen-design/1.0",
+  "screen": "INVENTORY_APPLICATION_WORKFLOW",
+  "surface": "apps/field-web",
+  "version": "0.21.0-alpha4",
+  "job": "Let a field operator record an input consumption/application against the exact inventory lot, field task, crop cycle, plan action, operator and evidence while preventing impossible local stock and never presenting an offline projection as canonical Supply inventory.",
+  "trust": "DEMO_RECONSTRUCTED",
+  "taste": {"variance": 4, "motion": 2, "density": 6},
+  "directionsConsidered": ["inventory-ledger-form", "application-first-wizard", "supply-linked-application-workspace"],
+  "selectedDirection": "supply-linked-application-workspace",
+  "informationOrder": ["canonical-known versus local-projected stock", "inventory lot/batch", "application quantity", "task/plan/operator/evidence linkage", "guardrail outcome", "local pending ledger"],
+  "inventoryBoundary": {"canonicalInventoryMutatedOffline": false, "negativeProjectedInventoryAllowed": false, "unitMixingAllowed": false, "outboxCarriesCanonicalTransactionClaim": false},
+  "linkage": {"required": ["inventoryLotId", "sku", "taskId", "plotId", "cropCycleId", "planAction", "operatorId", "evidenceId"]},
+  "localEnvelope": {"kind": "LOCAL_INVENTORY_CONSUMPTION_RECORDED", "canonicalDomainEventClaimed": false},
+  "gates": {"D0_truth": "PASS", "D1_productBrief": "PASS", "D2_functionalArchitecture": "PASS", "D3_ux": "PASS", "D4_designDirection": "PASS", "D5_designSystem": "PASS_WITH_SEMANTIC_COLOR_TOKENS_PENDING_EXACT_BRAND_VALUES", "D6_contentAssets": "PASS_NO_EXTERNAL_ASSETS", "D7_mockData": "PASS_DEMO_LABELED", "D8_selfContainedPreview": "PASS", "D9_qa": "PASS_BROWSER_INLINE_RENDER_1440_390_45_CHECKS", "D10_humanProductApproval": "PENDING"},
+  "browserQA": {"mode": "PLAYWRIGHT_INLINE_RENDER", "checks": "45/45 PASS", "canonicalSupplyRuntime": "PENDING_BACKEND_SYNC"}
+}

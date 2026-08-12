@@ -1,0 +1,30 @@
+{
+  "surface": "AGROWAY FIELD",
+  "screen": "ACCESS_ENTITLEMENTS_PORTABILITY",
+  "version": "0.21.0-alpha9",
+  "status": "READY_FOR_PRODUCT_APPROVAL",
+  "direction": "tenant-governance-workbench",
+  "informationFlow": [
+    "tenant identity",
+    "memberships and effective permissions",
+    "invitation draft",
+    "plan/add-on entitlements",
+    "local portability",
+    "full tenant export request"
+  ],
+  "trust": {
+    "data": "DEMO_RECONSTRUCTED",
+    "invitationSendingClaimed": false,
+    "fullTenantExportGeneratedClaimed": false,
+    "localDeviceExportIsReal": true,
+    "entitlementResolution": "FAIL_CLOSED",
+    "tenantIsolationRequired": true
+  },
+  "gates": {
+    "D0_D8": "PASS",
+    "D9_qa": "PASS_50_50_CHROMIUM_INLINE",
+    "D10_humanProductApproval": "PENDING"
+  },
+  "canonicalDomainEventsAdded": 0,
+  "workspacesAdded": 0
+}

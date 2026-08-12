@@ -1,0 +1,64 @@
+name: AGROWAY v0.21 direct reconstructed monorepo
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig.json"
+      - "types/**"
+      - "apps/**"
+      - "packages/**"
+      - "services/**"
+      - ".github/workflows/agroway-v021-direct-monorepo.yml"
+concurrency:
+  group: agroway-v021-direct-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  direct-root-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Verify direct 41-workspace inventory
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs=require('node:fs');
+          const root=JSON.parse(fs.readFileSync('package.json','utf8'));
+          const workspaces=root.workspaces;
+          if(!Array.isArray(workspaces)) throw new Error('ROOT_WORKSPACES_MISSING');
+          if(workspaces.length!==41) throw new Error(`EXPECTED_41_WORKSPACES_GOT_${workspaces.length}`);
+          const names=new Set();
+          for(const ws of workspaces){
+            const pkgPath=`${ws}/package.json`;
+            const indexPath=`${ws}/src/index.ts`;
+            if(!fs.existsSync(pkgPath)) throw new Error(`MISSING_WORKSPACE_PACKAGE:${ws}`);
+            if(!fs.existsSync(indexPath)) throw new Error(`MISSING_WORKSPACE_INDEX:${ws}`);
+            const pkg=JSON.parse(fs.readFileSync(pkgPath,'utf8'));
+            if(pkg.version!=='0.21.0-alpha10') throw new Error(`WORKSPACE_VERSION_MISMATCH:${ws}:${pkg.version}`);
+            if(typeof pkg.name!=='string'||!pkg.name.startsWith('@agroway/')) throw new Error(`INVALID_WORKSPACE_NAME:${ws}`);
+            if(names.has(pkg.name)) throw new Error(`DUPLICATE_WORKSPACE_NAME:${pkg.name}`);
+            names.add(pkg.name);
+          }
+          if(names.size!==41) throw new Error(`EXPECTED_41_UNIQUE_NAMES_GOT_${names.size}`);
+          console.log('PASS_DIRECT_WORKSPACE_INVENTORY_41');
+          NODE
+
+      - name: Offline workspace installation from canonical root lockfile
+        run: npm ci --ignore-scripts --offline
+
+      - name: Direct root TypeScript strict
+        run: npm run typecheck
+
+      - name: Direct root boundary
+        run: |
+          echo 'PASS_DIRECT_RECONSTRUCTED_41_WORKSPACE_ROOT_NPM_CI_TSC'
+          echo 'This proves the directly persisted reconstructed workspace graph. It does not claim byte identity with the lost historical v0.15 release.'

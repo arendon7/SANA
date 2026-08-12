@@ -1,0 +1,25 @@
+{
+  "version": "0.21.0-alpha9",
+  "surface": "AGROWAY FIELD / ACCESS_ENTITLEMENTS_PORTABILITY",
+  "status": "READY_FOR_PRODUCT_APPROVAL",
+  "designDirection": "tenant-governance-and-portability-workbench",
+  "domainEventsAdded": 0,
+  "workspacesAdded": 0,
+  "migrationsAdded": [
+    "0023_access_entitlements_portability.sql"
+  ],
+  "validation": {
+    "static": "34/34 PASS",
+    "browserQa": "50/50 PASS",
+    "postgresStructural": "29 migrations / 112 checks PASS",
+    "specCompatibility": "12 files / 28 tests PASS_NOT_REAL_VITEST"
+  },
+  "trust": {
+    "invitationSentWithoutBackend": false,
+    "fullTenantExportReadyWithoutArtifactDigest": false,
+    "localExportServerCompleteClaim": false,
+    "tenantScopeRequired": true,
+    "humanAdminAuthorityRequired": true,
+    "D10": "PENDING"
+  }
+}

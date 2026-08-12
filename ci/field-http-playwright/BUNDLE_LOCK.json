@@ -1,0 +1,20 @@
+{
+  "purpose": "Native Chromium-to-HTTP proof for AGROWAY FIELD alpha10 against the real LOCAL_DEV_BACKEND server in GitHub Actions.",
+  "trustMode": "ALPHA10_FIELD_PUBLIC_BUNDLE_FOR_NATIVE_HTTP_QA",
+  "archiveEncoding": "base64",
+  "archiveDecodedSha256": "1ea29026ccf160dfebc15b24f6f27408a8bff459be4c422e0791775520dcf00b",
+  "archiveFiles": [
+    "public/app.js",
+    "public/index.html",
+    "public/manifest.webmanifest",
+    "public/service-worker.js",
+    "public/styles.css"
+  ],
+  "expectedFileCount": 5,
+  "playwrightVersion": "1.57.0",
+  "pnpmVersion": "10.15.0",
+  "nodeVersion": "22",
+  "sourceBaseline": "AGROWAY_REPO_BOOTSTRAP_v0.21.0-alpha10_LOCAL_DEV_BACKEND",
+  "serverTrust": "LOCAL_DEV_BACKEND_NOT_PRODUCTION",
+  "productionEquivalent": false
+}

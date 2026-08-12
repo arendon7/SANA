@@ -1,0 +1,16 @@
+{
+  "version": "0.21.0-alpha6",
+  "surface": "AGROWAY FIELD / TRACEABILITY_PASSPORT_ASSEMBLY",
+  "status": "READY_FOR_PRODUCT_APPROVAL",
+  "artifact": "AGROWAY_REPO_BOOTSTRAP_v0.21.0-alpha6_PASSPORT_ASSEMBLY.zip",
+  "artifactSha256": "522a82a97dd680dcd145895099d8f6d65147ad107d108e89b836b0c85e0e9c96",
+  "fullSourceReviewArchive": "artifacts/review/AGROWAY_FIELD_v0.21.0-alpha6_SOURCE_REVIEW.tar.gz",
+  "fullSourceReviewSha256": "31d670c781240e0938f093ad05a7f48f9bfa5cfed44ed699ee5c6e625c5bf762",
+  "designDirection": "evidence-completeness-workspace",
+  "domainEventsAdded": 0,
+  "workspacesAdded": 0,
+  "validation": {"static": "23/23 PASS", "browserQa": "36/36 PASS", "viewports": ["1440x900", "390x844"]},
+  "eligibilityStates": ["MISSING_EVIDENCE", "ASSEMBLY_READY", "ELIGIBLE_FOR_HUMAN_CERTIFICATION"],
+  "forbiddenState": "CERTIFIED",
+  "trust": {"certificateIssuedByUi": false, "aiCanSign": false, "humanSignerRequired": true, "certificationDecisionDigest": "SERVER_ONLY", "rawProviderPayloadVisible": false, "D10": "PENDING"}
+}

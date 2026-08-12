@@ -1,0 +1,32 @@
+{
+  "surface": "AGROWAY FIELD",
+  "screen": "FIELD_HOME",
+  "version": "0.21.0-alpha1",
+  "status": "READY_FOR_PRODUCT_APPROVAL",
+  "artifact": "AGROWAY_REPO_BOOTSTRAP_v0.21.0-alpha1_FIELD_HOME.zip",
+  "artifactSha256": "d4d1fd3e28eb18ff5ec532793fc107d2b2047edf6b7af378b8583743aec9bc69",
+  "designDirection": "context-and-action-workbench",
+  "domainEventsAdded": 0,
+  "workspacesAdded": 0,
+  "gates": {
+    "D0_D8": "PASS",
+    "D9_browserQa": "17/17 PASS",
+    "D10_humanProductApproval": "PENDING"
+  },
+  "validation": {
+    "fieldStatic": "14/14 PASS",
+    "typescriptStrict": "PASS",
+    "postgresStructural": "102/102 PASS",
+    "specCompatibility": "23/23 PASS",
+    "viewports": ["1440x900", "390x844"],
+    "horizontalOverflow": false,
+    "browserConsoleErrors": 0
+  },
+  "trust": {
+    "data": "DEMO_RECONSTRUCTED",
+    "serverSyncClaimed": false,
+    "copilotState": "DRAFT_SUGGESTION",
+    "humanApprovalRequired": true,
+    "rawProviderPayloadVisible": false
+  }
+}

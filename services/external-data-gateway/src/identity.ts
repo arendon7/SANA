@@ -1,0 +1,4 @@
+import type { DeviceIdentity, IdentityConfidence, RawExternalEnvelope } from '@agroway/external-data-contracts';
+export interface DeviceRegistry { byExternalKey(tenantId:string,sourceId:string,externalDeviceKey:string):Promise<DeviceIdentity|undefined>; }
+export interface IdentityResolution { identity?:DeviceIdentity; confidence:IdentityConfidence; reason:string; }
+export async function resolveIdentity(envelope:RawExternalEnvelope,registry:DeviceRegistry):Promise<IdentityResolution>{const key=envelope.externalDeviceKey;if(!key)return{confidence:'UNRESOLVED',reason:'provider payload has no external device key'};const found=await registry.byExternalKey(envelope.source.tenantId,envelope.source.sourceId,key);if(!found)return{confidence:'UNRESOLVED',reason:`device ${key} not registered for source`};return{identity:found,confidence:found.confidence,reason:'registry match'};}

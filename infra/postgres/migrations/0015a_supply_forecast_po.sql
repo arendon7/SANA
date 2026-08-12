@@ -1,0 +1,3 @@
+BEGIN;
+CREATE TABLE IF NOT EXISTS agroway_supply.demand_forecast(tenant_id uuid NOT NULL,forecast_id uuid NOT NULL,product_id uuid NOT NULL,sku_id uuid,horizon_days integer NOT NULL CHECK(horizon_days IN (30,60,90)),pipeline numeric NOT NULL DEFAULT 0,committed numeric NOT NULL DEFAULT 0,ordered numeric NOT NULL DEFAULT 0,projected_at timestamptz NOT NULL,PRIMARY KEY(tenant_id,forecast_id)); CREATE TABLE IF NOT EXISTS agroway_supply.purchase_order(tenant_id uuid NOT NULL,purchase_order_id uuid NOT NULL,state text NOT NULL,currency char(3) NOT NULL,payload jsonb NOT NULL,PRIMARY KEY(tenant_id,purchase_order_id));
+COMMIT;

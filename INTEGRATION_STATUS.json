@@ -1,83 +1,76 @@
 {
   "product": "AGROWAY",
   "repository": "arendon7/SANA",
-  "targetVersion": "0.20.2-rc6",
-  "status": "READY_FOR_PRODUCT_DEVELOPMENT_WITH_RUNTIME_PENDING",
+  "targetVersion": "0.21.0-alpha10",
+  "status": "RUNTIME_CORE_AND_NATIVE_BROWSER_PASS_WITH_PRODUCT_APPROVAL_PENDING",
   "historicalV015": {
     "version": "0.15.0-rc1",
     "sha256": "323006fdf3e3b13caaa5594c3be3d50dadac21498f2c26a23b83e2d5d3de09c4",
     "artifactRecovered": false,
     "blockingReconstructedDevelopment": false
   },
-  "reconstructedFullRepository": {
-    "artifact": "AGROWAY_REPO_BOOTSTRAP_v0.20.2-rc6_DESIGN_ENGINEERING_FULL.zip",
-    "sha256": "e868e31d779e5818604c72e809becc4cc5fe4f3c6c1a1634757fd214516d7cec",
-    "zipEntries": 386,
+  "reconstructedDevelopment": {
+    "trustMode": "RECONSTRUCTED_CANONICAL_NOT_BYTE_IDENTICAL",
     "workspaces": 41,
     "conceptualDomainEvents": 218,
-    "trustMode": "RECONSTRUCTED_V015R_FULL_NOT_HISTORICAL_SHA",
-    "productionEquivalent": false
+    "physicalMigrations": 30,
+    "latestMigration": "0024_sync_ingress_ack.sql"
   },
-  "designEngineering": {
-    "binarioAppFactoryV4": "ORCHESTRATOR",
-    "sanaBrandCanon": "VISUAL_AUTHORITY",
-    "taste": "DESIGN_DIRECTION",
-    "emilKowalski": "INTERACTION_MOTION_PROTOTYPING",
-    "impeccable": "CRITIQUE_ANTIPATTERN_HARDENING",
-    "vercelAgentSkills": "REACT_PERFORMANCE_ACCESSIBILITY_COMPOSITION",
-    "figma": "CONNECTED_OPTIONAL_EVIDENCE_SURFACE",
-    "playwright": "PLANNED_RUNTIME_VISUAL_QA",
-    "axeCore": "PLANNED_RUNTIME_ACCESSIBILITY_QA",
-    "lighthouseCi": "PLANNED_RUNTIME_PERFORMANCE_QA",
-    "webVitals": "PLANNED_RUNTIME_FIELD_PERFORMANCE"
+  "fieldV021": {
+    "verticals": 10,
+    "browserChecksLocalHarness": "453/453 PASS",
+    "productSpecificStaticChecks": "232/232 PASS",
+    "localDevBackendHttp": "13/13 PASS",
+    "nativeHttpBrowserChecks": "42/42 PASS",
+    "d10HumanProductApproval": "PENDING"
   },
-  "pinnedUpstreamCommits": {
-    "emilkowalski/skills": "78761e1b57f97dce65b983d640c70a68f39e8163",
-    "pbakaus/impeccable": "ae388ac58fb33aade50fc47e2be07c3192dcaabd",
-    "Leonxlnx/taste-skill": "e988add20dab0fa97d7a76781c48961c8184288e",
-    "vercel-labs/agent-skills": "7c180d9044c9ae2b442b567aad4e42a28dd5ed62"
+  "githubActionsRuntime": {
+    "node": "22",
+    "postgis": "16-3.4",
+    "cumulativePostgres0001Through0024": "PASS",
+    "realVitest": {
+      "status": "PASS",
+      "version": "4.1.7",
+      "sourceSliceSha256": "ab07db7f86535fc029ad2e9bc80a8007ac10e7b0dfef73c0c45e1087c13b5b60",
+      "testFiles": "12/12 PASS",
+      "tests": "28/28 PASS",
+      "packageManager": "pnpm@10.15.0 via Corepack"
+    },
+    "nativeFieldHttpPlaywright": {
+      "status": "PASS",
+      "version": "1.57.0",
+      "publicBundleSha256": "1ea29026ccf160dfebc15b24f6f27408a8bff459be4c422e0791775520dcf00b",
+      "checks": "42/42 PASS",
+      "desktopViewport": "1440x900",
+      "mobileViewport": "390x844",
+      "serviceWorker": "PASS",
+      "nativeLocalStorage": "PASS",
+      "realBrowserDownloadSha256": "PASS",
+      "browserToBackendInvitation": "PASS",
+      "browserToBackendSyncAck": "PASS",
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "evidenceArtifactSha256": "c205f62ba29dbaf9a32da7d6866d6024c42f0d4051ab3bda47be2eb4667a48d7"
+    }
   },
-  "designGates": [
-    "D0_TRUTH",
-    "D1_ARCHITECTURE",
-    "D2_DIRECTION",
-    "D3_SYSTEM",
-    "D4_BUILD",
-    "D5_MOTION",
-    "D6_AUDIT",
-    "D7_VISUAL_QA",
-    "D8_PRODUCT_APPROVED",
-    "D9_DELIVERY",
-    "D10_PRODUCTION_APPROVED"
-  ],
   "passed": {
-    "designGovernanceGate": true,
-    "designPreflight": true,
-    "fullRootTypeScriptStrict": true,
-    "v015RThroughV0202Guardrails": true,
-    "nodeTestVitestCompatSpecFiles": 11,
-    "nodeTestVitestCompatTests": 23,
-    "postgresStructuralMigrationFiles": 28,
-    "postgresStructuralChecks": 102,
-    "tenantCurrentSettingValidEscapedOccurrences": 10,
-    "tenantAwareForeignKeys": 33,
-    "forceRlsTables": 35,
-    "privateCiStatus": "PASS_WITH_PENDING",
-    "releaseReadiness": "READY_FOR_PRODUCT_DEVELOPMENT_WITH_RUNTIME_PENDING"
+    "typescriptStrictFullReconstructedArtifact": true,
+    "postgresStructuralLint": "124/124",
+    "cumulativeReconstructedPostgresRuntime": true,
+    "realVitestObservedSuite": true,
+    "nativeChromiumToRealFieldHttp": true,
+    "productionShaGateRejectsReconstructedBase": true,
+    "aiAdvisoryOnly": true,
+    "humanOnlyCertificationBoundary": true
   },
-  "pendingNetwork": [
-    "physical checkout of pinned third-party skills into local .agents/skills due runtime DNS restriction"
-  ],
-  "pendingRuntime": [
-    "real Vitest runtime",
-    "PostgreSQL/PostGIS migrations 0001-0022 runtime",
-    "cross-tenant PostgreSQL RLS adversarial tests",
-    "browser UI runtime for Playwright/axe/Lighthouse",
-    "Vite/Expo production builds",
-    "Graphify real regeneration",
+  "pending": [
+    "direct readable persistence of remaining reconstructed monorepo source in GitHub",
+    "production-grade web/mobile builds",
+    "production authentication/authorization integration",
+    "real invitation delivery",
+    "production object storage/export worker",
+    "production canonical sync handlers and ACK/conflict resolution",
+    "D10 Human Product Approval",
     "real agricultural pilot certification"
-  ],
-  "provenanceOnlyPending": [
-    "recover historical v0.15 ZIP byte-for-byte"
   ]
 }

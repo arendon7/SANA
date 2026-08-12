@@ -1,0 +1,1 @@
+{"name":"@agroway/agronomy-copilot","version":"0.21.0-alpha10","private":true,"type":"module","dependencies":{"@agroway/knowledge-registry":"0.21.0-alpha10","@agroway/ai-gateway":"0.21.0-alpha10"},"exports":{".":"./src/index.ts"},"scripts":{"typecheck":"tsc -p tsconfig.json --noEmit"}}

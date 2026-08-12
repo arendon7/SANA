@@ -1,0 +1,42 @@
+{
+  "graph": "AGROWAY_FIELD_ACCESS_ENTITLEMENTS_PORTABILITY",
+  "version": "0.21.0-alpha9",
+  "sourceOfTruth": false,
+  "regenerable": true,
+  "nodes": [
+    "TENANT",
+    "MEMBERSHIP",
+    "ROLE_PERMISSION_CEILING",
+    "EXPLICIT_PERMISSION_GRANT",
+    "INVITATION",
+    "SUBSCRIPTION",
+    "PLAN_TIER",
+    "ADD_ON",
+    "ENTITLEMENT_DECISION",
+    "LOCAL_FIELD_EXPORT",
+    "FULL_TENANT_EXPORT_REQUEST",
+    "BACKEND_ARTIFACT_PENDING"
+  ],
+  "edges": [
+    ["TENANT","MEMBERSHIP","owns"],
+    ["MEMBERSHIP","ROLE_PERMISSION_CEILING","bounded_by"],
+    ["MEMBERSHIP","EXPLICIT_PERMISSION_GRANT","intersects"],
+    ["MEMBERSHIP","INVITATION","may_prepare_with_identity_manage"],
+    ["SUBSCRIPTION","PLAN_TIER","selects"],
+    ["SUBSCRIPTION","ADD_ON","enables_optional"],
+    ["PLAN_TIER","ENTITLEMENT_DECISION","contributes"],
+    ["ADD_ON","ENTITLEMENT_DECISION","contributes"],
+    ["EXPLICIT_PERMISSION_GRANT","LOCAL_FIELD_EXPORT","requires_export_create"],
+    ["EXPLICIT_PERMISSION_GRANT","FULL_TENANT_EXPORT_REQUEST","requires_export_create"],
+    ["FULL_TENANT_EXPORT_REQUEST","BACKEND_ARTIFACT_PENDING","cannot_be_ready_without"]
+  ],
+  "guardrails": [
+    "TENANT_SCOPE_REQUIRED",
+    "ROLE_GRANT_CANNOT_EXCEED_CEILING",
+    "PERMISSION_DOES_NOT_IMPLY_ENTITLEMENT",
+    "INVITATION_LOCAL_DRAFT_NOT_SENT",
+    "FULL_EXPORT_READY_REQUIRES_ARTIFACT_AND_SHA256",
+    "LOCAL_EXPORT_DOES_NOT_CLAIM_SERVER_COMPLETENESS",
+    "D10_HUMAN_PRODUCT_APPROVAL_REQUIRED"
+  ]
+}

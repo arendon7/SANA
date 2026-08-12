@@ -1,0 +1,36 @@
+{
+  "surface": "AGROWAY FIELD",
+  "screen": "CROP_CYCLE_WORKSPACE",
+  "version": "0.21.0-alpha2",
+  "status": "READY_FOR_PRODUCT_APPROVAL",
+  "artifact": "AGROWAY_REPO_BOOTSTRAP_v0.21.0-alpha2_CROP_CYCLE_WORKSPACE.zip",
+  "artifactSha256": "2009b7268b3bbcb231b7f3a0c85c3facc7c3e58fe9100125110a0e5ad648cd89",
+  "sourceReviewArchive": "artifacts/review/AGROWAY_FIELD_v0.21.0-alpha2_SOURCE_REVIEW.tar.gz",
+  "sourceReviewSha256": "31ad8d6f179c9147a3f54859ad0c46385587ea0f2d314593ab8721dd8c8de48c",
+  "designDirection": "longitudinal-crop-workspace",
+  "domainEventsAdded": 0,
+  "workspacesAdded": 0,
+  "gates": {
+    "D0_D8": "PASS",
+    "D9_browserQa": "29/29 PASS",
+    "D10_humanProductApproval": "PENDING"
+  },
+  "validation": {
+    "fieldHomeRegression": "14/14 PASS",
+    "cycleStatic": "18/18 PASS",
+    "typescriptStrict": "PASS",
+    "postgresStructural": "102/102 PASS",
+    "specCompatibility": "23/23 PASS",
+    "viewports": ["1440x900", "390x844"],
+    "horizontalOverflow": false,
+    "browserConsoleErrors": 0
+  },
+  "trust": {
+    "data": "DEMO_RECONSTRUCTED",
+    "serverSyncClaimed": false,
+    "copilotState": "DRAFT_SUGGESTION",
+    "humanApprovalRequired": true,
+    "passportCertified": false,
+    "rawProviderPayloadVisible": false
+  }
+}

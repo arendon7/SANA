@@ -1,0 +1,8 @@
+{
+  "version":"0.21.0-alpha7","surface":"AGROWAY FIELD / HARVEST_SALE_SETTLEMENT_WORKSPACE","status":"READY_FOR_PRODUCT_APPROVAL",
+  "artifact":"AGROWAY_REPO_BOOTSTRAP_v0.21.0-alpha7_HARVEST_SALE_SETTLEMENT.zip","artifactSha256":"c2083d5ed4ae2e4fea0b87672c692a66a01c463694d12795aa7627054678242d",
+  "designDirection":"linked-output-commerce-chain","domainEventsAdded":0,"workspacesAdded":0,
+  "validation":{"static":"29/29 PASS","browserQa":"85/85 PASS","browserAccumulated":"299/299 PASS","productStaticAccumulated":"142/142 PASS","postgresStructural":"102/102 PASS","specCompatibility":"23/23 PASS_NOT_REAL_VITEST","privateCi":"PASS_WITH_PENDING"},
+  "determinism":{"quantityStorage":"INTEGER_GRAMS","moneyStorage":"INTEGER_MINOR_UNITS","currency":"COP","settlementInheritsSale":true},
+  "trust":{"canonicalHarvestMutatedOffline":false,"canonicalSaleMutatedOffline":false,"canonicalSettlementMutatedOffline":false,"aiCanApprovePriceSaleSettlement":false,"passportLocalHarvest":"LOCAL_PENDING","D10":"PENDING"}
+}
