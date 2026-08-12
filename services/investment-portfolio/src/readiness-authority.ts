@@ -2,6 +2,7 @@ import type {
   AdvanceCapitalReadinessIntake,
   AdvanceReadinessGapRemediation,
   CapitalPilotIntake,
+  CapitalPilotIntakeState,
   FinalizeCapitalReadinessDecision,
   InvestmentProject,
   PauseCapitalReadinessIntake,
@@ -51,6 +52,11 @@ export interface CapitalReadinessAuthorityContext {
   require(permission:CapitalReadinessAuthorityPermission):void;
 }
 
+const DIRECT_OPERATION_FORBIDDEN_TARGETS=new Set<CapitalPilotIntakeState>([
+  'HUMAN_REVIEW','CAPITAL_READY','READY_WITH_CONDITIONS','NOT_READY','REASSESSMENT_REQUIRED','WITHDRAWN',
+]);
+const SENSITIVE_STATES=new Set<CapitalPilotIntakeState>(['HUMAN_REVIEW','CAPITAL_READY','READY_WITH_CONDITIONS','NOT_READY','REASSESSMENT_REQUIRED']);
+
 function nonBlank(value:string,code:string):string{const normalized=value.trim();if(!normalized)throw new Error(code);return normalized;}
 function validIso(value:string):string{if(!Number.isFinite(Date.parse(value)))throw new Error('INVALID_ISO_DATETIME');return value;}
 function sameScope(tenantId:string,projectId:string,otherTenantId:string,otherProjectId:string,code:string):void{if(tenantId!==otherTenantId||projectId!==otherProjectId)throw new Error(code);}
@@ -67,6 +73,12 @@ function assertGapIdentity(gap:ReadinessGap,command:Readonly<{tenantId:string;pr
   sameScope(gap.tenantId,gap.projectId,command.tenantId,command.projectId,'READINESS_GAP_COMMAND_SCOPE_MISMATCH');
   if(gap.assessmentVersion!==command.assessmentVersion||gap.gapId!==command.gapId)throw new Error('READINESS_GAP_COMMAND_IDENTITY_MISMATCH');
   if(gap.state!==command.fromState)throw new Error('READINESS_GAP_COMMAND_STATE_STALE');
+}
+function permissionForSensitiveState(state:CapitalPilotIntakeState):CapitalReadinessAuthorityPermission{
+  if(state==='HUMAN_REVIEW')return CAPITAL_READINESS_AUTHORITY_PERMISSIONS.REVIEW;
+  if(state==='CAPITAL_READY'||state==='READY_WITH_CONDITIONS'||state==='NOT_READY')return CAPITAL_READINESS_AUTHORITY_PERMISSIONS.FINALIZE;
+  if(state==='REASSESSMENT_REQUIRED')return CAPITAL_READINESS_AUTHORITY_PERMISSIONS.REASSESS;
+  return CAPITAL_READINESS_AUTHORITY_PERMISSIONS.OPERATE;
 }
 async function persistTransition(
   executor:CapitalReadinessSqlExecutor,
@@ -113,9 +125,11 @@ export async function advanceAuthorizedCapitalReadinessIntake(
 ):Promise<CapitalPilotIntake>{
   authorize(authority,current.tenantId,CAPITAL_READINESS_AUTHORITY_PERMISSIONS.OPERATE);
   sameIntakeIdentity(current,command);
+  const runtimeTarget=command.target as CapitalPilotIntakeState;
+  if(DIRECT_OPERATION_FORBIDDEN_TARGETS.has(runtimeTarget))throw new Error(`READINESS_DIRECT_SENSITIVE_TRANSITION_FORBIDDEN:${runtimeTarget}`);
   if(current.state==='PAUSED')throw new Error('READINESS_PAUSED_INTAKE_REQUIRES_RESUME_COMMAND');
-  if(command.target==='PAUSED')throw new Error('READINESS_PAUSE_REQUIRES_PAUSE_COMMAND');
-  const next=transitionCapitalPilotIntake(current,command.target,validIso(command.at));
+  if(runtimeTarget==='PAUSED')throw new Error('READINESS_PAUSE_REQUIRES_PAUSE_COMMAND');
+  const next=transitionCapitalPilotIntake(current,runtimeTarget,validIso(command.at));
   return persistTransition(executor,authority,current,next,command.transitionId,command.reason);
 }
 
@@ -137,17 +151,10 @@ export async function pauseAuthorizedCapitalReadinessIntake(
   current:CapitalPilotIntake,
   command:PauseCapitalReadinessIntake,
 ):Promise<CapitalPilotIntake>{
-  authorize(authority,current.tenantId,CAPITAL_READINESS_AUTHORITY_PERMISSIONS.OPERATE);
   sameIntakeIdentity(current,command);
+  authorize(authority,current.tenantId,SENSITIVE_STATES.has(current.state)?permissionForSensitiveState(current.state):CAPITAL_READINESS_AUTHORITY_PERMISSIONS.OPERATE);
   const next=transitionCapitalPilotIntake(current,'PAUSED',validIso(command.at));
   return persistTransition(executor,authority,current,next,command.transitionId,nonBlank(command.reason,'READINESS_PAUSE_REASON_REQUIRED'));
-}
-
-function permissionForResumeTarget(target:NonNullable<CapitalPilotIntake['pausedFromState']>):CapitalReadinessAuthorityPermission{
-  if(target==='HUMAN_REVIEW')return CAPITAL_READINESS_AUTHORITY_PERMISSIONS.REVIEW;
-  if(target==='CAPITAL_READY'||target==='READY_WITH_CONDITIONS'||target==='NOT_READY')return CAPITAL_READINESS_AUTHORITY_PERMISSIONS.FINALIZE;
-  if(target==='REASSESSMENT_REQUIRED')return CAPITAL_READINESS_AUTHORITY_PERMISSIONS.REASSESS;
-  return CAPITAL_READINESS_AUTHORITY_PERMISSIONS.OPERATE;
 }
 
 export async function resumeAuthorizedCapitalReadinessIntake(
@@ -158,7 +165,7 @@ export async function resumeAuthorizedCapitalReadinessIntake(
 ):Promise<CapitalPilotIntake>{
   sameIntakeIdentity(current,command);
   if(current.state!=='PAUSED'||!current.pausedFromState)throw new Error('READINESS_INTAKE_NOT_PAUSED');
-  authorize(authority,current.tenantId,permissionForResumeTarget(current.pausedFromState));
+  authorize(authority,current.tenantId,permissionForSensitiveState(current.pausedFromState));
   const next=transitionCapitalPilotIntake(current,current.pausedFromState,validIso(command.at));
   return persistTransition(executor,authority,current,next,command.transitionId,nonBlank(command.reason,'READINESS_RESUME_REASON_REQUIRED'));
 }
@@ -187,11 +194,12 @@ export async function requestAuthorizedCapitalReadinessReassessment(
   return persistTransition(executor,authority,current,next,command.transitionId,nonBlank(command.reason,'READINESS_REASSESS_REASON_REQUIRED'));
 }
 
-function finalStateForDecision(decision:PersistFinalReadinessAssessmentInput['assessment']['decision']):CapitalPilotIntake['state']{
+function finalStateForDecision(decision:PersistFinalReadinessAssessmentInput['assessment']['decision']):CapitalPilotIntakeState{
   if(decision==='CAPITAL_READY')return 'CAPITAL_READY';
   if(decision==='CAPITAL_READY_WITH_CONDITIONS')return 'READY_WITH_CONDITIONS';
   if(decision==='NOT_CAPITAL_READY')return 'NOT_READY';
-  return 'REASSESSMENT_REQUIRED';
+  if(decision==='REASSESSMENT_REQUIRED')return 'REASSESSMENT_REQUIRED';
+  throw new Error(`INVALID_READINESS_FINAL_DECISION:${String(decision)}`);
 }
 
 /**
@@ -236,6 +244,8 @@ export async function advanceAuthorizedReadinessGapRemediation(
 ):Promise<void>{
   authorize(authority,gap.tenantId,CAPITAL_READINESS_AUTHORITY_PERMISSIONS.REMEDIATE);
   assertGapIdentity(gap,command);
+  const target=command.target as string;
+  if(target!=='IN_REMEDIATION'&&target!=='EVIDENCE_SUBMITTED')throw new Error(`READINESS_GAP_DIRECT_SENSITIVE_TRANSITION_FORBIDDEN:${target}`);
   await appendPersistedReadinessGapTransition(executor,{
     transitionId:command.transitionId,tenantId:command.tenantId,projectId:command.projectId,assessmentId:command.assessmentId,assessmentVersion:command.assessmentVersion,gapId:command.gapId,
     fromState:command.fromState,toState:command.target,actorRef:authority.actorId,occurredAt:validIso(command.at),note:command.note,
@@ -288,6 +298,8 @@ export const CAPITAL_READINESS_APPLICATION_AUTHORITY_BOUNDARY=Object.freeze({
   humanFinalizerRequired:true,
   waiverRequiresExplicitPermission:true,
   readinessFinalizationAtomic:true,
+  directOperationalFinalization:false,
+  directOperationalWaiver:false,
   controlToInvestMutationBridge:false,
   aiFinalReadinessAuthority:false,
   investorMutationAuthority:false,
