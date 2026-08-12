@@ -85,8 +85,8 @@ BEGIN
   WHERE n.nspname IN ('agroway_external','agroway_invest','agroway_control','agroway_copilot','agroway_pilot')
     AND c.relkind='r'
     AND c.relforcerowsecurity;
-  IF forced_count <> 35 THEN
-    RAISE EXCEPTION 'expected 35 FORCE-RLS tables, found %', forced_count;
+  IF forced_count <> 41 THEN
+    RAISE EXCEPTION 'expected 41 FORCE-RLS tables including six Capital Readiness tables, found %', forced_count;
   END IF;
 END $$;
 
@@ -108,4 +108,4 @@ BEGIN
   END IF;
 END $$;
 
-SELECT 'PASS v0.20.1 FORCE RLS + tenant isolation + raw boundary' AS result;
+SELECT 'PASS v0.20.1 FORCE RLS + tenant isolation + raw boundary + Capital Readiness inventory' AS result;
