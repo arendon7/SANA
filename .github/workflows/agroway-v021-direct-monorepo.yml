@@ -20,6 +20,7 @@ on:
       - "scripts/validate-capital-readiness-authority-int17.mjs"
       - "scripts/validate-capital-readiness-authorizer-snapshot-int17.mjs"
       - "scripts/validate-capital-readiness-ux1.mjs"
+      - "scripts/validate-capital-readiness-remediation-ux2a.mjs"
       - "scripts/validate-capital-readiness-postgres.py"
       - ".github/workflows/agroway-capital-readiness-postgres.yml"
       - ".github/workflows/agroway-v021-direct-monorepo.yml"
@@ -93,6 +94,9 @@ jobs:
 
       - name: Validate CAPITAL_READINESS UX1 read-only workbench
         run: node scripts/validate-capital-readiness-ux1.mjs
+
+      - name: Validate CAPITAL_READINESS UX2A producer remediation projection
+        run: node scripts/validate-capital-readiness-remediation-ux2a.mjs
 
       - name: Direct root TypeScript strict
         run: npm run typecheck
