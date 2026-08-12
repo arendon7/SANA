@@ -4,12 +4,14 @@ on:
   pull_request:
     paths:
       - "services/investment-portfolio/**"
+      - "vendor/postgres-js-3.4.9/**"
       - "config/product/control-alpha14-postgres-js-driver.json"
       - "config/product/control-operational-acceptance.json"
       - "config/product/control-review-bundle.json"
       - "scripts/materialize-postgres-js-v349.mjs"
       - "scripts/validate-control-postgres-js-driver.mjs"
       - "scripts/control-postgres-js-driver-runtime.mjs"
+      - "scripts/control-postgres-node-tls-preflight.mjs"
       - "scripts/control-postgres-js-tls-integration.mjs"
       - "scripts/validate-control-operational-acceptance.mjs"
       - "scripts/build-control-review-bundle.mjs"
@@ -46,6 +48,7 @@ jobs:
           node --check scripts/materialize-postgres-js-v349.mjs
           node --check scripts/validate-control-postgres-js-driver.mjs
           node --check scripts/control-postgres-js-driver-runtime.mjs
+          node --check scripts/control-postgres-node-tls-preflight.mjs
           node --check scripts/control-postgres-js-tls-integration.mjs
           node --check scripts/validate-control-operational-acceptance.mjs
           node --check scripts/build-control-review-bundle.mjs
@@ -130,6 +133,8 @@ jobs:
             postgres:16-alpine \
             psql -h db.alpha14.test -p "$ALPHA14_PG_PORT" -U agroway_control -d agroway_alpha14 -v ON_ERROR_STOP=1 \
             -c "SELECT current_database() AS database,current_user AS db_user,(SELECT ssl FROM pg_stat_ssl WHERE pid=pg_backend_pid()) AS ssl;"
+      - name: Node 22 verified PostgreSQL TLS handshake preflight
+        run: node scripts/control-postgres-node-tls-preflight.mjs
       - name: PostgreSQL 16 verified-TLS driver integration
         run: node scripts/control-postgres-js-tls-integration.mjs .tmp/control-alpha14/services/investment-portfolio/src/index.js
       - name: Build deterministic alpha14 CONTROL review bundle
