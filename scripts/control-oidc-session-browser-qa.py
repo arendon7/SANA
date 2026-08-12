@@ -22,7 +22,7 @@ try:
             response=page.goto(BASE+'/control/identity-adapter',wait_until='networkidle');check(f'{label}:route',response is not None and response.status==200,page.url)
             body=page.locator('body').inner_text()
             for token in ['PASS_REVIEW','PENDING_PRODUCTION','ProductionSession','AUTHORIZED_FOR_ADAPTER','RS256 / ES256','HUMAN_ONLY','ADVISORY_ONLY','D10=PENDING']:check(f'{label}:token:{token}',token in body)
-            check(f'{label}:identity-title','OIDC Production Session Adapter' in body or 'Production Identity Provider & JWKS Wiring' in body)
+            check(f'{label}:identity-title','OIDC Production Session Adapter' in body or 'OIDC Production Session + JWKS Wiring' in body)
             check(f'{label}:identity-blocker','PRODUCTION_IDENTITY_PROVIDER_CONFIGURATION_PENDING' in body or 'PRODUCTION_IDENTITY_PROVIDER_REAL_BINDING_AND_CONNECTIVITY_PENDING' in body)
             state=page.evaluate('globalThis.__AGROWAY_CONTROL_ALPHA11_OIDC__')
             check(f'{label}:review-only',state.get('surface')=='REVIEW_ONLY');check(f'{label}:real-provider-pending',state.get('realProviderConfigured') is False);check(f'{label}:browser-token-disabled',state.get('browserAcceptsTokens') is False);check(f'{label}:browser-session-disabled',state.get('browserCreatesProductionSession') is False);check(f'{label}:next-boundary',state.get('nextBoundary')=='AUTHORIZED_FOR_ADAPTER');check(f'{label}:not-executed',state.get('executionState')=='NOT_EXECUTED');check(f'{label}:no-canonical-mutation',state.get('canonicalMutated') is False)
