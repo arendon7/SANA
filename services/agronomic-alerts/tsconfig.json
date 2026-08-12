@@ -1,0 +1,1 @@
+{"compilerOptions":{"target":"ES2022","module":"NodeNext","moduleResolution":"NodeNext","strict":true,"noUncheckedIndexedAccess":true,"exactOptionalPropertyTypes":true,"skipLibCheck":true,"baseUrl":".","paths":{"@agroway/external-data-contracts":["../../packages/external-data-contracts/src/index.ts"]}},"include":["src/**/*.ts"]}
