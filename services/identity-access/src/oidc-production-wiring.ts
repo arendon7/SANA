@@ -223,9 +223,9 @@ export class HttpsCachedOidcJwksResolver implements OidcJwksResolver {
         if(new TextEncoder().encode(text).byteLength>this.policy.maxResponseBytes) throw new Error('PRODUCTION_OIDC_JWKS_RESPONSE_TOO_LARGE');
         const keys=parseJwks(text,this.policy.maxKeys);
         const fetchedAtMs=this.now();
-        const next:Object=Object.freeze({keys,fetchedAtMs,expiresAtMs:fetchedAtMs+this.policy.cacheTtlMs});
-        this.cache=next as CachedJwks;
-        return this.cache;
+        const next:CachedJwks=Object.freeze({keys,fetchedAtMs,expiresAtMs:fetchedAtMs+this.policy.cacheTtlMs});
+        this.cache=next;
+        return next;
       } finally {
         if(timer!==undefined) clearTimeout(timer);
         this.inflight=undefined;
