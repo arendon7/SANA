@@ -1,0 +1,63 @@
+name: AGROWAY CONTROL v0.22 alpha4
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "apps/control-web/**"
+      - "config/design/screens/evidence-decision-ledger.json"
+      - "scripts/validate-control-evidence-ledger.mjs"
+      - "scripts/control-evidence-http-browser-qa.py"
+      - "docs/product/V022_EVIDENCE_DECISION_LEDGER_VALIDATION.md"
+      - ".github/workflows/agroway-v022-control-alpha4.yml"
+concurrency:
+  group: agroway-control-v022-alpha4-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  evidence-ledger-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Syntax-check CONTROL alpha4
+        run: |
+          node --check apps/control-web/server.mjs
+          node --check apps/control-web/public/app.js
+          node --check apps/control-web/public/evidence.js
+          node --check apps/control-web/public/service-worker.js
+          node --check scripts/validate-control-evidence-ledger.mjs
+          python -m py_compile scripts/control-evidence-http-browser-qa.py
+      - name: Pinned TypeScript strict
+        run: npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit
+      - name: Alpha3 authority regression
+        run: node scripts/validate-control-exception-resolution.mjs
+      - name: Alpha4 evidence ledger guardrails
+        run: node scripts/validate-control-evidence-ledger.mjs
+      - name: Base persistence boundary
+        run: |
+          echo 'CONTROL_ALPHA4_SCOPED_GATE'
+          echo 'The FIELD base still has separate root-lock/direct-monorepo persistence debt; this workflow does not reinterpret those missing base artifacts as PASS.'
+      - name: Install pinned Playwright Chromium
+        run: |
+          python -m pip install --disable-pip-version-check playwright==1.57.0
+          python -m playwright install --with-deps chromium
+      - name: Native Chromium to real CONTROL evidence HTTP
+        run: python scripts/control-evidence-http-browser-qa.py
+      - name: Trust boundary
+        run: |
+          echo 'PASS_CONTROL_EVIDENCE_LEDGER_ALPHA4_NATIVE_HTTP'
+          echo 'Ledger authority remains HUMAN_ONLY; AI remains DRAFT_SUGGESTION / ADVISORY_ONLY; canonicalMutation=false; D10=PENDING.'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: agroway-control-v022-alpha4-evidence-ledger
+          path: docs/product/evidence/evidence-ledger
+          if-no-files-found: warn
+          retention-days: 14
