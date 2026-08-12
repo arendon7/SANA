@@ -1,0 +1,88 @@
+name: AGROWAY CONTROL v0.22 alpha22 root reconciliation
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "package.json"
+      - "scripts/validate-local-dev-backend.mjs"
+      - "scripts/local-dev-backend-http-runtime.mjs"
+      - "scripts/local-dev-backend-browser-qa.py"
+      - "scripts/release-readiness.mjs"
+      - "scripts/validate-root-runtime-reconciliation.mjs"
+      - "config/product/control-alpha22-root-runtime-reconciliation.json"
+      - ".github/workflows/agroway-v022-control-alpha22.yml"
+concurrency:
+  group: agroway-control-v022-alpha22-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  root-runtime-script-reconciliation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Syntax-check reconciled root targets
+        run: |
+          node --check scripts/validate-local-dev-backend.mjs
+          node --check scripts/local-dev-backend-http-runtime.mjs
+          node --check scripts/release-readiness.mjs
+          node --check scripts/validate-root-runtime-reconciliation.mjs
+          python -m py_compile scripts/local-dev-backend-browser-qa.py
+      - name: Direct-root persistence topology and lock parity
+        run: node scripts/validate-direct-root-persistence.mjs
+      - name: Offline canonical workspace install
+        run: npm ci --ignore-scripts --offline
+      - name: Pinned TypeScript strict
+        run: npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit
+      - name: Alpha22 root runtime reconciliation guardrail
+        run: node scripts/validate-root-runtime-reconciliation.mjs
+      - name: Local-dev backend static contract
+        run: npm run validate:local-dev-backend
+      - name: Existing local-dev backend HTTP runtime
+        run: npm run test:local-dev-backend-http
+      - name: Review release readiness remains review-only
+        run: npm run release:readiness
+      - name: Production release readiness remains fail-closed
+        run: |
+          set +e
+          npm run release:readiness:production >/tmp/alpha22-production-readiness.out 2>/tmp/alpha22-production-readiness.err
+          code=$?
+          set -e
+          test "$code" = "2"
+          grep -q 'BLOCKED_PRODUCTION_READINESS' /tmp/alpha22-production-readiness.err
+          grep -q 'D10_HUMAN_PRODUCT_APPROVAL_PENDING' /tmp/alpha22-production-readiness.err
+          echo PASS_ALPHA22_PRODUCTION_READINESS_FAIL_CLOSED
+      - name: Full canonical offline verification
+        run: npm run verify:offline
+      - name: Install pinned Playwright Chromium
+        run: |
+          python -m pip install --disable-pip-version-check playwright==1.57.0
+          python -m playwright install --with-deps chromium
+      - name: Native Chromium local-dev backend QA
+        run: npm run qa:local-dev-backend-browser
+      - name: CONTROL production truth regression
+        run: node scripts/validate-control-operational-acceptance.mjs
+      - name: Trust boundary
+        run: |
+          echo PASS_CONTROL_ALPHA22_ROOT_RUNTIME_RECONCILIATION
+          echo 'Root command topology is reconciled; local backend remains LOCAL_DEV_BACKEND_NOT_PRODUCTION and CONTROL production blockers/D10 are unchanged.'
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: agroway-control-v022-alpha22-root-reconciliation
+          path: |
+            config/product/control-alpha22-root-runtime-reconciliation.json
+            scripts/validate-local-dev-backend.mjs
+            scripts/local-dev-backend-http-runtime.mjs
+            scripts/local-dev-backend-browser-qa.py
+            scripts/release-readiness.mjs
+            scripts/validate-root-runtime-reconciliation.mjs
+          if-no-files-found: error
+          retention-days: 14
