@@ -1,0 +1,28 @@
+{
+  "product": "GREENATICS CONTROL",
+  "version": "0.22.0-alpha10",
+  "scope": "CANONICAL_WRITE_ADAPTER_REVIEW",
+  "trust": "DEMO_RECONSTRUCTED",
+  "authoritativeService": "services/investment-portfolio/src/control-write-adapter.ts",
+  "authoritativeFunction": "applyCapitalRequirementCanonicalWrite",
+  "authorizationPrerequisite": "AUTHORIZED_FOR_ADAPTER",
+  "command": "DECLARE_CAPITAL_REQUIREMENT",
+  "event": "CapitalRequirementDeclared",
+  "status": "PASS_REVIEW_PENDING_POSTGRES_TRANSACTION_ADAPTER",
+  "referencePort": {
+    "transactional": true,
+    "idempotent": true,
+    "rollbackOnFailure": true,
+    "outboxAtomicWithDomainMutation": true
+  },
+  "postgresAdapter": {
+    "connected": false,
+    "status": "PENDING_PRODUCTION",
+    "requiredTables": ["agroway_invest.project", "agroway_core.outbox"],
+    "postgresRuntime": "PENDING_ENVIRONMENT"
+  },
+  "browser": {"canInvokeAdapter": false, "reviewOnly": true},
+  "authority": {"approval": "HUMAN_ONLY", "ai": "ADVISORY_ONLY"},
+  "domainDelta": {"canonicalDomainEventsAdded": 0, "workspacesAdded": 0},
+  "d10": "PENDING"
+}
