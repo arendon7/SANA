@@ -4,6 +4,12 @@ on:
   pull_request:
     paths:
       - "package.json"
+      - "apps/field-web/public/index.html"
+      - "scripts/design-governance-gate.mjs"
+      - "scripts/design-skills-status.mjs"
+      - "scripts/design-preflight.mjs"
+      - "scripts/sync-design-skills.mjs"
+      - "scripts/validate-root-script-targets.mjs"
       - "scripts/validate-local-dev-backend.mjs"
       - "scripts/local-dev-backend-http-runtime.mjs"
       - "scripts/local-dev-backend-browser-qa.py"
@@ -30,6 +36,11 @@ jobs:
           python-version: "3.13"
       - name: Syntax-check reconciled root targets
         run: |
+          node --check scripts/design-governance-gate.mjs
+          node --check scripts/design-skills-status.mjs
+          node --check scripts/design-preflight.mjs
+          node --check scripts/sync-design-skills.mjs
+          node --check scripts/validate-root-script-targets.mjs
           node --check scripts/validate-local-dev-backend.mjs
           node --check scripts/local-dev-backend-http-runtime.mjs
           node --check scripts/release-readiness.mjs
@@ -37,12 +48,16 @@ jobs:
           python -m py_compile scripts/local-dev-backend-browser-qa.py
       - name: Direct-root persistence topology and lock parity
         run: node scripts/validate-direct-root-persistence.mjs
+      - name: Root package executable target audit
+        run: node scripts/validate-root-script-targets.mjs
       - name: Offline canonical workspace install
         run: npm ci --ignore-scripts --offline
       - name: Pinned TypeScript strict
         run: npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit
       - name: Alpha22 root runtime reconciliation guardrail
         run: node scripts/validate-root-runtime-reconciliation.mjs
+      - name: Restored design governance and non-strict preflight
+        run: npm run design:verify
       - name: Local-dev backend static contract
         run: npm run validate:local-dev-backend
       - name: Existing local-dev backend HTTP runtime
@@ -72,13 +87,19 @@ jobs:
       - name: Trust boundary
         run: |
           echo PASS_CONTROL_ALPHA22_ROOT_RUNTIME_RECONCILIATION
-          echo 'Root command topology is reconciled; local backend remains LOCAL_DEV_BACKEND_NOT_PRODUCTION and CONTROL production blockers/D10 are unchanged.'
+          echo 'Root command topology and design governance are reconciled; local backend remains LOCAL_DEV_BACKEND_NOT_PRODUCTION and CONTROL production blockers/D10 are unchanged.'
       - uses: actions/upload-artifact@v4
         if: success()
         with:
           name: agroway-control-v022-alpha22-root-reconciliation
           path: |
             config/product/control-alpha22-root-runtime-reconciliation.json
+            apps/field-web/public/index.html
+            scripts/design-governance-gate.mjs
+            scripts/design-skills-status.mjs
+            scripts/design-preflight.mjs
+            scripts/sync-design-skills.mjs
+            scripts/validate-root-script-targets.mjs
             scripts/validate-local-dev-backend.mjs
             scripts/local-dev-backend-http-runtime.mjs
             scripts/local-dev-backend-browser-qa.py
