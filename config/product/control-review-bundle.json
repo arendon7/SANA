@@ -1,11 +1,13 @@
 {
   "product": "GREENATICS CONTROL",
-  "version": "0.22.0-alpha7",
+  "version": "0.22.0-alpha8",
   "artifact": "CONTROL_REVIEW_BUNDLE",
   "trust": "DEMO_RECONSTRUCTED",
   "d10": "PENDING",
-  "entryRoute": "/control/exceptions",
+  "entryRoute": "/control",
   "routes": [
+    "/control",
+    "/control/projects/inv-yar-001",
     "/control/exceptions",
     "/control/evidence",
     "/control/approvals",
@@ -18,12 +20,17 @@
     "canonicalMutated": false,
     "localOnly": true
   },
-  "domainDelta": {
-    "canonicalDomainEventsAdded": 0,
-    "workspacesAdded": 0
-  },
+  "domainDelta": {"canonicalDomainEventsAdded":0,"workspacesAdded":0},
   "runtimeFiles": [
     "apps/control-web/server.mjs",
+    "apps/control-web/public/home-original.html",
+    "apps/control-web/public/home.js",
+    "apps/control-web/public/home.css",
+    "apps/control-web/public/home-integration.js",
+    "apps/control-web/public/project-original.html",
+    "apps/control-web/public/project-original.js",
+    "apps/control-web/public/project.css",
+    "apps/control-web/public/project-integration.js",
     "apps/control-web/public/index.html",
     "apps/control-web/public/evidence.html",
     "apps/control-web/public/approvals.html",
@@ -42,16 +49,20 @@
     "apps/control-web/public/manifest.webmanifest"
   ],
   "contractFiles": [
+    "apps/control-web/src/home-model.ts",
     "apps/control-web/src/exception-resolution-model.ts",
     "apps/control-web/src/evidence-decision-ledger-model.ts",
     "apps/control-web/src/human-approval-queue-model.ts",
     "apps/control-web/src/submission-handoff-model.ts",
     "apps/control-web/src/unified-control-flow-model.ts",
+    "config/design/screens/control-tower-home.json",
+    "config/design/screens/investment-project-workspace.json",
     "config/design/screens/exception-resolution-workspace.json",
     "config/design/screens/evidence-decision-ledger.json",
     "config/design/screens/human-approval-queue.json",
     "config/design/screens/submission-handoff.json",
     "config/design/screens/unified-control-flow.json",
+    "config/product/control-alpha8-recovery.json",
     "config/product/control-operational-acceptance.json"
   ]
 }
