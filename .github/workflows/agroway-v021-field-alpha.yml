@@ -7,8 +7,10 @@ on:
       - "infra/postgres/migrations/**"
       - "infra/postgres/tests/**"
       - "scripts/local-dev-backend-http-runtime.mjs"
+      - "scripts/field-http-playwright-runtime.mjs"
       - "config/design/screens/local-dev-backend-runtime.json"
       - "ci/vitest-real/**"
+      - "ci/field-http-playwright/**"
       - ".github/workflows/agroway-v021-field-alpha.yml"
 concurrency:
   group: agroway-field-v021-${{ github.event.pull_request.number || github.ref }}
@@ -128,3 +130,106 @@ jobs:
         run: |
           echo 'PASS_REAL_VITEST_4_1_7_FOR_OBSERVED_12_SPEC_SLICE'
           echo 'This is real Vitest runtime for the exact observed 12-spec reconstructed source closure plus the canonical alpha10 root tsconfig. It is not yet a claim that the full 41-workspace monorepo is directly persisted or tested from its canonical root lockfile.'
+
+  native-field-http-playwright:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Reconstruct and verify alpha10 FIELD public bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat ci/field-http-playwright/public.part00.b64 \
+              ci/field-http-playwright/public.part01.b64 \
+              ci/field-http-playwright/public.part02.b64 \
+              ci/field-http-playwright/public.part03.b64 > /tmp/agroway_field_public_alpha10.b64
+          base64 --decode /tmp/agroway_field_public_alpha10.b64 > /tmp/agroway_field_public_alpha10.tar.gz
+          echo "1ea29026ccf160dfebc15b24f6f27408a8bff459be4c422e0791775520dcf00b  /tmp/agroway_field_public_alpha10.tar.gz" | sha256sum -c -
+          rm -rf apps/field-web/public
+          mkdir -p apps/field-web/public
+          tar -xzf /tmp/agroway_field_public_alpha10.tar.gz -C apps/field-web
+          file_count=$(find apps/field-web/public -maxdepth 1 -type f | wc -l | tr -d ' ')
+          test "$file_count" = "5" || { echo "expected 5 FIELD public assets, found $file_count"; exit 1; }
+          test -f apps/field-web/public/index.html
+          test -f apps/field-web/public/app.js
+          test -f apps/field-web/public/styles.css
+          test -f apps/field-web/public/manifest.webmanifest
+          test -f apps/field-web/public/service-worker.js
+          node --check apps/field-web/public/app.js
+          node --check scripts/field-http-playwright-runtime.mjs
+          echo 'PASS_ALPHA10_FIELD_PUBLIC_BUNDLE_SHA_AND_INVENTORY'
+
+      - name: Install pinned Playwright Chromium runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/agroway-playwright-runtime
+          cp scripts/field-http-playwright-runtime.mjs /tmp/agroway-playwright-runtime/
+          printf '%s\n' '{"private":true,"type":"module"}' > /tmp/agroway-playwright-runtime/package.json
+          cd /tmp/agroway-playwright-runtime
+          corepack enable
+          corepack prepare pnpm@10.15.0 --activate
+          pnpm --version | tee /tmp/playwright-pnpm-version.txt
+          grep -Fx '10.15.0' /tmp/playwright-pnpm-version.txt
+          pnpm add --ignore-scripts --save-exact playwright@1.57.0
+          pnpm exec playwright --version | tee /tmp/playwright-version.txt
+          grep -Fx 'Version 1.57.0' /tmp/playwright-version.txt
+          pnpm exec playwright install --with-deps chromium
+
+      - name: Start real AGROWAY FIELD HTTP server
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/agroway-field-runtime /tmp/agroway-playwright-evidence
+          mkdir -p /tmp/agroway-field-runtime /tmp/agroway-playwright-evidence
+          AGROWAY_RUNTIME_DIR=/tmp/agroway-field-runtime \
+          AGROWAY_DEV_ALLOW_RESET=1 \
+          PORT=4173 \
+          node apps/field-web/server.mjs >/tmp/agroway-field-server.log 2>&1 &
+          echo $! >/tmp/agroway-field-server.pid
+          for i in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:4173/api/dev/status >/tmp/agroway-field-status.json; then
+              cat /tmp/agroway-field-status.json
+              exit 0
+            fi
+            sleep 0.25
+          done
+          cat /tmp/agroway-field-server.log || true
+          echo 'FIELD_HTTP_SERVER_DID_NOT_START'
+          exit 1
+
+      - name: Native Chromium to real FIELD HTTP runtime
+        working-directory: /tmp/agroway-playwright-runtime
+        env:
+          AGROWAY_FIELD_BASE_URL: http://127.0.0.1:4173
+          AGROWAY_PLAYWRIGHT_EVIDENCE: /tmp/agroway-playwright-evidence
+        run: node field-http-playwright-runtime.mjs
+
+      - name: Native browser trust boundary
+        run: |
+          echo 'PASS_NATIVE_CHROMIUM_TO_REAL_FIELD_HTTP_ALPHA10'
+          echo 'This proves native Chromium, localStorage, Service Worker, browser download and browser fetch against LOCAL_DEV_BACKEND_NOT_PRODUCTION. It is not a production authentication, storage or sync claim.'
+
+      - name: Stop FIELD server
+        if: always()
+        shell: bash
+        run: |
+          if test -f /tmp/agroway-field-server.pid; then kill "$(cat /tmp/agroway-field-server.pid)" 2>/dev/null || true; fi
+          cat /tmp/agroway-field-server.log 2>/dev/null || true
+
+      - name: Upload native browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agroway-field-alpha10-native-http-evidence
+          path: |
+            /tmp/agroway-playwright-evidence
+            /tmp/agroway-field-server.log
+            /tmp/agroway-field-status.json
+          if-no-files-found: warn
+          retention-days: 14
