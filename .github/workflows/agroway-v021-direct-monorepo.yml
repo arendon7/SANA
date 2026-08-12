@@ -14,6 +14,7 @@ on:
       - "scripts/validate-capital-readiness-int1.mjs"
       - "scripts/validate-capital-readiness-int1-hardening.mjs"
       - "scripts/validate-capital-readiness-control-projection.mjs"
+      - "scripts/validate-capital-readiness-control-model.mjs"
       - ".github/workflows/agroway-v021-direct-monorepo.yml"
 concurrency:
   group: agroway-v021-direct-${{ github.event.pull_request.number || github.ref }}
@@ -70,6 +71,9 @@ jobs:
 
       - name: Validate CAPITAL_READINESS Control Tower projection
         run: node scripts/validate-capital-readiness-control-projection.mjs
+
+      - name: Validate CAPITAL_READINESS read-only Control model
+        run: node scripts/validate-capital-readiness-control-model.mjs
 
       - name: Direct root TypeScript strict
         run: npm run typecheck
