@@ -1,0 +1,61 @@
+name: AGROWAY CONTROL v0.22 alpha6
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "apps/control-web/**"
+      - "config/design/screens/submission-handoff.json"
+      - "scripts/validate-control-submission-handoff.mjs"
+      - "scripts/control-handoff-http-browser-qa.py"
+      - ".github/workflows/agroway-v022-control-alpha6.yml"
+concurrency:
+  group: agroway-control-v022-alpha6-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  submission-handoff-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Syntax-check CONTROL alpha6
+        run: |
+          node --check apps/control-web/server.mjs
+          node --check apps/control-web/public/handoff.js
+          node --check apps/control-web/public/service-worker.js
+          node --check scripts/validate-control-submission-handoff.mjs
+          python -m py_compile scripts/control-handoff-http-browser-qa.py
+      - name: Pinned TypeScript strict
+        run: npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit
+      - name: Alpha3 authority regression
+        run: node scripts/validate-control-exception-resolution.mjs
+      - name: Alpha4 evidence ledger regression
+        run: node scripts/validate-control-evidence-ledger.mjs
+      - name: Alpha5 human approval regression
+        run: node scripts/validate-control-human-approval.mjs
+      - name: Alpha6 submission handoff guardrails
+        run: node scripts/validate-control-submission-handoff.mjs
+      - name: Install pinned Playwright Chromium
+        run: |
+          python -m pip install --disable-pip-version-check playwright==1.57.0
+          python -m playwright install --with-deps chromium
+      - name: Native Chromium to real CONTROL handoff HTTP
+        run: python scripts/control-handoff-http-browser-qa.py
+      - name: Trust boundary
+        run: |
+          echo 'PASS_CONTROL_SUBMISSION_HANDOFF_ALPHA6_NATIVE_HTTP'
+          echo 'Prepared/exported/ACK_PENDING never means executed; no product execution endpoint exists; D10=PENDING.'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: agroway-control-v022-alpha6-submission-handoff
+          path: docs/product/evidence/submission-handoff
+          if-no-files-found: warn
+          retention-days: 14
