@@ -1,0 +1,79 @@
+{
+  "product": "GREENATICS CONTROL",
+  "version": "0.22.0-alpha20",
+  "capability": "PRODUCTION_BOOTSTRAP_COMPOSITION",
+  "status": "PASS_REVIEW_PENDING_EXTERNAL_RUNTIME_BINDINGS_AND_D10",
+  "protocol": "AGROWAY_CONTROL_PRODUCTION_BOOTSTRAP_V1",
+  "runtimeBoundary": {
+    "runtimeModeRequired": "PRODUCTION",
+    "bootstrapModeRequired": "PRODUCTION_EXTERNAL_BINDINGS",
+    "releaseVersionFromEnvironment": true,
+    "gitHeadShaFromEnvironment": true,
+    "reviewBundleSha256FromEnvironment": true,
+    "rawEnvironmentExposed": false,
+    "serverSideOnly": true,
+    "browserInvocationAllowed": false
+  },
+  "composition": {
+    "workspace": "services/pilot-certifier",
+    "crossWorkspacePackageDependenciesAdded": 0,
+    "factoryInjectionRequired": true,
+    "identityFactoryPurpose": "CREATE_PRODUCTION_OIDC_WIRING",
+    "postgresFactoryPurpose": "CREATE_PRODUCTION_POSTGRES_WIRING",
+    "externalAckFactoryPurpose": "CREATE_PRODUCTION_EXTERNAL_ACK_WIRING",
+    "privilegedWiringObjectsExposed": false,
+    "preflightMethodsOnlyVisibleToBootstrap": true
+  },
+  "preflight": {
+    "clearsPriorBindingEvidenceBeforeEachRun": true,
+    "identityReadOnlyProbeRequired": true,
+    "postgresReadOnlyProbeRequired": true,
+    "externalAckMetadataReadOnlyProbeRequired": true,
+    "bindingEvidenceIssuedOnlyAfterThreeConnectivityPasses": true,
+    "invalidD10StatePreserved": "BLOCKED_INVALID_D10_EVIDENCE",
+    "productionExecutionAvailable": false,
+    "canonicalWriteExecuted": false,
+    "externalAckSent": false,
+    "productionSessionCreated": false
+  },
+  "activation": {
+    "usesLatestSuccessfulBootstrapReadiness": true,
+    "usesLatestBootstrapBindingEvidence": true,
+    "reusesAlpha19AuthorizationBoundary": true,
+    "authorizationCeiling": "RUNTIME_GATE_ONLY",
+    "browserActivationAllowed": false,
+    "automaticProductionExecution": false
+  },
+  "authority": {
+    "approval": "HUMAN_ONLY",
+    "ai": "ADVISORY_ONLY",
+    "productionBootstrapImplemented": true,
+    "productionBootstrapReviewCertified": true,
+    "realProductionBootstrapExecuted": false,
+    "realProductionBindingEvidenceIssued": false,
+    "realProductionActivationLeaseIssued": false,
+    "productionExecutionAvailable": false,
+    "executionState": "NOT_EXECUTED",
+    "canonicalMutated": false
+  },
+  "reproducibility": {
+    "canonicalRootLockChanged": false,
+    "canonicalWorkspaceCount": 41,
+    "workspacesAdded": 0,
+    "externalNpmDependencyAdded": false
+  },
+  "explicitGaps": [
+    "No real production environment variables or secrets are stored in the repository.",
+    "No concrete production host has injected the OIDC, PostgreSQL and External ACK factories with real bindings.",
+    "No real production connectivity preflight has executed.",
+    "D10 human product approval remains pending for the actual release candidate.",
+    "No real production binding evidence or activation lease has been issued.",
+    "The bootstrap exposes no direct canonical write, ACK transport, production-session creation or browser activation capability."
+  ],
+  "evidence": [
+    "services/pilot-certifier/src/control-production-bootstrap.ts",
+    "scripts/validate-control-production-bootstrap.mjs",
+    "scripts/control-production-bootstrap-runtime.mjs",
+    "config/product/control-alpha20-production-bootstrap.json"
+  ]
+}
