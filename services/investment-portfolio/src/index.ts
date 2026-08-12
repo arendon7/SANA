@@ -6,3 +6,4 @@ export * from './eligibility.js';
 export * from './portfolio.js';
 export * from './risk.js';
 export * from './evidence.js';
+export * from './control-write-adapter.js';
