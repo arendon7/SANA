@@ -1,0 +1,52 @@
+import fs from 'node:fs';import crypto from 'node:crypto';
+const read=p=>fs.readFileSync(p);const text=p=>read(p).toString('utf8');const json=p=>JSON.parse(text(p));
+const results=[];const check=(name,ok)=>{results.push({name,pass:!!ok});console.log(`${ok?'PASS':'FAIL'} ${name}`)};
+const blobSha=p=>{const b=read(p);return crypto.createHash('sha1').update(Buffer.from(`blob ${b.length}\0`)).update(b).digest('hex')};
+const exact={
+ 'apps/control-web/recovered/pr9-3d58/alpha1/index.html':'a306fe4e7743a1ec80b1a0150c733b0a5b4a82cf',
+ 'apps/control-web/recovered/pr9-3d58/alpha1/app.js':'19e1f7e5f89427ad484f9f48e1c3fa1138f8ab25',
+ 'apps/control-web/recovered/pr9-3d58/alpha1/styles.css':'3458dc52893544c4337ce1af4f0c6d0b135e4056',
+ 'apps/control-web/recovered/pr9-3d58/alpha1/service-worker.js':'ff2caa3a2ac11f93314c78ad0c77b823bf687a99',
+ 'apps/control-web/recovered/pr9-3d58/alpha1/server.mjs':'c2afca5bb37066aefbdb5d3204694c84b799ea8a',
+ 'apps/control-web/recovered/pr9-3d58/alpha1/home-model.ts':'55ef1c6427e529c560e3e2be773e99a128e3f259',
+ 'apps/control-web/recovered/pr9-3d58/alpha2/project.html':'31e28b201d7920743d48843ce59c885f511f21ad',
+ 'apps/control-web/recovered/pr9-3d58/alpha2/project.js':'8b157c5928ca5e3c73758d1ebf0c12f9cec6e83a',
+ 'apps/control-web/recovered/pr9-3d58/alpha2/project.css':'82004a2e25c91160ec71adb5abb2c2233ff3c559',
+ 'apps/control-web/recovered/pr9-3d58/alpha2/service-worker-project.js':'22bd62ebca2743f1080e9b0130977b78bd34465a',
+ 'apps/control-web/recovered/pr9-3d58/alpha2/investment-project-workspace.json':'347654fa85604baf7176cbe92c19d8384cb054e8'
+};
+for(const [p,sha] of Object.entries(exact)){check(`exact:${p}`,fs.existsSync(p)&&blobSha(p)===sha)}
+const server=text('apps/control-web/server.mjs'),sw=text('apps/control-web/public/service-worker.js'),homeIntegration=text('apps/control-web/public/home-integration.js'),projectIntegration=text('apps/control-web/public/project-integration.js'),recovery=json('config/product/control-alpha8-recovery.json');
+check('server:home-route',server.includes("pathname==='/control'"));
+check('server:project-route',server.includes("/control/projects/inv-yar-001"));
+check('server:home-source-exact',server.includes('home-original.html'));
+check('server:project-source-exact',server.includes('project-original.html'));
+check('server:project-sw-adaptation',server.includes("replace('/service-worker-project.js','/service-worker.js')"));
+check('sw:alpha8',sw.includes("agroway-control-v022a8"));
+check('sw:home',sw.includes("'/control'"));
+check('sw:project',sw.includes("'/control/projects/inv-yar-001'"));
+check('sw:no-historical-project-sw',!sw.includes('service-worker-project.js'));
+check('home:unified-exception-route',homeIntegration.includes('/control/exceptions'));
+check('home:project-route',homeIntegration.includes('/control/projects/inv-yar-001'));
+check('home:human-only',homeIntegration.includes("authority:'HUMAN_ONLY'"));
+check('home:not-executed',homeIntegration.includes("executionState:'NOT_EXECUTED'"));
+check('home:no-canonical-mutation',homeIntegration.includes('canonicalMutated:false'));
+check('project:unified-exception-route',projectIntegration.includes('/control/exceptions'));
+check('project:financial-mutation-false',projectIntegration.includes('financialMutationAvailable:false'));
+check('project:advisory-only',projectIntegration.includes("aiAuthority:'ADVISORY_ONLY'"));
+check('project:not-executed',projectIntegration.includes("executionState:'NOT_EXECUTED'"));
+check('project:no-canonical-mutation',projectIntegration.includes('canonicalMutated:false'));
+check('recovery:pr9',recovery.source.pullRequest===9);
+check('recovery:commit',recovery.source.commit==='3d58de6cbbac3946fab1fc255a28d08d61166b59');
+check('recovery:exact-trust',recovery.source.trust==='RECOVERED_EXACT_PR9_BLOBS');
+check('recovery:model-truth',recovery.source.investmentProjectTypeScriptModelHistoricalExactRecovered===false);
+check('recovery:old-sw-provenance-only',recovery.integration.historicalProjectServiceWorker.usage==='PROVENANCE_ONLY'&&recovery.integration.historicalProjectServiceWorker.registeredByIntegratedRuntime===false);
+check('recovery:human-only',recovery.integration.approvalAuthority==='HUMAN_ONLY');
+check('recovery:ai-advisory',recovery.integration.aiAuthority==='ADVISORY_ONLY');
+check('recovery:not-executed',recovery.integration.executionState==='NOT_EXECUTED');
+check('recovery:canonical-false',recovery.integration.canonicalMutated===false);
+check('recovery:no-financial-mutation',recovery.integration.financialMutationAvailable===false);
+check('recovery:event-delta-zero',recovery.domainDelta.canonicalDomainEventsAdded===0);
+check('recovery:workspace-delta-zero',recovery.domainDelta.workspacesAdded===0);
+check('recovery:d10-pending',recovery.d10HumanProductApproval==='PENDING');
+const failed=results.filter(x=>!x.pass);console.log(`PASS_CONTROL_REINTEGRATION_STATIC ${results.length-failed.length}/${results.length}`);if(failed.length){console.error(JSON.stringify(failed,null,2));process.exit(1)}

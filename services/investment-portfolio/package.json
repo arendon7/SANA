@@ -1,0 +1,1 @@
+{"name":"@agroway/investment-portfolio","version":"0.21.0-alpha10","private":true,"type":"module","exports":{".":"./src/index.ts","./readiness":"./src/readiness.ts","./readiness-persistence":"./src/readiness-persistence.ts","./readiness-authority":"./src/readiness-authority.ts"},"dependencies":{"@agroway/invest-control-contracts":"0.21.0-alpha10"}}

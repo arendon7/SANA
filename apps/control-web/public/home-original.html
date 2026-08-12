@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="es-CO">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#173D2B">
+  <meta name="description" content="GREENATICS CONTROL — torre de control de la red agrícola AGROWAY">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="stylesheet" href="/styles.css">
+  <title>GREENATICS CONTROL</title>
+</head>
+<body>
+  <aside class="rail" aria-label="Navegación principal">
+    <div class="brand"><span class="brand-mark">SANA</span><strong>GREENATICS<br>CONTROL</strong></div>
+    <nav class="rail-nav">
+      <a class="active" href="#today">Control</a><a href="#projects">Proyectos</a><a href="#agronomy">Agronomía</a><a href="#supply">Supply</a><a href="#impact">Impacto</a>
+    </nav>
+    <div class="trust">DEMO_RECONSTRUCTED<br><small>No son datos productivos</small></div>
+  </aside>
+
+  <main>
+    <header class="topbar" id="today">
+      <div><span class="eyebrow">GREENATICS CONTROL · RED AGRÍCOLA</span><h1>Qué requiere decisión humana ahora</h1><p>Excepciones determinísticas, capital y operación en un mismo contexto.</p></div>
+      <button class="ai-button" id="copilotButton" type="button">Agrónomo Virtual</button>
+    </header>
+
+    <section class="context-band" aria-label="Contexto de red">
+      <div><span>Red</span><strong>Greenatics Antioquia</strong></div>
+      <div><span>Fincas activas</span><strong>6</strong></div><div><span>Área activa</span><strong>42.6 ha</strong></div><div><span>Ciclos activos</span><strong>9</strong></div><div><span>Corte</span><strong>11 ago · 18:40</strong></div>
+    </section>
+
+    <section class="exceptions" aria-labelledby="exceptionsTitle">
+      <div class="section-heading"><div><span class="eyebrow">ATENCIÓN</span><h2 id="exceptionsTitle">3 excepciones requieren revisión</h2></div><p>La regla detecta; una persona decide.</p></div>
+      <div id="exceptionList" class="exception-list"></div>
+    </section>
+
+    <section class="workspace" id="projects">
+      <article class="panel capital-panel">
+        <div class="panel-head"><div><span class="eyebrow">CAPITAL</span><h2>Proyectos de inversión</h2></div><label>Proyecto<select id="projectFilter" aria-label="Filtrar proyecto"></select></label></div>
+        <div id="capitalSummary" class="capital-summary"></div>
+        <div id="projectRows" class="project-rows"></div>
+      </article>
+
+      <article class="panel agronomy-panel" id="agronomy">
+        <div class="panel-head"><div><span class="eyebrow">AGRONOMÍA</span><h2>Salud de ciclos</h2></div><span class="status-dot warning">2 por revisar</span></div>
+        <div class="agronomy-grid"><div class="health-ring" aria-label="7 de 9 ciclos dentro de objetivo"><span>7/9</span><small>dentro de objetivo</small></div><dl><div><dt>Saludables</dt><dd>7</dd></div><div><dt>Vigilancia</dt><dd>1</dd></div><div><dt>Críticos</dt><dd>1</dd></div><div><dt>Alertas abiertas</dt><dd>4</dd></div></dl></div>
+      </article>
+
+      <article class="panel operations-panel">
+        <div class="panel-head"><div><span class="eyebrow">OPERACIÓN</span><h2>Trabajo de campo</h2></div><span>Hoy</span></div>
+        <div class="metric-line"><strong>31</strong><span>planificadas</span><strong>24</strong><span>completadas</span><strong>3</strong><span>vencidas</span></div>
+        <div class="progress"><span style="width:77%"></span></div><p>La mora se concentra en Café Circular / Lote Norte.</p>
+      </article>
+
+      <article class="panel supply-panel" id="supply">
+        <div class="panel-head"><div><span class="eyebrow">SUPPLY + DEMANDA</span><h2>Próximos 90 días</h2></div><span class="status-dot warning">12 días cobertura</span></div>
+        <div class="supply-metrics"><div><span>Fill rate</span><strong>91%</strong></div><div><span>Órdenes abiertas</span><strong>4</strong></div><div><span>Cobertura</span><strong>12 d</strong></div></div>
+        <div id="demandRows" class="demand-rows"></div>
+      </article>
+
+      <article class="panel impact-panel" id="impact">
+        <div class="panel-head"><div><span class="eyebrow">IMPACTO + TRAZABILIDAD</span><h2>Evidencia acumulada</h2></div><span>Fuente canónica</span></div>
+        <div class="impact-grid"><div><strong>22.4 t</strong><span>material valorizado</span></div><div><strong>18</strong><span>passports en ensamblaje</span></div><div><strong>94%</strong><span>evidencia completa</span></div></div>
+      </article>
+
+      <article class="panel activity-panel">
+        <div class="panel-head"><div><span class="eyebrow">TRAZABILIDAD</span><h2>Actividad reciente</h2></div><span>Solo lectura</span></div>
+        <ol><li><time>18:31</time><span>Medición humedad normalizada · Yarumal N3</span></li><li><time>18:16</time><span>Actividad de nutrición registrada · Támesis S2</span></li><li><time>17:42</time><span>Capital desplegado con evidencia · Café Circular</span></li><li><time>17:18</time><span>Passport actualizado · Lote WG-04</span></li></ol>
+      </article>
+    </section>
+  </main>
+
+  <nav class="mobile-nav" aria-label="Navegación móvil"><a href="#today">Control</a><a href="#projects">Proyectos</a><a href="#agronomy">Agronomía</a><a href="#supply">Supply</a></nav>
+
+  <dialog id="exceptionDialog" aria-labelledby="exceptionDialogTitle"><form method="dialog"><button class="close" aria-label="Cerrar">×</button></form><span class="eyebrow">EXCEPCIÓN DETERMINÍSTICA</span><h2 id="exceptionDialogTitle"></h2><p id="exceptionReason"></p><div id="exceptionEvidence" class="evidence-box"></div><p class="boundary">La revisión local no cierra la excepción ni muta estado canónico.</p><button id="localReviewButton" type="button">Registrar revisión local</button><div id="localReviewResult" aria-live="polite"></div></dialog>
+
+  <dialog id="copilotDialog" aria-labelledby="copilotTitle"><form method="dialog"><button class="close" aria-label="Cerrar">×</button></form><span class="eyebrow">AGRÓNOMO VIRTUAL · EVIDENCIA CONTROLADA</span><h2 id="copilotTitle">Explicar la prioridad, no ejecutar</h2><p>El Copilot consume evidencia canónica y puede producir únicamente una sugerencia para revisión humana.</p><button id="draftButton" type="button">Generar borrador explicativo</button><section id="draftSuggestion" hidden><span class="draft-state">DRAFT_SUGGESTION</span><h3>Priorizar verificación hídrica en Yarumal N3</h3><p>La humedad se mantiene fuera del rango objetivo y existe una alerta determinística abierta. Verificar sensor y condición de campo antes de ajustar el plan.</p><ul><li>canonical_fact: soil_moisture_n3</li><li>alert: AGRONOMY_CRITICAL_N3</li><li>field_evidence: visit_20260811</li></ul><p class="boundary">Requiere aprobación humana. No puede cerrar la alerta, ejecutar riego, comprar insumos ni modificar el plan.</p></section></dialog>
+
+  <script src="/app.js"></script>
+</body>
+</html>

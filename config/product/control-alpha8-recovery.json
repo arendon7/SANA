@@ -1,0 +1,36 @@
+{
+  "product": "GREENATICS CONTROL",
+  "version": "0.22.0-alpha8",
+  "scope": "RECOVERED_HOME_AND_PROJECT_REINTEGRATION",
+  "source": {
+    "pullRequest": 9,
+    "commit": "3d58de6cbbac3946fab1fc255a28d08d61166b59",
+    "trust": "RECOVERED_EXACT_PR9_BLOBS",
+    "exactBlobCopiesMaterialized": true,
+    "investmentProjectTypeScriptModelHistoricalExactRecovered": false
+  },
+  "integration": {
+    "trust": "DEMO_RECONSTRUCTED",
+    "adaptedRuntime": true,
+    "homeRoute": "/control",
+    "projectRoute": "/control/projects/inv-yar-001",
+    "decisionFlowRoute": "/control/exceptions",
+    "currentServiceWorker": "/service-worker.js",
+    "historicalProjectServiceWorker": {
+      "path": "apps/control-web/recovered/pr9-3d58/alpha2/service-worker-project.js",
+      "usage": "PROVENANCE_ONLY",
+      "registeredByIntegratedRuntime": false
+    },
+    "approvalAuthority": "HUMAN_ONLY",
+    "aiAuthority": "ADVISORY_ONLY",
+    "executionState": "NOT_EXECUTED",
+    "canonicalMutated": false,
+    "financialMutationAvailable": false,
+    "localOnly": true
+  },
+  "domainDelta": {
+    "canonicalDomainEventsAdded": 0,
+    "workspacesAdded": 0
+  },
+  "d10HumanProductApproval": "PENDING"
+}

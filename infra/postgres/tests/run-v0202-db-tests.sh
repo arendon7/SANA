@@ -17,4 +17,4 @@ psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$TEST/v0202_domain_integrity_runtime
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$TEST/v021_access_portability_runtime.sql"
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$TEST/v0210_sync_ingress_ack_runtime.sql"
 
-echo "AGROWAY PostgreSQL/PostGIS cumulative integration tests 0001-0024: PASS"
+echo "AGROWAY PostgreSQL/PostGIS cumulative integration tests 0001-0025b: PASS"

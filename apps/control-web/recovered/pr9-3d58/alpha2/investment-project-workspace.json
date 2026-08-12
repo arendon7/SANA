@@ -1,0 +1,13 @@
+{
+  "surface": "GREENATICS CONTROL",
+  "screen": "INVESTMENT_PROJECT_WORKSPACE",
+  "version": "0.22.0-alpha2",
+  "status": "READY_FOR_PRODUCT_APPROVAL",
+  "trust": "DEMO_RECONSTRUCTED",
+  "route": "/control/projects/:projectId",
+  "designDirection": "capital-to-territory-workbench",
+  "financialMutationAvailable": false,
+  "copilotState": "DRAFT_SUGGESTION",
+  "requiresHumanApproval": true,
+  "d10HumanProductApproval": "PENDING"
+}
