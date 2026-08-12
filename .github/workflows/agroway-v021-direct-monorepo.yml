@@ -11,6 +11,8 @@ on:
       - "packages/**"
       - "services/**"
       - "scripts/verify-workspace-persistence.mjs"
+      - "scripts/validate-capital-readiness-int1.mjs"
+      - "scripts/validate-capital-readiness-int1-hardening.mjs"
       - ".github/workflows/agroway-v021-direct-monorepo.yml"
 concurrency:
   group: agroway-v021-direct-${{ github.event.pull_request.number || github.ref }}
@@ -58,6 +60,12 @@ jobs:
 
       - name: Offline workspace installation from canonical root lockfile
         run: npm ci --ignore-scripts --offline
+
+      - name: Validate CAPITAL_READINESS INT1.1 deterministic runtime
+        run: node scripts/validate-capital-readiness-int1.mjs
+
+      - name: Validate CAPITAL_READINESS INT1.1 hardening
+        run: node scripts/validate-capital-readiness-int1-hardening.mjs
 
       - name: Direct root TypeScript strict
         run: npm run typecheck
