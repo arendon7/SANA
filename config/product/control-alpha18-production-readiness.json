@@ -1,0 +1,81 @@
+{
+  "product": "GREENATICS CONTROL",
+  "version": "0.22.0-alpha18",
+  "capability": "PRODUCTION_READINESS_ORCHESTRATOR",
+  "status": "PASS_REVIEW_PENDING_REAL_BINDINGS_D10_AND_EXPLICIT_ACTIVATION",
+  "orchestrationBoundary": {
+    "owner": "services/pilot-certifier",
+    "deterministic": true,
+    "aiAuthority": "ADVISORY_ONLY",
+    "serverSideOnly": true,
+    "browserInvocationAllowed": false,
+    "writePortsAvailableToOrchestrator": false,
+    "transportCreationAvailableToOrchestrator": false,
+    "productionSessionCreationAvailableToOrchestrator": false
+  },
+  "prerequisites": [
+    {"id":"IDENTITY_PROVIDER_CONNECTIVITY","probe":"JWKS_CONNECTED_READ_ONLY_PROBE","readOnly":true,"realProductionTokenRequiredForProbe":false},
+    {"id":"POSTGRES_CONNECTIVITY","probe":"CONNECTED_READ_ONLY_PROBE","readOnly":true,"canonicalWriteAllowed":false},
+    {"id":"EXTERNAL_ACK_PROVIDER_CONNECTIVITY","probe":"EXTERNAL_ACK_PROVIDER_METADATA_CONNECTED_READ_ONLY_PROBE","readOnly":true,"realAckProduced":false},
+    {"id":"D10_HUMAN_PRODUCT_APPROVAL","protocol":"AGROWAY_CONTROL_D10_PRODUCT_APPROVAL_V1","humanOnly":true,"releaseCandidateDigestBound":true}
+  ],
+  "d10Evidence": {
+    "decisionRequired": "APPROVED",
+    "actorTypeRequired": "HUMAN",
+    "approverIdRequired": true,
+    "approvalRecordIdRequired": true,
+    "approvalNoteRequired": true,
+    "approvedAtRequired": true,
+    "exactVersionBinding": true,
+    "exactGitHeadShaBinding": true,
+    "exactReviewBundleSha256Binding": true,
+    "canonicalApprovalDigestSha256Required": true,
+    "aiApprovalForbidden": true
+  },
+  "states": {
+    "preflightFailure": "BLOCKED_PRODUCTION_PREREQUISITES",
+    "preflightsPassD10Missing": "READY_FOR_D10_HUMAN_REVIEW",
+    "invalidD10": "BLOCKED_INVALID_D10_EVIDENCE",
+    "allPrerequisitesSatisfied": "READY_FOR_EXPLICIT_ACTIVATION_REVIEW"
+  },
+  "activationBoundary": {
+    "productionExecutionEnabledByOrchestrator": false,
+    "canonicalWritePermittedByOrchestrator": false,
+    "browserActivationAllowed": false,
+    "automaticActivationForbidden": true,
+    "explicitActivationImplementationPresent": false,
+    "readyForActivationReviewDoesNotMeanProductionReady": true
+  },
+  "authority": {
+    "approval": "HUMAN_ONLY",
+    "ai": "ADVISORY_ONLY",
+    "readinessOrchestratorImplemented": true,
+    "d10EvidenceContractImplemented": true,
+    "productionActivationImplemented": false,
+    "productionExecutionAvailable": false,
+    "browserWriteAllowed": false,
+    "executionState": "NOT_EXECUTED",
+    "canonicalMutated": false
+  },
+  "reproducibility": {
+    "canonicalRootLockChanged": false,
+    "canonicalWorkspaceCount": 41,
+    "workspacesAdded": 0,
+    "externalNpmDependencyAdded": false,
+    "nodeStandardLibraryCryptoOnly": true
+  },
+  "evidence": [
+    "services/pilot-certifier/src/control-production-readiness.ts",
+    "scripts/validate-control-production-readiness.mjs",
+    "scripts/control-production-readiness-runtime.mjs",
+    "config/product/control-alpha18-production-readiness.json"
+  ],
+  "explicitGaps": [
+    "No real production identity provider binding/connectivity or real production ID Token verification is claimed.",
+    "No real production PostgreSQL secret binding/connectivity is claimed.",
+    "No real production External ACK provider binding/connectivity or real ACK is claimed.",
+    "D10 human product approval remains pending for the actual release candidate.",
+    "No production activation mechanism is implemented in alpha18.",
+    "No production execution or canonical mutation is enabled by readiness assessment."
+  ]
+}

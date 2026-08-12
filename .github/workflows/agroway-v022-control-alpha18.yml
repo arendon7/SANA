@@ -1,0 +1,111 @@
+name: AGROWAY CONTROL v0.22 alpha18
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "services/pilot-certifier/**"
+      - "config/product/control-alpha18-production-readiness.json"
+      - "config/product/control-operational-acceptance.json"
+      - "config/product/control-review-bundle.json"
+      - "apps/control-web/server.mjs"
+      - "scripts/validate-control-production-readiness.mjs"
+      - "scripts/control-production-readiness-runtime.mjs"
+      - "scripts/validate-control-operational-acceptance.mjs"
+      - "scripts/build-control-review-bundle.mjs"
+      - ".github/workflows/agroway-v022-control-alpha18.yml"
+concurrency:
+  group: agroway-control-v022-alpha18-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  production-readiness-orchestrator:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Syntax-check alpha18
+        run: |
+          node --check apps/control-web/server.mjs
+          node --check scripts/validate-control-production-readiness.mjs
+          node --check scripts/control-production-readiness-runtime.mjs
+          node --check scripts/validate-control-operational-acceptance.mjs
+          node --check scripts/build-control-review-bundle.mjs
+      - name: Direct-root persistence topology and lock parity
+        run: node scripts/validate-direct-root-persistence.mjs
+      - name: Offline canonical workspace install
+        run: npm ci --ignore-scripts --offline
+      - name: Verify persisted Postgres.js vendor
+        run: node scripts/materialize-postgres-js-v349.mjs --verify
+      - name: Pinned TypeScript strict
+        run: npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit
+      - name: Alpha3-alpha17 static regression gates
+        run: |
+          node scripts/validate-control-exception-resolution.mjs
+          node scripts/validate-control-evidence-ledger.mjs
+          node scripts/validate-control-human-approval.mjs
+          node scripts/validate-control-submission-handoff.mjs
+          node scripts/validate-control-unified-flow.mjs
+          node scripts/validate-control-reintegration.mjs
+          node scripts/validate-control-production-authorization.mjs
+          node scripts/validate-control-canonical-write.mjs
+          node scripts/validate-control-oidc-session.mjs
+          node scripts/validate-control-postgres-write.mjs
+          node scripts/validate-control-postgres-production-wiring.mjs
+          node scripts/validate-control-postgres-js-driver.mjs
+          node scripts/validate-control-external-ack.mjs
+          node scripts/validate-control-oidc-production-wiring.mjs
+          node scripts/validate-control-external-ack-production-wiring.mjs
+      - name: Alpha18 production readiness static guardrail
+        run: node scripts/validate-control-production-readiness.mjs
+      - name: Full CONTROL operational truth gate
+        run: node scripts/validate-control-operational-acceptance.mjs
+      - name: Compile services for runtime
+        run: |
+          rm -rf .tmp/control-alpha18
+          npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit false --outDir .tmp/control-alpha18
+          mkdir -p .tmp/control-alpha18/vendor
+          cp -R vendor/postgres-js-3.4.9 .tmp/control-alpha18/vendor/
+      - name: Existing production-boundary regression runtimes
+        run: |
+          node scripts/control-production-authorization-runtime.mjs .tmp/control-alpha18/services/identity-access/src/index.js
+          node scripts/control-canonical-write-runtime.mjs .tmp/control-alpha18/services/investment-portfolio/src/index.js
+          node scripts/control-oidc-session-runtime.mjs .tmp/control-alpha18/services/identity-access/src/index.js
+          node scripts/control-postgres-write-runtime.mjs .tmp/control-alpha18/services/investment-portfolio/src/index.js
+          node scripts/control-postgres-production-wiring-runtime.mjs .tmp/control-alpha18/services/investment-portfolio/src/index.js
+          node scripts/control-postgres-js-driver-runtime.mjs .tmp/control-alpha18/services/investment-portfolio/src/index.js
+          node scripts/control-external-ack-runtime.mjs .tmp/control-alpha18/services/external-data-gateway/src/index.js
+          node scripts/control-external-ack-postgres-store-runtime.mjs .tmp/control-alpha18/services/external-data-gateway/src/index.js
+          node scripts/control-oidc-production-wiring-runtime.mjs .tmp/control-alpha18/services/identity-access/src/index.js
+          node scripts/control-external-ack-production-wiring-runtime.mjs .tmp/control-alpha18/services/external-data-gateway/src/index.js
+      - name: Production readiness adversarial runtime matrix
+        run: node scripts/control-production-readiness-runtime.mjs .tmp/control-alpha18/services/pilot-certifier/src/control-production-readiness.js
+      - name: Build deterministic alpha18 CONTROL review bundle
+        run: node scripts/build-control-review-bundle.mjs
+      - name: Smoke alpha18 bundle truth and browser readiness lock
+        run: |
+          PORT=4288 node dist/control-review-bundle/server.mjs > /tmp/control-alpha18-bundle.log 2>&1 &
+          PID=$!
+          trap 'kill $PID 2>/dev/null || true' EXIT
+          for i in {1..40}; do curl -fsS http://127.0.0.1:4288/control >/dev/null && break || sleep .25; done
+          for route in /control /control/projects/inv-yar-001 /control/identity-adapter /control/authorization /control/write-adapter /control/exceptions /control/evidence /control/approvals /control/handoff; do curl -fsS "http://127.0.0.1:4288$route" >/dev/null; done
+          code=$(curl -sS -o /tmp/alpha18-readiness-forbidden.json -w '%{http_code}' http://127.0.0.1:4288/api/control/production-readiness)
+          test "$code" = "404"
+          node -e "const x=require('/tmp/alpha18-readiness-forbidden.json');if(x.error!=='PRODUCTION_READINESS_BROWSER_ENDPOINT_FORBIDDEN'||x.readinessOrchestratorImplemented!==true||x.d10HumanProductApproval!=='PENDING'||x.browserCanInvokeReadinessPreflights!==false||x.browserActivationAllowed!==false||x.productionActivationImplemented!==false||x.productionExecutionAvailable!==false||x.executionState!=='NOT_EXECUTED'||x.canonicalMutated!==false)process.exit(1);console.log('PASS_CONTROL_ALPHA18_BROWSER_READINESS_FORBIDDEN')"
+          node -e "const m=require('./dist/control-review-bundle/REVIEW_MANIFEST.json');const a=require('./dist/control-review-bundle/config/product/control-operational-acceptance.json');const c=a.capabilities.find(x=>x.id==='PRODUCTION_READINESS_ORCHESTRATOR');const expected=['PRODUCTION_IDENTITY_PROVIDER_REAL_BINDING_AND_CONNECTIVITY_PENDING','PRODUCTION_POSTGRES_REAL_SECRET_BINDING_AND_CONNECTIVITY_PENDING','EXTERNAL_ACK_PROVIDER_REAL_BINDING_AND_CONNECTIVITY_PENDING','D10_HUMAN_PRODUCT_APPROVAL_PENDING'];if(m.version!=='0.22.0-alpha18'||m.routes.length!==9||m.authority.readinessOrchestratorImplemented!==true||m.authority.d10EvidenceContractImplemented!==true||m.authority.productionActivationImplemented!==false||m.authority.productionExecutionAvailable!==false||m.authority.executionState!=='NOT_EXECUTED'||m.authority.canonicalMutated!==false||a.productionReady!==false||a.d10!=='PENDING'||c?.status!=='PASS_REVIEW'||a.productionBlockers.length!==4||expected.some(x=>!a.productionBlockers.includes(x)))process.exit(1);console.log('PASS_CONTROL_ALPHA18_BUNDLE',m.fileCount,m.aggregateSha256,a.productionBlockers.length)"
+      - name: Trust boundary
+        run: |
+          echo 'PASS_CONTROL_ALPHA18_PRODUCTION_READINESS_ORCHESTRATOR'
+          echo 'Readiness orchestration is review-certified only. Real IdP, PostgreSQL and External ACK bindings/connectivity plus D10 remain pending; no production activation or execution is implemented.'
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: agroway-control-v022-alpha18-review-bundle
+          path: |
+            dist/control-review-bundle
+            config/product/control-alpha18-production-readiness.json
+          if-no-files-found: error
+          retention-days: 14
