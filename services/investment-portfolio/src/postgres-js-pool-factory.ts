@@ -66,11 +66,30 @@ class PostgresJsClientBridge implements PostgresClientLike {
 }
 
 class PostgresJsPoolBridge implements PostgresPoolLike {
-  constructor(readonly sql:PostgresJsSql){}
+  private destroyed=false;
+  constructor(readonly sql:PostgresJsSql,private readonly connectTimeoutMs:number){}
   async connect():Promise<PostgresClientLike>{
-    return new PostgresJsClientBridge(await this.sql.reserve());
+    if(this.destroyed) throw new Error('POSTGRES_JS_POOL_DESTROYED');
+    let timer:ReturnType<typeof setTimeout>|undefined;
+    try{
+      const reserved=await Promise.race([
+        this.sql.reserve(),
+        new Promise<never>((_,reject)=>{timer=setTimeout(()=>reject(new Error('POSTGRES_JS_CONNECT_TIMEOUT')),this.connectTimeoutMs+250)})
+      ]);
+      return new PostgresJsClientBridge(reserved);
+    }catch(error){
+      this.destroyed=true;
+      await this.sql.end({timeout:0}).catch(()=>undefined);
+      throw error;
+    }finally{
+      if(timer!==undefined) clearTimeout(timer);
+    }
   }
-  async close():Promise<void>{await this.sql.end({timeout:5});}
+  async close():Promise<void>{
+    if(this.destroyed) return;
+    this.destroyed=true;
+    await this.sql.end({timeout:5});
+  }
 }
 
 export function postgresJsOptionsFromProductionConfig(config:ProductionPostgresConfig):PostgresJsOptions {
@@ -96,7 +115,7 @@ export async function createPinnedPostgresJsPoolFactory(loader:PostgresJsModuleL
   return Object.freeze({
     driver:Object.freeze({name:'postgres.js' as const,version:PINNED_POSTGRES_JS_VERSION,commit:PINNED_POSTGRES_JS_COMMIT,license:PINNED_POSTGRES_JS_LICENSE,dependencyCount:0 as const}),
     create(config:ProductionPostgresConfig):PostgresPoolLike{
-      const pool=new PostgresJsPoolBridge(module.default(postgresJsOptionsFromProductionConfig(config)));
+      const pool=new PostgresJsPoolBridge(module.default(postgresJsOptionsFromProductionConfig(config)),config.connectionTimeoutMs);
       pools.add(pool);
       return pool;
     },
