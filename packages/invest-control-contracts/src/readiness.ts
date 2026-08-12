@@ -238,6 +238,10 @@ export interface CapitalReadinessPackage {
   projectId:UUID;
   assessmentId:string;
   assessmentVersion:number;
+  assessmentDigestSha256:string;
+  policyVersion:string;
+  methodologyVersion:string;
+  projectSnapshotRef:string;
   generatedAt:ISODateTime;
   decision:ReadinessDecision;
   projectState:ProjectState;
