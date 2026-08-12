@@ -46,7 +46,7 @@
     "services/pilot-replay-auditor"
   ],
   "scripts": {
-    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit",
     "test:compat": "node scripts/run-spec-compat.mjs",
     "lint:postgres": "node scripts/lint-postgres-structural.mjs",
     "validate:root-script-targets": "node scripts/validate-root-script-targets.mjs",
