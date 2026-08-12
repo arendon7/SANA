@@ -124,7 +124,6 @@ export function transitionCapitalPilotIntake(intake:CapitalPilotIntake,target:Ca
   if(target==='PAUSED'){
     if(intake.state==='PAUSED')return intake;
     if(!INTAKE_TRANSITIONS[intake.state].includes('PAUSED'))throw new Error(`INVALID_INTAKE_TRANSITION:${intake.state}:PAUSED`);
-    if(intake.state==='WITHDRAWN')throw new Error('WITHDRAWN_INTAKE_IS_TERMINAL');
     return Object.freeze({...intake,state:'PAUSED',pausedFromState:intake.state as Exclude<CapitalPilotIntakeState,'PAUSED'|'WITHDRAWN'>,updatedAt:at});
   }
   if(intake.state==='PAUSED'){
