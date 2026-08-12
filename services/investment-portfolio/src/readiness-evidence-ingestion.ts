@@ -4,6 +4,7 @@ import type {
   ReadinessEvidenceObjectStorePort,
   ReadinessEvidenceReceipt,
   ReadinessGap,
+  ValidatedEvidenceObject,
 } from '@agroway/invest-control-contracts';
 import type {CapitalReadinessSqlExecutor} from './readiness-persistence.js';
 import {
@@ -117,6 +118,11 @@ export class ReadinessEvidenceIngestionService {
     this.ingestionPolicy=policy(ingestionPolicy);
   }
 
+  private async cleanupUnreferenced(stored:ValidatedEvidenceObject|undefined,digestSha256:string):Promise<void>{
+    if(!stored?.objectRef?.trim())return;
+    try{await this.objectStore.deleteIfUnreferenced({objectRef:stored.objectRef,digestSha256});}catch{/* preserve the primary ingestion/persistence error */}
+  }
+
   async ingestAndSubmit(input:IngestReadinessGapEvidenceInput):Promise<ReadinessEvidenceIngestionResult>{
     input.authority.require(READINESS_EVIDENCE_SUBMIT_PERMISSION);
     if(input.authority.tenantId!==input.gap.tenantId)throw new Error('READINESS_INGEST_AUTHORITY_TENANT_MISMATCH');
@@ -145,15 +151,21 @@ export class ReadinessEvidenceIngestionService {
     const scannerRef=nonBlank(scan.scannerRef,'READINESS_INGEST_SCANNER_REF_REQUIRED');
     if(scan.state!=='CLEAN')throw new Error(`READINESS_INGEST_SCAN_NOT_CLEAN:${scan.state}`);
 
-    const stored=await this.objectStore.putImmutable(Object.freeze({
-      tenantId:input.gap.tenantId,
-      receiptId,
-      contentType,
-      expectedDigestSha256:digestSha256,
-      expectedByteLength:byteLength,
-      content:oneChunk(bytes),
-    }));
-    sameStoredObject({digestSha256,contentType,byteLength},stored);
+    let stored:ValidatedEvidenceObject|undefined;
+    try{
+      stored=await this.objectStore.putImmutable(Object.freeze({
+        tenantId:input.gap.tenantId,
+        receiptId,
+        contentType,
+        expectedDigestSha256:digestSha256,
+        expectedByteLength:byteLength,
+        content:oneChunk(bytes),
+      }));
+      sameStoredObject({digestSha256,contentType,byteLength},stored);
+    }catch(error){
+      await this.cleanupUnreferenced(stored,digestSha256);
+      throw error;
+    }
 
     const receipt:ReadinessEvidenceReceipt=Object.freeze({
       receiptId,
@@ -179,10 +191,13 @@ export class ReadinessEvidenceIngestionService {
     try{
       persisted=await registerAuthorizedReadinessEvidenceReceipt(this.executor,input.authority,receipt);
     }catch(error){
-      try{await this.objectStore.deleteIfUnreferenced({objectRef:stored.objectRef,digestSha256});}catch{/* preserve the canonical persistence error */}
+      await this.cleanupUnreferenced(stored,digestSha256);
       throw error;
     }
 
+    // If submission fails, the canonical receipt remains intentionally durable.
+    // A retry with the same idempotency key reuses the deterministic object and
+    // receipt; referenced evidence is never deleted after canonical persistence.
     await submitAuthorizedReadinessGapEvidence(this.executor,input.authority,input.gap,Object.freeze({
       tenantId:input.gap.tenantId,
       projectId:input.gap.projectId,
