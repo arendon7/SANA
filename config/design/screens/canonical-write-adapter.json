@@ -8,6 +8,8 @@
   "authorizationInput": "AUTHORIZED_FOR_ADAPTER",
   "command": "DECLARE_CAPITAL_REQUIREMENT",
   "event": "CapitalRequirementDeclared",
+  "authorizationContextBindsExactCommand": true,
+  "canonicalCommandFrame": ["DECLARE_CAPITAL_REQUIREMENT", "tenantId", "projectId", "amountMinor", "currency", "at"],
   "transaction": ["LOAD_FOR_UPDATE", "DOMAIN_RULE", "SAVE_PROJECT", "APPEND_OUTBOX", "SAVE_IDEMPOTENCY_RECEIPT"],
   "idempotencyRequired": true,
   "rollbackOnFailure": true,
