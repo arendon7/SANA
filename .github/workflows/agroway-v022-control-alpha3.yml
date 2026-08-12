@@ -26,10 +26,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-      - name: Offline workspace install
-        run: npm ci --ignore-scripts --offline
-      - name: TypeScript strict
-        run: npm run typecheck
+      - name: Pinned TypeScript strict without mutating root lockfile
+        run: npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit
       - name: Alpha3 static authority guardrails
         run: node scripts/validate-control-exception-resolution.mjs
       - name: Existing reconstructed spec compatibility
