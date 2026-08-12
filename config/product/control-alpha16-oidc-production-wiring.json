@@ -1,0 +1,75 @@
+{
+  "product": "GREENATICS CONTROL",
+  "version": "0.22.0-alpha16",
+  "capability": "PRODUCTION_IDENTITY_PROVIDER_CONFIGURATION_AND_JWKS_WIRING",
+  "status": "PASS_REVIEW_PENDING_REAL_PROVIDER_BINDING_AND_CONNECTIVITY",
+  "configuration": {
+    "source": "EXTERNAL_ENVIRONMENT_ONLY",
+    "issuerHttpsRequired": true,
+    "jwksHttpsRequired": true,
+    "loopbackForbidden": true,
+    "urlCredentialsForbidden": true,
+    "allowedAlgorithms": ["RS256", "ES256"],
+    "tenantClaimValidated": true,
+    "sessionClaimValidated": true,
+    "acrAssuranceMappingValidated": true,
+    "mfaAmrMappingValidated": true,
+    "boundedClockSkew": true,
+    "boundedTokenAge": true,
+    "secretsStoredInRepository": false
+  },
+  "jwks": {
+    "httpsGetOnly": true,
+    "redirectsForbidden": true,
+    "credentialsOmitted": true,
+    "cacheNoStoreAtHttpLayer": true,
+    "boundedTimeout": true,
+    "boundedResponseBytes": true,
+    "boundedKeyCount": true,
+    "duplicateKidRejected": true,
+    "missingKidRejected": true,
+    "applicationCacheTtl": true,
+    "missingKidForcesOneRefresh": true,
+    "concurrentFetchCoalesced": true
+  },
+  "wiring": {
+    "readOnlyJwksPreflightRequired": true,
+    "sessionVerificationBeforePreflightAllowed": false,
+    "verifiedSessionFeeds": "authorizeProductionOperation",
+    "authorizationCeiling": "AUTHORIZED_FOR_ADAPTER",
+    "browserTokenEndpointAllowed": false
+  },
+  "authority": {
+    "approval": "HUMAN_ONLY",
+    "ai": "ADVISORY_ONLY",
+    "productionIdentityProviderWiringImplemented": true,
+    "realIdentityProviderConfigured": false,
+    "realIdentityProviderConnectivityCertified": false,
+    "realProductionTokenVerified": false,
+    "browserAcceptsTokens": false,
+    "browserCreatesProductionSession": false,
+    "executionState": "NOT_EXECUTED",
+    "canonicalMutated": false,
+    "productionExecutionAvailable": false
+  },
+  "reproducibility": {
+    "canonicalRootLockChanged": false,
+    "canonicalWorkspaceCount": 41,
+    "externalNpmDependencyAdded": false,
+    "nodeAndWebStandardLibraryOnly": true
+  },
+  "evidence": [
+    "services/identity-access/src/oidc-production-wiring.ts",
+    "scripts/validate-control-oidc-production-wiring.mjs",
+    "scripts/control-oidc-production-wiring-runtime.mjs"
+  ],
+  "explicitGaps": [
+    "No real production issuer, audience or JWKS URI is committed to the repository.",
+    "No real IdP tenant/client configuration has been bound.",
+    "No real production JWKS connectivity has been certified.",
+    "No real production ID Token has been verified or claimed by alpha16.",
+    "Production PostgreSQL real secret binding/connectivity remains pending.",
+    "External ACK provider real configuration remains pending.",
+    "D10 human product approval remains pending."
+  ]
+}
