@@ -1,0 +1,28 @@
+{
+  "screenId":"CONTROL_SUBMISSION_HANDOFF",
+  "version":"0.22.0-alpha6",
+  "surface":"GREENATICS_CONTROL",
+  "route":"/control/handoff",
+  "trust":"DEMO_RECONSTRUCTED",
+  "purpose":"Package an already human-approved proposal for a future execution adapter without executing or mutating canonical state.",
+  "states":["PREPARED","EXPORTED","ACK_PENDING"],
+  "executionState":"NOT_EXECUTED",
+  "transport":"LOCAL_EXPORT_ONLY",
+  "guardrails":[
+    "source proposal must be APPROVED_FOR_SUBMISSION",
+    "all required approvals must be HUMAN and distinct",
+    "accepted evidence and bound evidenceContextHashSha256 are required",
+    "proposalDigestSha256 and approval digests are bound into the packet",
+    "packet has a deterministic idempotency key",
+    "packet has SHA-256 digest",
+    "PREPARED can become EXPORTED only through local JSON export",
+    "ACK_PENDING never claims an external ACK",
+    "no execution endpoint or execute control exists",
+    "executionState remains NOT_EXECUTED",
+    "canonicalMutated remains false",
+    "localOnly remains true"
+  ],
+  "domainEventDelta":0,
+  "workspaceDelta":0,
+  "d10HumanProductApproval":"PENDING"
+}
