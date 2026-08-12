@@ -352,8 +352,9 @@ export class PostgresExternalAckReceiptStore implements ExternalAckReceiptStore 
       await client.query('BEGIN');begun=true;
       await client.query("SELECT set_config('app.tenant_id',$1,true)",[tenantId]);
       const result=await client.query<ExternalAckReceiptRow>(`${RECEIPT_SELECT} WHERE tenant_id=$1::uuid AND packet_id=$2 LIMIT 1`,[tenantId,packetId]);
+      const hydrated=result.rows[0]===undefined?undefined:hydrateReceipt(result.rows[0]);
       await client.query('COMMIT');begun=false;
-      return result.rows[0]===undefined?undefined:hydrateReceipt(result.rows[0]);
+      return hydrated;
     }catch(error){if(begun)await client.query('ROLLBACK').catch(()=>undefined);throw error;}finally{client.release();}
   }
   async putIfAbsent(receipt:VerifiedExternalAckReceipt):Promise<{stored:true;receipt:VerifiedExternalAckReceipt}|{stored:false;existing:VerifiedExternalAckReceipt}>{
@@ -365,11 +366,12 @@ export class PostgresExternalAckReceiptStore implements ExternalAckReceiptStore 
       const inserted=await client.query<ExternalAckReceiptRow>(`INSERT INTO agroway_core.control_external_ack_receipt(receipt_id,tenant_id,packet_id,proposal_id,project_id,destination,provider_id,provider_key_id,request_id,idempotency_key,packet_digest_sha256,request_digest_sha256,ack_receipt_digest_sha256,outcome,external_reference,acknowledged_at,received_at,verification_state,execution_state,canonical_mutated) VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16::timestamptz,$17::timestamptz,'VERIFIED_EXTERNAL_ACK','NOT_EXECUTED',false) ON CONFLICT(tenant_id,packet_id) DO NOTHING RETURNING receipt_id,tenant_id::text AS tenant_id,packet_id,proposal_id,project_id,destination,provider_id,provider_key_id,request_id,idempotency_key,packet_digest_sha256,request_digest_sha256,ack_receipt_digest_sha256,outcome,external_reference,acknowledged_at::text AS acknowledged_at,received_at::text AS received_at,verification_state,execution_state,canonical_mutated`,[
         receipt.receiptId,receipt.tenantId,receipt.packetId,receipt.proposalId,receipt.projectId,receipt.destination,receipt.providerId,receipt.providerKeyId,receipt.requestId,receipt.idempotencyKey,receipt.packetDigestSha256,receipt.requestDigestSha256,receipt.ackReceiptDigestSha256,receipt.outcome,receipt.externalReference,receipt.acknowledgedAt,receipt.receivedAt
       ]);
-      if(inserted.rows[0]!==undefined){await client.query('COMMIT');begun=false;return {stored:true,receipt:hydrateReceipt(inserted.rows[0])};}
+      if(inserted.rows[0]!==undefined){const hydrated=hydrateReceipt(inserted.rows[0]);await client.query('COMMIT');begun=false;return {stored:true,receipt:hydrated};}
       const existing=await client.query<ExternalAckReceiptRow>(`${RECEIPT_SELECT} WHERE tenant_id=$1::uuid AND packet_id=$2 LIMIT 1`,[receipt.tenantId,receipt.packetId]);
       if(existing.rows[0]===undefined)throw new Error('EXTERNAL_ACK_RECEIPT_CONFLICT_WITHOUT_ROW');
+      const hydratedExisting=hydrateReceipt(existing.rows[0]);
       await client.query('COMMIT');begun=false;
-      return {stored:false,existing:hydrateReceipt(existing.rows[0])};
+      return {stored:false,existing:hydratedExisting};
     }catch(error){if(begun)await client.query('ROLLBACK').catch(()=>undefined);throw error;}finally{client.release();}
   }
 }
