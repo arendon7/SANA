@@ -48,7 +48,7 @@ jobs:
         run: |
           set -euo pipefail
           count=$(find infra/postgres/migrations -maxdepth 1 -type f -name '*.sql' | wc -l | tr -d ' ')
-          test "$count" = "37" || { echo "expected 37 physical migration files, found $count"; exit 1; }
+          test "$count" = "38" || { echo "expected 38 physical migration files, found $count"; exit 1; }
           test -f infra/postgres/migrations/0001_extensions.sql
           test -f infra/postgres/migrations/0016_knowledge_ai_copilot_reconstructed.sql
           test -f infra/postgres/migrations/0022_domain_integrity_hardening.sql
@@ -61,8 +61,9 @@ jobs:
           test -f infra/postgres/migrations/0028a_capital_readiness_transition_locking.sql
           test -f infra/postgres/migrations/0028b_capital_readiness_tenant_trigger_guard.sql
           test -f infra/postgres/migrations/0029_capital_readiness_evidence_receipt.sql
+          test -f infra/postgres/migrations/0030_capital_readiness_evidence_review.sql
           test ! -f infra/postgres/migrations/0025_capital_readiness_persistence.sql
-          echo "PASS_RECONSTRUCTED_MIGRATION_INVENTORY_37"
+          echo "PASS_RECONSTRUCTED_MIGRATION_INVENTORY_38"
 
       - name: Syntax-check local dev backend
         run: |
@@ -78,14 +79,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y postgresql-client
 
-      - name: Cumulative PostgreSQL/PostGIS runtime 0001-0029
+      - name: Cumulative PostgreSQL/PostGIS runtime 0001-0030
         shell: bash
         run: bash infra/postgres/tests/run-v0202-db-tests.sh
 
       - name: Runtime boundary
         run: |
-          echo 'PASS_RECONSTRUCTED_POSTGIS_CUMULATIVE_0001_0029'
-          echo 'This proves the reconstructed migration chain through alpha15 CONTROL plus UX2B-1A membership/readiness/evidence-receipt persistence and adversarial DB suites in CI; it does not prove production database configuration, real external ACK provider configuration, Capital browser upload/mutation, or real agricultural pilot certification.'
+          echo 'PASS_RECONSTRUCTED_POSTGIS_CUMULATIVE_0001_0030'
+          echo 'This proves the reconstructed migration chain through alpha15 CONTROL plus UX2B-2 membership/readiness/evidence receipt/human-review persistence and adversarial DB suites in CI; it does not prove production database configuration, real external ACK provider configuration, Capital browser upload/mutation, financing approval, or real agricultural pilot certification.'
 
   real-vitest:
     runs-on: ubuntu-latest

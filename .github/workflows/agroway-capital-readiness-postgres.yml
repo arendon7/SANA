@@ -1,4 +1,4 @@
-name: AGROWAY CAPITAL_READINESS PostgreSQL UX2B-1A
+name: AGROWAY CAPITAL_READINESS PostgreSQL UX2B-2
 on:
   workflow_dispatch:
   pull_request:
@@ -7,6 +7,7 @@ on:
       - "infra/postgres/tests/**"
       - "scripts/validate-capital-readiness-postgres.py"
       - "scripts/validate-capital-readiness-evidence-postgres.py"
+      - "scripts/validate-capital-readiness-evidence-review-postgres.py"
       - ".github/workflows/agroway-capital-readiness-postgres.yml"
 concurrency:
   group: agroway-capital-readiness-postgres-${{ github.event.pull_request.number || github.ref }}
@@ -16,7 +17,7 @@ permissions:
 jobs:
   capital-readiness-postgres:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     services:
       postgres:
         image: postgis/postgis:16-3.4
@@ -33,6 +34,7 @@ jobs:
           --health-retries 20
     env:
       DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/agroway
+      LEGACY_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/agroway_ux2b1a
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -52,7 +54,7 @@ jobs:
         run: |
           set -euo pipefail
           count=$(find infra/postgres/migrations -maxdepth 1 -type f -name '*.sql' | wc -l | tr -d ' ')
-          test "$count" = "37" || { echo "expected 37 physical migration files, found $count"; exit 1; }
+          test "$count" = "38" || { echo "expected 38 physical migration files, found $count"; exit 1; }
           test -f infra/postgres/migrations/0025_control_write_receipt.sql
           test -f infra/postgres/migrations/0026_control_external_ack_receipt.sql
           test -f infra/postgres/migrations/0027_identity_membership_permissions.sql
@@ -60,9 +62,10 @@ jobs:
           test -f infra/postgres/migrations/0028a_capital_readiness_transition_locking.sql
           test -f infra/postgres/migrations/0028b_capital_readiness_tenant_trigger_guard.sql
           test -f infra/postgres/migrations/0029_capital_readiness_evidence_receipt.sql
+          test -f infra/postgres/migrations/0030_capital_readiness_evidence_review.sql
           test ! -f infra/postgres/migrations/0025_capital_readiness_persistence.sql
 
-      - name: Apply complete AGROWAY migration chain through UX2B-1A
+      - name: Apply complete AGROWAY migration chain through UX2B-2
         shell: bash
         run: |
           set -euo pipefail
@@ -75,6 +78,7 @@ jobs:
           done
           psql "$DATABASE_URL" -X -v ON_ERROR_STOP=1 -Atc "SELECT extname FROM pg_extension WHERE extname='postgis';" | grep -Fx postgis
           psql "$DATABASE_URL" -X -v ON_ERROR_STOP=1 -Atc "SELECT to_regclass('agroway_invest.readiness_evidence_receipt') IS NOT NULL;" | grep -Fx t
+          psql "$DATABASE_URL" -X -v ON_ERROR_STOP=1 -Atc "SELECT to_regclass('agroway_invest.readiness_evidence_review') IS NOT NULL;" | grep -Fx t
 
       - name: Verify membership explicit-grant persistence
         shell: bash
@@ -82,24 +86,36 @@ jobs:
           set -euo pipefail
           psql "$DATABASE_URL" -X -v ON_ERROR_STOP=1 <<'SQL'
           INSERT INTO agroway_identity.membership(tenant_id,actor_id,roles,active)
-          VALUES ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','ux2b1a:no-implicit-grant',ARRAY['OWNER']::text[],true);
+          VALUES ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','ux2b2:no-implicit-grant',ARRAY['OWNER']::text[],true);
           DO $$
           DECLARE grants text[];
           BEGIN
             SELECT granted_permissions INTO grants
             FROM agroway_identity.membership
-            WHERE tenant_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' AND actor_id='ux2b1a:no-implicit-grant';
-            IF cardinality(grants) <> 0 THEN RAISE EXCEPTION 'UX2B1A_IMPLICIT_PERMISSION_GRANT_FORBIDDEN'; END IF;
+            WHERE tenant_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' AND actor_id='ux2b2:no-implicit-grant';
+            IF cardinality(grants) <> 0 THEN RAISE EXCEPTION 'UX2B2_IMPLICIT_PERMISSION_GRANT_FORBIDDEN'; END IF;
           END $$;
           SQL
 
-      - name: Run base CAPITAL_READINESS adversarial PostgreSQL harness
-        run: python scripts/validate-capital-readiness-postgres.py
+      - name: Run UX2B-2 human evidence-review PostgreSQL adversarial harness
+        run: python scripts/validate-capital-readiness-evidence-review-postgres.py
 
-      - name: Run UX2B-1A evidence receipt adversarial PostgreSQL harness
-        run: python scripts/validate-capital-readiness-evidence-postgres.py
+      - name: Preserve certified UX2B-1A PostgreSQL regression on historical schema boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          admin_url='postgresql://postgres:postgres@127.0.0.1:5432/postgres'
+          psql "$admin_url" -X -v ON_ERROR_STOP=1 -c 'CREATE DATABASE agroway_ux2b1a'
+          while IFS= read -r migration; do
+            base=$(basename "$migration")
+            if [ "$base" = '0030_capital_readiness_evidence_review.sql' ]; then break; fi
+            echo "LEGACY APPLY ${migration}"
+            psql "$LEGACY_DATABASE_URL" -X -v ON_ERROR_STOP=1 -f "$migration"
+          done < <(find infra/postgres/migrations -maxdepth 1 -type f -name '*.sql' | sort)
+          DATABASE_URL="$LEGACY_DATABASE_URL" python scripts/validate-capital-readiness-postgres.py
+          DATABASE_URL="$LEGACY_DATABASE_URL" python scripts/validate-capital-readiness-evidence-postgres.py
 
       - name: Trust boundary
         run: |
-          echo 'PASS_CAPITAL_READINESS_POSTGRES_UX2B1A'
-          echo 'Persistence proves explicit membership grants, tenant-scoped readiness history and immutable validated evidence metadata. PostgreSQL stores no file bytes. Receipt/submission does not resolve a gap, approve financing, move money, create custody/wallet authority, grant AI decision authority, expose browser upload, or imply D10/Production Ready.'
+          echo 'PASS_CAPITAL_READINESS_POSTGRES_UX2B2'
+          echo 'Persistence proves explicit membership grants, tenant-scoped append-only human evidence review and resolution proof on top of immutable validated evidence metadata. A clean scan or upload does not equal human acceptance; accepted evidence does not auto-resolve a gap. PostgreSQL stores no file bytes, approves no financing, moves no money, creates no custody/wallet authority, grants no AI review authority, exposes no browser mutation, and implies no D10/Production Ready state.'
