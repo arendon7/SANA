@@ -1,0 +1,28 @@
+{
+  "screenId":"CONTROL_EVIDENCE_DECISION_LEDGER",
+  "version":"0.22.0-alpha4",
+  "surface":"GREENATICS_CONTROL",
+  "route":"/control/evidence",
+  "trust":"DEMO_RECONSTRUCTED",
+  "purpose":"Inspect provenance-bound evidence and append human review decisions to a SHA-256 chained local ledger.",
+  "primaryActor":"Greenatics director/operator/agronomist",
+  "evidenceProperties":["sourceKind","sourceRef","provenanceRef","sourceDigestSha256","freshness","canonicalAccepted","reviewState","linkedExceptionIds"],
+  "reviewStates":["UNREVIEWED","ACCEPTED_FOR_REVIEW","REJECTED","REFRESH_REQUIRED"],
+  "humanActions":["ACCEPT_FOR_REVIEW","REJECT","REQUEST_REFRESH","LINK_EXCEPTION","ADD_NOTE"],
+  "guardrails":[
+    "evidence must have provenanceRef and SHA-256 source digest",
+    "AI citations must resolve to existing non-rejected evidence",
+    "AI is DRAFT_SUGGESTION and ADVISORY_ONLY",
+    "AI cannot append decision ledger entries",
+    "all decision ledger actors are HUMAN",
+    "ledger entries require human notes and SHA-256 entry digests",
+    "ledger previousDigestSha256 must match the preceding entry digest",
+    "UNKNOWN freshness cannot be accepted for review",
+    "canonically rejected evidence cannot be accepted for review",
+    "alpha4 remains localOnly=true and canonicalMutated=false"
+  ],
+  "responsive":{"desktop":"catalog/detail + ledger","mobile":"stacked catalog/detail/ledger","minTouchTargetPx":44},
+  "domainEventDelta":0,
+  "workspaceDelta":0,
+  "d10HumanProductApproval":"PENDING"
+}
