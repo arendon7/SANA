@@ -84,6 +84,7 @@ export interface EvidenceGateDecision {
 export interface EvidenceManifestItem {
   evidenceRef:string;
   role:string;
+  confidenceBps:number;
   gateDecisions:readonly EvidenceGateDecision[];
 }
 
