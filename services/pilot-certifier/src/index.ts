@@ -15,8 +15,15 @@ export type Sha256HexAsync=(canonical:string)=>Promise<string>;
 const SHA256=/^[a-f0-9]{64}$/;
 function validIsoMs(value:string):number {const ms=Date.parse(value);if(!Number.isFinite(ms))throw new Error('INVALID_ISO_DATETIME');return ms;}
 function assertDigest(value:string):string {if(!SHA256.test(value))throw new Error('INVALID_SHA256_DIGEST');return value;}
+function nonBlank(value:string,code:string):string {const normalized=value.trim();if(!normalized)throw new Error(code);return normalized;}
 function canonical(value:unknown):string{return JSON.stringify(value);}
 function evidenceForStage(evidence:readonly PilotEvidence[],stage:PilotStage):readonly PilotEvidence[]{return evidence.filter(item=>item.stage===stage).sort((a,b)=>a.evidenceId.localeCompare(b.evidenceId));}
+function validEvidenceTime(observedAt:string,asOfMs:number):Readonly<{valid:true;observedAtMs:number}|{valid:false;reason:'INVALID_EVIDENCE_TIME'|'EVIDENCE_FROM_FUTURE'}>{
+  let observedAtMs:number;
+  try{observedAtMs=validIsoMs(observedAt);}catch{return Object.freeze({valid:false,reason:'INVALID_EVIDENCE_TIME'});}
+  if(observedAtMs>asOfMs) return Object.freeze({valid:false,reason:'EVIDENCE_FROM_FUTURE'});
+  return Object.freeze({valid:true,observedAtMs});
+}
 
 export function evaluateStage(policy:StageAcceptancePolicy,evidence:readonly PilotEvidence[],tenantId:string,pilotId:string,asOf:string):StageEvaluation {
   const asOfMs=validIsoMs(asOf); const accepted:string[]=[]; const rejected:string[]=[]; const reasons:string[]=[];
@@ -24,9 +31,11 @@ export function evaluateStage(policy:StageAcceptancePolicy,evidence:readonly Pil
   for(const item of evidenceForStage(evidence,policy.stage)){
     if(item.tenantId!==tenantId||item.pilotId!==pilotId){rejected.push(item.evidenceId);continue;}
     if(!SHA256.test(item.sourceDigestSha256)){rejected.push(item.evidenceId);reasons.push('INVALID_EVIDENCE_DIGEST');continue;}
+    const time=validEvidenceTime(item.observedAt,asOfMs);
+    if(!time.valid){rejected.push(item.evidenceId);reasons.push(time.reason);continue;}
     if(item.outcome==='FAIL'){rejected.push(item.evidenceId);reasons.push('EVIDENCE_FAILED');continue;}
     if(item.outcome!=='PASS'){rejected.push(item.evidenceId);continue;}
-    if(policy.maxAgeSeconds!==undefined&&asOfMs-validIsoMs(item.observedAt)>policy.maxAgeSeconds*1000){rejected.push(item.evidenceId);reasons.push('EVIDENCE_STALE');continue;}
+    if(policy.maxAgeSeconds!==undefined&&asOfMs-time.observedAtMs>policy.maxAgeSeconds*1000){rejected.push(item.evidenceId);reasons.push('EVIDENCE_STALE');continue;}
     accepted.push(item.evidenceId);seenKinds.add(item.kind);
   }
   for(const kind of policy.requiredKinds) if(!seenKinds.has(kind)) reasons.push(`REQUIRED_KIND_MISSING:${kind}`);
@@ -35,7 +44,7 @@ export function evaluateStage(policy:StageAcceptancePolicy,evidence:readonly Pil
 }
 
 export async function evaluatePilotCertification(enrollment:PilotEnrollment,policy:PilotAcceptancePolicy,evidence:readonly PilotEvidence[],evaluatedAt:string,sha256:Sha256HexAsync):Promise<PilotCertificationDecision>{
-  validIsoMs(evaluatedAt);
+  const evaluatedAtMs=validIsoMs(evaluatedAt);
   if(enrollment.policyVersion!==policy.version) throw new Error('PILOT_POLICY_VERSION_MISMATCH');
   if(!policy.requireAllStages||!policy.requireHumanCertification||!policy.requireTenantIsolation) throw new Error('UNSAFE_PILOT_POLICY');
   const configured=new Map(policy.requiredStages.map(stage=>[stage.stage,stage] as const));
@@ -46,7 +55,11 @@ export async function evaluatePilotCertification(enrollment:PilotEnrollment,poli
   const reasons:string[]=[...missingPolicyStages.map(stage=>`POLICY_STAGE_MISSING:${stage}`)];
   if(duplicatePolicyStageCount>0) reasons.push('POLICY_STAGE_DUPLICATED');
   if(evaluations.some(item=>item.status==='FAIL')) reasons.push('ONE_OR_MORE_STAGES_FAILED');
-  const tenantIsolationPass=evidence.some(item=>item.tenantId===enrollment.tenantId&&item.pilotId===enrollment.pilotId&&item.kind==='TENANT_ISOLATION'&&item.outcome==='PASS');
+  const tenantIsolationPass=evidence.some(item=>{
+    if(item.tenantId!==enrollment.tenantId||item.pilotId!==enrollment.pilotId||item.kind!=='TENANT_ISOLATION'||item.outcome!=='PASS') return false;
+    if(!SHA256.test(item.sourceDigestSha256)) return false;
+    return validEvidenceTime(item.observedAt,evaluatedAtMs).valid;
+  });
   if(!tenantIsolationPass) reasons.push('TENANT_ISOLATION_NOT_VERIFIED');
   const evidenceDigestSha256=assertDigest(await sha256(canonical(evidence.slice().sort((a,b)=>a.evidenceId.localeCompare(b.evidenceId)))));
   const decisionCore={pilotId:enrollment.pilotId,tenantId:enrollment.tenantId,policyVersion:policy.version,evaluatedAt,status:reasons.length===0?'ELIGIBLE_FOR_CERTIFICATION' as const:'REJECTED' as const,stageEvaluations:evaluations,reasonCodes:[...new Set(reasons)].sort(),evidenceDigestSha256};
@@ -60,7 +73,9 @@ export function issuePilotCertificate(enrollment:PilotEnrollment,decision:PilotC
   if(decision.status!=='ELIGIBLE_FOR_CERTIFICATION') throw new Error('PILOT_NOT_ELIGIBLE');
   if(decision.decisionDigestSha256!==command.decisionDigestSha256) throw new Error('DECISION_DIGEST_MISMATCH');
   if(command.humanAttestation!==true) throw new Error('HUMAN_ATTESTATION_REQUIRED');
-  validIsoMs(command.issuedAt); assertDigest(command.decisionDigestSha256);
+  const issuedAtMs=validIsoMs(command.issuedAt); const evaluatedAtMs=validIsoMs(decision.evaluatedAt);
+  if(issuedAtMs<evaluatedAtMs) throw new Error('CERTIFICATE_PREDATES_DECISION');
+  assertDigest(command.decisionDigestSha256); nonBlank(command.issuedByActorId,'ISSUING_ACTOR_REQUIRED');
   return Object.freeze({
     certificateId:`pilot-certificate:${command.pilotId}:${command.decisionDigestSha256.slice(0,16)}`,pilotId:command.pilotId,tenantId:command.tenantId,
     policyVersion:decision.policyVersion,decisionDigestSha256:command.decisionDigestSha256,issuedByActorId:command.issuedByActorId,issuedAt:command.issuedAt,humanAttestation:true,state:'ACTIVE',
