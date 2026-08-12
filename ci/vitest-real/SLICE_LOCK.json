@@ -4,7 +4,7 @@
   "archiveEncoding": "base64",
   "archiveDecodedSha256": "ab07db7f86535fc029ad2e9bc80a8007ac10e7b0dfef73c0c45e1087c13b5b60",
   "supplementalRootTsconfig": "ci/vitest-real/root-tsconfig.json",
-  "supplementalRootTsconfigSha256": "2f5de9532163bfd67f2b2af079f96fdbdff6f9465ff0c1440dabc7c7b09c2adb",
+  "supplementalRootTsconfigCanonicalJsonSha256": "dce31da9205b8cdd604349bff4945ad23b315735b8db522837a854140d808b90",
   "vitestVersion": "4.1.7",
   "typescriptVersion": "5.8.3",
   "packageManager": "pnpm@10.15.0 via Corepack",
