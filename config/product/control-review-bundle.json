@@ -1,27 +1,28 @@
 {
   "product": "GREENATICS CONTROL",
-  "version": "0.22.0-alpha9",
+  "version": "0.22.0-alpha10",
   "artifact": "CONTROL_REVIEW_BUNDLE",
   "trust": "DEMO_RECONSTRUCTED",
   "d10": "PENDING",
   "entryRoute": "/control",
-  "routes": ["/control","/control/projects/inv-yar-001","/control/authorization","/control/exceptions","/control/evidence","/control/approvals","/control/handoff"],
-  "authority": {"approval":"HUMAN_ONLY","ai":"ADVISORY_ONLY","authorizationOutputCeiling":"AUTHORIZED_FOR_ADAPTER","executionState":"NOT_EXECUTED","canonicalMutated":false,"localOnly":true},
+  "routes": ["/control","/control/projects/inv-yar-001","/control/authorization","/control/write-adapter","/control/exceptions","/control/evidence","/control/approvals","/control/handoff"],
+  "authority": {"approval":"HUMAN_ONLY","ai":"ADVISORY_ONLY","authorizationOutputCeiling":"AUTHORIZED_FOR_ADAPTER","executionState":"NOT_EXECUTED","canonicalMutated":false,"browserWriteAllowed":false,"productionExecutionAvailable":false,"localOnly":true},
   "domainDelta": {"canonicalDomainEventsAdded":0,"workspacesAdded":0},
   "runtimeFiles": [
     "apps/control-web/server.mjs",
     "apps/control-web/public/home-original.html","apps/control-web/public/home.js","apps/control-web/public/home.css","apps/control-web/public/home-integration.js",
     "apps/control-web/public/project-original.html","apps/control-web/public/project-original.js","apps/control-web/public/project.css","apps/control-web/public/project-integration.js",
     "apps/control-web/public/authorization.html","apps/control-web/public/authorization.css","apps/control-web/public/authorization.js",
+    "apps/control-web/public/write-adapter.html","apps/control-web/public/write-adapter.css","apps/control-web/public/write-adapter.js",
     "apps/control-web/public/index.html","apps/control-web/public/evidence.html","apps/control-web/public/approvals.html","apps/control-web/public/handoff.html",
     "apps/control-web/public/styles.css","apps/control-web/public/evidence.css","apps/control-web/public/approvals.css","apps/control-web/public/handoff.css","apps/control-web/public/control-shell.css",
     "apps/control-web/public/app.js","apps/control-web/public/evidence.js","apps/control-web/public/approvals.js","apps/control-web/public/handoff.js","apps/control-web/public/control-shell.js",
     "apps/control-web/public/service-worker.js","apps/control-web/public/manifest.webmanifest"
   ],
   "contractFiles": [
-    "apps/control-web/src/home-model.ts","apps/control-web/src/exception-resolution-model.ts","apps/control-web/src/evidence-decision-ledger-model.ts","apps/control-web/src/human-approval-queue-model.ts","apps/control-web/src/submission-handoff-model.ts","apps/control-web/src/unified-control-flow-model.ts","apps/control-web/src/production-authorization-boundary-model.ts",
-    "services/identity-access/src/index.ts",
-    "config/design/screens/control-tower-home.json","config/design/screens/investment-project-workspace.json","config/design/screens/exception-resolution-workspace.json","config/design/screens/evidence-decision-ledger.json","config/design/screens/human-approval-queue.json","config/design/screens/submission-handoff.json","config/design/screens/unified-control-flow.json","config/design/screens/production-authorization-boundary.json",
-    "config/product/control-alpha8-recovery.json","config/product/control-alpha9-production-authorization.json","config/product/control-operational-acceptance.json"
+    "apps/control-web/src/home-model.ts","apps/control-web/src/exception-resolution-model.ts","apps/control-web/src/evidence-decision-ledger-model.ts","apps/control-web/src/human-approval-queue-model.ts","apps/control-web/src/submission-handoff-model.ts","apps/control-web/src/unified-control-flow-model.ts","apps/control-web/src/production-authorization-boundary-model.ts","apps/control-web/src/canonical-write-adapter-model.ts",
+    "services/identity-access/src/index.ts","services/investment-portfolio/src/control-write-adapter.ts",
+    "config/design/screens/control-tower-home.json","config/design/screens/investment-project-workspace.json","config/design/screens/exception-resolution-workspace.json","config/design/screens/evidence-decision-ledger.json","config/design/screens/human-approval-queue.json","config/design/screens/submission-handoff.json","config/design/screens/unified-control-flow.json","config/design/screens/production-authorization-boundary.json","config/design/screens/canonical-write-adapter.json",
+    "config/product/control-alpha8-recovery.json","config/product/control-alpha9-production-authorization.json","config/product/control-alpha10-canonical-write.json","config/product/control-operational-acceptance.json"
   ]
 }

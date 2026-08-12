@@ -1,6 +1,6 @@
 {
   "product": "GREENATICS CONTROL",
-  "version": "0.22.0-alpha9",
+  "version": "0.22.0-alpha10",
   "scope": "FULL_CONTROL_PRODUCT_ACCEPTANCE",
   "trust": "DEMO_RECONSTRUCTED",
   "overallStatus": "REVIEW_READY_WITH_EXPLICIT_GAPS",
@@ -16,18 +16,19 @@
     {"id":"UNIFIED_CONTROL_FLOW","status":"PASS_REVIEW","evidence":["alpha7 static 47/47","native Chromium HTTP journey 68/68 PASS"]},
     {"id":"AI_AUTHORITY_BOUNDARY","status":"PASS_REVIEW","evidence":["AI remains DRAFT_SUGGESTION / ADVISORY_ONLY","no AI approval or execution path"]},
     {"id":"PWA_RESPONSIVE_REVIEW","status":"PASS_REVIEW","evidence":["single authoritative Service Worker","desktop + mobile responsive QA","zero overflow/browser errors"]},
-    {"id":"PRODUCTION_AUTHORIZATION_BOUNDARY","status":"PASS_REVIEW","reason":"alpha9 extends identity-access with deterministic production authorization checks. The maximum output is AUTHORIZED_FOR_ADAPTER; it cannot execute or mutate canonical state.","evidence":["identity-access authorizeProductionOperation","AAL2/MFA + IdP attestation","tenant/project/actor/permission exact scope","HUMAN_ONLY digest-bound approvals","negative runtime matrix"]},
-    {"id":"PRODUCTION_IDENTITY_SESSION_ADAPTER","status":"PENDING_PRODUCTION","reason":"No real production OIDC/SAML identity provider/session adapter is connected in alpha9. Review fixtures are not production credentials."},
-    {"id":"CANONICAL_WRITE_ADAPTER","status":"PENDING_PRODUCTION","reason":"CONTROL deliberately has no canonical execution/write adapter; authorization can stop at AUTHORIZED_FOR_ADAPTER and executionState remains NOT_EXECUTED."},
+    {"id":"PRODUCTION_AUTHORIZATION_BOUNDARY","status":"PASS_REVIEW","reason":"alpha9 extends identity-access with deterministic production authorization checks. The maximum authorization output is AUTHORIZED_FOR_ADAPTER.","evidence":["identity-access authorizeProductionOperation","AAL2/MFA + IdP attestation","tenant/project/actor/permission exact scope","HUMAN_ONLY digest-bound approvals","negative runtime matrix"]},
+    {"id":"PRODUCTION_IDENTITY_SESSION_ADAPTER","status":"PENDING_PRODUCTION","reason":"No real production OIDC/SAML identity provider/session adapter is connected. Review fixtures are not production credentials."},
+    {"id":"CANONICAL_WRITE_ADAPTER_BOUNDARY","status":"PASS_REVIEW","reason":"alpha10 applies DECLARE_CAPITAL_REQUIREMENT through the canonical investment domain rule inside a transactional UnitOfWork, with idempotent receipt, atomic outbox append and rollback on failure. Browser invocation is forbidden.","evidence":["services/investment-portfolio/src/control-write-adapter.ts","CapitalRequirementDeclared existing canonical event","reference transaction port runtime matrix","rollback on outbox/receipt failure"]},
+    {"id":"CANONICAL_POSTGRES_TRANSACTION_ADAPTER","status":"PENDING_PRODUCTION","reason":"The transactional adapter contract is validated, but no production PostgreSQL port is connected or runtime-verified against agroway_invest.project + agroway_core.outbox."},
     {"id":"EXTERNAL_ACK_ADAPTER","status":"PENDING_PRODUCTION","reason":"ACK_PENDING is explicit and no external ACK is claimed."},
-    {"id":"DIRECT_MONOREPO_ROOT_LOCK","status":"PASS_REPO_HARDENING","reason":"The directly persisted reconstructed 41-workspace graph is complete and reproducible under the canonical root lock. GitHub Actions run 31565161405 passed topology/lock/toolchain validation, 41-workspace inventory, npm ci --offline, and pinned TypeScript 5.8.3 strict.","evidence":["PASS_DIRECT_ROOT_PERSISTENCE 380/380","PASS_DIRECT_WORKSPACE_INVENTORY_41","npm ci --ignore-scripts --offline: 41 packages added / 83 audited / 0 vulnerabilities","PASS_DIRECT_RECONSTRUCTED_41_WORKSPACE_ROOT_NPM_CI_PINNED_TSC","GitHub Actions run 31565161405"]}
+    {"id":"DIRECT_MONOREPO_ROOT_LOCK","status":"PASS_REPO_HARDENING","reason":"The directly persisted reconstructed 41-workspace graph is complete and reproducible under the canonical root lock.","evidence":["PASS_DIRECT_ROOT_PERSISTENCE 380/380","PASS_DIRECT_WORKSPACE_INVENTORY_41","npm ci --ignore-scripts --offline: 41 packages added / 83 audited / 0 vulnerabilities","PASS_DIRECT_RECONSTRUCTED_41_WORKSPACE_ROOT_NPM_CI_PINNED_TSC","GitHub Actions run 31565343682"]}
   ],
   "productionBlockers": [
     "PRODUCTION_IDENTITY_SESSION_ADAPTER_ABSENT",
-    "CANONICAL_WRITE_ADAPTER_INTENTIONALLY_ABSENT",
+    "CANONICAL_POSTGRES_TRANSACTION_ADAPTER_ABSENT",
     "EXTERNAL_ACK_ADAPTER_ABSENT",
     "D10_HUMAN_PRODUCT_APPROVAL_PENDING"
   ],
-  "authority": {"approval":"HUMAN_ONLY","ai":"ADVISORY_ONLY","authorizationOutputCeiling":"AUTHORIZED_FOR_ADAPTER","executionState":"NOT_EXECUTED","canonicalMutated":false},
+  "authority": {"approval":"HUMAN_ONLY","ai":"ADVISORY_ONLY","authorizationOutputCeiling":"AUTHORIZED_FOR_ADAPTER","executionState":"NOT_EXECUTED","canonicalMutated":false,"browserWriteAllowed":false,"productionExecutionAvailable":false},
   "domainDelta": {"canonicalDomainEventsAdded":0,"workspacesAdded":0}
 }

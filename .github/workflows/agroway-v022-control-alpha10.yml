@@ -1,0 +1,106 @@
+name: AGROWAY CONTROL v0.22 alpha10
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "apps/control-web/**"
+      - "services/identity-access/**"
+      - "services/investment-portfolio/**"
+      - "packages/invest-control-contracts/**"
+      - "config/product/control-alpha10-canonical-write.json"
+      - "config/product/control-operational-acceptance.json"
+      - "config/product/control-review-bundle.json"
+      - "config/design/screens/canonical-write-adapter.json"
+      - "scripts/control-canonical-write-runtime.mjs"
+      - "scripts/control-canonical-write-browser-qa.py"
+      - "scripts/validate-control-canonical-write.mjs"
+      - "scripts/validate-control-operational-acceptance.mjs"
+      - "scripts/build-control-review-bundle.mjs"
+      - ".github/workflows/agroway-v022-control-alpha10.yml"
+concurrency:
+  group: agroway-control-v022-alpha10-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  canonical-write-boundary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Syntax-check alpha10
+        run: |
+          node --check apps/control-web/server.mjs
+          node --check apps/control-web/public/write-adapter.js
+          node --check scripts/control-canonical-write-runtime.mjs
+          node --check scripts/validate-control-canonical-write.mjs
+          node --check scripts/validate-control-operational-acceptance.mjs
+          node --check scripts/build-control-review-bundle.mjs
+          python -m py_compile scripts/control-canonical-write-browser-qa.py
+      - name: Direct-root persistence topology and lock parity
+        run: node scripts/validate-direct-root-persistence.mjs
+      - name: Offline canonical workspace install
+        run: npm ci --ignore-scripts --offline
+      - name: Pinned TypeScript strict
+        run: npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit
+      - name: Alpha3-alpha9 regressions
+        run: |
+          node scripts/validate-control-exception-resolution.mjs
+          node scripts/validate-control-evidence-ledger.mjs
+          node scripts/validate-control-human-approval.mjs
+          node scripts/validate-control-submission-handoff.mjs
+          node scripts/validate-control-unified-flow.mjs
+          node scripts/validate-control-reintegration.mjs
+          node scripts/validate-control-production-authorization.mjs
+      - name: Alpha10 canonical write static guardrail
+        run: node scripts/validate-control-canonical-write.mjs
+      - name: Full CONTROL operational truth gate
+        run: node scripts/validate-control-operational-acceptance.mjs
+      - name: Compile services for runtime
+        run: |
+          rm -rf .tmp/control-alpha10
+          npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit false --outDir .tmp/control-alpha10
+      - name: Production authorization regression runtime
+        run: node scripts/control-production-authorization-runtime.mjs .tmp/control-alpha10/services/identity-access/src/index.js
+      - name: Canonical write positive and adversarial runtime
+        run: node scripts/control-canonical-write-runtime.mjs .tmp/control-alpha10/services/investment-portfolio/src/index.js
+      - name: Install pinned Playwright Chromium
+        run: |
+          python -m pip install --disable-pip-version-check playwright==1.57.0
+          python -m playwright install --with-deps chromium
+      - name: Native Chromium canonical write review over real CONTROL HTTP
+        run: python scripts/control-canonical-write-browser-qa.py
+      - name: Build deterministic alpha10 CONTROL review bundle
+        run: node scripts/build-control-review-bundle.mjs
+      - name: Smoke eight-route review bundle
+        run: |
+          PORT=4280 node dist/control-review-bundle/server.mjs > /tmp/control-alpha10-bundle.log 2>&1 &
+          PID=$!
+          trap 'kill $PID 2>/dev/null || true' EXIT
+          for i in {1..40}; do curl -fsS http://127.0.0.1:4280/control >/dev/null && break || sleep .25; done
+          for route in /control /control/projects/inv-yar-001 /control/authorization /control/write-adapter /control/exceptions /control/evidence /control/approvals /control/handoff; do curl -fsS "http://127.0.0.1:4280$route" >/dev/null; done
+          node -e "const m=require('./dist/control-review-bundle/REVIEW_MANIFEST.json');const a=require('./dist/control-review-bundle/config/product/control-operational-acceptance.json');if(m.version!=='0.22.0-alpha10'||m.routes.length!==8||m.authority.authorizationOutputCeiling!=='AUTHORIZED_FOR_ADAPTER'||m.authority.browserWriteAllowed!==false||a.productionReady!==false||a.productionBlockers.length!==4)process.exit(1);console.log('PASS_CONTROL_ALPHA10_BUNDLE',m.fileCount,m.aggregateSha256,a.productionBlockers.length)"
+      - name: Trust boundary
+        run: |
+          echo 'PASS_CONTROL_ALPHA10_CANONICAL_WRITE_BOUNDARY'
+          echo 'Reference UnitOfWork mutates only the in-memory test port after exact approved-command digest binding. Browser write remains forbidden. Real PostgreSQL transaction adapter, external ACK, real IdP, and D10 remain pending.'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: agroway-control-v022-alpha10-write-evidence
+          path: docs/product/evidence/canonical-write-adapter
+          if-no-files-found: warn
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: agroway-control-v022-alpha10-review-bundle
+          path: dist/control-review-bundle
+          if-no-files-found: error
+          retention-days: 14
