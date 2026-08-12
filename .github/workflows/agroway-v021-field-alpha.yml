@@ -8,6 +8,7 @@ on:
       - "infra/postgres/tests/**"
       - "scripts/local-dev-backend-http-runtime.mjs"
       - "config/design/screens/local-dev-backend-runtime.json"
+      - "ci/vitest-real/**"
       - ".github/workflows/agroway-v021-field-alpha.yml"
 concurrency:
   group: agroway-field-v021-${{ github.event.pull_request.number || github.ref }}
@@ -75,3 +76,46 @@ jobs:
         run: |
           echo 'PASS_RECONSTRUCTED_POSTGIS_CUMULATIVE_0001_0024'
           echo 'This proves the reconstructed migration chain and adversarial DB suites in CI; it does not prove byte identity with the lost historical v0.15 artifact or real agricultural pilot certification.'
+
+  real-vitest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Reconstruct and verify testable source slice
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat ci/vitest-real/archive.part00.b64 \
+              ci/vitest-real/archive.part01.b64 \
+              ci/vitest-real/archive.part02.b64 \
+              ci/vitest-real/archive.part03.b64 > /tmp/agroway_vitest_slice.b64
+          base64 --decode /tmp/agroway_vitest_slice.b64 > /tmp/agroway_vitest_slice.tar.gz
+          echo "ab07db7f86535fc029ad2e9bc80a8007ac10e7b0dfef73c0c45e1087c13b5b60  /tmp/agroway_vitest_slice.tar.gz" | sha256sum -c -
+          mkdir -p /tmp/agroway-vitest
+          tar -xzf /tmp/agroway_vitest_slice.tar.gz -C /tmp/agroway-vitest
+          test -f /tmp/agroway-vitest/agroway_vitest_real_slice/package.json
+          test -f /tmp/agroway-vitest/agroway_vitest_real_slice/vitest.config.ts
+          spec_count=$(find /tmp/agroway-vitest/agroway_vitest_real_slice -type f -name '*.spec.ts' | wc -l | tr -d ' ')
+          test "$spec_count" = "12" || { echo "expected 12 specs, found $spec_count"; exit 1; }
+          echo 'PASS_REAL_VITEST_SOURCE_SLICE_SHA_AND_INVENTORY'
+
+      - name: Install pinned Vitest runtime
+        working-directory: /tmp/agroway-vitest/agroway_vitest_real_slice
+        run: |
+          npm install --ignore-scripts
+          npx vitest --version | tee /tmp/vitest-version.txt
+          grep -Eq 'vitest/4\.1\.7|vitest 4\.1\.7' /tmp/vitest-version.txt
+
+      - name: Real Vitest 12-spec runtime
+        working-directory: /tmp/agroway-vitest/agroway_vitest_real_slice
+        run: npx vitest run --config vitest.config.ts --reporter=verbose
+
+      - name: Vitest trust boundary
+        run: |
+          echo 'PASS_REAL_VITEST_4_1_7_FOR_OBSERVED_12_SPEC_SLICE'
+          echo 'This is real Vitest runtime for the exact observed 12-spec reconstructed source closure. It is not yet a claim that the full 41-workspace monorepo is directly persisted or tested from its canonical root lockfile.'
