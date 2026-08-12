@@ -40,7 +40,7 @@ check('authority:no-canonical-mutation',source.includes('canonicalMutated:false'
 check('diagnostics:no-secret-field',source.includes('secretsStoredInConfiguration:false'));
 check('index:export',index.includes("export * from './oidc-production-wiring.js'"));
 check('npm:no-new-root-dependency',root.dependencies===undefined||Object.keys(root.dependencies).length===0);
-check('npm:no-new-service-dependency',Object.keys(service.dependencies||{}).length===1&&service.dependencies['@agroway/identity-contracts']==='0.21.0-alpha10');
+check('npm:no-new-service-dependency',service.dependencies===undefined||Object.keys(service.dependencies).length===0);
 check('npm:workspaces-stable',root.workspaces.length===41);
 check('truth:no-real-idp',cfg.authority.realIdentityProviderConfigured===false&&cfg.authority.realIdentityProviderConnectivityCertified===false&&cfg.authority.realProductionTokenVerified===false);
 check('truth:no-prod-execution',cfg.authority.productionExecutionAvailable===false&&cfg.authority.canonicalMutated===false&&cfg.authority.executionState==='NOT_EXECUTED');
