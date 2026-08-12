@@ -1,0 +1,133 @@
+name: AGROWAY CONTROL v0.22 alpha21
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "scripts/control-production-host.mjs"
+      - "scripts/build-control-production-host.mjs"
+      - "scripts/validate-control-production-host.mjs"
+      - "scripts/control-production-host-runtime.mjs"
+      - "config/product/control-alpha21-production-host.json"
+      - "config/product/control-operational-acceptance.json"
+      - "config/product/control-review-bundle.json"
+      - "apps/control-web/server.mjs"
+      - "scripts/build-control-review-bundle.mjs"
+      - ".github/workflows/agroway-v022-control-alpha21.yml"
+concurrency:
+  group: agroway-control-v022-alpha21-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  production-deployment-host:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Syntax-check alpha21
+        run: |
+          node --check apps/control-web/server.mjs
+          node --check scripts/control-production-host.mjs
+          node --check scripts/build-control-production-host.mjs
+          node --check scripts/validate-control-production-host.mjs
+          node --check scripts/control-production-host-runtime.mjs
+          node --check scripts/validate-control-operational-acceptance.mjs
+          node --check scripts/build-control-review-bundle.mjs
+      - name: Direct-root persistence topology and lock parity
+        run: node scripts/validate-direct-root-persistence.mjs
+      - name: Offline canonical workspace install
+        run: npm ci --ignore-scripts --offline
+      - name: Verify persisted Postgres.js vendor
+        run: node scripts/materialize-postgres-js-v349.mjs --verify
+      - name: Pinned TypeScript strict
+        run: npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit
+      - name: Alpha3-alpha20 static regression gates
+        run: |
+          node scripts/validate-control-exception-resolution.mjs
+          node scripts/validate-control-evidence-ledger.mjs
+          node scripts/validate-control-human-approval.mjs
+          node scripts/validate-control-submission-handoff.mjs
+          node scripts/validate-control-unified-flow.mjs
+          node scripts/validate-control-reintegration.mjs
+          node scripts/validate-control-production-authorization.mjs
+          node scripts/validate-control-canonical-write.mjs
+          node scripts/validate-control-oidc-session.mjs
+          node scripts/validate-control-postgres-write.mjs
+          node scripts/validate-control-postgres-production-wiring.mjs
+          node scripts/validate-control-postgres-js-driver.mjs
+          node scripts/validate-control-external-ack.mjs
+          node scripts/validate-control-oidc-production-wiring.mjs
+          node scripts/validate-control-external-ack-production-wiring.mjs
+          node scripts/validate-control-production-readiness.mjs
+          node scripts/validate-control-production-activation.mjs
+          node scripts/validate-control-production-bootstrap.mjs
+      - name: Alpha21 production deployment host static guardrail
+        run: node scripts/validate-control-production-host.mjs
+      - name: Full CONTROL operational truth gate
+        run: node scripts/validate-control-operational-acceptance.mjs
+      - name: Compile services for host and runtimes
+        run: |
+          rm -rf .tmp/control-alpha21
+          npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit false --outDir .tmp/control-alpha21
+          mkdir -p .tmp/control-alpha21/vendor
+          cp -R vendor/postgres-js-3.4.9 .tmp/control-alpha21/vendor/
+      - name: Existing production-boundary regression runtimes
+        run: |
+          node scripts/control-production-authorization-runtime.mjs .tmp/control-alpha21/services/identity-access/src/index.js
+          node scripts/control-canonical-write-runtime.mjs .tmp/control-alpha21/services/investment-portfolio/src/index.js
+          node scripts/control-oidc-session-runtime.mjs .tmp/control-alpha21/services/identity-access/src/index.js
+          node scripts/control-postgres-write-runtime.mjs .tmp/control-alpha21/services/investment-portfolio/src/index.js
+          node scripts/control-postgres-production-wiring-runtime.mjs .tmp/control-alpha21/services/investment-portfolio/src/index.js
+          node scripts/control-postgres-js-driver-runtime.mjs .tmp/control-alpha21/services/investment-portfolio/src/index.js
+          node scripts/control-external-ack-runtime.mjs .tmp/control-alpha21/services/external-data-gateway/src/index.js
+          node scripts/control-external-ack-postgres-store-runtime.mjs .tmp/control-alpha21/services/external-data-gateway/src/index.js
+          node scripts/control-oidc-production-wiring-runtime.mjs .tmp/control-alpha21/services/identity-access/src/index.js
+          node scripts/control-external-ack-production-wiring-runtime.mjs .tmp/control-alpha21/services/external-data-gateway/src/index.js
+          node scripts/control-production-readiness-runtime.mjs .tmp/control-alpha21/services/pilot-certifier/src/control-production-readiness.js
+          node scripts/control-production-activation-runtime.mjs .tmp/control-alpha21/services/pilot-certifier/src/control-production-activation.js .tmp/control-alpha21/services/pilot-certifier/src/control-production-readiness.js
+          node scripts/control-production-bootstrap-runtime.mjs .tmp/control-alpha21/services/pilot-certifier/src/control-production-bootstrap.js .tmp/control-alpha21/services/pilot-certifier/src/control-production-activation.js .tmp/control-alpha21/services/pilot-certifier/src/control-production-readiness.js
+      - name: Production deployment host adversarial runtime matrix
+        run: node scripts/control-production-host-runtime.mjs .tmp/control-alpha21/services/pilot-certifier/src/control-production-bootstrap.js
+      - name: Build deterministic production host artifact
+        run: node scripts/build-control-production-host.mjs .tmp/control-alpha21
+      - name: Verify concrete production host artifact layout
+        run: |
+          node dist/control-production-host/run.mjs describe | tee /tmp/alpha21-host-describe.json
+          node dist/control-production-host/run.mjs verify-layout | tee /tmp/alpha21-host-layout.json
+          node -e "const fs=require('fs');const m=require('./dist/control-production-host/HOST_MANIFEST.json');const d=JSON.parse(fs.readFileSync('/tmp/alpha21-host-describe.json'));const l=JSON.parse(fs.readFileSync('/tmp/alpha21-host-layout.json'));if(m.version!=='0.22.0-alpha21'||m.moduleType!=='ESM'||m.networkSurface!=='CLI_ONLY'||m.containsProductionSecrets!==false||m.activationCommandAvailable!==false||m.productionExecutionAvailable!==false||d.kind!=='SERVER_SIDE_CLI'||d.d10Accepted!==false||d.activationCommandAvailable!==false||l.state!=='RUNTIME_LAYOUT_VERIFIED')process.exit(1);console.log('PASS_CONTROL_ALPHA21_HOST_LAYOUT',m.fileCount,m.aggregateSha256)"
+      - name: Build deterministic alpha21 CONTROL review bundle
+        run: node scripts/build-control-review-bundle.mjs
+      - name: Smoke alpha21 bundle truth and browser host lock
+        run: |
+          PORT=4291 node dist/control-review-bundle/server.mjs > /tmp/control-alpha21-bundle.log 2>&1 &
+          PID=$!
+          trap 'kill $PID 2>/dev/null || true' EXIT
+          for i in {1..40}; do curl -fsS http://127.0.0.1:4291/control >/dev/null && break || sleep .25; done
+          for route in /control /control/projects/inv-yar-001 /control/identity-adapter /control/authorization /control/write-adapter /control/exceptions /control/evidence /control/approvals /control/handoff; do curl -fsS "http://127.0.0.1:4291$route" >/dev/null; done
+          code=$(curl -sS -o /tmp/alpha21-host-forbidden.json -w '%{http_code}' http://127.0.0.1:4291/api/control/production-host)
+          test "$code" = "404"
+          node -e "const x=require('/tmp/alpha21-host-forbidden.json');if(x.error!=='PRODUCTION_HOST_BROWSER_ENDPOINT_FORBIDDEN'||x.productionDeploymentHostImplemented!==true||x.productionDeploymentHostReviewCertified!==true||x.realProductionHostExecuted!==false||x.productionHostEnvironmentBound!==false||x.browserCanInvokeHost!==false||x.browserCanProvideEnvironment!==false||x.browserCanRunPreflights!==false||x.productionExecutionAvailable!==false||x.executionState!=='NOT_EXECUTED'||x.canonicalMutated!==false)process.exit(1);console.log('PASS_CONTROL_ALPHA21_BROWSER_HOST_FORBIDDEN')"
+          node -e "const m=require('./dist/control-review-bundle/REVIEW_MANIFEST.json');const a=require('./dist/control-review-bundle/config/product/control-operational-acceptance.json');const c=a.capabilities.find(x=>x.id==='PRODUCTION_DEPLOYMENT_HOST_BOUNDARY');const expected=['PRODUCTION_IDENTITY_PROVIDER_REAL_BINDING_AND_CONNECTIVITY_PENDING','PRODUCTION_POSTGRES_REAL_SECRET_BINDING_AND_CONNECTIVITY_PENDING','EXTERNAL_ACK_PROVIDER_REAL_BINDING_AND_CONNECTIVITY_PENDING','D10_HUMAN_PRODUCT_APPROVAL_PENDING'];if(m.version!=='0.22.0-alpha21'||m.authority.productionDeploymentHostImplemented!==true||m.authority.productionDeploymentHostReviewCertified!==true||m.authority.realProductionHostExecuted!==false||m.authority.productionHostEnvironmentBound!==false||m.authority.realProductionBindingEvidenceIssued!==false||m.authority.realProductionActivationLeaseIssued!==false||m.authority.productionExecutionAvailable!==false||a.productionReady!==false||a.d10!=='PENDING'||c?.status!=='PASS_REVIEW'||a.productionBlockers.length!==4||expected.some(x=>!a.productionBlockers.includes(x)))process.exit(1);console.log('PASS_CONTROL_ALPHA21_BUNDLE',m.fileCount,m.aggregateSha256,a.productionBlockers.length)"
+      - name: Trust boundary
+        run: |
+          echo 'PASS_CONTROL_ALPHA21_PRODUCTION_DEPLOYMENT_HOST'
+          echo 'CLI host is review-certified only. No real environment, connectivity evidence, D10, activation lease or production side effect is claimed.'
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: agroway-control-v022-alpha21-review-bundle
+          path: |
+            dist/control-review-bundle
+            config/product/control-alpha21-production-host.json
+          if-no-files-found: error
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: agroway-control-v022-alpha21-production-host
+          path: dist/control-production-host
+          if-no-files-found: error
+          retention-days: 14
