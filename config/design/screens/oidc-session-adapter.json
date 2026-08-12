@@ -1,0 +1,22 @@
+{
+  "product": "GREENATICS CONTROL",
+  "version": "0.22.0-alpha11",
+  "screen": "OIDC_PRODUCTION_SESSION_ADAPTER",
+  "route": "/control/identity-adapter",
+  "trust": "DEMO_RECONSTRUCTED",
+  "surfaceState": "REVIEW_ONLY",
+  "realProviderConfigured": false,
+  "browserAcceptsTokens": false,
+  "browserCreatesProductionSession": false,
+  "verification": ["JWT_SIGNATURE", "JWKS_KID", "ISSUER", "AUDIENCE_AZP", "NONCE", "EXP_IAT_NBF", "TENANT", "SESSION_ID", "ACR_AAL2", "AMR_MFA"],
+  "algorithms": ["RS256", "ES256"],
+  "output": "ProductionSession",
+  "nextBoundary": "AUTHORIZED_FOR_ADAPTER",
+  "executionState": "NOT_EXECUTED",
+  "canonicalMutated": false,
+  "approvalAuthority": "HUMAN_ONLY",
+  "aiAuthority": "ADVISORY_ONLY",
+  "productionBlockerAfterReview": "PRODUCTION_IDENTITY_PROVIDER_CONFIGURATION_PENDING",
+  "d10": "PENDING",
+  "domainDelta": {"canonicalDomainEventsAdded": 0, "workspacesAdded": 0}
+}
