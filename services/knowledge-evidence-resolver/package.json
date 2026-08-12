@@ -1,0 +1,1 @@
+{"name":"@agroway/knowledge-evidence-resolver","version":"0.21.0-alpha10","private":true,"type":"module","exports":{".":"./src/index.ts"},"dependencies":{"@agroway/copilot-knowledge-contracts":"0.21.0-alpha10"}}
