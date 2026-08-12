@@ -100,14 +100,7 @@ jobs:
           tar -xzf /tmp/agroway_vitest_slice.tar.gz -C /tmp/agroway-vitest
           test -f /tmp/agroway-vitest/agroway_vitest_real_slice/package.json
           test -f /tmp/agroway-vitest/agroway_vitest_real_slice/vitest.config.ts
-          canonical_tsconfig_sha=$(python - <<'PY'
-import hashlib, json
-from pathlib import Path
-obj=json.loads(Path('ci/vitest-real/root-tsconfig.json').read_text())
-raw=json.dumps(obj,sort_keys=True,separators=(',',':')).encode()
-print(hashlib.sha256(raw).hexdigest())
-PY
-          )
+          canonical_tsconfig_sha=$(python -c "import hashlib,json,pathlib; obj=json.loads(pathlib.Path('ci/vitest-real/root-tsconfig.json').read_text()); print(hashlib.sha256(json.dumps(obj,sort_keys=True,separators=(',',':')).encode()).hexdigest())")
           test "$canonical_tsconfig_sha" = "dce31da9205b8cdd604349bff4945ad23b315735b8db522837a854140d808b90" || { echo "root tsconfig canonical digest mismatch: $canonical_tsconfig_sha"; exit 1; }
           cp ci/vitest-real/root-tsconfig.json /tmp/agroway-vitest/agroway_vitest_real_slice/tsconfig.json
           spec_count=$(find /tmp/agroway-vitest/agroway_vitest_real_slice -type f -name '*.spec.ts' | wc -l | tr -d ' ')
