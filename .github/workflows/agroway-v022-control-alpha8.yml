@@ -28,13 +28,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-      - name: Syntax-check alpha8 integration
+      - name: Syntax-check alpha8 integration + Capital UX1
         run: |
           node --check apps/control-web/server.mjs
           node --check apps/control-web/public/home.js
           node --check apps/control-web/public/home-integration.js
           node --check apps/control-web/public/project-original.js
           node --check apps/control-web/public/project-integration.js
+          node --check apps/control-web/public/capital-readiness.js
           node --check apps/control-web/public/service-worker.js
           node --check scripts/validate-control-reintegration.mjs
           node --check scripts/validate-control-operational-acceptance.mjs
@@ -56,7 +57,7 @@ jobs:
         run: |
           python -m pip install --disable-pip-version-check playwright==1.57.0
           python -m playwright install --with-deps chromium
-      - name: Native Chromium Home + Project reintegration over real CONTROL HTTP
+      - name: Native Chromium Home + Project + Capital UX1 over real CONTROL HTTP
         run: python scripts/control-reintegration-http-browser-qa.py
       - name: Build deterministic alpha8 CONTROL review bundle
         run: node scripts/build-control-review-bundle.mjs
@@ -75,8 +76,8 @@ jobs:
           node -e "const m=require('./dist/control-review-bundle/REVIEW_MANIFEST.json');const a=require('./dist/control-review-bundle/config/product/control-operational-acceptance.json');if(m.version!=='0.22.0-alpha8'||m.routes.length!==6||a.productionReady!==false||a.productionBlockers.length!==5)process.exit(1);console.log('PASS_CONTROL_ALPHA8_BUNDLE',m.fileCount,m.aggregateSha256,a.productionBlockers.length)"
       - name: Trust boundary
         run: |
-          echo 'PASS_CONTROL_ALPHA8_RECOVERED_HOME_PROJECT'
-          echo 'PR9 exact blobs recovered; adapted runtime remains DEMO_RECONSTRUCTED, HUMAN_ONLY, ADVISORY_ONLY, NOT_EXECUTED, canonicalMutated=false, D10=PENDING.'
+          echo 'PASS_CONTROL_ALPHA8_RECOVERED_HOME_PROJECT_PLUS_CAPITAL_UX1'
+          echo 'PR9 exact blobs remain recovered; Capital UX1 is a FIXTURE_SYNTHETIC read-only surface. Runtime remains HUMAN_ONLY, ADVISORY_ONLY, NOT_EXECUTED, canonicalMutated=false, financingApproval=false, D10=PENDING.'
       - uses: actions/upload-artifact@v4
         if: always()
         with:
