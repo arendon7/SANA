@@ -1,0 +1,23 @@
+import fs from 'node:fs';
+const read=p=>fs.readFileSync(p,'utf8');
+const html=read('apps/control-web/public/capital-readiness.html');
+const css=read('apps/control-web/public/capital-readiness.css');
+const js=read('apps/control-web/public/capital-readiness.js');
+const server=read('apps/control-web/server.mjs');
+const requiredHtml=['SANA CAPITAL','CAPITAL_READY ≠ financiación aprobada','FIXTURE_SYNTHETIC','REQUIERE ATENCIÓN','G1–G9','PRODUCTIVE RISK PROFILE','TRUST & PROVENANCE','HUMAN_ONLY','ADVISORY_ONLY'];
+for(const token of requiredHtml)if(!html.includes(token))throw new Error(`UX1_HTML_REQUIRED:${token}`);
+for(const route of ["'/control/capital'","'/control/capital/'","'/control/capital/projects/hass-san-miguel'","'/control/capital/projects/hass-san-miguel/'"])if(!server.includes(route))throw new Error(`UX1_ROUTE_REQUIRED:${route}`);
+if(server.includes("pathname.startsWith('/control/capital/projects/')"))throw new Error('UX1_UNKNOWN_PROJECT_ROUTE_MUST_FAIL_CLOSED');
+for(const gate of ['G1_ACTOR','G2_ASSET','G3_AGRONOMY','G4_BUDGET','G5_MARKET','G6_RISK','G7_TRACEABILITY','G8_IMPACT','G9_FINANCIAL_STRUCTURE'])if(!js.includes(gate))throw new Error(`UX1_GATE_REQUIRED:${gate}`);
+for(const gapGate of ['G4_BUDGET','G5_MARKET','G7_TRACEABILITY'])if(!js.includes(`gate:'${gapGate}'`))throw new Error(`UX1_BLOCKING_GAP_REQUIRED:${gapGate}`);
+for(const risk of ['PRODUCER','OPERATION','AGRONOMY','DATA','FINANCIAL','MARKET','CLIMATE','TRACEABILITY','MANAGEMENT'])if(!js.includes(`['${risk}'`))throw new Error(`UX1_RISK_DIMENSION_REQUIRED:${risk}`);
+if(!js.includes("decision:'NOT_CAPITAL_READY'"))throw new Error('UX1_INITIAL_NOT_READY_REQUIRED');
+if(!js.includes("trust:'FIXTURE_SYNTHETIC'"))throw new Error('UX1_SYNTHETIC_FIXTURE_TRUST_REQUIRED');
+if(!js.includes("fixture.gaps.length!==3"))throw new Error('UX1_THREE_BLOCKER_ASSERTION_REQUIRED');
+if(!js.includes("filter(g=>g[2]==='PASS_WITH_CONDITIONS').length!==2"))throw new Error('UX1_TWO_CONDITION_ASSERTION_REQUIRED');
+if(!css.includes('@media(max-width:430px)')||!css.includes('@media(max-width:780px)'))throw new Error('UX1_RESPONSIVE_BREAKPOINTS_REQUIRED');
+const forbidden=[/\bfetch\s*\(/, /XMLHttpRequest/, /localStorage\s*\./, /sessionStorage\s*\./, /method\s*=\s*["']post["']/i, /approve investment/i, /investment approved/i, /guaranteed return/i, /retorno garantizado/i];
+for(const pattern of forbidden){if(pattern.test(html)||pattern.test(js))throw new Error(`UX1_FORBIDDEN_BROWSER_OR_FINANCIAL_BEHAVIOR:${pattern}`);}
+if(!html.includes('Esta pantalla no aprueba financiación, no mueve dinero y no garantiza retorno o repago.'))throw new Error('UX1_FINANCIAL_LIMITATION_REQUIRED');
+if(!js.includes("location.pathname==='/control/capital/projects/hass-san-miguel'"))throw new Error('UX1_PROJECT_ROUTE_RENDER_REQUIRED');
+console.log('PASS_CAPITAL_READINESS_UX1_READ_ONLY_WORKBENCH');
