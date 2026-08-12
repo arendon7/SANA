@@ -1,0 +1,110 @@
+name: AGROWAY CONTROL v0.22 alpha16
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "services/identity-access/**"
+      - "apps/control-web/**"
+      - "config/product/control-alpha16-oidc-production-wiring.json"
+      - "config/product/control-operational-acceptance.json"
+      - "config/product/control-review-bundle.json"
+      - "scripts/control-oidc-production-wiring-runtime.mjs"
+      - "scripts/validate-control-oidc-production-wiring.mjs"
+      - "scripts/validate-control-operational-acceptance.mjs"
+      - "scripts/validate-control-oidc-session.mjs"
+      - "scripts/build-control-review-bundle.mjs"
+      - ".github/workflows/agroway-v022-control-alpha16.yml"
+concurrency:
+  group: agroway-control-v022-alpha16-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  production-oidc-jwks-wiring:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Syntax-check alpha16
+        run: |
+          node --check apps/control-web/server.mjs
+          node --check apps/control-web/public/identity-adapter.js
+          node --check scripts/validate-control-oidc-production-wiring.mjs
+          node --check scripts/control-oidc-production-wiring-runtime.mjs
+          node --check scripts/validate-control-operational-acceptance.mjs
+          node --check scripts/validate-control-oidc-session.mjs
+          node --check scripts/build-control-review-bundle.mjs
+      - name: Direct-root persistence topology and lock parity
+        run: node scripts/validate-direct-root-persistence.mjs
+      - name: Offline canonical workspace install
+        run: npm ci --ignore-scripts --offline
+      - name: Verify persisted Postgres.js vendor
+        run: node scripts/materialize-postgres-js-v349.mjs --verify
+      - name: Pinned TypeScript strict
+        run: npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit
+      - name: Alpha3-alpha15 static regression gates
+        run: |
+          node scripts/validate-control-exception-resolution.mjs
+          node scripts/validate-control-evidence-ledger.mjs
+          node scripts/validate-control-human-approval.mjs
+          node scripts/validate-control-submission-handoff.mjs
+          node scripts/validate-control-unified-flow.mjs
+          node scripts/validate-control-reintegration.mjs
+          node scripts/validate-control-production-authorization.mjs
+          node scripts/validate-control-canonical-write.mjs
+          node scripts/validate-control-oidc-session.mjs
+          node scripts/validate-control-postgres-write.mjs
+          node scripts/validate-control-postgres-production-wiring.mjs
+          node scripts/validate-control-postgres-js-driver.mjs
+          node scripts/validate-control-external-ack.mjs
+      - name: Alpha16 production OIDC/JWKS static guardrail
+        run: node scripts/validate-control-oidc-production-wiring.mjs
+      - name: Full CONTROL operational truth gate
+        run: node scripts/validate-control-operational-acceptance.mjs
+      - name: Compile services for runtime
+        run: |
+          rm -rf .tmp/control-alpha16
+          npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit false --outDir .tmp/control-alpha16
+          mkdir -p .tmp/control-alpha16/vendor
+          cp -R vendor/postgres-js-3.4.9 .tmp/control-alpha16/vendor/
+      - name: Existing production-boundary regression runtimes
+        run: |
+          node scripts/control-production-authorization-runtime.mjs .tmp/control-alpha16/services/identity-access/src/index.js
+          node scripts/control-canonical-write-runtime.mjs .tmp/control-alpha16/services/investment-portfolio/src/index.js
+          node scripts/control-oidc-session-runtime.mjs .tmp/control-alpha16/services/identity-access/src/index.js
+          node scripts/control-postgres-write-runtime.mjs .tmp/control-alpha16/services/investment-portfolio/src/index.js
+          node scripts/control-postgres-production-wiring-runtime.mjs .tmp/control-alpha16/services/investment-portfolio/src/index.js
+          node scripts/control-postgres-js-driver-runtime.mjs .tmp/control-alpha16/services/investment-portfolio/src/index.js
+          node scripts/control-external-ack-runtime.mjs .tmp/control-alpha16/services/external-data-gateway/src/index.js
+          node scripts/control-external-ack-postgres-store-runtime.mjs .tmp/control-alpha16/services/external-data-gateway/src/index.js
+      - name: Production OIDC/JWKS wiring runtime matrix
+        run: node scripts/control-oidc-production-wiring-runtime.mjs .tmp/control-alpha16/services/identity-access/src/index.js
+      - name: Build deterministic alpha16 CONTROL review bundle
+        run: node scripts/build-control-review-bundle.mjs
+      - name: Smoke alpha16 review bundle truth and browser identity lock
+        run: |
+          PORT=4287 node dist/control-review-bundle/server.mjs > /tmp/control-alpha16-bundle.log 2>&1 &
+          PID=$!
+          trap 'kill $PID 2>/dev/null || true' EXIT
+          for i in {1..40}; do curl -fsS http://127.0.0.1:4287/control >/dev/null && break || sleep .25; done
+          for route in /control /control/projects/inv-yar-001 /control/identity-adapter /control/authorization /control/write-adapter /control/exceptions /control/evidence /control/approvals /control/handoff; do curl -fsS "http://127.0.0.1:4287$route" >/dev/null; done
+          code=$(curl -sS -o /tmp/alpha16-identity-forbidden.json -w '%{http_code}' http://127.0.0.1:4287/api/control/identity/session)
+          test "$code" = "404"
+          node -e "const x=require('/tmp/alpha16-identity-forbidden.json');if(x.error!=='OIDC_BROWSER_SESSION_ENDPOINT_FORBIDDEN'||x.productionIdentityProviderWiringImplemented!==true||x.realProviderConfigured!==false||x.realProviderConnectivityCertified!==false||x.realProductionTokenVerified!==false||x.browserAcceptsTokens!==false||x.browserCreatesProductionSession!==false||x.executionState!=='NOT_EXECUTED'||x.canonicalMutated!==false)process.exit(1);console.log('PASS_CONTROL_ALPHA16_BROWSER_IDENTITY_FORBIDDEN')"
+          node -e "const m=require('./dist/control-review-bundle/REVIEW_MANIFEST.json');const a=require('./dist/control-review-bundle/config/product/control-operational-acceptance.json');if(m.version!=='0.22.0-alpha16'||m.routes.length!==9||m.authority.productionIdentityProviderWiringImplemented!==true||m.authority.realIdentityProviderConfigured!==false||m.authority.realIdentityProviderConnectivityCertified!==false||m.authority.realProductionTokenVerified!==false||m.authority.executionState!=='NOT_EXECUTED'||m.authority.canonicalMutated!==false||a.productionReady!==false||a.productionBlockers.length!==4||!a.productionBlockers.includes('PRODUCTION_IDENTITY_PROVIDER_REAL_BINDING_AND_CONNECTIVITY_PENDING')||a.productionBlockers.includes('PRODUCTION_IDENTITY_PROVIDER_CONFIGURATION_PENDING'))process.exit(1);console.log('PASS_CONTROL_ALPHA16_BUNDLE',m.fileCount,m.aggregateSha256,a.productionBlockers.length)"
+      - name: Trust boundary
+        run: |
+          echo 'PASS_CONTROL_ALPHA16_PRODUCTION_OIDC_JWKS_WIRING'
+          echo 'OIDC configuration/JWKS wiring and signed-token verification are review-certified. No real IdP binding, real provider connectivity, real production token, browser session endpoint or production execution is claimed.'
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: agroway-control-v022-alpha16-review-bundle
+          path: |
+            dist/control-review-bundle
+            config/product/control-alpha16-oidc-production-wiring.json
+          if-no-files-found: error
+          retention-days: 14
