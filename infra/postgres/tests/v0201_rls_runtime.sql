@@ -76,6 +76,8 @@ END $$;
 
 RESET ROLE;
 
+-- The cumulative schema now contains the historical 35 FORCE-RLS tables plus
+-- the six canonical Capital Readiness tables introduced by migration 0028.
 DO $$
 DECLARE forced_count integer;
 BEGIN
@@ -85,9 +87,63 @@ BEGIN
   WHERE n.nspname IN ('agroway_external','agroway_invest','agroway_control','agroway_copilot','agroway_pilot')
     AND c.relkind='r'
     AND c.relforcerowsecurity;
-  IF forced_count <> 35 THEN
-    RAISE EXCEPTION 'expected 35 FORCE-RLS tables, found %', forced_count;
+  IF forced_count <> 41 THEN
+    RAISE EXCEPTION 'expected 41 FORCE-RLS tables, found %', forced_count;
   END IF;
+END $$;
+
+-- Do not rely on the aggregate count alone. Every Capital Readiness table must
+-- individually retain ENABLE+FORCE RLS and the exact tenant policy created by
+-- the canonical migration.
+DO $$
+DECLARE
+  table_name text;
+  rls_enabled boolean;
+  rls_forced boolean;
+  policy_count integer;
+  policy_qual text;
+  policy_check text;
+BEGIN
+  FOREACH table_name IN ARRAY ARRAY[
+    'capital_pilot_intake',
+    'capital_pilot_intake_transition',
+    'readiness_assessment',
+    'readiness_gate_assessment',
+    'readiness_gap',
+    'readiness_gap_transition'
+  ]
+  LOOP
+    SELECT c.relrowsecurity,c.relforcerowsecurity
+      INTO rls_enabled,rls_forced
+    FROM pg_class c
+    JOIN pg_namespace n ON n.oid=c.relnamespace
+    WHERE n.nspname='agroway_invest'
+      AND c.relname=table_name
+      AND c.relkind='r';
+
+    IF NOT FOUND OR NOT rls_enabled OR NOT rls_forced THEN
+      RAISE EXCEPTION 'Capital Readiness table % must have ENABLE+FORCE RLS', table_name;
+    END IF;
+
+    SELECT count(*),max(qual),max(with_check)
+      INTO policy_count,policy_qual,policy_check
+    FROM pg_policies
+    WHERE schemaname='agroway_invest'
+      AND tablename=table_name
+      AND policyname=table_name || '_tenant_rls';
+
+    IF policy_count <> 1 THEN
+      RAISE EXCEPTION 'Capital Readiness table % expected one tenant policy, found %', table_name, policy_count;
+    END IF;
+
+    IF policy_qual IS NULL OR position('tenant_id' in policy_qual)=0 OR position('app.tenant_id' in policy_qual)=0 THEN
+      RAISE EXCEPTION 'Capital Readiness table % tenant USING policy malformed', table_name;
+    END IF;
+
+    IF policy_check IS NULL OR position('tenant_id' in policy_check)=0 OR position('app.tenant_id' in policy_check)=0 THEN
+      RAISE EXCEPTION 'Capital Readiness table % tenant WITH CHECK policy malformed', table_name;
+    END IF;
+  END LOOP;
 END $$;
 
 DO $$
@@ -108,4 +164,4 @@ BEGIN
   END IF;
 END $$;
 
-SELECT 'PASS v0.20.1 FORCE RLS + tenant isolation + raw boundary' AS result;
+SELECT 'PASS v0.20.1 FORCE RLS + tenant isolation + Capital Readiness RLS + raw boundary' AS result;
