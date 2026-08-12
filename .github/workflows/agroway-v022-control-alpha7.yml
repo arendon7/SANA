@@ -5,8 +5,10 @@ on:
     paths:
       - "apps/control-web/**"
       - "config/design/screens/unified-control-flow.json"
+      - "config/product/control-review-bundle.json"
       - "scripts/validate-control-unified-flow.mjs"
       - "scripts/control-unified-flow-http-browser-qa.py"
+      - "scripts/build-control-review-bundle.mjs"
       - "docs/product/V022_UNIFIED_CONTROL_FLOW_VALIDATION.md"
       - ".github/workflows/agroway-v022-control-alpha7.yml"
 concurrency:
@@ -36,6 +38,7 @@ jobs:
           node --check apps/control-web/public/handoff.js
           node --check apps/control-web/public/service-worker.js
           node --check scripts/validate-control-unified-flow.mjs
+          node --check scripts/build-control-review-bundle.mjs
           python -m py_compile scripts/control-unified-flow-http-browser-qa.py
       - name: Pinned TypeScript strict
         run: npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit
@@ -55,6 +58,20 @@ jobs:
           python -m playwright install --with-deps chromium
       - name: Native Chromium unified journey over real CONTROL HTTP
         run: python scripts/control-unified-flow-http-browser-qa.py
+      - name: Build deterministic CONTROL review bundle
+        run: node scripts/build-control-review-bundle.mjs
+      - name: Smoke-test review bundle over HTTP
+        run: |
+          node --check dist/control-review-bundle/server.mjs
+          PORT=4274 node dist/control-review-bundle/server.mjs > /tmp/control-review.log 2>&1 &
+          pid=$!
+          trap 'kill $pid || true' EXIT
+          for i in $(seq 1 40); do curl -fsS http://127.0.0.1:4274/control/exceptions >/dev/null && break || sleep .25; done
+          curl -fsS http://127.0.0.1:4274/control/exceptions >/dev/null
+          curl -fsS http://127.0.0.1:4274/control/evidence >/dev/null
+          curl -fsS http://127.0.0.1:4274/control/approvals >/dev/null
+          curl -fsS http://127.0.0.1:4274/control/handoff >/dev/null
+          node -e "const m=require('./dist/control-review-bundle/REVIEW_MANIFEST.json');if(m.trust!=='DEMO_RECONSTRUCTED'||m.d10!=='PENDING'||m.authority.executionState!=='NOT_EXECUTED'||m.authority.canonicalMutated!==false)process.exit(1);console.log('PASS_CONTROL_REVIEW_BUNDLE_SMOKE',m.fileCount,m.aggregateSha256)"
       - name: Trust boundary
         run: |
           echo 'PASS_CONTROL_UNIFIED_FLOW_ALPHA7_NATIVE_HTTP'
@@ -65,4 +82,11 @@ jobs:
           name: agroway-control-v022-alpha7-unified-flow
           path: docs/product/evidence/unified-control-flow
           if-no-files-found: warn
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: agroway-control-v022-alpha7-review-bundle
+          path: dist/control-review-bundle
+          if-no-files-found: error
           retention-days: 14
