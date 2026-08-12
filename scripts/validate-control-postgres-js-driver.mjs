@@ -21,6 +21,8 @@ check('driver:row-count',source.includes("typeof result.count==='number'?result.
 check('driver:tls-forwarded',source.includes('ssl:Object.freeze({rejectUnauthorized:true,ca:config.ssl.ca,servername:config.ssl.servername})'));
 check('driver:pool-max-forwarded',source.includes('max:config.maxPoolSize'));
 check('driver:connect-timeout-forwarded',source.includes('Math.ceil(config.connectionTimeoutMs/1000)'));
+check('driver:outer-timeout',source.includes('Promise.race([')&&source.includes('POSTGRES_JS_CONNECT_TIMEOUT'));
+check('driver:timeout-destroys-pool',source.includes("this.sql.end({timeout:0})")&&source.includes("this.destroyed=true"));
 check('driver:statement-timeout-forwarded',source.includes("statement_timeout:String(config.statementTimeoutMs)"));
 check('driver:fetch-types-disabled',source.includes('fetch_types:false'));
 check('driver:close',source.includes("sql.end({timeout:5})"));
