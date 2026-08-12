@@ -6,7 +6,10 @@
     "strict": true,
     "noEmit": true,
     "skipLibCheck": true,
-    "lib": ["ES2022", "DOM"],
+    "lib": [
+      "ES2022",
+      "DOM"
+    ],
     "baseUrl": ".",
     "paths": {
       "@agroway/field-web": ["apps/field-web/src/index.ts"],
@@ -52,5 +55,10 @@
       "@agroway/pilot-replay-auditor": ["services/pilot-replay-auditor/src/index.ts"]
     }
   },
-  "include": ["apps/**/*.ts", "packages/**/*.ts", "services/**/*.ts", "types/**/*.d.ts"]
+  "include": [
+    "apps/**/*.ts",
+    "packages/**/*.ts",
+    "services/**/*.ts",
+    "types/**/*.d.ts"
+  ]
 }

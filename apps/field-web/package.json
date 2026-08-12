@@ -1,0 +1,8 @@
+{
+  "name": "@agroway/field-web",
+  "private": true,
+  "version": "0.21.0-alpha10",
+  "type": "module",
+  "exports": {".": "./src/index.ts"},
+  "scripts": {"dev": "node server.mjs"}
+}
