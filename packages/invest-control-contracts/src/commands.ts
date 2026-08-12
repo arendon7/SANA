@@ -29,7 +29,7 @@ export interface StartCapitalReadinessIntake {
   dataPackVersion:string;
   createdAt:ISODateTime;
   supersedesIntakeId?:UUID;
-  initialTransitionId:UUID;
+  initialTransitionId:string;
   reason?:string;
 }
 
@@ -39,7 +39,7 @@ export interface AdvanceCapitalReadinessIntake {
   intakeId:UUID;
   intakeVersion:number;
   target:Exclude<CapitalPilotIntakeState,'HUMAN_REVIEW'|'CAPITAL_READY'|'READY_WITH_CONDITIONS'|'NOT_READY'|'REASSESSMENT_REQUIRED'|'WITHDRAWN'>;
-  transitionId:UUID;
+  transitionId:string;
   at:ISODateTime;
   reason?:string;
 }
@@ -49,7 +49,7 @@ export interface SubmitCapitalReadinessForHumanReview {
   projectId:UUID;
   intakeId:UUID;
   intakeVersion:number;
-  transitionId:UUID;
+  transitionId:string;
   at:ISODateTime;
   reason:string;
 }
@@ -59,7 +59,7 @@ export interface PauseCapitalReadinessIntake {
   projectId:UUID;
   intakeId:UUID;
   intakeVersion:number;
-  transitionId:UUID;
+  transitionId:string;
   at:ISODateTime;
   reason:string;
 }
@@ -69,7 +69,7 @@ export interface ResumeCapitalReadinessIntake {
   projectId:UUID;
   intakeId:UUID;
   intakeVersion:number;
-  transitionId:UUID;
+  transitionId:string;
   at:ISODateTime;
   reason:string;
 }
@@ -79,7 +79,7 @@ export interface WithdrawCapitalReadinessIntake {
   projectId:UUID;
   intakeId:UUID;
   intakeVersion:number;
-  transitionId:UUID;
+  transitionId:string;
   at:ISODateTime;
   reason:string;
 }
@@ -89,7 +89,7 @@ export interface RequestCapitalReadinessReassessment {
   projectId:UUID;
   intakeId:UUID;
   intakeVersion:number;
-  transitionId:UUID;
+  transitionId:string;
   at:ISODateTime;
   reason:string;
 }
@@ -99,22 +99,22 @@ export interface FinalizeCapitalReadinessDecision {
   projectId:UUID;
   intakeId:UUID;
   intakeVersion:number;
-  assessmentId:UUID;
+  assessmentId:string;
   assessmentVersion:number;
   decision:ReadinessDecision;
-  transitionId:UUID;
+  transitionId:string;
   reason:string;
 }
 
 export interface AdvanceReadinessGapRemediation {
   tenantId:UUID;
   projectId:UUID;
-  assessmentId:UUID;
+  assessmentId:string;
   assessmentVersion:number;
-  gapId:UUID;
+  gapId:string;
   fromState:Exclude<ReadinessGapState,'RESOLVED'|'WAIVED'|'SUPERSEDED'>;
   target:Extract<ReadinessGapState,'IN_REMEDIATION'|'EVIDENCE_SUBMITTED'>;
-  transitionId:UUID;
+  transitionId:string;
   at:ISODateTime;
   note?:string;
 }
@@ -122,11 +122,11 @@ export interface AdvanceReadinessGapRemediation {
 export interface ResolveReadinessGap {
   tenantId:UUID;
   projectId:UUID;
-  assessmentId:UUID;
+  assessmentId:string;
   assessmentVersion:number;
-  gapId:UUID;
+  gapId:string;
   fromState:Exclude<ReadinessGapState,'RESOLVED'|'WAIVED'|'SUPERSEDED'>;
-  transitionId:UUID;
+  transitionId:string;
   at:ISODateTime;
   resolutionEvidenceRefs:readonly string[];
   note:string;
@@ -135,11 +135,11 @@ export interface ResolveReadinessGap {
 export interface WaiveReadinessGap {
   tenantId:UUID;
   projectId:UUID;
-  assessmentId:UUID;
+  assessmentId:string;
   assessmentVersion:number;
-  gapId:UUID;
+  gapId:string;
   fromState:Exclude<ReadinessGapState,'RESOLVED'|'WAIVED'|'SUPERSEDED'>;
-  transitionId:UUID;
+  transitionId:string;
   at:ISODateTime;
   note:string;
 }
