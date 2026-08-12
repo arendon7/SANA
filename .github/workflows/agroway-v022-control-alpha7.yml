@@ -1,0 +1,97 @@
+name: AGROWAY CONTROL v0.22 alpha7
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "apps/control-web/**"
+      - "config/design/screens/unified-control-flow.json"
+      - "config/product/control-review-bundle.json"
+      - "config/product/control-operational-acceptance.json"
+      - "scripts/validate-control-unified-flow.mjs"
+      - "scripts/validate-control-operational-acceptance.mjs"
+      - "scripts/control-unified-flow-http-browser-qa.py"
+      - "scripts/build-control-review-bundle.mjs"
+      - "docs/product/V022_UNIFIED_CONTROL_FLOW_VALIDATION.md"
+      - ".github/workflows/agroway-v022-control-alpha7.yml"
+concurrency:
+  group: agroway-control-v022-alpha7-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  unified-control-flow-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Syntax-check CONTROL alpha7
+        run: |
+          node --check apps/control-web/server.mjs
+          node --check apps/control-web/public/control-shell.js
+          node --check apps/control-web/public/app.js
+          node --check apps/control-web/public/evidence.js
+          node --check apps/control-web/public/approvals.js
+          node --check apps/control-web/public/handoff.js
+          node --check apps/control-web/public/service-worker.js
+          node --check scripts/validate-control-unified-flow.mjs
+          node --check scripts/validate-control-operational-acceptance.mjs
+          node --check scripts/build-control-review-bundle.mjs
+          python -m py_compile scripts/control-unified-flow-http-browser-qa.py
+      - name: Pinned TypeScript strict
+        run: npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit
+      - name: Alpha3 exception authority regression
+        run: node scripts/validate-control-exception-resolution.mjs
+      - name: Alpha4 evidence ledger regression
+        run: node scripts/validate-control-evidence-ledger.mjs
+      - name: Alpha5 human approval regression
+        run: node scripts/validate-control-human-approval.mjs
+      - name: Alpha6 submission handoff regression
+        run: node scripts/validate-control-submission-handoff.mjs
+      - name: Alpha7 unified flow guardrails
+        run: node scripts/validate-control-unified-flow.mjs
+      - name: Full CONTROL operational acceptance truth gate
+        run: node scripts/validate-control-operational-acceptance.mjs
+      - name: Install pinned Playwright Chromium
+        run: |
+          python -m pip install --disable-pip-version-check playwright==1.57.0
+          python -m playwright install --with-deps chromium
+      - name: Native Chromium unified journey over real CONTROL HTTP
+        run: python scripts/control-unified-flow-http-browser-qa.py
+      - name: Build deterministic CONTROL review bundle
+        run: node scripts/build-control-review-bundle.mjs
+      - name: Smoke-test review bundle over HTTP
+        run: |
+          node --check dist/control-review-bundle/server.mjs
+          PORT=4274 node dist/control-review-bundle/server.mjs > /tmp/control-review.log 2>&1 &
+          pid=$!
+          trap 'kill $pid || true' EXIT
+          for i in $(seq 1 40); do curl -fsS http://127.0.0.1:4274/control/exceptions >/dev/null && break || sleep .25; done
+          curl -fsS http://127.0.0.1:4274/control/exceptions >/dev/null
+          curl -fsS http://127.0.0.1:4274/control/evidence >/dev/null
+          curl -fsS http://127.0.0.1:4274/control/approvals >/dev/null
+          curl -fsS http://127.0.0.1:4274/control/handoff >/dev/null
+          node -e "const m=require('./dist/control-review-bundle/REVIEW_MANIFEST.json');const a=require('./dist/control-review-bundle/config/product/control-operational-acceptance.json');if(m.trust!=='DEMO_RECONSTRUCTED'||m.d10!=='PENDING'||m.authority.executionState!=='NOT_EXECUTED'||m.authority.canonicalMutated!==false||a.productionReady!==false||a.overallStatus!=='REVIEW_READY_WITH_EXPLICIT_GAPS')process.exit(1);console.log('PASS_CONTROL_REVIEW_BUNDLE_SMOKE',m.fileCount,m.aggregateSha256,a.overallStatus)"
+      - name: Trust boundary
+        run: |
+          echo 'PASS_CONTROL_UNIFIED_FLOW_ALPHA7_NATIVE_HTTP'
+          echo 'Decision-flow is review-ready; full CONTROL remains REVIEW_READY_WITH_EXPLICIT_GAPS and NOT production-ready. HUMAN_ONLY, ADVISORY_ONLY, NOT_EXECUTED, canonicalMutated=false, D10=PENDING.'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: agroway-control-v022-alpha7-unified-flow
+          path: docs/product/evidence/unified-control-flow
+          if-no-files-found: warn
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: agroway-control-v022-alpha7-review-bundle
+          path: dist/control-review-bundle
+          if-no-files-found: error
+          retention-days: 14
