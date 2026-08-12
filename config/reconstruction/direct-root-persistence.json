@@ -21,12 +21,20 @@
     "externalDataContracts": "packages/external-data-contracts",
     "incorrectDuplicateServicePathCreated": false
   },
+  "toolchain": {
+    "nodeMajor": 22,
+    "npmReference": "10.9.2",
+    "typescript": "5.8.3",
+    "typescriptInvocation": "npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit",
+    "offlineScope": "WORKSPACE_LINK_INSTALL_ONLY"
+  },
   "invariants": {
     "workspaceCount": 41,
     "localDependencyVersion": "0.21.0-alpha10",
     "packageLockRequired": true,
     "offlineNpmCiRequired": true,
-    "rootTypeScriptStrictRequired": true
+    "rootTypeScriptStrictRequired": true,
+    "pinnedTypeScriptCompilerRequired": true
   },
   "historicalProductionEquivalenceClaimed": false
 }
