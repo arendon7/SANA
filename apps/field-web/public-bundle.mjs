@@ -41,7 +41,7 @@ export async function materializeCanonicalFieldPublic(){
   const publicRoot=path.resolve(here,'public');
   await rm(publicRoot,{recursive:true,force:true});await mkdir(publicRoot,{recursive:true});
   for(const rel of expected){
-    const target=path.resolve(here,rel.replace(/^public\//,''));
+    const target=path.resolve(publicRoot,rel.replace(/^public\//,''));
     if(!(target===publicRoot||target.startsWith(publicRoot+path.sep)))throw new Error('FIELD_PUBLIC_ARCHIVE_PATH_REJECTED');
     const bytes=files.get(rel);if(!bytes)throw new Error(`FIELD_PUBLIC_ARCHIVE_FILE_MISSING:${rel}`);
     await writeFile(target,bytes);
