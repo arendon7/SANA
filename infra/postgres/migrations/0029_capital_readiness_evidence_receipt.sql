@@ -128,10 +128,11 @@ BEGIN
 END;
 $$;
 
--- Name sorts before the existing transition-chain trigger but both are BEFORE
--- INSERT and both must pass. This trigger adds receipt proof; the existing
--- trigger remains authoritative for lifecycle/state ordering.
-CREATE TRIGGER readiness_gap_evidence_submission_bi
+-- PostgreSQL fires same-timing triggers alphabetically. Prefix this proof
+-- trigger with `zz_` so the already-certified lifecycle/sequence trigger runs
+-- first and keeps its historical stale/sequence error precedence. Evidence
+-- proof is an additional gate, never a replacement for lifecycle integrity.
+CREATE TRIGGER zz_readiness_gap_evidence_submission_bi
 BEFORE INSERT ON agroway_invest.readiness_gap_transition
 FOR EACH ROW EXECUTE FUNCTION agroway_invest.assert_readiness_evidence_submission();
 
