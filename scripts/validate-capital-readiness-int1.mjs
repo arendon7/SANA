@@ -7,7 +7,7 @@ import {spawnSync} from 'node:child_process';
 const tmp='.tmp-capital-readiness-int1';
 await rm(tmp,{recursive:true,force:true});
 const compile=spawnSync('tsc',[
-  'services/investment-portfolio/src/readiness.ts',
+  'services/investment-portfolio/src/readiness.ts','--ignoreConfig',
   '--target','ES2022','--module','NodeNext','--moduleResolution','NodeNext','--skipLibCheck','true','--rootDir','.','--outDir',tmp,'--noEmitOnError','true',
 ],{encoding:'utf8'});
 if(compile.status!==0)throw new Error(`CAPITAL_READINESS_TEST_COMPILE_FAILED\n${compile.stdout}\n${compile.stderr}`);
