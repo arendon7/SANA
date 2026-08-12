@@ -9,3 +9,4 @@ export * from './evidence.js';
 export * from './control-write-adapter.js';
 export * from './postgres-control-write-adapter.js';
 export * from './postgres-production-wiring.js';
+export * from './postgres-js-pool-factory.js';
