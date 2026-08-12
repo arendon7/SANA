@@ -16,3 +16,4 @@ export * from './readiness-authority.js';
 export * from './readiness-remediation.js';
 export * from './readiness-evidence.js';
 export * from './readiness-evidence-ingestion.js';
+export * from './readiness-evidence-review.js';
