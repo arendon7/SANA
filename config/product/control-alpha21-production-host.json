@@ -1,0 +1,82 @@
+{
+  "product": "GREENATICS CONTROL",
+  "version": "0.22.0-alpha21",
+  "capability": "PRODUCTION_DEPLOYMENT_HOST_BOUNDARY",
+  "status": "PASS_REVIEW_PENDING_REAL_DEPLOYMENT_BINDINGS_AND_D10",
+  "protocol": "AGROWAY_CONTROL_PRODUCTION_HOST_V1",
+  "host": {
+    "kind": "SERVER_SIDE_CLI",
+    "runtime": "Node.js 22+",
+    "httpListener": false,
+    "browser": false,
+    "commands": ["describe", "verify-layout", "check-config", "preflight"],
+    "d10Accepted": false,
+    "activationCommandAvailable": false,
+    "modulePathsEnvironmentControlled": false,
+    "fixedCompiledModulePaths": true
+  },
+  "composition": {
+    "oidcFactory": "createProductionOidcWiring",
+    "postgresFactory": "createProductionPostgresWiringWithPinnedDriver",
+    "externalAckFactory": "createProductionExternalAckWiring",
+    "bootstrapFactory": "createControlProductionBootstrap",
+    "pinnedPostgresJsVersion": "3.4.9",
+    "privilegedObjectsNarrowedToBootstrap": true,
+    "postgresDriverClosedAfterOperation": true
+  },
+  "outputBoundary": {
+    "jsonOnly": true,
+    "rawEnvironmentReturned": false,
+    "secretsReturned": false,
+    "stackTraceReturned": false,
+    "unknownErrorsRedacted": true,
+    "bindingEvidenceDigestMayBeReturned": true,
+    "d10Value": "PENDING"
+  },
+  "artifact": {
+    "builder": "scripts/build-control-production-host.mjs",
+    "entrypoint": "run.mjs",
+    "manifest": "HOST_MANIFEST.json",
+    "networkSurface": "CLI_ONLY",
+    "containsProductionSecrets": false,
+    "includesPinnedPostgresJsVendor": true
+  },
+  "authority": {
+    "approval": "HUMAN_ONLY",
+    "ai": "ADVISORY_ONLY",
+    "productionDeploymentHostImplemented": true,
+    "productionDeploymentHostReviewCertified": true,
+    "realProductionHostExecuted": false,
+    "productionHostEnvironmentBound": false,
+    "realProductionBootstrapExecuted": false,
+    "realProductionBindingEvidenceIssued": false,
+    "realProductionActivationLeaseIssued": false,
+    "productionExecutionAvailable": false,
+    "executionState": "NOT_EXECUTED",
+    "canonicalMutated": false
+  },
+  "reproducibility": {
+    "canonicalRootLockChanged": false,
+    "canonicalWorkspaceCount": 41,
+    "workspacesAdded": 0,
+    "externalNpmDependencyAdded": false
+  },
+  "reconstructionDebtObserved": [
+    "Root package.json references local-backend/release-readiness scripts that are absent from the reconstructed exact head; alpha21 does not depend on those missing paths."
+  ],
+  "explicitGaps": [
+    "No real production host has executed this CLI.",
+    "No real production environment or secret binding is stored in the repository or review artifact.",
+    "No real IdP/PostgreSQL/External ACK connectivity evidence has been produced by this host.",
+    "D10 human product approval remains pending for the actual release candidate.",
+    "No activation command is exposed by the deployment host and no real activation lease exists.",
+    "The deployment host performs no canonical write, ACK submission or ProductionSession creation."
+  ],
+  "evidence": [
+    "scripts/control-production-host.mjs",
+    "scripts/build-control-production-host.mjs",
+    "scripts/validate-control-production-host.mjs",
+    "scripts/control-production-host-runtime.mjs",
+    "config/product/control-alpha21-production-host.json"
+  ]
+}
