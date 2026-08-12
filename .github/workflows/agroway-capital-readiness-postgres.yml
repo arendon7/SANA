@@ -1,0 +1,71 @@
+name: AGROWAY CAPITAL_READINESS PostgreSQL INT1.6
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "infra/postgres/migrations/**"
+      - "scripts/validate-capital-readiness-postgres.py"
+      - ".github/workflows/agroway-capital-readiness-postgres.yml"
+concurrency:
+  group: agroway-capital-readiness-postgres-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  capital-readiness-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: agroway
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d agroway"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/agroway
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install PostgreSQL client
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -y
+          sudo apt-get install -y postgresql-client
+          psql --version
+
+      - name: Apply complete AGROWAY migration chain through INT1.6
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          migrations=(infra/postgres/migrations/*.sql)
+          if [ "${#migrations[@]}" -eq 0 ]; then
+            echo "NO_MIGRATIONS_FOUND" >&2
+            exit 1
+          fi
+          for migration in "${migrations[@]}"; do
+            echo "APPLY ${migration}"
+            psql "$DATABASE_URL" -X -v ON_ERROR_STOP=1 -f "$migration"
+          done
+          psql "$DATABASE_URL" -X -v ON_ERROR_STOP=1 -Atc "SELECT extname FROM pg_extension WHERE extname='postgis';" | grep -Fx postgis
+          psql "$DATABASE_URL" -X -v ON_ERROR_STOP=1 -Atc "SELECT to_regclass('agroway_invest.readiness_assessment') IS NOT NULL;" | grep -Fx t
+
+      - name: Run CAPITAL_READINESS INT1.6 adversarial PostgreSQL harness
+        run: python scripts/validate-capital-readiness-postgres.py
+
+      - name: Trust boundary
+        run: |
+          echo 'PASS_CAPITAL_READINESS_POSTGRES_INT16_AB'
+          echo 'Persistence proves tenant-scoped readiness history and integrity only. It does not approve financing, move money, create custody/wallet authority, grant AI decision authority, or imply D10/Production Ready.'

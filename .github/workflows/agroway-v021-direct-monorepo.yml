@@ -10,11 +10,14 @@ on:
       - "apps/**"
       - "packages/**"
       - "services/**"
+      - "infra/postgres/migrations/**"
       - "scripts/verify-workspace-persistence.mjs"
       - "scripts/validate-capital-readiness-int1.mjs"
       - "scripts/validate-capital-readiness-int1-hardening.mjs"
       - "scripts/validate-capital-readiness-control-projection.mjs"
       - "scripts/validate-capital-readiness-control-model.mjs"
+      - "scripts/validate-capital-readiness-postgres.py"
+      - ".github/workflows/agroway-capital-readiness-postgres.yml"
       - ".github/workflows/agroway-v021-direct-monorepo.yml"
 concurrency:
   group: agroway-v021-direct-${{ github.event.pull_request.number || github.ref }}
