@@ -1,0 +1,54 @@
+{
+  "product": "SANA RECONSTRUCTED ROOT",
+  "version": "0.22.0-alpha22",
+  "capability": "ROOT_RUNTIME_RELEASE_SCRIPT_RECONCILIATION",
+  "status": "PASS_REPO_HARDENING_PENDING_CI",
+  "scope": {
+    "productFeatureAdded": false,
+    "canonicalDomainEventsAdded": 0,
+    "workspacesAdded": 0,
+    "canonicalRootLockChanged": false,
+    "externalNpmDependencyAdded": false
+  },
+  "reconciledScripts": [
+    {"npmScript":"validate:local-dev-backend","target":"scripts/validate-local-dev-backend.mjs","action":"RECONSTRUCTED_FROM_PERSISTED_FIELD_BACKEND_CONTRACT"},
+    {"npmScript":"test:local-dev-backend-http","target":"scripts/local-dev-backend-http-runtime.mjs","action":"PRESERVED_EXISTING_RUNTIME"},
+    {"npmScript":"qa:local-dev-backend-browser","target":"scripts/local-dev-backend-browser-qa.py","action":"RECONSTRUCTED_FROM_PERSISTED_FIELD_BACKEND_CONTRACT"},
+    {"npmScript":"release:readiness","target":"scripts/release-readiness.mjs","action":"RECONSTRUCTED_FAIL_CLOSED_RELEASE_GATE"}
+  ],
+  "localDevBackendTruth": {
+    "implementation": "apps/field-web/server.mjs",
+    "runtimeStore": "apps/field-web/dev-runtime.mjs",
+    "bindAddress": "127.0.0.1",
+    "trust": "LOCAL_DEV_BACKEND_NOT_PRODUCTION",
+    "productionBackendClaimed": false,
+    "productionExecutionAvailable": false
+  },
+  "releaseReadinessTruth": {
+    "reviewState": "REVIEW_RELEASE_READY",
+    "productionStateWhileBlockersExist": "BLOCKED_PRODUCTION_READINESS",
+    "productionReadinessExitCodeWhileBlocked": 2,
+    "d10MustBeApprovedForProduction": true,
+    "productionBlockersMustBeEmptyForProduction": true,
+    "productionPassMayNotBeInvented": true
+  },
+  "productionTruthUnchanged": {
+    "productionReady": false,
+    "d10": "PENDING",
+    "executionState": "NOT_EXECUTED",
+    "canonicalMutated": false,
+    "blockers": [
+      "PRODUCTION_IDENTITY_PROVIDER_REAL_BINDING_AND_CONNECTIVITY_PENDING",
+      "PRODUCTION_POSTGRES_REAL_SECRET_BINDING_AND_CONNECTIVITY_PENDING",
+      "EXTERNAL_ACK_PROVIDER_REAL_BINDING_AND_CONNECTIVITY_PENDING",
+      "D10_HUMAN_PRODUCT_APPROVAL_PENDING"
+    ]
+  },
+  "evidence": [
+    "scripts/validate-local-dev-backend.mjs",
+    "scripts/local-dev-backend-http-runtime.mjs",
+    "scripts/local-dev-backend-browser-qa.py",
+    "scripts/release-readiness.mjs",
+    "scripts/validate-root-runtime-reconciliation.mjs"
+  ]
+}
