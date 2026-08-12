@@ -16,6 +16,7 @@ on:
       - "scripts/validate-capital-readiness-int1-hardening.mjs"
       - "scripts/validate-capital-readiness-control-projection.mjs"
       - "scripts/validate-capital-readiness-control-model.mjs"
+      - "scripts/validate-capital-readiness-persistence-adapter.mjs"
       - "scripts/validate-capital-readiness-postgres.py"
       - ".github/workflows/agroway-capital-readiness-postgres.yml"
       - ".github/workflows/agroway-v021-direct-monorepo.yml"
@@ -77,6 +78,9 @@ jobs:
 
       - name: Validate CAPITAL_READINESS read-only Control model
         run: node scripts/validate-capital-readiness-control-model.mjs
+
+      - name: Validate CAPITAL_READINESS persistence adapter and hydration
+        run: node scripts/validate-capital-readiness-persistence-adapter.mjs
 
       - name: Direct root TypeScript strict
         run: npm run typecheck
