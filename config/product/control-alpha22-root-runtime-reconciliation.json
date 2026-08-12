@@ -10,11 +10,40 @@
     "canonicalRootLockChanged": false,
     "externalNpmDependencyAdded": false
   },
-  "reconciledScripts": [
-    {"npmScript":"validate:local-dev-backend","target":"scripts/validate-local-dev-backend.mjs","action":"RECONSTRUCTED_FROM_PERSISTED_FIELD_BACKEND_CONTRACT"},
-    {"npmScript":"test:local-dev-backend-http","target":"scripts/local-dev-backend-http-runtime.mjs","action":"PRESERVED_EXISTING_RUNTIME"},
-    {"npmScript":"qa:local-dev-backend-browser","target":"scripts/local-dev-backend-browser-qa.py","action":"RECONSTRUCTED_FROM_PERSISTED_FIELD_BACKEND_CONTRACT"},
-    {"npmScript":"release:readiness","target":"scripts/release-readiness.mjs","action":"RECONSTRUCTED_FAIL_CLOSED_RELEASE_GATE"}
+  "reconciliation": {
+    "staleHistoricalAliasesRemovedFromExecutableSurface": true,
+    "historicalProvenanceFilesDeleted": false,
+    "currentRootCommandsResolveToPhysicalTargets": true,
+    "sharedFieldValidationBoundary": true,
+    "sharedFieldReleaseBoundary": true,
+    "designGovernanceRestoredOffline": true,
+    "externalDesignSkillsFalselyClaimedInstalled": false
+  },
+  "canonicalFieldPublicBundle": {
+    "source": "ci/field-http-playwright/public.part00.b64..public.part03.b64",
+    "lock": "ci/field-http-playwright/BUNDLE_LOCK.json",
+    "archiveSha256": "1ea29026ccf160dfebc15b24f6f27408a8bff459be4c422e0791775520dcf00b",
+    "expectedFileCount": 5,
+    "materializer": "apps/field-web/public-bundle.mjs",
+    "networkRequired": false,
+    "serverMaterializesBeforeListen": true,
+    "trust": "LOCAL_DEV_BACKEND_NOT_PRODUCTION",
+    "productionEquivalent": false
+  },
+  "currentExecutableBoundaries": [
+    "scripts/validate-root-script-targets.mjs",
+    "scripts/run-spec-compat.mjs",
+    "scripts/lint-postgres-structural.mjs",
+    "scripts/design-governance-gate.mjs",
+    "scripts/design-skills-status.mjs",
+    "scripts/design-preflight.mjs",
+    "scripts/sync-design-skills.mjs",
+    "scripts/validate-field-feature.mjs",
+    "scripts/field-feature-release-gate.mjs",
+    "scripts/validate-local-dev-backend.mjs",
+    "scripts/local-dev-backend-http-runtime.mjs",
+    "scripts/local-dev-backend-browser-qa.py",
+    "scripts/release-readiness.mjs"
   ],
   "localDevBackendTruth": {
     "implementation": "apps/field-web/server.mjs",
@@ -43,12 +72,5 @@
       "EXTERNAL_ACK_PROVIDER_REAL_BINDING_AND_CONNECTIVITY_PENDING",
       "D10_HUMAN_PRODUCT_APPROVAL_PENDING"
     ]
-  },
-  "evidence": [
-    "scripts/validate-local-dev-backend.mjs",
-    "scripts/local-dev-backend-http-runtime.mjs",
-    "scripts/local-dev-backend-browser-qa.py",
-    "scripts/release-readiness.mjs",
-    "scripts/validate-root-runtime-reconciliation.mjs"
-  ]
+  }
 }
