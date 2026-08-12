@@ -1,0 +1,148 @@
+name: AGROWAY CONTROL v0.22 alpha14
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "services/investment-portfolio/**"
+      - "config/product/control-alpha14-postgres-js-driver.json"
+      - "config/product/control-operational-acceptance.json"
+      - "config/product/control-review-bundle.json"
+      - "scripts/materialize-postgres-js-v349.mjs"
+      - "scripts/validate-control-postgres-js-driver.mjs"
+      - "scripts/control-postgres-js-driver-runtime.mjs"
+      - "scripts/control-postgres-js-tls-integration.mjs"
+      - "scripts/validate-control-operational-acceptance.mjs"
+      - "scripts/build-control-review-bundle.mjs"
+      - ".github/workflows/agroway-v022-control-alpha14.yml"
+concurrency:
+  group: agroway-control-v022-alpha14-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  pinned-postgres-driver:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: agroway_alpha14
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d agroway_alpha14"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Syntax-check alpha14
+        run: |
+          node --check scripts/materialize-postgres-js-v349.mjs
+          node --check scripts/validate-control-postgres-js-driver.mjs
+          node --check scripts/control-postgres-js-driver-runtime.mjs
+          node --check scripts/control-postgres-js-tls-integration.mjs
+          node --check scripts/validate-control-operational-acceptance.mjs
+          node --check scripts/build-control-review-bundle.mjs
+      - name: Direct-root persistence topology and lock parity
+        run: node scripts/validate-direct-root-persistence.mjs
+      - name: Offline canonical workspace install
+        run: npm ci --ignore-scripts --offline
+      - name: Materialize exact Postgres.js 3.4.9 vendor
+        run: |
+          node scripts/materialize-postgres-js-v349.mjs
+          node scripts/materialize-postgres-js-v349.mjs --verify
+      - name: Pinned TypeScript strict
+        run: npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit
+      - name: Alpha3-alpha13 regression gates
+        run: |
+          node scripts/validate-control-exception-resolution.mjs
+          node scripts/validate-control-evidence-ledger.mjs
+          node scripts/validate-control-human-approval.mjs
+          node scripts/validate-control-submission-handoff.mjs
+          node scripts/validate-control-unified-flow.mjs
+          node scripts/validate-control-reintegration.mjs
+          node scripts/validate-control-production-authorization.mjs
+          node scripts/validate-control-canonical-write.mjs
+          node scripts/validate-control-oidc-session.mjs
+          node scripts/validate-control-postgres-write.mjs
+          node scripts/validate-control-postgres-production-wiring.mjs
+      - name: Alpha14 pinned driver static guardrail
+        run: node scripts/validate-control-postgres-js-driver.mjs
+      - name: Full CONTROL operational truth gate
+        run: node scripts/validate-control-operational-acceptance.mjs
+      - name: Compile services for runtime
+        run: |
+          rm -rf .tmp/control-alpha14
+          npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit false --outDir .tmp/control-alpha14
+          mkdir -p .tmp/control-alpha14/vendor
+          cp -R vendor/postgres-js-3.4.9 .tmp/control-alpha14/vendor/
+      - name: Production authorization regression runtime
+        run: node scripts/control-production-authorization-runtime.mjs .tmp/control-alpha14/services/identity-access/src/index.js
+      - name: Canonical write regression runtime
+        run: node scripts/control-canonical-write-runtime.mjs .tmp/control-alpha14/services/investment-portfolio/src/index.js
+      - name: OIDC real-signature regression runtime
+        run: node scripts/control-oidc-session-runtime.mjs .tmp/control-alpha14/services/identity-access/src/index.js
+      - name: PostgreSQL transaction adapter regression runtime
+        run: node scripts/control-postgres-write-runtime.mjs .tmp/control-alpha14/services/investment-portfolio/src/index.js
+      - name: Alpha13 production PostgreSQL wiring regression runtime
+        run: node scripts/control-postgres-production-wiring-runtime.mjs .tmp/control-alpha14/services/investment-portfolio/src/index.js
+      - name: Pinned Postgres.js bridge runtime matrix
+        run: node scripts/control-postgres-js-driver-runtime.mjs .tmp/control-alpha14/services/investment-portfolio/src/index.js
+      - name: Configure PostgreSQL 16 verified test TLS
+        env:
+          PG_CONTAINER: ${{ job.services.postgres.id }}
+          TEST_DB_PASSWORD: alpha14-postgres-test-password-123456789
+        run: |
+          sudo sh -c 'echo "127.0.0.1 db.alpha14.test" >> /etc/hosts'
+          mkdir -p /tmp/alpha14-tls
+          openssl req -x509 -newkey rsa:2048 -sha256 -nodes -days 1 -keyout /tmp/alpha14-tls/ca.key -out /tmp/alpha14-tls/ca.crt -subj '/CN=AGROWAY Alpha14 Test CA' >/dev/null 2>&1
+          openssl req -newkey rsa:2048 -sha256 -nodes -keyout /tmp/alpha14-tls/server.key -out /tmp/alpha14-tls/server.csr -subj '/CN=db.alpha14.test' >/dev/null 2>&1
+          printf 'subjectAltName=DNS:db.alpha14.test\nextendedKeyUsage=serverAuth\n' > /tmp/alpha14-tls/server.ext
+          openssl x509 -req -sha256 -days 1 -in /tmp/alpha14-tls/server.csr -CA /tmp/alpha14-tls/ca.crt -CAkey /tmp/alpha14-tls/ca.key -CAcreateserial -out /tmp/alpha14-tls/server.crt -extfile /tmp/alpha14-tls/server.ext >/dev/null 2>&1
+          docker cp /tmp/alpha14-tls/server.crt "$PG_CONTAINER":/var/lib/postgresql/server.crt
+          docker cp /tmp/alpha14-tls/server.key "$PG_CONTAINER":/var/lib/postgresql/server.key
+          docker exec -u 0 "$PG_CONTAINER" chown postgres:postgres /var/lib/postgresql/server.crt /var/lib/postgresql/server.key
+          docker exec -u 0 "$PG_CONTAINER" chmod 600 /var/lib/postgresql/server.key
+          docker exec "$PG_CONTAINER" psql -v ON_ERROR_STOP=1 -U postgres -d agroway_alpha14 -c "CREATE ROLE agroway_control LOGIN PASSWORD '$TEST_DB_PASSWORD';"
+          docker exec "$PG_CONTAINER" psql -v ON_ERROR_STOP=1 -U postgres -d agroway_alpha14 -c "ALTER SYSTEM SET ssl='on';"
+          docker exec "$PG_CONTAINER" psql -v ON_ERROR_STOP=1 -U postgres -d agroway_alpha14 -c "ALTER SYSTEM SET ssl_cert_file='/var/lib/postgresql/server.crt';"
+          docker exec "$PG_CONTAINER" psql -v ON_ERROR_STOP=1 -U postgres -d agroway_alpha14 -c "ALTER SYSTEM SET ssl_key_file='/var/lib/postgresql/server.key';"
+          docker restart "$PG_CONTAINER" >/dev/null
+          for i in $(seq 1 30); do docker exec "$PG_CONTAINER" pg_isready -U postgres -d agroway_alpha14 >/dev/null 2>&1 && break || sleep 1; done
+          docker exec "$PG_CONTAINER" pg_isready -U postgres -d agroway_alpha14
+          echo "ALPHA14_PG_HOST=db.alpha14.test" >> "$GITHUB_ENV"
+          echo "ALPHA14_PG_PORT=5432" >> "$GITHUB_ENV"
+          echo "ALPHA14_PG_PASSWORD=$TEST_DB_PASSWORD" >> "$GITHUB_ENV"
+          echo "ALPHA14_PG_CA_B64=$(base64 -w0 /tmp/alpha14-tls/ca.crt)" >> "$GITHUB_ENV"
+      - name: PostgreSQL 16 verified-TLS driver integration
+        run: node scripts/control-postgres-js-tls-integration.mjs .tmp/control-alpha14/services/investment-portfolio/src/index.js
+      - name: Build deterministic alpha14 CONTROL review bundle
+        run: node scripts/build-control-review-bundle.mjs
+      - name: Smoke alpha14 review bundle truth
+        run: |
+          PORT=4285 node dist/control-review-bundle/server.mjs > /tmp/control-alpha14-bundle.log 2>&1 &
+          PID=$!
+          trap 'kill $PID 2>/dev/null || true' EXIT
+          for i in {1..40}; do curl -fsS http://127.0.0.1:4285/control >/dev/null && break || sleep .25; done
+          for route in /control /control/projects/inv-yar-001 /control/identity-adapter /control/authorization /control/write-adapter /control/exceptions /control/evidence /control/approvals /control/handoff; do curl -fsS "http://127.0.0.1:4285$route" >/dev/null; done
+          node -e "const m=require('./dist/control-review-bundle/REVIEW_MANIFEST.json');const a=require('./dist/control-review-bundle/config/product/control-operational-acceptance.json');if(m.version!=='0.22.0-alpha14'||m.routes.length!==9||m.authority.productionPoolDriverMaterialized!==true||m.authority.productionPoolDriverConnected!==false||m.authority.realProductionDatabaseSecretsBound!==false||m.authority.productionConnectivityCertified!==false||m.authority.executionState!=='NOT_EXECUTED'||m.authority.canonicalMutated!==false||a.productionReady!==false||a.productionBlockers.length!==4||!a.productionBlockers.includes('PRODUCTION_POSTGRES_REAL_SECRET_BINDING_AND_CONNECTIVITY_PENDING'))process.exit(1);console.log('PASS_CONTROL_ALPHA14_BUNDLE',m.fileCount,m.aggregateSha256,a.productionBlockers.length)"
+      - name: Trust boundary
+        run: |
+          echo 'PASS_CONTROL_ALPHA14_PINNED_POSTGRES_DRIVER'
+          echo 'Postgres.js 3.4.9 is commit-pinned and bridge-certified against PostgreSQL 16 verified test TLS. No real production secrets/connectivity or canonical production write is claimed.'
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: agroway-control-v022-alpha14-review-bundle
+          path: |
+            dist/control-review-bundle
+            vendor/postgres-js-3.4.9/PROVENANCE.json
+            vendor/postgres-js-3.4.9/UNLICENSE
+          if-no-files-found: error
+          retention-days: 14
