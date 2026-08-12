@@ -2,7 +2,7 @@
   "product": "GREENATICS CONTROL",
   "version": "0.22.0-alpha13",
   "capability": "PRODUCTION_POSTGRES_CONFIGURATION_AND_WIRING",
-  "status": "PASS_REVIEW_PENDING_REAL_SECRET_BINDING",
+  "status": "PASS_REVIEW_PENDING_POOL_DRIVER_AND_REAL_SECRET_BINDING",
   "environment": {
     "source": "EXTERNAL_RUNTIME_SECRETS_ONLY",
     "repositorySecretsStored": false,
@@ -24,7 +24,8 @@
     "maxConnectionsCeiling": 20,
     "connectionTimeoutMsCeiling": 15000,
     "statementTimeoutMsCeiling": 30000,
-    "applicationName": "agroway-control"
+    "applicationName": "agroway-control",
+    "poolFactory": "INJECTED_SERVER_SIDE_ONLY"
   },
   "connectivityGate": {
     "probe": "READ_ONLY",
@@ -45,6 +46,7 @@
     "scripts/control-postgres-production-wiring-runtime.mjs"
   ],
   "explicitGaps": [
+    "No concrete PostgreSQL driver/pool dependency is added because pg is absent from the canonical offline lock.",
     "No real production PostgreSQL host, username, password or CA is stored in the repository.",
     "No real production connectivity has been certified by this review-only branch.",
     "No canonical production write is executed by alpha13.",
