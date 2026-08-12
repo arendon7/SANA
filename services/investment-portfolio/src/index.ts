@@ -7,3 +7,4 @@ export * from './portfolio.js';
 export * from './risk.js';
 export * from './evidence.js';
 export * from './control-write-adapter.js';
+export * from './postgres-control-write-adapter.js';

@@ -1,6 +1,6 @@
 {
   "product": "GREENATICS CONTROL",
-  "version": "0.22.0-alpha11",
+  "version": "0.22.0-alpha12",
   "scope": "FULL_CONTROL_PRODUCT_ACCEPTANCE",
   "trust": "DEMO_RECONSTRUCTED",
   "overallStatus": "REVIEW_READY_WITH_EXPLICIT_GAPS",
@@ -20,16 +20,17 @@
     {"id":"PRODUCTION_IDENTITY_SESSION_ADAPTER","status":"PASS_REVIEW","reason":"alpha11 verifies OIDC ID Tokens using allowed RS256/ES256 signatures and injected JWKS, exact issuer/audience/azp, nonce and temporal claims, configurable tenant/session claims, plus AAL2/AAL3 and MFA evidence before producing ProductionSession.","evidence":["services/identity-access/src/oidc-session-adapter.ts","real RSA + P-256 signed-token runtime matrix","verified ProductionSession feeds authorizeProductionOperation","browser token/session endpoints forbidden"]},
     {"id":"PRODUCTION_IDENTITY_PROVIDER_CONFIGURATION","status":"PENDING_PRODUCTION","reason":"No real issuer, audience, JWKS URI, claim mapping or production credential flow is configured. No provider secrets are stored in the repository."},
     {"id":"CANONICAL_WRITE_ADAPTER_BOUNDARY","status":"PASS_REVIEW","reason":"alpha10 applies DECLARE_CAPITAL_REQUIREMENT through the canonical investment domain rule inside a transactional UnitOfWork, with exact approved-command digest binding, idempotent receipt, atomic outbox append and rollback on failure. Browser invocation is forbidden.","evidence":["services/investment-portfolio/src/control-write-adapter.ts","CapitalRequirementDeclared existing canonical event","reference transaction port runtime matrix","payload drift rejection","rollback on outbox/receipt failure"]},
-    {"id":"CANONICAL_POSTGRES_TRANSACTION_ADAPTER","status":"PENDING_PRODUCTION","reason":"The transactional adapter contract is validated, but no production PostgreSQL port is connected or runtime-verified against agroway_invest.project + agroway_core.outbox."},
+    {"id":"CANONICAL_POSTGRES_TRANSACTION_ADAPTER","status":"PASS_REVIEW","reason":"alpha12 materializes the canonical PostgreSQL UnitOfWork against agroway_invest.project + agroway_core.outbox + durable control_write_receipt, with tenant RLS binding, SELECT FOR UPDATE, transaction-scoped advisory idempotency locking and atomic rollback semantics. No production database is configured or invoked.","evidence":["services/investment-portfolio/src/postgres-control-write-adapter.ts","infra/postgres/migrations/0025_control_write_receipt.sql","scripts/validate-control-postgres-write.mjs","scripts/control-postgres-write-runtime.mjs"]},
+    {"id":"PRODUCTION_POSTGRES_CONFIGURATION","status":"PENDING_PRODUCTION","reason":"No production PostgreSQL DSN, credentials, pool wiring or live production mutation is configured. The alpha12 adapter remains server-side and uninvoked by the browser review application."},
     {"id":"EXTERNAL_ACK_ADAPTER","status":"PENDING_PRODUCTION","reason":"ACK_PENDING is explicit and no external ACK is claimed."},
     {"id":"DIRECT_MONOREPO_ROOT_LOCK","status":"PASS_REPO_HARDENING","reason":"The directly persisted reconstructed 41-workspace graph is complete and reproducible under the canonical root lock.","evidence":["PASS_DIRECT_ROOT_PERSISTENCE 380/380","PASS_DIRECT_WORKSPACE_INVENTORY_41","npm ci --ignore-scripts --offline: 41 packages added / 83 audited / 0 vulnerabilities","PASS_DIRECT_RECONSTRUCTED_41_WORKSPACE_ROOT_NPM_CI_PINNED_TSC","GitHub Actions run 31565343682"]}
   ],
   "productionBlockers": [
     "PRODUCTION_IDENTITY_PROVIDER_CONFIGURATION_PENDING",
-    "CANONICAL_POSTGRES_TRANSACTION_ADAPTER_ABSENT",
+    "PRODUCTION_POSTGRES_CONFIGURATION_PENDING",
     "EXTERNAL_ACK_ADAPTER_ABSENT",
     "D10_HUMAN_PRODUCT_APPROVAL_PENDING"
   ],
-  "authority": {"approval":"HUMAN_ONLY","ai":"ADVISORY_ONLY","identitySessionSource":"VERIFIED_OIDC_ID_TOKEN","realIdentityProviderConfigured":false,"authorizationOutputCeiling":"AUTHORIZED_FOR_ADAPTER","executionState":"NOT_EXECUTED","canonicalMutated":false,"browserWriteAllowed":false,"productionExecutionAvailable":false},
+  "authority": {"approval":"HUMAN_ONLY","ai":"ADVISORY_ONLY","identitySessionSource":"VERIFIED_OIDC_ID_TOKEN","realIdentityProviderConfigured":false,"authorizationOutputCeiling":"AUTHORIZED_FOR_ADAPTER","executionState":"NOT_EXECUTED","canonicalMutated":false,"browserWriteAllowed":false,"productionDatabaseConfigured":false,"productionExecutionAvailable":false},
   "domainDelta": {"canonicalDomainEventsAdded":0,"workspacesAdded":0}
 }

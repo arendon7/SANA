@@ -1,0 +1,119 @@
+name: AGROWAY CONTROL v0.22 alpha12
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "services/investment-portfolio/**"
+      - "infra/postgres/migrations/0025_control_write_receipt.sql"
+      - "config/product/control-alpha12-postgres-write.json"
+      - "config/product/control-operational-acceptance.json"
+      - "config/product/control-review-bundle.json"
+      - "scripts/control-postgres-write-runtime.mjs"
+      - "scripts/validate-control-postgres-write.mjs"
+      - "scripts/validate-control-operational-acceptance.mjs"
+      - "scripts/build-control-review-bundle.mjs"
+      - ".github/workflows/agroway-v022-control-alpha12.yml"
+concurrency:
+  group: agroway-control-v022-alpha12-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  postgres-canonical-write-adapter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: agroway_test
+        options: >-
+          --health-cmd "pg_isready -U postgres -d agroway_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Syntax-check alpha12
+        run: |
+          node --check scripts/control-postgres-write-runtime.mjs
+          node --check scripts/validate-control-postgres-write.mjs
+          node --check scripts/validate-control-operational-acceptance.mjs
+          node --check scripts/build-control-review-bundle.mjs
+      - name: Direct-root persistence topology and lock parity
+        run: node scripts/validate-direct-root-persistence.mjs
+      - name: Offline canonical workspace install
+        run: npm ci --ignore-scripts --offline
+      - name: Pinned TypeScript strict
+        run: npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit
+      - name: Alpha3-alpha11 regression gates
+        run: |
+          node scripts/validate-control-exception-resolution.mjs
+          node scripts/validate-control-evidence-ledger.mjs
+          node scripts/validate-control-human-approval.mjs
+          node scripts/validate-control-submission-handoff.mjs
+          node scripts/validate-control-unified-flow.mjs
+          node scripts/validate-control-reintegration.mjs
+          node scripts/validate-control-production-authorization.mjs
+          node scripts/validate-control-canonical-write.mjs
+          node scripts/validate-control-oidc-session.mjs
+      - name: Alpha12 PostgreSQL static guardrail
+        run: node scripts/validate-control-postgres-write.mjs
+      - name: Full CONTROL operational truth gate
+        run: node scripts/validate-control-operational-acceptance.mjs
+      - name: PostgreSQL 16 migration and integrity smoke
+        env:
+          PG_CONTAINER: ${{ job.services.postgres.id }}
+        run: |
+          docker exec "$PG_CONTAINER" psql -v ON_ERROR_STOP=1 -U postgres -d agroway_test -c 'CREATE SCHEMA IF NOT EXISTS agroway_core;'
+          docker exec -i "$PG_CONTAINER" psql -v ON_ERROR_STOP=1 -U postgres -d agroway_test < infra/postgres/migrations/0013_outbox.sql
+          docker exec -i "$PG_CONTAINER" psql -v ON_ERROR_STOP=1 -U postgres -d agroway_test < infra/postgres/migrations/0018_invest_control_tower.sql
+          docker exec -i "$PG_CONTAINER" psql -v ON_ERROR_STOP=1 -U postgres -d agroway_test < infra/postgres/migrations/0025_control_write_receipt.sql
+          cat <<'SQL' | docker exec -i "$PG_CONTAINER" psql -v ON_ERROR_STOP=1 -U postgres -d agroway_test
+          INSERT INTO agroway_invest.project(project_id,tenant_id,code,name,state,eligibility,producer_id,farm_id,plot_ids,crop_cycle_ids,currency,required_minor,committed_minor,deployed_minor,recovered_minor,created_at,updated_at)
+          VALUES('22222222-2222-4222-8222-222222222222','11111111-1111-4111-8111-111111111111','INV-YAR-001','Yarumal','APPROVED','ELIGIBLE','33333333-3333-4333-8333-333333333333','44444444-4444-4444-8444-444444444444','["55555555-5555-4555-8555-555555555555"]'::jsonb,'["66666666-6666-4666-8666-666666666666"]'::jsonb,'COP',1000,500,250,0,now(),now());
+          INSERT INTO agroway_invest.control_write_receipt(receipt_id,tenant_id,project_id,operation_id,idempotency_key,authorization_context_digest_sha256,command_kind,state,canonical_mutated,outbox_appended,committed_at)
+          VALUES('cwr:smoke','11111111-1111-4111-8111-111111111111','22222222-2222-4222-8222-222222222222','op-smoke','ctrl:capital:smoke-000001',repeat('a',64),'DECLARE_CAPITAL_REQUIREMENT','COMMITTED_TO_CANONICAL_PORT',true,true,now());
+          DO $$ BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname='agroway_invest' AND tablename='control_write_receipt' AND policyname='control_write_receipt_tenant_rls') THEN RAISE EXCEPTION 'RLS_POLICY_ABSENT'; END IF;
+            IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname='control_write_receipt_tenant_idempotency_uq') THEN RAISE EXCEPTION 'IDEMPOTENCY_UQ_ABSENT'; END IF;
+            IF NOT EXISTS (SELECT 1 FROM agroway_invest.control_write_receipt WHERE receipt_id='cwr:smoke') THEN RAISE EXCEPTION 'RECEIPT_INSERT_FAILED'; END IF;
+          END $$;
+          SQL
+      - name: Compile services for runtime
+        run: |
+          rm -rf .tmp/control-alpha12
+          npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit false --outDir .tmp/control-alpha12
+      - name: Production authorization regression runtime
+        run: node scripts/control-production-authorization-runtime.mjs .tmp/control-alpha12/services/identity-access/src/index.js
+      - name: Canonical write boundary regression runtime
+        run: node scripts/control-canonical-write-runtime.mjs .tmp/control-alpha12/services/investment-portfolio/src/index.js
+      - name: OIDC real-signature regression runtime
+        run: node scripts/control-oidc-session-runtime.mjs .tmp/control-alpha12/services/identity-access/src/index.js
+      - name: PostgreSQL transaction adapter runtime matrix
+        run: node scripts/control-postgres-write-runtime.mjs .tmp/control-alpha12/services/investment-portfolio/src/index.js
+      - name: Build deterministic alpha12 CONTROL review bundle
+        run: node scripts/build-control-review-bundle.mjs
+      - name: Smoke nine-route review bundle
+        run: |
+          PORT=4283 node dist/control-review-bundle/server.mjs > /tmp/control-alpha12-bundle.log 2>&1 &
+          PID=$!
+          trap 'kill $PID 2>/dev/null || true' EXIT
+          for i in {1..40}; do curl -fsS http://127.0.0.1:4283/control >/dev/null && break || sleep .25; done
+          for route in /control /control/projects/inv-yar-001 /control/identity-adapter /control/authorization /control/write-adapter /control/exceptions /control/evidence /control/approvals /control/handoff; do curl -fsS "http://127.0.0.1:4283$route" >/dev/null; done
+          node -e "const m=require('./dist/control-review-bundle/REVIEW_MANIFEST.json');const a=require('./dist/control-review-bundle/config/product/control-operational-acceptance.json');if(m.version!=='0.22.0-alpha12'||m.routes.length!==9||m.authority.productionDatabaseConfigured!==false||m.authority.executionState!=='NOT_EXECUTED'||m.authority.canonicalMutated!==false||a.productionReady!==false||a.productionBlockers.length!==4||!a.productionBlockers.includes('PRODUCTION_POSTGRES_CONFIGURATION_PENDING')||a.productionBlockers.includes('CANONICAL_POSTGRES_TRANSACTION_ADAPTER_ABSENT'))process.exit(1);console.log('PASS_CONTROL_ALPHA12_BUNDLE',m.fileCount,m.aggregateSha256,a.productionBlockers.length)"
+      - name: Trust boundary
+        run: |
+          echo 'PASS_CONTROL_ALPHA12_POSTGRES_TRANSACTION_ADAPTER'
+          echo 'The server-side PostgreSQL transaction adapter is materialized and reviewed against PostgreSQL 16 schema semantics. No production DB/credentials are configured; browser writes and production execution remain unavailable.'
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: agroway-control-v022-alpha12-review-bundle
+          path: dist/control-review-bundle
+          if-no-files-found: error
+          retention-days: 14

@@ -1,10 +1,98 @@
 import fs from 'node:fs';
-const p='config/product/control-operational-acceptance.json';const m=JSON.parse(fs.readFileSync(p,'utf8'));const out=[];const check=(n,v)=>{out.push({name:n,pass:!!v});console.log(`${v?'PASS':'FAIL'} ${n}`)};
-check('status:review-ready-with-gaps',m.overallStatus==='REVIEW_READY_WITH_EXPLICIT_GAPS');check('status:not-production-ready',m.productionReady===false);check('status:d10-pending',m.d10==='PENDING');check('authority:human-only',m.authority.approval==='HUMAN_ONLY');check('authority:ai-advisory-only',m.authority.ai==='ADVISORY_ONLY');check('authority:not-executed',m.authority.executionState==='NOT_EXECUTED');check('authority:no-canonical-mutation',m.authority.canonicalMutated===false);check('delta:events-zero',m.domainDelta.canonicalDomainEventsAdded===0);check('delta:workspaces-zero',m.domainDelta.workspacesAdded===0);
-const byId=Object.fromEntries(m.capabilities.map(x=>[x.id,x]));for(const id of ['EXCEPTION_RESOLUTION','EVIDENCE_PROVENANCE_LEDGER','HUMAN_APPROVAL_QUEUE','SUBMISSION_HANDOFF','UNIFIED_CONTROL_FLOW','AI_AUTHORITY_BOUNDARY','PWA_RESPONSIVE_REVIEW']){const c=byId[id];check(`review:${id}`,c?.status==='PASS_REVIEW');check(`review:${id}:evidence`,Array.isArray(c?.evidence)&&c.evidence.length>0)}
-const alpha7=m.version==='0.22.0-alpha7',alpha8=m.version==='0.22.0-alpha8',alpha9=m.version==='0.22.0-alpha9',alpha10=m.version==='0.22.0-alpha10',alpha11=m.version==='0.22.0-alpha11',recovered=alpha8||alpha9||alpha10||alpha11;check('version:supported',alpha7||recovered);
-if(recovered){for(const id of ['CONTROL_TOWER_VISIBILITY','INVESTMENT_PROJECT_WORKSPACE']){const c=byId[id];check(`integration:${id}:recovered`,c?.status==='PASS_REVIEW_RECOVERED');check(`integration:${id}:evidence`,Array.isArray(c?.evidence)&&c.evidence.length>0)}check('integration:home-source-materialized',fs.existsSync('apps/control-web/src/home-model.ts'));check('integration:recovery-contract',fs.existsSync('config/product/control-alpha8-recovery.json'));const r=JSON.parse(fs.readFileSync('config/product/control-alpha8-recovery.json','utf8'));check('integration:recovery-trust',r.source.trust==='RECOVERED_EXACT_PR9_BLOBS');check('integration:project-model-not-falsely-claimed',r.source.investmentProjectTypeScriptModelHistoricalExactRecovered===false)}else{for(const [id,src] of [['CONTROL_TOWER_VISIBILITY','apps/control-web/src/home-model.ts'],['INVESTMENT_PROJECT_WORKSPACE','apps/control-web/src/investment-project-workspace-model.ts']]){const c=byId[id];check(`integration:${id}:pending`,c?.status==='PENDING_INTEGRATION');check(`integration:${id}:source-currently-absent`,!fs.existsSync(src));check(`integration:${id}:expected-source`,c?.expectedSource===src)}}
-if(alpha9||alpha10||alpha11){check('production:authorization-boundary:pass',byId.PRODUCTION_AUTHORIZATION_BOUNDARY?.status==='PASS_REVIEW');check('production:authorization-output-ceiling',m.authority.authorizationOutputCeiling==='AUTHORIZED_FOR_ADAPTER');if(alpha11){check('production:identity-session-adapter:pass',byId.PRODUCTION_IDENTITY_SESSION_ADAPTER?.status==='PASS_REVIEW');check('production:identity-provider-config:pending',byId.PRODUCTION_IDENTITY_PROVIDER_CONFIGURATION?.status==='PENDING_PRODUCTION');check('production:identity-session-source',m.authority.identitySessionSource==='VERIFIED_OIDC_ID_TOKEN');check('production:real-idp-not-configured',m.authority.realIdentityProviderConfigured===false)}else check('production:identity-session-adapter:pending',byId.PRODUCTION_IDENTITY_SESSION_ADAPTER?.status==='PENDING_PRODUCTION')}else check('production:authorization:pending',byId.PRODUCTION_AUTHORIZATION?.status==='PENDING_PRODUCTION');
-if(alpha10||alpha11){check('production:canonical-write-boundary:pass',byId.CANONICAL_WRITE_ADAPTER_BOUNDARY?.status==='PASS_REVIEW');check('production:postgres-transaction-adapter:pending',byId.CANONICAL_POSTGRES_TRANSACTION_ADAPTER?.status==='PENDING_PRODUCTION');check('production:browser-write-forbidden',m.authority.browserWriteAllowed===false);check('production:execution-unavailable',m.authority.productionExecutionAvailable===false)}else check('production:canonical-write-adapter:pending',byId.CANONICAL_WRITE_ADAPTER?.status==='PENDING_PRODUCTION');
-check('production:external-ack:pending',byId.EXTERNAL_ACK_ADAPTER?.status==='PENDING_PRODUCTION');const rootLockResolved=byId.DIRECT_MONOREPO_ROOT_LOCK?.status==='PASS_REPO_HARDENING';if(rootLockResolved){check('repo:direct-root-lock:pass',true);check('repo:direct-root-lock:evidence',Array.isArray(byId.DIRECT_MONOREPO_ROOT_LOCK?.evidence)&&byId.DIRECT_MONOREPO_ROOT_LOCK.evidence.some(x=>x.includes('380/380')));check('repo:direct-root-lock:not-blocker',!m.productionBlockers.includes('DIRECT_MONOREPO_ROOT_LOCK_DEBT'))}else check('debt:direct-monorepo-separated',byId.DIRECT_MONOREPO_ROOT_LOCK?.status==='SEPARATE_DEBT');
-const blockers=new Set(m.productionBlockers||[]);let expected;if(alpha11)expected=['PRODUCTION_IDENTITY_PROVIDER_CONFIGURATION_PENDING','CANONICAL_POSTGRES_TRANSACTION_ADAPTER_ABSENT','EXTERNAL_ACK_ADAPTER_ABSENT','D10_HUMAN_PRODUCT_APPROVAL_PENDING'];else if(alpha10)expected=['PRODUCTION_IDENTITY_SESSION_ADAPTER_ABSENT','CANONICAL_POSTGRES_TRANSACTION_ADAPTER_ABSENT','EXTERNAL_ACK_ADAPTER_ABSENT','D10_HUMAN_PRODUCT_APPROVAL_PENDING'];else if(alpha9){const base=['PRODUCTION_IDENTITY_SESSION_ADAPTER_ABSENT','CANONICAL_WRITE_ADAPTER_INTENTIONALLY_ABSENT','EXTERNAL_ACK_ADAPTER_ABSENT','D10_HUMAN_PRODUCT_APPROVAL_PENDING'];expected=rootLockResolved?base:[...base.slice(0,3),'DIRECT_MONOREPO_ROOT_LOCK_DEBT',base[3]]}else if(alpha8)expected=['PRODUCTION_AUTHORIZATION_NOT_ACCEPTED','CANONICAL_WRITE_ADAPTER_INTENTIONALLY_ABSENT','EXTERNAL_ACK_ADAPTER_ABSENT','DIRECT_MONOREPO_ROOT_LOCK_DEBT','D10_HUMAN_PRODUCT_APPROVAL_PENDING'];else expected=['CONTROL_TOWER_HOME_NOT_MATERIALIZED_IN_ALPHA7_BRANCH','INVESTMENT_PROJECT_WORKSPACE_NOT_MATERIALIZED_IN_ALPHA7_BRANCH','PRODUCTION_AUTHORIZATION_NOT_ACCEPTED','CANONICAL_WRITE_ADAPTER_INTENTIONALLY_ABSENT','EXTERNAL_ACK_ADAPTER_ABSENT','DIRECT_MONOREPO_ROOT_LOCK_DEBT','D10_HUMAN_PRODUCT_APPROVAL_PENDING'];for(const b of expected)check(`blocker:${b}`,blockers.has(b));check('blockers:exact-count',blockers.size===expected.length);check('truth:no-production-pass',!m.capabilities.some(x=>x.status==='PRODUCTION_PASS'));const failed=out.filter(x=>!x.pass);console.log(`${failed.length?'FAIL':'PASS'}_CONTROL_OPERATIONAL_ACCEPTANCE ${out.length-failed.length}/${out.length}`);if(failed.length)process.exit(1);
+
+const p='config/product/control-operational-acceptance.json';
+const m=JSON.parse(fs.readFileSync(p,'utf8'));
+const out=[];
+const check=(name,value)=>{out.push({name,pass:!!value});console.log(`${value?'PASS':'FAIL'} ${name}`)};
+const byId=Object.fromEntries(m.capabilities.map(x=>[x.id,x]));
+
+check('status:review-ready-with-gaps',m.overallStatus==='REVIEW_READY_WITH_EXPLICIT_GAPS');
+check('status:not-production-ready',m.productionReady===false);
+check('status:d10-pending',m.d10==='PENDING');
+check('authority:human-only',m.authority.approval==='HUMAN_ONLY');
+check('authority:ai-advisory-only',m.authority.ai==='ADVISORY_ONLY');
+check('authority:not-executed',m.authority.executionState==='NOT_EXECUTED');
+check('authority:no-canonical-mutation',m.authority.canonicalMutated===false);
+check('delta:events-zero',m.domainDelta.canonicalDomainEventsAdded===0);
+check('delta:workspaces-zero',m.domainDelta.workspacesAdded===0);
+
+for(const id of ['EXCEPTION_RESOLUTION','EVIDENCE_PROVENANCE_LEDGER','HUMAN_APPROVAL_QUEUE','SUBMISSION_HANDOFF','UNIFIED_CONTROL_FLOW','AI_AUTHORITY_BOUNDARY','PWA_RESPONSIVE_REVIEW']){
+  const c=byId[id];
+  check(`review:${id}`,c?.status==='PASS_REVIEW');
+  check(`review:${id}:evidence`,Array.isArray(c?.evidence)&&c.evidence.length>0);
+}
+
+const alpha7=m.version==='0.22.0-alpha7';
+const alpha8=m.version==='0.22.0-alpha8';
+const alpha9=m.version==='0.22.0-alpha9';
+const alpha10=m.version==='0.22.0-alpha10';
+const alpha11=m.version==='0.22.0-alpha11';
+const alpha12=m.version==='0.22.0-alpha12';
+const recovered=alpha8||alpha9||alpha10||alpha11||alpha12;
+check('version:supported',alpha7||recovered);
+
+if(recovered){
+  for(const id of ['CONTROL_TOWER_VISIBILITY','INVESTMENT_PROJECT_WORKSPACE']){
+    const c=byId[id];
+    check(`integration:${id}:recovered`,c?.status==='PASS_REVIEW_RECOVERED');
+    check(`integration:${id}:evidence`,Array.isArray(c?.evidence)&&c.evidence.length>0);
+  }
+  check('integration:home-source-materialized',fs.existsSync('apps/control-web/src/home-model.ts'));
+  check('integration:recovery-contract',fs.existsSync('config/product/control-alpha8-recovery.json'));
+  const r=JSON.parse(fs.readFileSync('config/product/control-alpha8-recovery.json','utf8'));
+  check('integration:recovery-trust',r.source.trust==='RECOVERED_EXACT_PR9_BLOBS');
+  check('integration:project-model-not-falsely-claimed',r.source.investmentProjectTypeScriptModelHistoricalExactRecovered===false);
+}else{
+  for(const [id,src] of [['CONTROL_TOWER_VISIBILITY','apps/control-web/src/home-model.ts'],['INVESTMENT_PROJECT_WORKSPACE','apps/control-web/src/investment-project-workspace-model.ts']]){
+    const c=byId[id];
+    check(`integration:${id}:pending`,c?.status==='PENDING_INTEGRATION');
+    check(`integration:${id}:source-currently-absent`,!fs.existsSync(src));
+    check(`integration:${id}:expected-source`,c?.expectedSource===src);
+  }
+}
+
+if(alpha9||alpha10||alpha11||alpha12){
+  check('production:authorization-boundary:pass',byId.PRODUCTION_AUTHORIZATION_BOUNDARY?.status==='PASS_REVIEW');
+  check('production:authorization-output-ceiling',m.authority.authorizationOutputCeiling==='AUTHORIZED_FOR_ADAPTER');
+  if(alpha11||alpha12){
+    check('production:identity-session-adapter:pass',byId.PRODUCTION_IDENTITY_SESSION_ADAPTER?.status==='PASS_REVIEW');
+    check('production:identity-provider-config:pending',byId.PRODUCTION_IDENTITY_PROVIDER_CONFIGURATION?.status==='PENDING_PRODUCTION');
+    check('production:identity-session-source',m.authority.identitySessionSource==='VERIFIED_OIDC_ID_TOKEN');
+    check('production:real-idp-not-configured',m.authority.realIdentityProviderConfigured===false);
+  }else check('production:identity-session-adapter:pending',byId.PRODUCTION_IDENTITY_SESSION_ADAPTER?.status==='PENDING_PRODUCTION');
+}else check('production:authorization:pending',byId.PRODUCTION_AUTHORIZATION?.status==='PENDING_PRODUCTION');
+
+if(alpha10||alpha11||alpha12){
+  check('production:canonical-write-boundary:pass',byId.CANONICAL_WRITE_ADAPTER_BOUNDARY?.status==='PASS_REVIEW');
+  check('production:browser-write-forbidden',m.authority.browserWriteAllowed===false);
+  check('production:execution-unavailable',m.authority.productionExecutionAvailable===false);
+  if(alpha12){
+    check('production:postgres-transaction-adapter:pass',byId.CANONICAL_POSTGRES_TRANSACTION_ADAPTER?.status==='PASS_REVIEW');
+    check('production:postgres-config:pending',byId.PRODUCTION_POSTGRES_CONFIGURATION?.status==='PENDING_PRODUCTION');
+    check('production:postgres-not-configured',m.authority.productionDatabaseConfigured===false);
+  }else check('production:postgres-transaction-adapter:pending',byId.CANONICAL_POSTGRES_TRANSACTION_ADAPTER?.status==='PENDING_PRODUCTION');
+}else check('production:canonical-write-adapter:pending',byId.CANONICAL_WRITE_ADAPTER?.status==='PENDING_PRODUCTION');
+
+check('production:external-ack:pending',byId.EXTERNAL_ACK_ADAPTER?.status==='PENDING_PRODUCTION');
+const rootLockResolved=byId.DIRECT_MONOREPO_ROOT_LOCK?.status==='PASS_REPO_HARDENING';
+if(rootLockResolved){
+  check('repo:direct-root-lock:pass',true);
+  check('repo:direct-root-lock:evidence',Array.isArray(byId.DIRECT_MONOREPO_ROOT_LOCK?.evidence)&&byId.DIRECT_MONOREPO_ROOT_LOCK.evidence.some(x=>x.includes('380/380')));
+  check('repo:direct-root-lock:not-blocker',!m.productionBlockers.includes('DIRECT_MONOREPO_ROOT_LOCK_DEBT'));
+}else check('debt:direct-monorepo-separated',byId.DIRECT_MONOREPO_ROOT_LOCK?.status==='SEPARATE_DEBT');
+
+const blockers=new Set(m.productionBlockers||[]);
+let expected;
+if(alpha12) expected=['PRODUCTION_IDENTITY_PROVIDER_CONFIGURATION_PENDING','PRODUCTION_POSTGRES_CONFIGURATION_PENDING','EXTERNAL_ACK_ADAPTER_ABSENT','D10_HUMAN_PRODUCT_APPROVAL_PENDING'];
+else if(alpha11) expected=['PRODUCTION_IDENTITY_PROVIDER_CONFIGURATION_PENDING','CANONICAL_POSTGRES_TRANSACTION_ADAPTER_ABSENT','EXTERNAL_ACK_ADAPTER_ABSENT','D10_HUMAN_PRODUCT_APPROVAL_PENDING'];
+else if(alpha10) expected=['PRODUCTION_IDENTITY_SESSION_ADAPTER_ABSENT','CANONICAL_POSTGRES_TRANSACTION_ADAPTER_ABSENT','EXTERNAL_ACK_ADAPTER_ABSENT','D10_HUMAN_PRODUCT_APPROVAL_PENDING'];
+else if(alpha9){const base=['PRODUCTION_IDENTITY_SESSION_ADAPTER_ABSENT','CANONICAL_WRITE_ADAPTER_INTENTIONALLY_ABSENT','EXTERNAL_ACK_ADAPTER_ABSENT','D10_HUMAN_PRODUCT_APPROVAL_PENDING'];expected=rootLockResolved?base:[...base.slice(0,3),'DIRECT_MONOREPO_ROOT_LOCK_DEBT',base[3]];}
+else if(alpha8) expected=['PRODUCTION_AUTHORIZATION_NOT_ACCEPTED','CANONICAL_WRITE_ADAPTER_INTENTIONALLY_ABSENT','EXTERNAL_ACK_ADAPTER_ABSENT','DIRECT_MONOREPO_ROOT_LOCK_DEBT','D10_HUMAN_PRODUCT_APPROVAL_PENDING'];
+else expected=['CONTROL_TOWER_HOME_NOT_MATERIALIZED_IN_ALPHA7_BRANCH','INVESTMENT_PROJECT_WORKSPACE_NOT_MATERIALIZED_IN_ALPHA7_BRANCH','PRODUCTION_AUTHORIZATION_NOT_ACCEPTED','CANONICAL_WRITE_ADAPTER_INTENTIONALLY_ABSENT','EXTERNAL_ACK_ADAPTER_ABSENT','DIRECT_MONOREPO_ROOT_LOCK_DEBT','D10_HUMAN_PRODUCT_APPROVAL_PENDING'];
+for(const blocker of expected) check(`blocker:${blocker}`,blockers.has(blocker));
+check('blockers:exact-count',blockers.size===expected.length);
+check('truth:no-production-pass',!m.capabilities.some(x=>x.status==='PRODUCTION_PASS'));
+
+const failed=out.filter(x=>!x.pass);
+console.log(`${failed.length?'FAIL':'PASS'}_CONTROL_OPERATIONAL_ACCEPTANCE ${out.length-failed.length}/${out.length}`);
+if(failed.length) process.exit(1);

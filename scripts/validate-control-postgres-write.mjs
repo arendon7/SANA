@@ -1,0 +1,41 @@
+import fs from 'node:fs';
+
+const adapter=fs.readFileSync('services/investment-portfolio/src/postgres-control-write-adapter.ts','utf8');
+const migration=fs.readFileSync('infra/postgres/migrations/0025_control_write_receipt.sql','utf8');
+const index=fs.readFileSync('services/investment-portfolio/src/index.ts','utf8');
+const cfg=JSON.parse(fs.readFileSync('config/product/control-alpha12-postgres-write.json','utf8'));
+const out=[];
+const check=(name,value)=>{out.push({name,pass:!!value});console.log(`${value?'PASS':'FAIL'} ${name}`)};
+
+check('config:version',cfg.version==='0.22.0-alpha12');
+check('config:capability',cfg.capability==='CANONICAL_POSTGRES_TRANSACTION_ADAPTER'&&cfg.status==='PASS_REVIEW');
+check('config:no-production-db',cfg.authority.productionDatabaseConfigured===false);
+check('config:no-production-execution',cfg.authority.productionExecutionAvailable===false);
+check('config:human-only',cfg.authority.approval==='HUMAN_ONLY'&&cfg.authority.ai==='ADVISORY_ONLY');
+check('export:postgres-adapter',index.includes("export * from './postgres-control-write-adapter.js'"));
+check('adapter:no-pg-package-import',!/(?:from|import\()\s*['\"]pg['\"]/.test(adapter));
+check('adapter:begin',adapter.includes("client.query('BEGIN')"));
+check('adapter:commit',adapter.includes("client.query('COMMIT')"));
+check('adapter:rollback',adapter.includes("client.query('ROLLBACK')"));
+check('adapter:tenant-set-config',adapter.includes("set_config('app.tenant_id',$1,true)"));
+check('adapter:no-tenant-interpolation',!adapter.includes("set_config('app.tenant_id','${"));
+check('adapter:idempotency-lock',adapter.includes('pg_advisory_xact_lock(hashtextextended($1,0))'));
+check('adapter:receipt-read',adapter.includes('FROM agroway_invest.control_write_receipt'));
+check('adapter:project-for-update',adapter.includes('FROM agroway_invest.project')&&adapter.includes('FOR UPDATE'));
+check('adapter:canonical-update',adapter.includes('UPDATE agroway_invest.project'));
+check('adapter:canonical-outbox',adapter.includes('INSERT INTO agroway_core.outbox'));
+check('adapter:receipt-write',adapter.includes('INSERT INTO agroway_invest.control_write_receipt'));
+check('adapter:deterministic-event-uuid',adapter.includes('deterministicEventUuid(event.eventKey)'));
+check('adapter:tenant-switch-forbidden',adapter.includes('POSTGRES_TRANSACTION_TENANT_SWITCH_FORBIDDEN'));
+check('migration:transactional',migration.startsWith('BEGIN;')&&migration.trimEnd().endsWith('COMMIT;'));
+check('migration:receipt-table',migration.includes('CREATE TABLE IF NOT EXISTS agroway_invest.control_write_receipt'));
+check('migration:tenant-project-fk',migration.includes('FOREIGN KEY(tenant_id,project_id)'));
+check('migration:idempotency-unique',migration.includes('UNIQUE(tenant_id,idempotency_key)'));
+check('migration:operation-unique',migration.includes('UNIQUE(tenant_id,operation_id)'));
+check('migration:rls-enabled',migration.includes('ALTER TABLE agroway_invest.control_write_receipt ENABLE ROW LEVEL SECURITY'));
+check('migration:rls-policy',migration.includes('control_write_receipt_tenant_rls'));
+check('migration:truth-checks',migration.includes('CHECK(canonical_mutated=true)')&&migration.includes('CHECK(outbox_appended=true)'));
+
+const failed=out.filter(x=>!x.pass);
+console.log(`${failed.length?'FAIL':'PASS'}_CONTROL_POSTGRES_WRITE ${out.length-failed.length}/${out.length}`);
+if(failed.length) process.exit(1);

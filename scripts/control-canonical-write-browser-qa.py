@@ -1,4 +1,4 @@
-import json, os, pathlib, subprocess, time, urllib.request, urllib.error
+import json, os, pathlib, subprocess, time, urllib.request
 from playwright.sync_api import sync_playwright
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 OUT=ROOT/'docs/product/evidence/canonical-write-adapter';OUT.mkdir(parents=True,exist_ok=True)
@@ -22,23 +22,19 @@ try:
             page.on('console',lambda m,arr=console: arr.append(m.text) if m.type=='error' else None);page.on('pageerror',lambda e,arr=errors: arr.append(str(e)))
             response=page.goto(BASE+'/control/write-adapter',wait_until='networkidle');check(f'{label}:route',response is not None and response.status==200,page.url)
             body=page.locator('body').inner_text()
-            for token in ['Canonical Write Adapter','AUTHORIZED_FOR_ADAPTER','DECLARE_CAPITAL_REQUIREMENT','CapitalRequirementDeclared','REVIEW_ONLY','CANONICAL_POSTGRES_TRANSACTION_ADAPTER_ABSENT','ADVISORY_ONLY','D10=PENDING']:check(f'{label}:token:{token}',token in body)
-            state=page.evaluate('globalThis.__AGROWAY_CONTROL_ALPHA10_WRITE__')
-            check(f'{label}:review-only',state.get('surface')=='REVIEW_ONLY');check(f'{label}:browser-disabled',state.get('browserCanInvokeAdapter') is False);check(f'{label}:postgres-pending',state.get('postgresTransactionAdapterConnected') is False);check(f'{label}:no-production-execution',state.get('productionExecutionAvailable') is False)
-            width=page.evaluate('document.documentElement.scrollWidth <= document.documentElement.clientWidth');check(f'{label}:no-overflow',width)
-            check(f'{label}:no-console-errors',not console,json.dumps(console));check(f'{label}:no-page-errors',not errors,json.dumps(errors))
+            for token in ['Canonical Write Adapter','AUTHORIZED_FOR_ADAPTER','DECLARE_CAPITAL_REQUIREMENT','CapitalRequirementDeclared','REVIEW_ONLY','PASS_REVIEW','PRODUCTION_POSTGRES_CONFIGURATION_PENDING','ADVISORY_ONLY','D10=PENDING']:check(f'{label}:token:{token}',token in body)
+            state=page.evaluate('globalThis.__AGROWAY_CONTROL_ALPHA12_WRITE__')
+            check(f'{label}:review-only',state.get('surface')=='REVIEW_ONLY');check(f'{label}:browser-disabled',state.get('browserCanInvokeAdapter') is False);check(f'{label}:postgres-implemented',state.get('postgresTransactionAdapterImplemented') is True);check(f'{label}:prod-db-pending',state.get('productionDatabaseConfigured') is False);check(f'{label}:no-production-execution',state.get('productionExecutionAvailable') is False)
+            check(f'{label}:no-overflow',page.evaluate('document.documentElement.scrollWidth <= document.documentElement.clientWidth'));check(f'{label}:no-console-errors',not console,json.dumps(console));check(f'{label}:no-page-errors',not errors,json.dumps(errors))
             api=page.evaluate("async()=>{const r=await fetch('/api/control/write');return {status:r.status,body:await r.json()}}")
-            check(f'{label}:api-get-forbidden',api['status']==404 and api['body'].get('error')=='CANONICAL_WRITE_BROWSER_ENDPOINT_FORBIDDEN',json.dumps(api))
+            check(f'{label}:api-get-forbidden',api['status']==404 and api['body'].get('error')=='CANONICAL_WRITE_BROWSER_ENDPOINT_FORBIDDEN' and api['body'].get('postgresTransactionAdapterImplemented') is True and api['body'].get('productionDatabaseConfigured') is False,json.dumps(api))
             post=page.evaluate("async()=>{const r=await fetch('/api/control/write',{method:'POST',headers:{'content-type':'application/json'},body:'{}'});return {status:r.status,text:await r.text()}}")
-            check(f'{label}:api-post-forbidden',post['status']==405,json.dumps(post))
-            page.screenshot(path=str(OUT/f'alpha10-write-{label}.png'),full_page=True)
-            ctx.close()
-        ctx=browser.new_context(viewport={'width':1280,'height':900});page=ctx.new_page();page.goto(BASE+'/control',wait_until='networkidle');check('home:write-entry',page.locator('a[href="/control/write-adapter"]').count()>0);page.locator('a[href="/control/write-adapter"]').first.click();page.wait_for_url('**/control/write-adapter');check('home:write-navigation',page.url.endswith('/control/write-adapter'))
-        page.wait_for_timeout(500);controller=page.evaluate("navigator.serviceWorker.controller?.scriptURL||''");regs=page.evaluate("async()=> (await navigator.serviceWorker.getRegistrations()).map(r=>r.active?.scriptURL||r.installing?.scriptURL||r.waiting?.scriptURL||'')")
-        check('pwa:single-registration',len(regs)<=1,json.dumps(regs));check('pwa:unified-service-worker',not regs or all(x.endswith('/service-worker.js') for x in regs),json.dumps(regs));check('pwa:historical-project-sw-not-active',all('service-worker-project.js' not in x for x in regs),json.dumps(regs));ctx.close();browser.close()
+            check(f'{label}:api-post-forbidden',post['status']==405,json.dumps(post));page.screenshot(path=str(OUT/f'alpha12-write-{label}.png'),full_page=True);ctx.close()
+        ctx=browser.new_context(viewport={'width':1280,'height':900});page=ctx.new_page();page.goto(BASE+'/control',wait_until='networkidle');check('home:write-entry',page.locator('a[href="/control/write-adapter"]').count()>0);page.locator('a[href="/control/write-adapter"]').first.click();page.wait_for_url('**/control/write-adapter');check('home:write-navigation',page.url.endswith('/control/write-adapter'));page.wait_for_timeout(500)
+        regs=page.evaluate("async()=> (await navigator.serviceWorker.getRegistrations()).map(r=>r.active?.scriptURL||r.installing?.scriptURL||r.waiting?.scriptURL||'')");check('pwa:single-registration',len(regs)<=1,json.dumps(regs));check('pwa:unified-service-worker',not regs or all(x.endswith('/service-worker.js') for x in regs),json.dumps(regs));check('pwa:historical-project-sw-not-active',all('service-worker-project.js' not in x for x in regs),json.dumps(regs));ctx.close();browser.close()
 finally:
     proc.terminate()
     try:proc.wait(timeout=3)
     except subprocess.TimeoutExpired:proc.kill()
-failed=[x for x in results if not x['pass']];report={'status':'PASS' if not failed else 'FAIL','checks':len(results),'failed':[x['name'] for x in failed],'results':results,'transport':'HTTP_REAL','boundary':'CANONICAL_WRITE_ADAPTER','browserCanInvokeAdapter':False,'postgresTransactionAdapterConnected':False,'productionExecutionAvailable':False,'approvalAuthority':'HUMAN_ONLY','aiAuthority':'ADVISORY_ONLY','d10':'PENDING'}
+failed=[x for x in results if not x['pass']];report={'status':'PASS' if not failed else 'FAIL','checks':len(results),'failed':[x['name'] for x in failed],'results':results,'transport':'HTTP_REAL','boundary':'CANONICAL_POSTGRES_TRANSACTION_ADAPTER','browserCanInvokeAdapter':False,'postgresTransactionAdapterImplemented':True,'productionDatabaseConfigured':False,'productionExecutionAvailable':False,'approvalAuthority':'HUMAN_ONLY','aiAuthority':'ADVISORY_ONLY','d10':'PENDING'}
 (OUT/'report.json').write_text(json.dumps(report,indent=2),encoding='utf-8');print(json.dumps(report,indent=2));raise SystemExit(1 if failed else 0)
