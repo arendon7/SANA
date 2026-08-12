@@ -10,6 +10,7 @@ on:
       - "apps/**"
       - "packages/**"
       - "services/**"
+      - "scripts/verify-workspace-persistence.mjs"
       - ".github/workflows/agroway-v021-direct-monorepo.yml"
 concurrency:
   group: agroway-v021-direct-${{ github.event.pull_request.number || github.ref }}
@@ -51,6 +52,9 @@ jobs:
           if(names.size!==41) throw new Error(`EXPECTED_41_UNIQUE_NAMES_GOT_${names.size}`);
           console.log('PASS_DIRECT_WORKSPACE_INVENTORY_41');
           NODE
+
+      - name: Verify issue 24 persistence and lock parity
+        run: node scripts/verify-workspace-persistence.mjs
 
       - name: Offline workspace installation from canonical root lockfile
         run: npm ci --ignore-scripts --offline
