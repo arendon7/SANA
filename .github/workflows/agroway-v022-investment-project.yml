@@ -1,0 +1,80 @@
+name: AGROWAY CONTROL v0.22 investment project review
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "apps/control-web/public/project.*"
+      - "apps/control-web/project-server.mjs"
+      - "apps/control-web/public/service-worker-project.js"
+      - "apps/control-web/src/investment-project-workspace-model.ts"
+      - "config/design/screens/investment-project-workspace.json"
+      - "scripts/validate-investment-project-workspace.mjs"
+      - "scripts/investment-project-browser-qa.mjs"
+      - ".github/workflows/agroway-v022-investment-project.yml"
+permissions:
+  contents: read
+jobs:
+  investment-project-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Root reconstructed workspace graph
+        run: |
+          npm ci --ignore-scripts --offline
+          npm run typecheck
+      - name: Investment project static guardrail
+        run: node scripts/validate-investment-project-workspace.mjs
+      - name: Syntax check project runtime
+        run: |
+          node --check apps/control-web/public/project.js
+          node --check apps/control-web/public/service-worker-project.js
+          node --check apps/control-web/project-server.mjs
+          node --check scripts/investment-project-browser-qa.mjs
+      - name: Install pinned Playwright Chromium
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/agroway-project-playwright
+          cp scripts/investment-project-browser-qa.mjs /tmp/agroway-project-playwright/
+          printf '%s\n' '{"private":true,"type":"module"}' > /tmp/agroway-project-playwright/package.json
+          cd /tmp/agroway-project-playwright
+          corepack enable
+          corepack prepare pnpm@10.15.0 --activate
+          pnpm add --ignore-scripts --save-exact playwright@1.57.0
+          pnpm exec playwright --version | grep -F 'Version 1.57.0'
+          pnpm exec playwright install --with-deps chromium
+      - name: Start project review server
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/agroway-project-evidence && mkdir -p /tmp/agroway-project-evidence
+          PORT=4274 node apps/control-web/project-server.mjs >/tmp/agroway-project-server.log 2>&1 &
+          echo $! >/tmp/agroway-project-server.pid
+          for i in $(seq 1 40); do curl -fsS http://127.0.0.1:4274/control/projects/inv-yar-001 >/dev/null && exit 0; sleep .25; done
+          cat /tmp/agroway-project-server.log || true; exit 1
+      - name: Native Chromium investment project QA
+        working-directory: /tmp/agroway-project-playwright
+        env:
+          AGROWAY_PROJECT_BASE_URL: http://127.0.0.1:4274/control/projects/inv-yar-001
+          AGROWAY_PROJECT_EVIDENCE: /tmp/agroway-project-evidence
+        run: node investment-project-browser-qa.mjs
+      - name: Human authority boundary
+        run: |
+          echo 'READY_FOR_INVESTMENT_PROJECT_PRODUCT_APPROVAL_D10_PENDING'
+          echo 'No CI result authorizes budget approval, capital deployment, project-state mutation or certification.'
+      - name: Stop project server
+        if: always()
+        run: if test -f /tmp/agroway-project-server.pid; then kill "$(cat /tmp/agroway-project-server.pid)" 2>/dev/null || true; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: agroway-control-v022-alpha2-project-evidence
+          path: |
+            /tmp/agroway-project-evidence
+            /tmp/agroway-project-server.log
+          if-no-files-found: warn
+          retention-days: 14
