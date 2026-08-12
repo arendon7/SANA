@@ -1,19 +1,18 @@
 name: AGROWAY CONTROL alpha15 ACK store validation-order fixer
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/agroway-v022-control-alpha15-store-fix.yml"
+  push:
+    branches:
+      - feature/control-v022-alpha15
 permissions:
   contents: write
 jobs:
   patch-store:
-    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feature/control-v022-alpha15'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: feature/control-v022-alpha15
           fetch-depth: 0
       - name: Move receipt hydration before COMMIT
         run: |
@@ -49,8 +48,9 @@ jobs:
           grep -F 'const hydratedExisting=hydrateReceipt(existing.rows[0]);' services/external-data-gateway/src/control-external-ack-adapter.ts
       - name: Persist source fix
         run: |
+          if git diff --quiet -- services/external-data-gateway/src/control-external-ack-adapter.ts; then echo PASS_ACK_STORE_ALREADY_FIXED; exit 0; fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add services/external-data-gateway/src/control-external-ack-adapter.ts
           git commit -m 'fix(control): validate ACK receipts before transaction commit'
-          git push origin HEAD:${{ github.event.pull_request.head.ref }}
+          git push origin HEAD:feature/control-v022-alpha15
