@@ -1,0 +1,64 @@
+name: AGROWAY CAPITAL_READINESS UX2B-1B ingestion service
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "packages/invest-control-contracts/src/readiness-evidence.ts"
+      - "services/investment-portfolio/src/readiness-evidence-ingestion.ts"
+      - "services/investment-portfolio/src/index.ts"
+      - "scripts/validate-capital-readiness-ingestion-ux2b1b.mjs"
+      - ".github/workflows/agroway-capital-readiness-ux2b1b.yml"
+concurrency:
+  group: agroway-capital-readiness-ux2b1b-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  ingestion-service:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Canonical offline workspace install
+        run: npm ci --ignore-scripts --offline
+
+      - name: Syntax check ingestion validator and review server
+        run: |
+          node --check apps/control-web/server.mjs
+          node --check scripts/validate-capital-readiness-ingestion-ux2b1b.mjs
+
+      - name: Bounded ingestion adversarial runtime
+        run: node scripts/validate-capital-readiness-ingestion-ux2b1b.mjs
+
+      - name: UX2B-1A receipt/submission regression
+        run: node scripts/validate-capital-readiness-evidence-ux2b1a.mjs
+
+      - name: Pinned TypeScript 5.8.3 strict
+        run: npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit
+
+      - name: Browser evidence mutation remains disabled
+        shell: bash
+        run: |
+          set -euo pipefail
+          PORT=4292 node apps/control-web/server.mjs >/tmp/capital-ux2b1b.log 2>&1 &
+          PID=$!
+          trap 'kill $PID 2>/dev/null || true' EXIT
+          for i in {1..40}; do curl -fsS http://127.0.0.1:4292/control/capital >/dev/null && break || sleep .25; done
+          code=$(curl -sS -o /tmp/capital-api.json -w '%{http_code}' http://127.0.0.1:4292/api/capital/projects/test/gaps/test/evidence)
+          test "$code" = "404"
+          grep -F 'CAPITAL_READINESS_BROWSER_MUTATION_NOT_ENABLED' /tmp/capital-api.json
+
+      - name: No concrete storage or scanner provider embedded
+        shell: bash
+        run: |
+          set -euo pipefail
+          ! grep -E "@azure/storage-blob|@aws-sdk/client-s3|supabase.*storage|clamav|virustotal" services/investment-portfolio/src/readiness-evidence-ingestion.ts
+
+      - name: Trust boundary
+        run: |
+          echo 'PASS_CAPITAL_READINESS_UX2B1B_SERVER_INGESTION_SERVICE'
+          echo 'Bounded server-side media validation, safety-scan port, immutable object-store port, server SHA-256, canonical receipt and explicit EVIDENCE_SUBMITTED orchestration are implemented. Browser upload remains disabled; no storage/scanner provider, auto-resolution, financing approval, money movement, custody, wallet or D10 claim.'
