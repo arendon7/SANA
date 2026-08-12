@@ -100,9 +100,19 @@ jobs:
           tar -xzf /tmp/agroway_vitest_slice.tar.gz -C /tmp/agroway-vitest
           test -f /tmp/agroway-vitest/agroway_vitest_real_slice/package.json
           test -f /tmp/agroway-vitest/agroway_vitest_real_slice/vitest.config.ts
+          canonical_tsconfig_sha=$(python - <<'PY'
+import hashlib, json
+from pathlib import Path
+obj=json.loads(Path('ci/vitest-real/root-tsconfig.json').read_text())
+raw=json.dumps(obj,sort_keys=True,separators=(',',':')).encode()
+print(hashlib.sha256(raw).hexdigest())
+PY
+          )
+          test "$canonical_tsconfig_sha" = "dce31da9205b8cdd604349bff4945ad23b315735b8db522837a854140d808b90" || { echo "root tsconfig canonical digest mismatch: $canonical_tsconfig_sha"; exit 1; }
+          cp ci/vitest-real/root-tsconfig.json /tmp/agroway-vitest/agroway_vitest_real_slice/tsconfig.json
           spec_count=$(find /tmp/agroway-vitest/agroway_vitest_real_slice -type f -name '*.spec.ts' | wc -l | tr -d ' ')
           test "$spec_count" = "12" || { echo "expected 12 specs, found $spec_count"; exit 1; }
-          echo 'PASS_REAL_VITEST_SOURCE_SLICE_SHA_AND_INVENTORY'
+          echo 'PASS_REAL_VITEST_SOURCE_SLICE_SHA_TSCONFIG_AND_INVENTORY'
 
       - name: Install pinned Vitest runtime without npm Arborist
         working-directory: /tmp/agroway-vitest/agroway_vitest_real_slice
@@ -124,4 +134,4 @@ jobs:
       - name: Vitest trust boundary
         run: |
           echo 'PASS_REAL_VITEST_4_1_7_FOR_OBSERVED_12_SPEC_SLICE'
-          echo 'This is real Vitest runtime for the exact observed 12-spec reconstructed source closure. It is not yet a claim that the full 41-workspace monorepo is directly persisted or tested from its canonical root lockfile.'
+          echo 'This is real Vitest runtime for the exact observed 12-spec reconstructed source closure plus the canonical alpha10 root tsconfig. It is not yet a claim that the full 41-workspace monorepo is directly persisted or tested from its canonical root lockfile.'
