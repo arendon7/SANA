@@ -29,6 +29,6 @@
     "EXTERNAL_ACK_ADAPTER_ABSENT",
     "D10_HUMAN_PRODUCT_APPROVAL_PENDING"
   ],
-  "authority": {"approval":"HUMAN_ONLY","ai":"ADVISORY_ONLY","authorizationOutputCeiling":"AUTHORIZED_FOR_ADAPTER","browserWriteAllowed":false,"productionExecutionAvailable":false},
+  "authority": {"approval":"HUMAN_ONLY","ai":"ADVISORY_ONLY","authorizationOutputCeiling":"AUTHORIZED_FOR_ADAPTER","executionState":"NOT_EXECUTED","canonicalMutated":false,"browserWriteAllowed":false,"productionExecutionAvailable":false},
   "domainDelta": {"canonicalDomainEventsAdded":0,"workspacesAdded":0}
 }
