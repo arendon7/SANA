@@ -1,0 +1,78 @@
+{
+  "product": "GREENATICS CONTROL",
+  "version": "0.22.0-alpha19",
+  "capability": "PRODUCTION_ACTIVATION_AUTHORIZATION_BOUNDARY",
+  "status": "PASS_REVIEW_PENDING_REAL_BINDINGS_AND_D10",
+  "owner": "services/pilot-certifier",
+  "protocols": {
+    "bindingEvidence": "AGROWAY_CONTROL_PRODUCTION_BINDING_EVIDENCE_V1",
+    "activationRequest": "AGROWAY_CONTROL_PRODUCTION_ACTIVATION_REQUEST_V1",
+    "activationApproval": "AGROWAY_CONTROL_PRODUCTION_ACTIVATION_APPROVAL_V1",
+    "activationAuthorization": "AGROWAY_CONTROL_PRODUCTION_ACTIVATION_AUTHORIZATION_V1"
+  },
+  "entryConditions": {
+    "readinessState": "READY_FOR_EXPLICIT_ACTIVATION_REVIEW",
+    "readinessDigestReverified": true,
+    "d10HumanApprovalReverified": true,
+    "realBindingEvidenceRequired": [
+      "IDENTITY_PROVIDER_BOUND_AND_CONNECTED",
+      "POSTGRES_SECRETS_BOUND_AND_CONNECTED",
+      "EXTERNAL_ACK_PROVIDER_BOUND_AND_CONNECTED"
+    ],
+    "bindingEvidenceMaxAgeSeconds": 600
+  },
+  "humanCeremony": {
+    "requesterType": "HUMAN",
+    "approverType": "HUMAN",
+    "requesterAndApproverMustDiffer": true,
+    "activationApproverMustDifferFromD10Approver": true,
+    "reasonRequired": true,
+    "approvalNoteRequired": true,
+    "requestMaxTtlSeconds": 600
+  },
+  "authorization": {
+    "ceiling": "RUNTIME_GATE_ONLY",
+    "state": "PRODUCTION_RUNTIME_GATE_OPEN",
+    "leaseMaxTtlSeconds": 300,
+    "candidateBound": true,
+    "readinessDigestBound": true,
+    "d10DigestBound": true,
+    "bindingEvidenceDigestBound": true,
+    "requestDigestBound": true,
+    "approvalDigestBound": true,
+    "canonicalWriteExecutedByGate": false,
+    "externalAckSentByGate": false,
+    "productionSessionCreatedByGate": false,
+    "browserActivationAllowed": false
+  },
+  "authority": {
+    "approval": "HUMAN_ONLY",
+    "ai": "ADVISORY_ONLY",
+    "productionActivationAuthorizationImplemented": true,
+    "productionActivationGateReviewCertified": true,
+    "realProductionActivationLeaseIssued": false,
+    "productionExecutionAvailable": false,
+    "executionState": "NOT_EXECUTED",
+    "canonicalMutated": false
+  },
+  "reproducibility": {
+    "canonicalRootLockChanged": false,
+    "canonicalWorkspaceCount": 41,
+    "workspacesAdded": 0,
+    "externalNpmDependencyAdded": false
+  },
+  "explicitGaps": [
+    "No real production identity provider binding/connectivity is configured or certified.",
+    "No real production PostgreSQL secret binding/connectivity is configured or certified.",
+    "No real production External ACK provider binding/connectivity is configured or certified.",
+    "D10 human product approval remains pending for the actual release candidate.",
+    "No real production activation lease has been issued.",
+    "The activation authorization boundary does not execute canonical writes, send ACKs or create production sessions."
+  ],
+  "evidence": [
+    "services/pilot-certifier/src/control-production-activation.ts",
+    "scripts/validate-control-production-activation.mjs",
+    "scripts/control-production-activation-runtime.mjs",
+    "config/product/control-alpha19-production-activation.json"
+  ]
+}
