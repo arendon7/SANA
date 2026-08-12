@@ -6,7 +6,7 @@
   "d10": "PENDING",
   "entryRoute": "/control",
   "routes": ["/control","/control/projects/inv-yar-001","/control/identity-adapter","/control/authorization","/control/write-adapter","/control/exceptions","/control/evidence","/control/approvals","/control/handoff"],
-  "authority": {"approval":"HUMAN_ONLY","ai":"ADVISORY_ONLY","identitySessionSource":"VERIFIED_OIDC_ID_TOKEN","realIdentityProviderConfigured":false,"authorizationOutputCeiling":"AUTHORIZED_FOR_ADAPTER","browserWriteAllowed":false,"productionExecutionAvailable":false,"localOnly":true},
+  "authority": {"approval":"HUMAN_ONLY","ai":"ADVISORY_ONLY","identitySessionSource":"VERIFIED_OIDC_ID_TOKEN","realIdentityProviderConfigured":false,"authorizationOutputCeiling":"AUTHORIZED_FOR_ADAPTER","executionState":"NOT_EXECUTED","canonicalMutated":false,"browserWriteAllowed":false,"productionExecutionAvailable":false,"localOnly":true},
   "domainDelta": {"canonicalDomainEventsAdded":0,"workspacesAdded":0},
   "runtimeFiles": [
     "apps/control-web/server.mjs",
