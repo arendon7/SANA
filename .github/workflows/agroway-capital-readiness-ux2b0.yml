@@ -40,7 +40,7 @@ jobs:
           node --check scripts/validate-capital-readiness-int1.mjs
           node --check scripts/validate-capital-readiness-int1-hardening.mjs
           node --check scripts/validate-capital-readiness-persistence-adapter.mjs
-          node --check scripts/validate-capital-readiness-authority-int17.mjs
+          node --check scripts/validate-capital-readiness-authority-ux2b0.mjs
           node --check scripts/validate-capital-readiness-remediation-ux2a.mjs
           node --check scripts/validate-capital-readiness-ux2b0-identity.mjs
           node --check scripts/validate-capital-readiness-ux2b0-static.mjs
@@ -58,8 +58,8 @@ jobs:
       - name: Capital INT1.6 persistence adapter hydration
         run: node scripts/validate-capital-readiness-persistence-adapter.mjs
 
-      - name: Capital INT1.7 application authority
-        run: node scripts/validate-capital-readiness-authority-int17.mjs
+      - name: Capital INT1.7 application authority on alpha15 integration
+        run: node scripts/validate-capital-readiness-authority-ux2b0.mjs
 
       - name: UX2A remediation projection
         run: node scripts/validate-capital-readiness-remediation-ux2a.mjs
