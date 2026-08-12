@@ -13,7 +13,7 @@ const RELATIONS={
   'ap-agro-431':{exceptionId:'agro',evidenceIds:['ev-agro-431','ev-control-001'],proposalId:'ap-agro-431',correlationId:'control-flow:agro:cycle-431'},
   'ap-invest-yar':{exceptionId:'capital',evidenceIds:[],proposalId:'ap-invest-yar',correlationId:'control-flow:capital:inv-yar-001'}
 };
-const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#039;'}[c]));
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 const pathStage=()=>location.pathname.includes('/evidence')?'EVIDENCE':location.pathname.includes('/approvals')?'APPROVAL':location.pathname.includes('/handoff')?'HANDOFF':'EXCEPTION';
 function read(){try{return JSON.parse(localStorage.getItem(FLOW_KEY)||'null')}catch{return null}}
 function packetForProposal(proposalId){try{const p=JSON.parse(localStorage.getItem('agroway.control.demo.handoffs.v1')||'[]');return p.find(x=>x.proposalId===proposalId)?.packetId||null}catch{return null}}
