@@ -1,0 +1,28 @@
+const TRUST='DEMO_RECONSTRUCTED';
+const REVIEW_KEY='agroway.control.demo.local-reviews.v1';
+const exceptions=[
+ {id:'exc-agro-n3',severity:'CRITICAL',code:'AGRONOMY_CRITICAL',subject:'Yarumal · Lote N3',title:'Humedad fuera del rango objetivo',reason:'Tres mediciones canónicas consecutivas están bajo el umbral determinístico del ciclo.',evidence:['canonical_fact: soil_moisture_n3_1831','alert: AGRONOMY_CRITICAL_N3','field_evidence: visit_20260811']},
+ {id:'exc-supply-t2',severity:'WARNING',code:'SUPPLY_COVERAGE_LOW',subject:'Támesis · Red Sur',title:'Cobertura de inventario por debajo de 15 días',reason:'La demanda comprometida a 30 días supera la disponibilidad proyectada de Wondergreen líquido.',evidence:['supply_snapshot: tam_20260811','demand_window: wondergreen_liquid_30d','purchase_order: po_1042']},
+ {id:'exc-ops-cafe',severity:'WARNING',code:'OPERATIONS_OVERDUE',subject:'Café Circular · Lote Norte',title:'Tres actividades vencidas requieren reasignación',reason:'Las tareas vencieron sin evidencia de ejecución y continúan abiertas en la reconstrucción del Control Tower.',evidence:['field_task: task_882','field_task: task_883','projector_snapshot: tower_1840']}
+];
+const projects=[
+ {id:'all',name:'Toda la red',location:'Antioquia',required:420000000,committed:315000000,deployed:198000000,recovered:42000000,risks:2},
+ {id:'yarumal',name:'Yarumal Circular',location:'Yarumal',required:180000000,committed:150000000,deployed:97000000,recovered:22000000,risks:1},
+ {id:'tamesis',name:'Támesis Regenerativo',location:'Támesis',required:140000000,committed:105000000,deployed:68000000,recovered:20000000,risks:0},
+ {id:'cafe',name:'Café Circular',location:'Suroeste',required:100000000,committed:60000000,deployed:33000000,recovered:0,risks:1}
+];
+const demand=[{product:'Wondergreen líquido',days:30,planned:9200,committed:10800,gap:1600,unit:'L'},{product:'Wondergreen sólido',days:60,planned:18400,committed:19700,gap:1300,unit:'kg'},{product:'Wondergreen sólido',days:90,planned:28600,committed:27600,gap:0,unit:'kg'}];
+const $=s=>document.querySelector(s); const money=n=>new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(n);
+function renderExceptions(){const host=$('#exceptionList');host.innerHTML=exceptions.map(e=>`<article class="exception-item" data-exception="${e.id}" data-severity="${e.severity}"><span class="severity-bar"></span><span class="severity">${e.severity}</span><div class="exception-copy"><strong>${e.title}</strong><small>${e.subject}</small></div><span class="exception-reason">${e.reason}</span><button type="button" data-open-exception="${e.id}">Ver evidencia</button></article>`).join('');}
+function renderProjectOptions(){const select=$('#projectFilter');select.innerHTML=projects.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');}
+function renderCapital(id='all'){const selected=id==='all'?projects[0]:projects.find(p=>p.id===id)||projects[0];const rows=id==='all'?projects.slice(1):projects.filter(p=>p.id===id);$('#capitalSummary').innerHTML=`<div><span>Requerido</span><strong>${money(selected.required)}</strong></div><div><span>Comprometido</span><strong>${money(selected.committed)}</strong></div><div><span>Desplegado</span><strong>${money(selected.deployed)}</strong></div><div><span>Recuperado</span><strong>${money(selected.recovered)}</strong></div>`;$('#projectRows').innerHTML=rows.map(p=>`<div class="project-row" data-project="${p.id}"><strong>${p.name}<small>${p.location}</small></strong><span>${Math.round(p.committed/p.required*100)}% capital</span><span>${money(p.deployed)}</span><span>${p.risks} riesgo${p.risks===1?'':'s'}</span></div>`).join('');}
+function renderDemand(){ $('#demandRows').innerHTML=demand.map(d=>`<div class="demand-row"><strong>${d.product}</strong><span>${d.days} d</span><span>${d.committed.toLocaleString('es-CO')} ${d.unit}</span><span class="${d.gap?'gap':''}">${d.gap?`-${d.gap.toLocaleString('es-CO')}`:'cubierto'}</span></div>`).join(''); }
+function openException(id){const e=exceptions.find(x=>x.id===id);if(!e)return;$('#exceptionDialog').dataset.exceptionId=id;$('#exceptionDialogTitle').textContent=e.title;$('#exceptionReason').textContent=e.reason;$('#exceptionEvidence').innerHTML=e.evidence.map(x=>`<span>${x}</span>`).join('');$('#localReviewResult').textContent='';$('#exceptionDialog').showModal();}
+function saveLocalReview(){const id=$('#exceptionDialog').dataset.exceptionId;const list=JSON.parse(localStorage.getItem(REVIEW_KEY)||'[]');const item={id:`review-${Date.now()}`,exceptionId:id,trust:TRUST,localOnly:true,canonicalMutated:false,createdAt:new Date().toISOString()};list.push(item);localStorage.setItem(REVIEW_KEY,JSON.stringify(list));$('#localReviewResult').textContent='Revisión guardada en este dispositivo · estado canónico intacto.';}
+function openCopilot(){ $('#draftSuggestion').hidden=true;$('#copilotDialog').showModal(); }
+renderExceptions();renderProjectOptions();renderCapital();renderDemand();
+$('#projectFilter').addEventListener('change',e=>renderCapital(e.target.value));
+$('#exceptionList').addEventListener('click',e=>{const btn=e.target.closest('[data-open-exception]');if(btn)openException(btn.dataset.openException)});
+$('#localReviewButton').addEventListener('click',saveLocalReview);$('#copilotButton').addEventListener('click',openCopilot);$('#draftButton').addEventListener('click',()=>{$('#draftSuggestion').hidden=false});
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('/service-worker.js').catch(()=>{}));
+Object.defineProperty(globalThis,'__AGROWAY_CONTROL_TRUST__',{value:TRUST,writable:false,configurable:false});

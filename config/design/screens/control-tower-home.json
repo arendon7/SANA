@@ -1,0 +1,14 @@
+{
+  "surface": "GREENATICS CONTROL",
+  "screen": "CONTROL_TOWER_HOME",
+  "version": "0.22.0-alpha1",
+  "status": "READY_FOR_PRODUCT_APPROVAL",
+  "designDirection": "network-decision-workbench",
+  "truth": "DEMO_RECONSTRUCTED",
+  "primaryQuestion": "¿Qué requiere decisión humana ahora en la red agrícola?",
+  "informationOrder": ["network_context","deterministic_exceptions","capital_projects","agronomy_health","field_operations","supply_demand","impact_traceability","recent_activity"],
+  "copilot": {"state":"DRAFT_SUGGESTION","mayExecute":false,"mayApprove":false,"rawProviderPayloadVisible":false},
+  "localReview": {"localOnly":true,"canonicalMutated":false},
+  "viewports": ["1440x900","390x844"],
+  "d10HumanProductApproval": "PENDING"
+}
