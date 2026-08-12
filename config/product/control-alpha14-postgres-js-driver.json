@@ -17,11 +17,19 @@
     "canonicalRootLockChanged": false,
     "canonicalWorkspaceCount": 41,
     "npmOfflineScopePreserved": "WORKSPACE_LINK_INSTALL_ONLY",
-    "externalNpmDependencyAdded": false
+    "externalNpmDependencyAdded": false,
+    "vendorPersistedInRepository": false
   },
   "bridge": {
     "poolInterface": "PostgresPoolLike",
-    "reservedConnectionPerClient": true,
+    "upstreamReserveUsed": false,
+    "oneDriverInstancePerClient": true,
+    "driverInstanceMaxConnections": 1,
+    "sanaPoolSemaphore": true,
+    "poolMaximumEnforcedFromValidatedConfig": true,
+    "connectionProbeReadOnly": true,
+    "connectionTimeoutFailClosed": true,
+    "queryTimeoutFailClosed": true,
     "parameterizedQueries": true,
     "rowCountPreserved": true,
     "fetchTypes": false,
@@ -56,6 +64,7 @@
     "services/investment-portfolio/src/postgres-js-pool-factory.ts",
     "scripts/validate-control-postgres-js-driver.mjs",
     "scripts/control-postgres-js-driver-runtime.mjs",
+    "scripts/control-postgres-node-tls-preflight.mjs",
     "scripts/control-postgres-js-tls-integration.mjs"
   ],
   "explicitGaps": [
@@ -63,6 +72,7 @@
     "No real production secret binding has occurred.",
     "No real production connectivity has been certified.",
     "No canonical production write is executed by alpha14.",
+    "The exact Postgres.js vendor source must still be persisted in-repository before alpha14 can claim a fully offline driver build.",
     "External ACK remains absent.",
     "D10 human product approval remains pending."
   ]
