@@ -36,6 +36,9 @@ const aggregateMaterial=entries.map(e=>`${e.path}\0${e.sha256}\0${e.bytes}`).joi
 const aggregateSha256=sha(Buffer.from(aggregateMaterial));
 const manifest={schemaVersion:1,product:cfg.product,version:cfg.version,artifact:cfg.artifact,trust:cfg.trust,d10:cfg.d10,entryRoute:cfg.entryRoute,routes:cfg.routes,authority:cfg.authority,domainDelta:cfg.domainDelta,generatedFrom:'GIT_WORKTREE',deterministic:true,aggregateSha256,fileCount:entries.length,files:entries};
 await fsp.writeFile(path.join(out,'REVIEW_MANIFEST.json'),JSON.stringify(manifest,null,2)+'\n');
+const idpTruth=cfg.authority.productionIdentityProviderWiringImplemented===true
+  ? 'The production OIDC configuration and JWKS resolver are reviewable source with HTTPS-only fetch, bounded cache/response policy and a read-only preflight gate. No real issuer/audience/JWKS provider binding, real provider connectivity or production ID Token verification is claimed, and the browser cannot submit tokens or create ProductionSession.'
+  : 'The signed-token ProductionSession adapter is reviewable source, but a real production identity provider is not configured and the browser cannot submit tokens or create ProductionSession.';
 const pgTruth=cfg.authority.productionPoolDriverMaterialized===true
   ? 'The production PostgreSQL configuration contract and pinned Postgres.js driver bridge are reviewable source. The driver is not connected to a real production database here; no real secrets are bundled, production connectivity is uncertified, and the review server never invokes a canonical write.'
   : cfg.authority.productionDatabaseConfigurationContractImplemented===true
@@ -44,5 +47,5 @@ const pgTruth=cfg.authority.productionPoolDriverMaterialized===true
 const ackTruth=cfg.authority.externalAckAdapterImplemented===true
   ? 'The external ACK adapter, Ed25519 verification boundary and durable tenant-RLS receipt contract are reviewable source. No real external provider endpoint, bearer credential or signing key is configured, no real ACK is claimed, and the browser cannot invoke the adapter.'
   : 'External ACK remains a future production boundary and the review browser does not invent acknowledgement.';
-await fsp.writeFile(path.join(out,'README.md'),`# GREENATICS CONTROL ${cfg.version} — Review Bundle\n\nTrust: **${cfg.trust}**  \nD10 Human Product Approval: **${cfg.d10}**  \nExecution state: **${cfg.authority.executionState}**\n\nRun:\n\n\`\`\`bash\nPORT=4273 node server.mjs\n\`\`\`\n\nOpen: http://127.0.0.1:4273${cfg.entryRoute}\n\n${pgTruth}\n\n${ackTruth}\n\nAggregate SHA-256: \`${aggregateSha256}\`\n`);
+await fsp.writeFile(path.join(out,'README.md'),`# GREENATICS CONTROL ${cfg.version} — Review Bundle\n\nTrust: **${cfg.trust}**  \nD10 Human Product Approval: **${cfg.d10}**  \nExecution state: **${cfg.authority.executionState}**\n\nRun:\n\n\`\`\`bash\nPORT=4273 node server.mjs\n\`\`\`\n\nOpen: http://127.0.0.1:4273${cfg.entryRoute}\n\n${idpTruth}\n\n${pgTruth}\n\n${ackTruth}\n\nAggregate SHA-256: \`${aggregateSha256}\`\n`);
 console.log(`PASS_CONTROL_REVIEW_BUNDLE files=${entries.length} aggregateSha256=${aggregateSha256}`);

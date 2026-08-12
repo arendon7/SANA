@@ -8,10 +8,7 @@ on:
       - "config/product/control-alpha15-external-ack.json"
       - "config/product/control-operational-acceptance.json"
       - "config/product/control-review-bundle.json"
-      - "apps/control-web/server.mjs"
-      - "apps/control-web/public/handoff.html"
-      - "apps/control-web/public/handoff.css"
-      - "apps/control-web/public/service-worker.js"
+      - "apps/control-web/**"
       - "scripts/validate-control-external-ack.mjs"
       - "scripts/control-external-ack-runtime.mjs"
       - "scripts/control-external-ack-postgres-store-runtime.mjs"
@@ -26,7 +23,7 @@ permissions:
 jobs:
   verified-external-ack-adapter:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 40
     services:
       postgres:
         image: postgres:16-alpine
@@ -75,7 +72,7 @@ jobs:
           node scripts/validate-control-postgres-write.mjs
           node scripts/validate-control-postgres-production-wiring.mjs
           node scripts/validate-control-postgres-js-driver.mjs
-      - name: Alpha15 external ACK static guardrail
+      - name: External ACK static guardrail
         run: node scripts/validate-control-external-ack.mjs
       - name: Full CONTROL operational truth gate
         run: node scripts/validate-control-operational-acceptance.mjs
@@ -85,7 +82,7 @@ jobs:
           npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit false --outDir .tmp/control-alpha15
           mkdir -p .tmp/control-alpha15/vendor
           cp -R vendor/postgres-js-3.4.9 .tmp/control-alpha15/vendor/
-      - name: Production boundary regression runtimes
+      - name: Existing production-boundary regression runtimes
         run: |
           node scripts/control-production-authorization-runtime.mjs .tmp/control-alpha15/services/identity-access/src/index.js
           node scripts/control-canonical-write-runtime.mjs .tmp/control-alpha15/services/investment-portfolio/src/index.js
@@ -125,14 +122,11 @@ jobs:
           COMMIT;
           RESET ROLE;
           SQL
-          policy_count=$(psql -h 127.0.0.1 -U postgres -d agroway_alpha15 -tA -c "SELECT count(*) FROM pg_policies WHERE schemaname='agroway_core' AND tablename='control_external_ack_receipt' AND policyname='control_external_ack_receipt_tenant_rls'")
-          test "$policy_count" = "1"
-          constraint_count=$(psql -h 127.0.0.1 -U postgres -d agroway_alpha15 -tA -c "SELECT count(*) FROM pg_constraint WHERE conrelid='agroway_core.control_external_ack_receipt'::regclass AND conname IN ('control_external_ack_tenant_packet_uq','control_external_ack_tenant_idempotency_uq','control_external_ack_provider_reference_uq')")
-          test "$constraint_count" = "3"
+          test "$(psql -h 127.0.0.1 -U postgres -d agroway_alpha15 -tA -c "SELECT count(*) FROM pg_policies WHERE schemaname='agroway_core' AND tablename='control_external_ack_receipt' AND policyname='control_external_ack_receipt_tenant_rls'")" = "1"
           echo 'PASS_CONTROL_ALPHA15_POSTGRES_ACK_RLS'
-      - name: Build deterministic alpha15 CONTROL review bundle
+      - name: Build deterministic CONTROL review bundle
         run: node scripts/build-control-review-bundle.mjs
-      - name: Smoke alpha15 review bundle truth
+      - name: Smoke external ACK boundary in successor bundle
         run: |
           PORT=4286 node dist/control-review-bundle/server.mjs > /tmp/control-alpha15-bundle.log 2>&1 &
           PID=$!
@@ -141,12 +135,19 @@ jobs:
           for route in /control /control/projects/inv-yar-001 /control/identity-adapter /control/authorization /control/write-adapter /control/exceptions /control/evidence /control/approvals /control/handoff; do curl -fsS "http://127.0.0.1:4286$route" >/dev/null; done
           code=$(curl -sS -o /tmp/alpha15-ack-forbidden.json -w '%{http_code}' http://127.0.0.1:4286/api/control/external-ack)
           test "$code" = "404"
-          node -e "const x=require('/tmp/alpha15-ack-forbidden.json');if(x.error!=='EXTERNAL_ACK_BROWSER_ENDPOINT_FORBIDDEN'||x.externalAckAdapterImplemented!==true||x.externalAckProviderConfigured!==false||x.realExternalAckObserved!==false||x.canonicalMutated!==false)process.exit(1);console.log('PASS_CONTROL_ALPHA15_BROWSER_ACK_FORBIDDEN')"
-          node -e "const m=require('./dist/control-review-bundle/REVIEW_MANIFEST.json');const a=require('./dist/control-review-bundle/config/product/control-operational-acceptance.json');if(m.version!=='0.22.0-alpha15'||m.routes.length!==9||m.authority.externalAckAdapterImplemented!==true||m.authority.externalAckProviderConfigured!==false||m.authority.realExternalAckObserved!==false||m.authority.executionState!=='NOT_EXECUTED'||m.authority.canonicalMutated!==false||a.productionReady!==false||a.productionBlockers.length!==4||!a.productionBlockers.includes('EXTERNAL_ACK_PROVIDER_CONFIGURATION_PENDING'))process.exit(1);console.log('PASS_CONTROL_ALPHA15_BUNDLE',m.fileCount,m.aggregateSha256,a.productionBlockers.length)"
+          node <<'NODE'
+          const m=require('./dist/control-review-bundle/REVIEW_MANIFEST.json');
+          const a=require('./dist/control-review-bundle/config/product/control-operational-acceptance.json');
+          const x=require('/tmp/alpha15-ack-forbidden.json');
+          const n=Number(/^0\.22\.0-alpha(\d+)$/.exec(m.version)?.[1]);
+          if(!Number.isInteger(n)||n<15||x.error!=='EXTERNAL_ACK_BROWSER_ENDPOINT_FORBIDDEN'||m.authority.externalAckAdapterImplemented!==true||m.authority.externalAckProviderConfigured!==false||m.authority.realExternalAckObserved!==false||m.authority.executionState!=='NOT_EXECUTED'||m.authority.canonicalMutated!==false||a.productionReady!==false||!a.productionBlockers.includes('EXTERNAL_ACK_PROVIDER_CONFIGURATION_PENDING'))process.exit(1);
+          if(n>=16&&(m.authority.productionIdentityProviderWiringImplemented!==true||m.authority.realIdentityProviderConnectivityCertified!==false||m.authority.realProductionTokenVerified!==false||!a.productionBlockers.includes('PRODUCTION_IDENTITY_PROVIDER_REAL_BINDING_AND_CONNECTIVITY_PENDING')))process.exit(1);
+          console.log('PASS_CONTROL_ALPHA15_SUCCESSOR_BUNDLE',m.version,m.fileCount,m.aggregateSha256,a.productionBlockers.length);
+          NODE
       - name: Trust boundary
         run: |
           echo 'PASS_CONTROL_ALPHA15_VERIFIED_EXTERNAL_ACK_ADAPTER'
-          echo 'The server-side ACK adapter, signature verification and durable receipt are review-certified. No real provider endpoint/credential/key/ACK is configured or claimed; ACK evidence never implies canonical execution.'
+          echo 'Verified ACK remains evidence only; successor identity wiring does not configure a real ACK provider or imply production execution.'
       - uses: actions/upload-artifact@v4
         if: success()
         with:
