@@ -4,17 +4,24 @@ on:
   pull_request:
     paths:
       - "package.json"
-      - "apps/field-web/public/index.html"
+      - "apps/field-web/server.mjs"
+      - "apps/field-web/public-bundle.mjs"
+      - "ci/field-http-playwright/**"
       - "scripts/design-governance-gate.mjs"
       - "scripts/design-skills-status.mjs"
       - "scripts/design-preflight.mjs"
       - "scripts/sync-design-skills.mjs"
       - "scripts/validate-root-script-targets.mjs"
+      - "scripts/run-spec-compat.mjs"
+      - "scripts/lint-postgres-structural.mjs"
+      - "scripts/validate-field-feature.mjs"
+      - "scripts/field-feature-release-gate.mjs"
       - "scripts/validate-local-dev-backend.mjs"
       - "scripts/local-dev-backend-http-runtime.mjs"
       - "scripts/local-dev-backend-browser-qa.py"
       - "scripts/release-readiness.mjs"
       - "scripts/validate-root-runtime-reconciliation.mjs"
+      - "scripts/validate-control-production-host.mjs"
       - "config/product/control-alpha22-root-runtime-reconciliation.json"
       - ".github/workflows/agroway-v022-control-alpha22.yml"
 concurrency:
@@ -36,11 +43,16 @@ jobs:
           python-version: "3.13"
       - name: Syntax-check reconciled root targets
         run: |
+          node --check apps/field-web/public-bundle.mjs
           node --check scripts/design-governance-gate.mjs
           node --check scripts/design-skills-status.mjs
           node --check scripts/design-preflight.mjs
           node --check scripts/sync-design-skills.mjs
           node --check scripts/validate-root-script-targets.mjs
+          node --check scripts/run-spec-compat.mjs
+          node --check scripts/lint-postgres-structural.mjs
+          node --check scripts/validate-field-feature.mjs
+          node --check scripts/field-feature-release-gate.mjs
           node --check scripts/validate-local-dev-backend.mjs
           node --check scripts/local-dev-backend-http-runtime.mjs
           node --check scripts/release-readiness.mjs
@@ -50,6 +62,13 @@ jobs:
         run: node scripts/validate-direct-root-persistence.mjs
       - name: Root package executable target audit
         run: node scripts/validate-root-script-targets.mjs
+      - name: Canonical FIELD public bundle materialization
+        run: |
+          node apps/field-web/public-bundle.mjs | tee /tmp/field-public-materialization.json
+          grep -q 'MATERIALIZED_CANONICAL_FIELD_PUBLIC' /tmp/field-public-materialization.json
+          test "$(find apps/field-web/public -maxdepth 1 -type f | wc -l | tr -d ' ')" = "5"
+          node --check apps/field-web/public/app.js
+          echo PASS_ALPHA22_CANONICAL_FIELD_PUBLIC_MATERIALIZATION
       - name: Offline canonical workspace install
         run: npm ci --ignore-scripts --offline
       - name: Pinned TypeScript strict
@@ -82,24 +101,31 @@ jobs:
           python -m playwright install --with-deps chromium
       - name: Native Chromium local-dev backend QA
         run: npm run qa:local-dev-backend-browser
+      - name: CONTROL alpha21 production-host successor regression
+        run: node scripts/validate-control-production-host.mjs
       - name: CONTROL production truth regression
         run: node scripts/validate-control-operational-acceptance.mjs
       - name: Trust boundary
         run: |
           echo PASS_CONTROL_ALPHA22_ROOT_RUNTIME_RECONCILIATION
-          echo 'Root command topology and design governance are reconciled; local backend remains LOCAL_DEV_BACKEND_NOT_PRODUCTION and CONTROL production blockers/D10 are unchanged.'
+          echo 'Executable root surface, canonical FIELD public materialization, design governance and local backend are reconciled; CONTROL production blockers/D10 remain unchanged.'
       - uses: actions/upload-artifact@v4
         if: success()
         with:
           name: agroway-control-v022-alpha22-root-reconciliation
           path: |
             config/product/control-alpha22-root-runtime-reconciliation.json
-            apps/field-web/public/index.html
+            apps/field-web/public-bundle.mjs
+            ci/field-http-playwright/BUNDLE_LOCK.json
             scripts/design-governance-gate.mjs
             scripts/design-skills-status.mjs
             scripts/design-preflight.mjs
             scripts/sync-design-skills.mjs
             scripts/validate-root-script-targets.mjs
+            scripts/run-spec-compat.mjs
+            scripts/lint-postgres-structural.mjs
+            scripts/validate-field-feature.mjs
+            scripts/field-feature-release-gate.mjs
             scripts/validate-local-dev-backend.mjs
             scripts/local-dev-backend-http-runtime.mjs
             scripts/local-dev-backend-browser-qa.py
