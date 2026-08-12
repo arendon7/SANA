@@ -245,10 +245,10 @@ export async function advanceAuthorizedReadinessGapRemediation(
   authorize(authority,gap.tenantId,CAPITAL_READINESS_AUTHORITY_PERMISSIONS.REMEDIATE);
   assertGapIdentity(gap,command);
   const target=command.target as string;
-  if(target!=='IN_REMEDIATION'&&target!=='EVIDENCE_SUBMITTED')throw new Error(`READINESS_GAP_DIRECT_SENSITIVE_TRANSITION_FORBIDDEN:${target}`);
+  if(target!=='IN_REMEDIATION')throw new Error(`READINESS_GAP_DIRECT_SENSITIVE_TRANSITION_FORBIDDEN:${target}`);
   await appendPersistedReadinessGapTransition(executor,{
     transitionId:command.transitionId,tenantId:command.tenantId,projectId:command.projectId,assessmentId:command.assessmentId,assessmentVersion:command.assessmentVersion,gapId:command.gapId,
-    fromState:command.fromState,toState:command.target,actorRef:authority.actorId,occurredAt:validIso(command.at),note:command.note,
+    fromState:command.fromState,toState:'IN_REMEDIATION',actorRef:authority.actorId,occurredAt:validIso(command.at),note:command.note,
   });
 }
 
@@ -297,6 +297,8 @@ export const CAPITAL_READINESS_APPLICATION_AUTHORITY_BOUNDARY=Object.freeze({
   explicitPermissionRequired:true,
   humanFinalizerRequired:true,
   waiverRequiresExplicitPermission:true,
+  evidenceSubmissionUsesDedicatedAuthority:true,
+  genericRemediationCanSubmitEvidence:false,
   readinessFinalizationAtomic:true,
   directOperationalFinalization:false,
   directOperationalWaiver:false,
