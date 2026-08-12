@@ -1,0 +1,41 @@
+name: AGROWAY CONTROL v0.22 alpha14 vendor persistence
+on:
+  pull_request:
+    paths:
+      - "scripts/materialize-postgres-js-v349.mjs"
+      - ".github/workflows/agroway-v022-control-alpha14-vendor.yml"
+permissions:
+  contents: write
+concurrency:
+  group: agroway-control-v022-alpha14-vendor-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  persist-vendor:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feature/control-v022-alpha14'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Materialize and verify exact upstream vendor
+        run: |
+          node scripts/materialize-postgres-js-v349.mjs
+          node scripts/materialize-postgres-js-v349.mjs --verify
+      - name: Persist only verified vendor bytes
+        run: |
+          if git diff --quiet -- vendor/postgres-js-3.4.9 && git diff --cached --quiet -- vendor/postgres-js-3.4.9 && [ -z "$(git ls-files --others --exclude-standard vendor/postgres-js-3.4.9)" ]; then
+            echo 'PASS_POSTGRES_JS_VENDOR_ALREADY_PERSISTED'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add vendor/postgres-js-3.4.9
+          node scripts/materialize-postgres-js-v349.mjs --verify
+          git diff --cached --check
+          git commit -m 'vendor(control): persist postgres.js 3.4.9 exact source'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
