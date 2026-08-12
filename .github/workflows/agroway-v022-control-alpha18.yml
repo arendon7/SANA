@@ -82,7 +82,7 @@ jobs:
           node scripts/control-oidc-production-wiring-runtime.mjs .tmp/control-alpha18/services/identity-access/src/index.js
           node scripts/control-external-ack-production-wiring-runtime.mjs .tmp/control-alpha18/services/external-data-gateway/src/index.js
       - name: Production readiness adversarial runtime matrix
-        run: node scripts/control-production-readiness-runtime.mjs .tmp/control-alpha18/services/pilot-certifier/src/index.js
+        run: node scripts/control-production-readiness-runtime.mjs .tmp/control-alpha18/services/pilot-certifier/src/control-production-readiness.js
       - name: Build deterministic alpha18 CONTROL review bundle
         run: node scripts/build-control-review-bundle.mjs
       - name: Smoke alpha18 bundle truth and browser readiness lock
