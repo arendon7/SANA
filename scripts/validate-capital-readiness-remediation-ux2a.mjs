@@ -62,6 +62,11 @@ expectThrow(()=>mod.buildRemediationTaskProjection({...input,gaps:Object.freeze(
 expectThrow(()=>mod.buildRemediationTaskProjection({...input,gaps:Object.freeze([gap(),gap()])}),'REMEDIATION_DUPLICATE_GAP');
 expectThrow(()=>mod.buildRemediationTaskProjection({...input,presentations:Object.freeze([presentations[0],presentations[0]])}),'REMEDIATION_DUPLICATE_PRESENTATION');
 expectThrow(()=>mod.buildRemediationTaskProjection({...input,gaps:Object.freeze([gap({dueAt:'not-a-date'})])}),'REMEDIATION_GAP_DUE_AT_INVALID');
+expectThrow(()=>mod.buildRemediationTaskProjection({...input,gaps:Object.freeze([gap({gateId:'G10_UNKNOWN'})])}),'REMEDIATION_GAP_GATE_INVALID');
+expectThrow(()=>mod.buildRemediationTaskProjection({...input,gaps:Object.freeze([gap({state:'BROKEN_STATE'})])}),'REMEDIATION_GAP_STATE_INVALID');
+expectThrow(()=>mod.buildRemediationTaskProjection({...input,gaps:Object.freeze([gap({severity:'UNKNOWN'})])}),'REMEDIATION_GAP_SEVERITY_INVALID');
+expectThrow(()=>mod.buildRemediationTaskProjection({...input,presentations:Object.freeze([{...presentations[0],actionKind:'EXECUTE_PAYMENT'}])}),'REMEDIATION_PRESENTATION_ACTION_INVALID');
+expectThrow(()=>mod.buildRemediationTaskProjection({...input,presentations:Object.freeze([{...presentations[0],responsibility:'INVESTOR'}])}),'REMEDIATION_PRESENTATION_RESPONSIBILITY_INVALID');
 
 await rm(tmp,{recursive:true,force:true});
 console.log('PASS_CAPITAL_READINESS_REMEDIATION_UX2A');
