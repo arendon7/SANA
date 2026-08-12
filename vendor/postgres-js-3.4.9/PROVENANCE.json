@@ -1,0 +1,24 @@
+{
+  "component": "postgres.js",
+  "version": "3.4.9",
+  "tag": "v3.4.9",
+  "commit": "e7dfa14519f363229ccc3ead7b1b2f2051937efb",
+  "upstream": "https://github.com/porsager/postgres",
+  "license": "Unlicense",
+  "dependencyCount": 0,
+  "integrity": "GIT_BLOB_SHA1",
+  "files": {
+    "package.json": "c3b76a1a611bf014898c1c002981973bcae6a8cc",
+    "UNLICENSE": "efb98088164f5786b17e83ed384971fc3c74f93c",
+    "src/bytes.js": "fa48786744aa6f890700a3a83872700bc054a7f8",
+    "src/connection.js": "1b1cccde43b4570d5d071d6ffaab2669b3c2065a",
+    "src/errors.js": "0ff83c428bec774e11417b8e1f033dc3305c18cf",
+    "src/index.js": "c7fba3dace20173f4cb13f3f138bb6d213b43683",
+    "src/large.js": "f46329677cfba356d447ad163c9c1502d8d16370",
+    "src/query.js": "0d44a15cd9e42beaf11d4be6ccde60223e09508a",
+    "src/queue.js": "c4ef97164f057db99dce1b9af3401dbb1af37e31",
+    "src/result.js": "3101428471a4fd7c4fb62de8c014bc2b15202e30",
+    "src/subscribe.js": "4f8934cc8277fc58d2c37838cfb1afc315bc0744",
+    "src/types.js": "7c7c2b93094a1bced2b9dc387edc5c403e2c5864"
+  }
+}

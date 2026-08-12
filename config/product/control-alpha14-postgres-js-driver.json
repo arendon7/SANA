@@ -1,0 +1,82 @@
+{
+  "product": "GREENATICS CONTROL",
+  "version": "0.22.0-alpha14",
+  "capability": "PINNED_POSTGRES_POOL_DRIVER",
+  "status": "PASS_REVIEW_PENDING_REAL_SECRET_BINDING_AND_CONNECTIVITY",
+  "driver": {
+    "name": "postgres.js",
+    "version": "3.4.9",
+    "upstream": "https://github.com/porsager/postgres",
+    "tag": "v3.4.9",
+    "commit": "e7dfa14519f363229ccc3ead7b1b2f2051937efb",
+    "license": "Unlicense",
+    "dependencyCount": 0,
+    "materialization": "IN_REPOSITORY_EXACT_UPSTREAM_SOURCE_WITH_GIT_BLOB_INTEGRITY"
+  },
+  "reproducibility": {
+    "canonicalRootLockChanged": false,
+    "canonicalWorkspaceCount": 41,
+    "npmOfflineScopePreserved": "WORKSPACE_LINK_INSTALL_ONLY",
+    "externalNpmDependencyAdded": false,
+    "vendorPersistedInRepository": true,
+    "normalBuildVendorNetworkRequired": false,
+    "explicitRefreshFlag": "--refresh"
+  },
+  "bridge": {
+    "poolInterface": "PostgresPoolLike",
+    "upstreamReserveUsed": false,
+    "oneDriverInstancePerClient": true,
+    "driverInstanceMaxConnections": 1,
+    "sanaPoolSemaphore": true,
+    "poolMaximumEnforcedFromValidatedConfig": true,
+    "connectionProbeReadOnly": true,
+    "connectionTimeoutFailClosed": true,
+    "queryTimeoutFailClosed": true,
+    "parameterizedQueries": true,
+    "rowCountPreserved": true,
+    "fetchTypes": false,
+    "closeSupported": true
+  },
+  "productionMapping": {
+    "tlsRejectUnauthorized": true,
+    "tlsHostnameVerification": true,
+    "poolMaximumFromValidatedConfig": true,
+    "connectionTimeoutFromValidatedConfig": true,
+    "statementTimeoutFromValidatedConfig": true,
+    "applicationName": "agroway-control"
+  },
+  "certification": {
+    "postgresMajor": 16,
+    "tlsIntegration": "TEST_CA_AND_TEST_HOSTNAME_ONLY",
+    "realProductionHostUsed": false,
+    "realProductionSecretsUsed": false,
+    "canonicalWriteExecuted": false
+  },
+  "authority": {
+    "approval": "HUMAN_ONLY",
+    "ai": "ADVISORY_ONLY",
+    "browserWriteAllowed": false,
+    "realProductionDatabaseSecretsBound": false,
+    "productionConnectivityCertified": false,
+    "canonicalWriteExecuted": false,
+    "productionExecutionAvailable": false
+  },
+  "evidence": [
+    "vendor/postgres-js-3.4.9/PROVENANCE.json",
+    "vendor/postgres-js-3.4.9/UNLICENSE",
+    "scripts/materialize-postgres-js-v349.mjs",
+    "services/investment-portfolio/src/postgres-js-pool-factory.ts",
+    "scripts/validate-control-postgres-js-driver.mjs",
+    "scripts/control-postgres-js-driver-runtime.mjs",
+    "scripts/control-postgres-node-tls-preflight.mjs",
+    "scripts/control-postgres-js-tls-integration.mjs"
+  ],
+  "explicitGaps": [
+    "No real production PostgreSQL host, user, password or CA is stored in the repository.",
+    "No real production secret binding has occurred.",
+    "No real production connectivity has been certified.",
+    "No canonical production write is executed by alpha14.",
+    "External ACK remains absent.",
+    "D10 human product approval remains pending."
+  ]
+}
