@@ -1,10 +1,20 @@
 import {createHash} from 'node:crypto';
-import {readFile} from 'node:fs/promises';
-import ts from 'typescript';
+import {mkdir,rm,writeFile} from 'node:fs/promises';
+import {resolve} from 'node:path';
+import {pathToFileURL} from 'node:url';
+import {spawnSync} from 'node:child_process';
 
-const source=await readFile('services/investment-portfolio/src/readiness.ts','utf8');
-const transpiled=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022,verbatimModuleSyntax:true},fileName:'readiness.ts'}).outputText;
-const mod=await import(`data:text/javascript;base64,${Buffer.from(transpiled).toString('base64')}`);
+const tmp='.tmp-capital-readiness-int1';
+await rm(tmp,{recursive:true,force:true});
+const compile=spawnSync('tsc',[
+  'services/investment-portfolio/src/readiness.ts',
+  '--target','ES2022','--module','NodeNext','--moduleResolution','NodeNext','--skipLibCheck','true','--rootDir','.','--outDir',tmp,'--noEmitOnError','true',
+],{encoding:'utf8'});
+if(compile.status!==0)throw new Error(`CAPITAL_READINESS_TEST_COMPILE_FAILED\n${compile.stdout}\n${compile.stderr}`);
+await mkdir(`${tmp}/services/investment-portfolio`,{recursive:true});
+await writeFile(`${tmp}/services/investment-portfolio/package.json`,JSON.stringify({type:'module'}));
+const runtimeUrl=pathToFileURL(resolve(tmp,'services/investment-portfolio/src/readiness.js')).href;
+const mod=await import(`${runtimeUrl}?v=${Date.now()}`);
 const sha256=value=>createHash('sha256').update(value).digest('hex');
 const digest=value=>sha256(String(value));
 const now='2026-08-12T12:00:00.000Z';
@@ -124,4 +134,5 @@ assert(mod.CAPITAL_READINESS_AUTHORITY_BOUNDARY.disbursementAuthority===false,'N
 assert(mod.CAPITAL_READINESS_AUTHORITY_BOUNDARY.aiRequired===false,'AI_INDEPENDENT_CORE');
 pass('AUTHORITY_BOUNDARY');
 
+await rm(tmp,{recursive:true,force:true});
 console.log('PASS_CAPITAL_READINESS_INT1_1_RUNTIME');
