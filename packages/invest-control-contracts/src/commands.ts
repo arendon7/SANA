@@ -97,7 +97,6 @@ export interface RequestCapitalReadinessReassessment {
 export interface FinalizeCapitalReadinessDecision {
   tenantId:UUID;
   projectId:UUID;
-  tenantId:UUID;
   intakeId:UUID;
   intakeVersion:number;
   assessmentId:string;
