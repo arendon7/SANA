@@ -2,6 +2,8 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
 const compiledArg=process.argv[2];if(!compiledArg)throw new Error('COMPILED_CONTROL_ROOT_REQUIRED');
+const releaseVersion=process.argv[3]||'0.22.0-alpha21';
+if(!/^0\.22\.0-(?:alpha\d+|initial-rc[1-9]\d*)$/.test(releaseVersion))throw new Error('CONTROL_PRODUCTION_HOST_RELEASE_VERSION_INVALID');
 const root=process.cwd(),compiled=path.resolve(root,compiledArg),out=path.join(root,'dist','control-production-host');
 if(!compiled.startsWith(root+path.sep))throw new Error('COMPILED_CONTROL_ROOT_OUTSIDE_REPOSITORY');
 await fs.rm(out,{recursive:true,force:true});await fs.mkdir(out,{recursive:true});
@@ -15,6 +17,6 @@ await copyFile(path.join(root,'scripts','control-production-host.mjs'),path.join
 const packageBody=Buffer.from(JSON.stringify({private:true,type:'module'},null,2)+'\n');await writeBody(packageBody,path.join(out,'package.json'),'package.json');
 entries.sort((a,b)=>a.path.localeCompare(b.path));
 const aggregateSha256=digest(Buffer.from(entries.map(x=>`${x.path}\0${x.sha256}\0${x.bytes}`).join('\n')));
-const manifest={schemaVersion:1,artifact:'AGROWAY_CONTROL_PRODUCTION_HOST',version:'0.22.0-alpha21',entrypoint:'run.mjs',runtime:'node>=22',moduleType:'ESM',networkSurface:'CLI_ONLY',browser:false,httpListener:false,d10Accepted:false,activationCommandAvailable:false,productionExecutionAvailable:false,containsProductionSecrets:false,fileCount:entries.length,aggregateSha256,files:entries};
+const manifest={schemaVersion:1,artifact:'AGROWAY_CONTROL_PRODUCTION_HOST',version:releaseVersion,entrypoint:'run.mjs',runtime:'node>=22',moduleType:'ESM',networkSurface:'CLI_ONLY',browser:false,httpListener:false,d10Accepted:false,activationCommandAvailable:false,productionExecutionAvailable:false,containsProductionSecrets:false,fileCount:entries.length,aggregateSha256,files:entries};
 await fs.writeFile(path.join(out,'HOST_MANIFEST.json'),JSON.stringify(manifest,null,2)+'\n');
-console.log(`PASS_CONTROL_PRODUCTION_HOST_BUILD files=${entries.length} aggregateSha256=${aggregateSha256}`);
+console.log(`PASS_CONTROL_PRODUCTION_HOST_BUILD version=${releaseVersion} files=${entries.length} aggregateSha256=${aggregateSha256}`);
