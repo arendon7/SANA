@@ -1,0 +1,136 @@
+name: AGROWAY CONTROL v0.22 initial RC2 commissioning
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "services/pilot-certifier/src/control-production-readiness.ts"
+      - "scripts/control-production-readiness-runtime.mjs"
+      - "scripts/validate-control-production-readiness.mjs"
+      - "scripts/control-production-commissioning.mjs"
+      - "scripts/control-production-commissioning-runtime.mjs"
+      - "scripts/validate-control-production-commissioning.mjs"
+      - "scripts/build-control-initial-rc2.mjs"
+      - "scripts/validate-control-initial-rc2.mjs"
+      - "scripts/build-control-production-host.mjs"
+      - "config/product/control-initial-rc2.json"
+      - "config/product/control-production-commissioning.env.template"
+      - "docs/control/production-commissioning.md"
+      - "package.json"
+      - ".github/workflows/agroway-v022-control-initial-rc2.yml"
+concurrency:
+  group: agroway-control-v022-initial-rc2-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  initial-rc2-commissioning:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Syntax-check RC2 boundaries
+        run: |
+          node --check scripts/control-production-commissioning.mjs
+          node --check scripts/control-production-commissioning-runtime.mjs
+          node --check scripts/validate-control-production-commissioning.mjs
+          node --check scripts/build-control-initial-rc2.mjs
+          node --check scripts/validate-control-initial-rc2.mjs
+          node --check scripts/control-production-readiness-runtime.mjs
+          node --check scripts/validate-control-production-readiness.mjs
+          node --check scripts/build-control-production-host.mjs
+      - name: Direct-root persistence topology and lock parity
+        run: node scripts/validate-direct-root-persistence.mjs
+      - name: Root executable target audit
+        run: node scripts/validate-root-script-targets.mjs
+      - name: Offline canonical workspace install
+        run: npm ci --ignore-scripts --offline
+      - name: Verify persisted Postgres.js vendor
+        run: node scripts/materialize-postgres-js-v349.mjs --verify
+      - name: Pinned TypeScript strict
+        run: npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit
+      - name: Production readiness static guardrail with RC channel
+        run: node scripts/validate-control-production-readiness.mjs
+      - name: Compile reviewed CONTROL services
+        run: |
+          rm -rf .tmp/control-initial-rc2
+          npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit false --outDir .tmp/control-initial-rc2
+          mkdir -p .tmp/control-initial-rc2/vendor
+          cp -R vendor/postgres-js-3.4.9 .tmp/control-initial-rc2/vendor/
+      - name: Production readiness runtime including initial RC candidate
+        run: node scripts/control-production-readiness-runtime.mjs .tmp/control-initial-rc2/services/pilot-certifier/src/index.js
+      - name: Commissioning static guardrail
+        run: node scripts/validate-control-production-commissioning.mjs
+      - name: Commissioning adversarial runtime
+        run: node scripts/control-production-commissioning-runtime.mjs scripts/control-production-commissioning.mjs
+      - name: Alpha22 root hardening regression
+        run: node scripts/validate-root-runtime-reconciliation.mjs
+      - name: Full canonical offline verification
+        run: npm run verify:offline
+      - name: CONTROL production truth regression
+        run: node scripts/validate-control-operational-acceptance.mjs
+      - name: Production-host static boundary regression
+        run: node scripts/validate-control-production-host.mjs
+      - name: Review readiness remains ready and production remains blocked
+        run: |
+          npm run release:readiness | tee /tmp/rc2-review-readiness.json
+          node -e "const fs=require('fs');const t=fs.readFileSync('/tmp/rc2-review-readiness.json','utf8');const x=JSON.parse(t.slice(t.indexOf('{')));if(x.state!=='REVIEW_RELEASE_READY'||x.reviewReady!==true||x.productionReady!==false||x.d10!=='PENDING'||x.productionBlockers.length!==4)process.exit(1);console.log('PASS_RC2_REVIEW_READINESS')"
+          set +e
+          npm run release:readiness:production >/tmp/rc2-production.out 2>/tmp/rc2-production.err
+          code=$?
+          set -e
+          test "$code" = "2"
+          grep -q 'BLOCKED_PRODUCTION_READINESS' /tmp/rc2-production.err
+          grep -q 'D10_HUMAN_PRODUCT_APPROVAL_PENDING' /tmp/rc2-production.err
+          echo PASS_RC2_PRODUCTION_FAIL_CLOSED
+      - name: Build and validate deterministic RC2 twice
+        run: |
+          node scripts/build-control-initial-rc2.mjs | tee /tmp/rc2-build-a.json
+          node scripts/validate-control-initial-rc2.mjs
+          cp dist/control-initial-rc2/MANIFEST.json /tmp/rc2-manifest-a.json
+          node scripts/build-control-initial-rc2.mjs | tee /tmp/rc2-build-b.json
+          cmp /tmp/rc2-manifest-a.json dist/control-initial-rc2/MANIFEST.json
+          node scripts/validate-control-initial-rc2.mjs
+          echo PASS_RC2_DETERMINISTIC_BUILD
+      - name: Build RC2-labelled deployable preflight host
+        run: |
+          node scripts/build-control-production-host.mjs .tmp/control-initial-rc2 0.22.0-initial-rc2
+          node dist/control-production-host/run.mjs describe | tee /tmp/rc2-host-describe.json
+          node dist/control-production-host/run.mjs verify-layout | tee /tmp/rc2-host-layout.json
+          node -e "const fs=require('fs');const m=require('./dist/control-production-host/HOST_MANIFEST.json');const d=JSON.parse(fs.readFileSync('/tmp/rc2-host-describe.json'));const l=JSON.parse(fs.readFileSync('/tmp/rc2-host-layout.json'));if(m.version!=='0.22.0-initial-rc2'||m.networkSurface!=='CLI_ONLY'||m.containsProductionSecrets!==false||m.activationCommandAvailable!==false||m.productionExecutionAvailable!==false||d.kind!=='SERVER_SIDE_CLI'||d.activationCommandAvailable!==false||l.state!=='RUNTIME_LAYOUT_VERIFIED'||l.productionExecutionAvailable!==false)process.exit(1);console.log('PASS_RC2_PRODUCTION_HOST_LAYOUT',m.fileCount,m.aggregateSha256)"
+      - name: Commissioning CLI against concrete host stays fail-closed without bindings
+        run: |
+          npm run control:commissioning:describe | tee /tmp/rc2-commissioning-describe.json
+          node -e "const fs=require('fs');const t=fs.readFileSync('/tmp/rc2-commissioning-describe.json','utf8');const x=JSON.parse(t.slice(t.indexOf('{')));if(x.release!=='0.22.0-initial-rc2'||x.commands.join(',')!=='describe,check-config,preflight,capture-evidence'||x.activationCommandAvailable!==false||x.d10ApprovalCommandAvailable!==false||x.productionExecutionAvailable!==false)process.exit(1);console.log('PASS_RC2_COMMISSIONING_DESCRIBE')"
+          set +e
+          AGROWAY_CONTROL_RUNTIME_MODE=PRODUCTION \
+          AGROWAY_CONTROL_BOOTSTRAP_MODE=PRODUCTION_EXTERNAL_BINDINGS \
+          AGROWAY_CONTROL_RELEASE_VERSION=0.22.0-initial-rc2 \
+          AGROWAY_CONTROL_GIT_HEAD_SHA=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+          AGROWAY_CONTROL_REVIEW_BUNDLE_SHA256=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb \
+          node scripts/control-production-commissioning.mjs check-config >/tmp/rc2-commissioning-blocked.json
+          code=$?
+          set -e
+          test "$code" = "2"
+          node -e "const x=require('/tmp/rc2-commissioning-blocked.json');if(x.state!=='BLOCKED'||x.d10!=='PENDING'||x.productionExecutionAvailable!==false||x.activationCommandAvailable!==false)process.exit(1);console.log('PASS_RC2_COMMISSIONING_FAIL_CLOSED',x.error)"
+          test ! -e dist/control-commissioning-evidence/PREFLIGHT_EVIDENCE.json
+      - name: Historical alpha21 host label remains default-compatible
+        run: |
+          node scripts/build-control-production-host.mjs .tmp/control-initial-rc2
+          node -e "const m=require('./dist/control-production-host/HOST_MANIFEST.json');if(m.version!=='0.22.0-alpha21')process.exit(1);console.log('PASS_ALPHA21_HOST_DEFAULT_COMPATIBILITY')"
+          node scripts/build-control-production-host.mjs .tmp/control-initial-rc2 0.22.0-initial-rc2
+      - name: Trust boundary
+        run: |
+          echo 'PASS_CONTROL_INITIAL_PHASE_RC2_COMMISSIONING'
+          echo 'RC2 can perform only reviewed configuration validation and read-only provider preflights. Real bindings, D10 and explicit activation remain external gates.'
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: agroway-control-v022-initial-rc2
+          path: |
+            dist/control-initial-rc2
+            dist/control-production-host
+          if-no-files-found: error
+          retention-days: 14
