@@ -53,6 +53,8 @@ check('config:commands-exact',JSON.stringify(cfg.commissioningBoundary.commands)
 check('config:no-activation-or-d10-command',cfg.commissioningBoundary.activationCommandAvailable===false&&cfg.commissioningBoundary.d10ApprovalCommandAvailable===false);
 check('config:no-side-effects',cfg.commissioningBoundary.productionWriteAvailable===false&&cfg.commissioningBoundary.externalAckSendAvailable===false&&cfg.commissioningBoundary.productionSessionCreationAvailable===false);
 check('config:evidence-gated',cfg.commissioningBoundary.evidenceRequiresAllThreeProviderChecksPass===true&&cfg.commissioningBoundary.evidenceStateRequired==='READY_FOR_D10_HUMAN_REVIEW'&&cfg.commissioningBoundary.evidenceContainsSecrets===false);
+check('config:review-bundle-digest-source',cfg.releaseCandidateBinding.reviewBundleSha256Source==='SHA256_OF_DIST_CONTROL_INITIAL_RC2_MANIFEST_JSON'&&cfg.releaseCandidateBinding.reviewBundleSha256File==='dist/control-initial-rc2/MANIFEST.sha256');
+check('config:actions-digest-not-review-digest',cfg.releaseCandidateBinding.githubActionsArtifactDigestIsTransportEvidenceOnly===true&&cfg.releaseCandidateBinding.githubActionsArtifactDigestMaySubstituteReviewBundleSha256===false);
 check('config:authority',cfg.authority.approval==='HUMAN_ONLY'&&cfg.authority.ai==='ADVISORY_ONLY'&&cfg.authority.productionReady===false&&cfg.authority.productionExecutionAvailable===false&&cfg.authority.executionState==='NOT_EXECUTED'&&cfg.authority.canonicalMutated===false);
 check('config:blockers-exact',JSON.stringify(cfg.productionBlockers)===JSON.stringify(blockers));
 check('truth:blockers-exact',JSON.stringify(acceptance.productionBlockers)===JSON.stringify(blockers));
@@ -61,11 +63,13 @@ check('truth:41-workspaces',Array.isArray(pkg.workspaces)&&pkg.workspaces.length
 check('truth:root-lock-unchanged',cfg.sourceBaseline.canonicalRootLockChanged===false&&cfg.sourceBaseline.externalNpmDependencyAdded===false);
 for(const key of requiredEnv)check(`template:${key}`,new RegExp(`^${key}=`, 'm').test(template));
 check('template:release-rc2',template.includes('AGROWAY_CONTROL_RELEASE_VERSION=0.22.0-initial-rc2'));
+check('template:manifest-review-digest',template.includes('dist/control-initial-rc2/MANIFEST.sha256')&&template.includes('Do NOT substitute the GitHub Actions artifact ZIP digest')&&/^AGROWAY_CONTROL_REVIEW_BUNDLE_SHA256=<EXACT_SHA256_FROM_RC2_MANIFEST_SHA256>$/m.test(template));
 check('template:no-private-key',!template.includes('BEGIN PRIVATE KEY'));
 check('template:no-real-password',/^AGROWAY_POSTGRES_PASSWORD=<[^>]+>$/m.test(template));
 check('template:no-real-bearer',/^AGROWAY_EXTERNAL_ACK_BEARER_TOKEN=<[^>]+>$/m.test(template));
 check('template:no-real-ca',/^AGROWAY_POSTGRES_CA_PEM=<[^>]+>$/m.test(template));
 check('docs:commands',docs.includes('control:commissioning:describe')&&docs.includes('control:commissioning:check-config')&&docs.includes('control:commissioning:preflight')&&docs.includes('control:commissioning:capture-evidence'));
+check('docs:canonical-review-digest',docs.includes('dist/control-initial-rc2/MANIFEST.sha256')&&docs.includes('Do **not** substitute the GitHub Actions artifact ZIP digest')&&docs.includes('SHA-256 of `dist/control-initial-rc2/MANIFEST.json`'));
 check('docs:d10-human-boundary',docs.includes('no D10 approval command')&&docs.includes('separate human product decision'));
 check('docs:not-production',docs.includes('productionReady=false')&&docs.includes('productionExecutionAvailable=false'));
 const expectedScripts={
@@ -76,5 +80,5 @@ const expectedScripts={
 };
 for(const [name,command] of Object.entries(expectedScripts))check(`package:${name}`,pkg.scripts?.[name]===command);
 if(failures.length){console.error(`FAIL_CONTROL_PRODUCTION_COMMISSIONING_STATIC ${passed}/${passed+failures.length}`);process.exit(1);}
-console.log(JSON.stringify({status:'PASS',release:cfg.release,checks:passed,requiredEnvironmentKeys:requiredEnv.length,commands:cfg.commissioningBoundary.commands,productionReady:false},null,2));
+console.log(JSON.stringify({status:'PASS',release:cfg.release,checks:passed,requiredEnvironmentKeys:requiredEnv.length,commands:cfg.commissioningBoundary.commands,reviewBundleDigestSource:cfg.releaseCandidateBinding.reviewBundleSha256Source,productionReady:false},null,2));
 console.log(`PASS_CONTROL_PRODUCTION_COMMISSIONING_STATIC ${passed}/${passed}`);
