@@ -1,0 +1,88 @@
+{
+  "product": "SANA RECONSTRUCTED ROOT",
+  "version": "0.22.0-alpha22",
+  "capability": "ROOT_RUNTIME_RELEASE_SCRIPT_RECONCILIATION",
+  "status": "PASS_REPO_HARDENING",
+  "scope": {
+    "productFeatureAdded": false,
+    "canonicalDomainEventsAdded": 0,
+    "workspacesAdded": 0,
+    "canonicalRootLockChanged": false,
+    "externalNpmDependencyAdded": false
+  },
+  "reconciliation": {
+    "staleHistoricalAliasesRemovedFromExecutableSurface": true,
+    "historicalProvenanceFilesDeleted": false,
+    "currentRootCommandsResolveToPhysicalTargets": true,
+    "sharedFieldValidationBoundary": true,
+    "sharedFieldReleaseBoundary": true,
+    "designGovernanceRestoredOffline": true,
+    "externalDesignSkillsFalselyClaimedInstalled": false
+  },
+  "canonicalFieldPublicBundle": {
+    "source": "ci/field-http-playwright/public.part00.b64..public.part03.b64",
+    "lock": "ci/field-http-playwright/BUNDLE_LOCK.json",
+    "archiveSha256": "1ea29026ccf160dfebc15b24f6f27408a8bff459be4c422e0791775520dcf00b",
+    "expectedFileCount": 5,
+    "materializer": "apps/field-web/public-bundle.mjs",
+    "networkRequired": false,
+    "serverMaterializesBeforeListen": true,
+    "trust": "LOCAL_DEV_BACKEND_NOT_PRODUCTION",
+    "productionEquivalent": false
+  },
+  "currentExecutableBoundaries": [
+    "scripts/validate-root-script-targets.mjs",
+    "scripts/run-spec-compat.mjs",
+    "scripts/lint-postgres-structural.mjs",
+    "scripts/design-governance-gate.mjs",
+    "scripts/design-skills-status.mjs",
+    "scripts/design-preflight.mjs",
+    "scripts/sync-design-skills.mjs",
+    "scripts/validate-field-feature.mjs",
+    "scripts/field-feature-release-gate.mjs",
+    "scripts/validate-local-dev-backend.mjs",
+    "scripts/local-dev-backend-http-runtime.mjs",
+    "scripts/local-dev-backend-browser-qa.py",
+    "scripts/release-readiness.mjs"
+  ],
+  "localDevBackendTruth": {
+    "implementation": "apps/field-web/server.mjs",
+    "runtimeStore": "apps/field-web/dev-runtime.mjs",
+    "bindAddress": "127.0.0.1",
+    "trust": "LOCAL_DEV_BACKEND_NOT_PRODUCTION",
+    "productionBackendClaimed": false,
+    "productionExecutionAvailable": false
+  },
+  "releaseReadinessTruth": {
+    "reviewState": "REVIEW_RELEASE_READY",
+    "productionStateWhileBlockersExist": "BLOCKED_PRODUCTION_READINESS",
+    "productionReadinessExitCodeWhileBlocked": 2,
+    "d10MustBeApprovedForProduction": true,
+    "productionBlockersMustBeEmptyForProduction": true,
+    "productionPassMayNotBeInvented": true
+  },
+  "certification": {
+    "status": "PASS_BY_EXACT_HEAD_CI",
+    "requiredWorkflowFamilies": [
+      "AGROWAY v0.21 direct reconstructed monorepo",
+      "AGROWAY FIELD v0.21 alpha runtime",
+      "AGROWAY CONTROL v0.22 alpha21",
+      "AGROWAY CONTROL v0.22 alpha22 root reconciliation"
+    ],
+    "evidenceLocation": "GITHUB_ACTIONS_AND_PULL_REQUEST_METADATA",
+    "selfReferentialHeadShaEmbedded": false,
+    "productionApprovalImplied": false
+  },
+  "productionTruthUnchanged": {
+    "productionReady": false,
+    "d10": "PENDING",
+    "executionState": "NOT_EXECUTED",
+    "canonicalMutated": false,
+    "blockers": [
+      "PRODUCTION_IDENTITY_PROVIDER_REAL_BINDING_AND_CONNECTIVITY_PENDING",
+      "PRODUCTION_POSTGRES_REAL_SECRET_BINDING_AND_CONNECTIVITY_PENDING",
+      "EXTERNAL_ACK_PROVIDER_REAL_BINDING_AND_CONNECTIVITY_PENDING",
+      "D10_HUMAN_PRODUCT_APPROVAL_PENDING"
+    ]
+  }
+}
