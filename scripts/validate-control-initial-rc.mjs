@@ -13,6 +13,24 @@ const expectedBlockers=[
   'EXTERNAL_ACK_PROVIDER_REAL_BINDING_AND_CONNECTIVITY_PENDING',
   'D10_HUMAN_PRODUCT_APPROVAL_PENDING'
 ];
+const expectedManifestPaths=[
+  'NEXT_ACTIONS.md',
+  'RELEASE_STATE.json',
+  'config/product/control-alpha13-postgres-production-wiring.json',
+  'config/product/control-alpha14-postgres-js-driver.json',
+  'config/product/control-alpha16-oidc-production-wiring.json',
+  'config/product/control-alpha17-external-ack-production-wiring.json',
+  'config/product/control-alpha18-production-readiness.json',
+  'config/product/control-alpha19-production-activation.json',
+  'config/product/control-alpha20-production-bootstrap.json',
+  'config/product/control-alpha21-production-host.json',
+  'config/product/control-alpha22-root-runtime-reconciliation.json',
+  'config/product/control-initial-rc1.json',
+  'config/product/control-operational-acceptance.json',
+  'scripts/build-control-production-host.mjs',
+  'scripts/control-production-host.mjs',
+  'scripts/release-readiness.mjs'
+];
 const cfg=readJson('config/product/control-initial-rc1.json');
 const acceptance=readJson('config/product/control-operational-acceptance.json');
 const alpha22=readJson('config/product/control-alpha22-root-runtime-reconciliation.json');
@@ -40,8 +58,10 @@ if(fs.existsSync(path.join(out,'MANIFEST.json'))){
   check('manifest:format',manifest.format==='AGROWAY_CONTROL_INITIAL_RC_V1');
   check('manifest:release',manifest.release==='0.22.0-initial-rc1');
   check('manifest:deterministic-offline',manifest.deterministic===true&&manifest.networkRequired===false&&manifest.containsProductionSecrets===false);
-  check('manifest:nonempty',Array.isArray(manifest.files)&&manifest.files.length>=18,String(manifest.files?.length));
-  const sorted=[...manifest.files].map(x=>x.path).sort();check('manifest:sorted',JSON.stringify(manifest.files.map(x=>x.path))===JSON.stringify(sorted));
+  const actualPaths=Array.isArray(manifest.files)?manifest.files.map(x=>x.path):[];
+  check('manifest:exact-file-count',actualPaths.length===expectedManifestPaths.length,`${actualPaths.length}/${expectedManifestPaths.length}`);
+  check('manifest:exact-inventory',JSON.stringify(actualPaths)===JSON.stringify(expectedManifestPaths),JSON.stringify(actualPaths));
+  const sorted=[...actualPaths].sort();check('manifest:sorted',JSON.stringify(actualPaths)===JSON.stringify(sorted));
   for(const entry of manifest.files||[]){
     const full=path.join(out,entry.path);check(`manifest:file:${entry.path}`,fs.existsSync(full));
     if(fs.existsSync(full)){const bytes=fs.readFileSync(full);check(`manifest:sha256:${entry.path}`,sha256(bytes)===entry.sha256);check(`manifest:size:${entry.path}`,bytes.length===entry.size);}
@@ -61,5 +81,5 @@ check('next-actions:bindings',next.includes('real production IdP')&&next.include
 check('next-actions:d10',next.includes('D10 human product approval'));
 check('next-actions:no-production-claim',next.includes('review-ready, not production-ready'));
 if(failures.length){console.error(`FAIL_CONTROL_INITIAL_RC ${passed}/${passed+failures.length}`);process.exit(1);}
-console.log(JSON.stringify({status:'PASS',release:cfg.release,checks:passed,completedCodeBoundaries:completed.length,productionBlockers:expectedBlockers.length,productionReady:false},null,2));
+console.log(JSON.stringify({status:'PASS',release:cfg.release,checks:passed,completedCodeBoundaries:completed.length,artifactFiles:expectedManifestPaths.length,productionBlockers:expectedBlockers.length,productionReady:false},null,2));
 console.log(`PASS_CONTROL_INITIAL_RC ${passed}/${passed}`);
