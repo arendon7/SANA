@@ -3,8 +3,9 @@ import path from 'node:path';
 import {pathToFileURL} from 'node:url';
 const target=process.argv[2];if(!target)throw new Error('COMPILED_PILOT_CERTIFIER_INDEX_REQUIRED');
 const api=await import(pathToFileURL(path.resolve(target)).href);
-const {CONTROL_D10_APPROVAL_PROTOCOL,ControlProductionReadinessOrchestrator,computeD10ApprovalDigest}=api;
+const {CONTROL_D10_APPROVAL_PROTOCOL,ControlProductionReadinessOrchestrator,computeD10ApprovalDigest,validateControlReleaseCandidate}=api;
 const candidate={version:'0.22.0-alpha18',headSha:'a'.repeat(40),reviewBundleSha256:'b'.repeat(64)};
+const initialRcCandidate={...candidate,version:'0.22.0-initial-rc1'};
 const fixedNow=()=>new Date('2026-08-12T21:00:00.000Z');
 let passed=0;const check=(name,value)=>{assert.ok(value,name);passed++;console.log(`PASS ${name}`)};
 const goodIdentity=()=>({state:'JWKS_CONNECTED_READ_ONLY_PROBE',realTokenVerified:false,canonicalMutated:false,executionState:'NOT_EXECUTED'});
@@ -39,8 +40,12 @@ for(const [name,opts] of [
 ]){
  const p=ports(opts);const o=new ControlProductionReadinessOrchestrator(p.value,candidate,fixedNow);const r=await o.assess();check(`prerequisite:${name}:blocked`,r.state==='BLOCKED_PRODUCTION_PREREQUISITES');check(`prerequisite:${name}:no-execution`,r.productionExecutionEnabled===false&&r.canonicalWritePermitted===false&&r.canonicalMutated===false);
 }
+validateControlReleaseCandidate(initialRcCandidate);check('candidate:initial-rc-valid',true);
+const initialRcOrchestrator=new ControlProductionReadinessOrchestrator(ports().value,initialRcCandidate,fixedNow);const initialRcAssessment=await initialRcOrchestrator.assess();check('candidate:initial-rc-reaches-d10-review',initialRcAssessment.state==='READY_FOR_D10_HUMAN_REVIEW');
 for(const bad of [
  {...candidate,version:'0.22.0'},
+ {...candidate,version:'0.22.0-initial-rc0'},
+ {...candidate,version:'0.22.0-rc1'},
  {...candidate,headSha:'not-a-sha'},
  {...candidate,reviewBundleSha256:'bad'}
 ])assert.throws(()=>new ControlProductionReadinessOrchestrator(ports().value,bad,fixedNow),/PRODUCTION_READINESS_/);
