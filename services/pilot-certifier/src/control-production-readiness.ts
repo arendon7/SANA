@@ -73,7 +73,7 @@ export type ProductionReadinessAssessmentMaterial=Omit<ProductionReadinessAssess
 
 const SHA1=/^[a-f0-9]{40}$/;
 const SHA256=/^[a-f0-9]{64}$/;
-const VERSION=/^0\.22\.0-alpha\d+$/;
+const VERSION=/^0\.22\.0-(?:alpha\d+|initial-rc[1-9]\d*)$/;
 const SAFE_ID=/^[A-Za-z0-9][A-Za-z0-9_.:@/-]{2,127}$/;
 
 export function validateControlReleaseCandidate(candidate:ControlReleaseCandidate):void {
