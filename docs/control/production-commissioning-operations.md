@@ -1,15 +1,32 @@
 # GREENATICS CONTROL — RC2 production commissioning operations
 
-This document operationalizes the already-certified candidate `0.22.0-initial-rc2` without modifying it.
+This document operationalizes the already-certified candidate `0.22.0-initial-rc2` without modifying or rebuilding it during commissioning.
 
 ## Immutable candidate identity
 
 - Git head: `7f2a47a99b7df6a1682a588d714aca9a18026a95`
 - Canonical review-bundle SHA-256 used by readiness/D10: `8b10c59c7a0f99b7ea81b08cd342afd2e62abca786453bccafde56e8642b9ceb`
 - GitHub Actions artifact ID: `9164839137`
+- Artifact name: `agroway-control-v022-initial-rc2`
+- Certification workflow run: `31657254524`
 - GitHub Actions ZIP transport SHA-256: `bf6ab3c667a9eb4568e61191d32410351adf9bd70ca4ab827fbd628173b4dcd3`
+- Certified production-host aggregate SHA-256: `69a618ee3e44c0a55107f4703dc9a5bbd79ffa794dc6f9ea23d2895ba22a2840`
+- Actions artifact expiry: `2026-08-27T01:18:17Z`
 
 The transport digest is evidence for the uploaded ZIP only. It must not replace the canonical review-bundle digest in readiness or D10 evidence.
+
+## Artifact acquisition rule
+
+The live commissioning workflow downloads the **exact artifact produced by certification run `31657254524`**. It does not compile TypeScript, run `npm ci`, rebuild RC2 or silently fall back to source compilation.
+
+After download, it verifies:
+
+1. `dist/control-initial-rc2/MANIFEST.sha256` equals the canonical review/D10 digest above;
+2. `MANIFEST.json` identifies release `0.22.0-initial-rc2`;
+3. `dist/control-production-host/HOST_MANIFEST.json` identifies the same release and exact certified host aggregate SHA-256;
+4. the production host passes its own `verify-layout` command.
+
+If the certified Actions artifact expires or is unavailable, commissioning must fail closed. The remedy is a new certification or a durable copy whose provenance and digests are explicitly certified; **do not silently rebuild a replacement during commissioning**.
 
 ## GitHub Environment
 
@@ -21,7 +38,7 @@ Recommended protection:
 
 1. Require at least one human reviewer before a deployment job can read environment secrets.
 2. Do not allow self-approval where repository policy supports that restriction.
-3. Keep the workflow permissions at `contents: read` only.
+3. Keep PR review jobs at `contents: read`; the live commissioning job adds only `actions: read` to download the certified artifact.
 4. Never store a D10 approval payload or activation lease in this environment.
 
 ## Environment variables
@@ -85,7 +102,7 @@ Re-runs the reviewed preflight and writes `dist/control-commissioning-evidence/P
 
 The initial workflow uses a GitHub-hosted Ubuntu runner. Therefore the real IdP/JWKS URL, PostgreSQL endpoint and External ACK metadata endpoint must be reachable from that runner under their intended security policy.
 
-If production PostgreSQL or another provider is private-network-only, do **not** weaken the firewall merely to satisfy commissioning. Use an approved private runner/network path and preserve the exact RC2 scripts, candidate SHA and review-bundle digest.
+If production PostgreSQL or another provider is private-network-only, do **not** weaken the firewall merely to satisfy commissioning. Use an approved private runner/network path and preserve the exact RC2 artifact, candidate SHA and review-bundle digest.
 
 ## D10 and activation remain separate
 
