@@ -1,0 +1,40 @@
+name: AGROWAY CAPITAL_READINESS CONTROL projection alpha22
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "packages/invest-control-contracts/**"
+      - "services/control-tower-projector/**"
+      - "services/investment-portfolio/**"
+      - "scripts/validate-capital-readiness-control-projection-alpha22.mjs"
+      - ".github/workflows/agroway-capital-readiness-control-projection-alpha22.yml"
+concurrency:
+  group: agroway-capital-readiness-control-projection-alpha22-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  readiness-control-projection:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Canonical offline workspace install
+        run: npm ci --ignore-scripts --offline
+      - name: Syntax check
+        run: node --check scripts/validate-capital-readiness-control-projection-alpha22.mjs
+      - name: Readiness gap to CONTROL adversarial projection
+        run: node scripts/validate-capital-readiness-control-projection-alpha22.mjs
+      - name: Capital readiness deterministic regression
+        run: |
+          node scripts/validate-capital-readiness-int1.mjs
+          node scripts/validate-capital-readiness-int1-hardening.mjs
+      - name: Pinned TypeScript 5.8.3 strict
+        run: npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit
+      - name: Trust boundary
+        run: |
+          echo 'PASS_CAPITAL_READINESS_CONTROL_PROJECTION_ALPHA22'
+          echo 'ReadinessGap remains canonical in Invest. CONTROL exceptions are rebuildable projections only. No CONTROL->Invest mutation, financing approval, custody, payment, disbursement, browser mutation or AI authority is introduced.'
