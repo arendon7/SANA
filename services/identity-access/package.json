@@ -4,6 +4,7 @@
   "version": "0.21.0-alpha10",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./capital-readiness": "./src/capital-readiness-entry.ts"
   }
 }
