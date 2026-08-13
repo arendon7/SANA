@@ -22,8 +22,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: control-v022-production-commissioning
-  cancel-in-progress: false
+  group: control-v022-production-commissioning-${{ github.event_name }}-${{ github.event.pull_request.number || 'live' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   RC2_SHA: 7f2a47a99b7df6a1682a588d714aca9a18026a95
@@ -74,6 +74,7 @@ jobs:
             noExecution:cfg.authority?.productionExecutionAvailable===false,
             notProductionReady:cfg.productionTruth?.productionReady===false,
             manualDispatch:workflow.includes('workflow_dispatch:'),
+            prArtifactProof:workflow.includes('artifact-provenance:'),
             protectedEnvironment:live.includes('environment: control-production-commissioning'),
             certifiedArtifact:live.includes('actions/download-artifact@v4')&&live.includes('run-id: 31657254524')&&live.includes('name: agroway-control-v022-initial-rc2'),
             actionsReadOnly:live.includes('actions: read'),
@@ -89,6 +90,46 @@ jobs:
           if(failed.length){console.error('FAIL_CONTROL_COMMISSIONING_HANDOFF_GUARDRAILS',failed.join(','));process.exit(1);}
           console.log('PASS_CONTROL_COMMISSIONING_HANDOFF_GUARDRAILS',Object.keys(checks).length+'/'+Object.keys(checks).length);
           NODE
+
+  artifact-provenance:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Download exact certified RC2 artifact without production environment
+        uses: actions/download-artifact@v4
+        with:
+          repository: arendon7/SANA
+          run-id: 31657254524
+          name: agroway-control-v022-initial-rc2
+          github-token: ${{ github.token }}
+          path: dist
+      - name: Verify certified artifact identity and host layout
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f dist/control-initial-rc2/MANIFEST.json
+          test -f dist/control-initial-rc2/MANIFEST.sha256
+          test -f dist/control-production-host/HOST_MANIFEST.json
+          test -f dist/control-production-host/run.mjs
+          test "$(tr -d '\r\n ' < dist/control-initial-rc2/MANIFEST.sha256)" = "$RC2_REVIEW_BUNDLE_SHA256"
+          node - <<'NODE'
+          const fs=require('fs');
+          const release=JSON.parse(fs.readFileSync('dist/control-initial-rc2/MANIFEST.json','utf8'));
+          const host=JSON.parse(fs.readFileSync('dist/control-production-host/HOST_MANIFEST.json','utf8'));
+          if(release.release!=='0.22.0-initial-rc2') process.exit(1);
+          if(host.version!=='0.22.0-initial-rc2') process.exit(1);
+          if(host.aggregateSha256!=='69a618ee3e44c0a55107f4703dc9a5bbd79ffa794dc6f9ea23d2895ba22a2840') process.exit(1);
+          if(host.containsProductionSecrets!==false||host.activationCommandAvailable!==false||host.productionExecutionAvailable!==false) process.exit(1);
+          console.log('PASS_RC2_CERTIFIED_ARTIFACT_PROVENANCE');
+          NODE
+          node dist/control-production-host/run.mjs verify-layout
 
   commissioning:
     if: github.event_name == 'workflow_dispatch'
