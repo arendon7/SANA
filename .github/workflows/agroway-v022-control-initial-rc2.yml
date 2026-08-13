@@ -90,9 +90,12 @@ jobs:
           node scripts/build-control-initial-rc2.mjs | tee /tmp/rc2-build-a.json
           node scripts/validate-control-initial-rc2.mjs
           cp dist/control-initial-rc2/MANIFEST.json /tmp/rc2-manifest-a.json
+          cp dist/control-initial-rc2/MANIFEST.sha256 /tmp/rc2-manifest-a.sha256
           node scripts/build-control-initial-rc2.mjs | tee /tmp/rc2-build-b.json
           cmp /tmp/rc2-manifest-a.json dist/control-initial-rc2/MANIFEST.json
+          cmp /tmp/rc2-manifest-a.sha256 dist/control-initial-rc2/MANIFEST.sha256
           node scripts/validate-control-initial-rc2.mjs
+          echo "PASS_RC2_CANONICAL_REVIEW_BUNDLE_SHA256 $(cat dist/control-initial-rc2/MANIFEST.sha256)"
           echo PASS_RC2_DETERMINISTIC_BUILD
       - name: Build RC2-labelled deployable preflight host
         run: |
