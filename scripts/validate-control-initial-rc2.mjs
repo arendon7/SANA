@@ -55,16 +55,21 @@ check('scope:commissioning-runner-complete',cfg.initialPhaseScope.productionComm
 check('scope:real-bindings-pending',cfg.initialPhaseScope.realProductionBindings==='PENDING_EXTERNAL_ENVIRONMENT');
 check('scope:d10-pending',cfg.initialPhaseScope.humanProductApprovalD10==='PENDING_HUMAN');
 check('version-gate:rc2-supported',readinessSource.includes('initial-rc[1-9]\\d*'));
+check('binding:manifest-sha-source',cfg.releaseCandidateBinding.reviewBundleSha256Source==='SHA256_OF_DIST_CONTROL_INITIAL_RC2_MANIFEST_JSON'&&cfg.releaseCandidateBinding.reviewBundleSha256File==='dist/control-initial-rc2/MANIFEST.sha256');
+check('binding:artifact-digest-not-substitute',cfg.releaseCandidateBinding.githubActionsArtifactDigestIsTransportEvidenceOnly===true&&cfg.releaseCandidateBinding.githubActionsArtifactDigestMaySubstituteReviewBundleSha256===false);
 check('authority:human-only',cfg.authority.approval==='HUMAN_ONLY'&&cfg.authority.ai==='ADVISORY_ONLY');
 check('authority:not-production',cfg.authority.productionReady===false&&cfg.authority.productionExecutionAvailable===false&&cfg.authority.executionState==='NOT_EXECUTED'&&cfg.authority.canonicalMutated===false&&cfg.authority.browserWriteAllowed===false&&cfg.authority.realProductionActivationLeaseIssued===false);
 check('truth:acceptance-not-production',acceptance.productionReady===false&&acceptance.d10==='PENDING'&&acceptance.authority.productionExecutionAvailable===false&&acceptance.authority.executionState==='NOT_EXECUTED'&&acceptance.authority.canonicalMutated===false);
 check('truth:exact-four-blockers',JSON.stringify(cfg.productionBlockers)===JSON.stringify(expectedBlockers)&&JSON.stringify(acceptance.productionBlockers)===JSON.stringify(expectedBlockers));
 check('artifact:directory',fs.existsSync(out));
 check('artifact:manifest',fs.existsSync(path.join(out,'MANIFEST.json')));
+check('artifact:manifest-sha256',fs.existsSync(path.join(out,'MANIFEST.sha256')));
 check('artifact:release-state',fs.existsSync(path.join(out,'RELEASE_STATE.json')));
 check('artifact:next-actions',fs.existsSync(path.join(out,'NEXT_ACTIONS.md')));
 if(fs.existsSync(path.join(out,'MANIFEST.json'))){
-  const manifest=readJson(path.join(out,'MANIFEST.json'));
+  const manifestBytes=fs.readFileSync(path.join(out,'MANIFEST.json'));
+  const manifest=JSON.parse(manifestBytes.toString('utf8'));
+  const manifestDigest=sha256(manifestBytes);
   check('manifest:format',manifest.format==='AGROWAY_CONTROL_INITIAL_RC_V2');
   check('manifest:release',manifest.release==='0.22.0-initial-rc2');
   check('manifest:deterministic-offline-build',manifest.deterministic===true&&manifest.networkRequiredToBuild===false);
@@ -75,6 +80,8 @@ if(fs.existsSync(path.join(out,'MANIFEST.json'))){
   check('manifest:exact-file-count',actualPaths.length===expectedManifestPaths.length,`${actualPaths.length}/${expectedManifestPaths.length}`);
   check('manifest:exact-inventory',JSON.stringify(actualPaths)===JSON.stringify(expectedManifestPaths),JSON.stringify(actualPaths));
   check('manifest:sorted',JSON.stringify(actualPaths)===JSON.stringify([...actualPaths].sort()));
+  check('manifest:sha-file-excluded-from-self-inventory',!actualPaths.includes('MANIFEST.sha256')&&!actualPaths.includes('MANIFEST.json'));
+  if(fs.existsSync(path.join(out,'MANIFEST.sha256'))){const text=fs.readFileSync(path.join(out,'MANIFEST.sha256'),'utf8');check('manifest:sha-file-format',/^[a-f0-9]{64}\n$/.test(text));check('manifest:sha-file-exact',text.trim()===manifestDigest);}
   for(const entry of manifest.files||[]){
     const full=path.join(out,entry.path);check(`manifest:file:${entry.path}`,fs.existsSync(full));
     if(fs.existsSync(full)){const bytes=fs.readFileSync(full);check(`manifest:sha256:${entry.path}`,sha256(bytes)===entry.sha256);check(`manifest:size:${entry.path}`,bytes.length===entry.size);}
@@ -90,6 +97,7 @@ const forbidden=[/-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/i,/postgres(
 function walk(dir){for(const name of fs.readdirSync(dir)){const full=path.join(dir,name);const stat=fs.statSync(full);if(stat.isDirectory())walk(full);else{const rel=path.relative(out,full);check(`artifact:no-dotenv-file:${rel}`,!/(^|\/)\.env(?:\.|$)/.test(rel));const text=fs.readFileSync(full,'utf8');for(const pattern of forbidden)check(`artifact:no-secret-pattern:${rel}:${pattern.source.slice(0,24)}`,!pattern.test(text));}}}
 if(fs.existsSync(out))walk(out);
 const next=fs.existsSync(path.join(out,'NEXT_ACTIONS.md'))?fs.readFileSync(path.join(out,'NEXT_ACTIONS.md'),'utf8'):'';
+check('next-actions:manifest-digest',next.includes('MANIFEST.sha256')&&next.includes('GitHub Actions artifact digest is transport/package evidence'));
 check('next-actions:commissioning',next.includes('control:commissioning:check-config')&&next.includes('control:commissioning:preflight')&&next.includes('control:commissioning:capture-evidence'));
 check('next-actions:d10-separate',next.includes('separate HUMAN_ONLY D10 product decision'));
 check('next-actions:no-production-claim',next.includes('commissioning-ready, not production-ready'));
