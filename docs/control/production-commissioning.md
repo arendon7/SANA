@@ -6,10 +6,12 @@ This runbook is for real-environment commissioning only. It does not approve D10
 
 ## Preconditions
 
-1. Use the exact RC2 head SHA and certified RC2 artifact SHA-256 from the successful exact-head CI run.
-2. Build the reviewed production host from the same source head.
-3. Supply production values through the deployment environment or secret manager. Never populate or commit `config/product/control-production-commissioning.env.template`.
-4. Confirm `npm run release:readiness` reports review readiness and `npm run release:readiness:production` remains blocked before real bindings and D10 exist.
+1. Use the exact RC2 head SHA from the successful exact-head CI run.
+2. Use the exact review-bundle SHA-256 written by the deterministic RC2 build to `dist/control-initial-rc2/MANIFEST.sha256`. This is the value for `AGROWAY_CONTROL_REVIEW_BUNDLE_SHA256` and is the digest that D10 binds.
+3. Do **not** substitute the GitHub Actions artifact ZIP digest. That digest proves integrity of the transported Actions artifact, not the canonical review-bundle identity used by the readiness/D10 protocol.
+4. Build the reviewed production host from the same source head.
+5. Supply production values through the deployment environment or secret manager. Never populate or commit `config/product/control-production-commissioning.env.template`.
+6. Confirm `npm run release:readiness` reports review readiness and `npm run release:readiness:production` remains blocked before real bindings and D10 exist.
 
 ## Commissioning commands
 
@@ -58,6 +60,16 @@ dist/control-commissioning-evidence/PREFLIGHT_EVIDENCE.json
 ```
 
 The evidence file contains candidate identifiers, check states and digests only. It does not contain environment values, database passwords, bearer credentials, private keys or D10 approval.
+
+## Candidate identity versus artifact transport
+
+The candidate identity is the tuple:
+
+- `version = 0.22.0-initial-rc2`;
+- exact certified Git head SHA;
+- SHA-256 of `dist/control-initial-rc2/MANIFEST.json`, persisted by the builder in `MANIFEST.sha256`.
+
+The GitHub Actions artifact also has its own digest. Keep that digest as CI/transport evidence, but never place it in `AGROWAY_CONTROL_REVIEW_BUNDLE_SHA256` unless it independently equals the manifest digest, which is not assumed.
 
 ## D10 boundary
 
