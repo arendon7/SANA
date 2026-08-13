@@ -8,6 +8,7 @@ const files=[
 let passed=0;const check=(name,value)=>{if(!value){console.error(`FAIL ${name}`);process.exitCode=1}else{passed++;console.log(`PASS ${name}`)}};
 for(const file of files)check(`file:${file}`,fs.existsSync(file));
 const source=fs.readFileSync(files[0],'utf8');
+const runtime=fs.readFileSync(files[2],'utf8');
 const index=fs.readFileSync(files[1],'utf8');
 const cfg=JSON.parse(fs.readFileSync(files[3],'utf8'));
 for(const token of [
@@ -17,6 +18,9 @@ for(const token of [
   'READY_FOR_D10_HUMAN_REVIEW','READY_FOR_EXPLICIT_ACTIVATION_REVIEW','BLOCKED_PRODUCTION_PREREQUISITES','BLOCKED_INVALID_D10_EVIDENCE',
   'productionExecutionEnabled:false','canonicalWritePermitted:false','browserActivationAllowed:false','realProductionTokenVerified:false','realExternalAckObserved:false','canonicalMutated:false'
 ])check(`source:${token}`,source.includes(token));
+check('source:initial-rc-version-policy',source.includes('initial-rc[1-9]\\d*'));
+check('runtime:initial-rc-positive',runtime.includes("version:'0.22.0-initial-rc1'")&&runtime.includes('candidate:initial-rc-valid')&&runtime.includes('candidate:initial-rc-reaches-d10-review'));
+check('runtime:initial-rc0-negative',runtime.includes("version:'0.22.0-initial-rc0'"));
 check('source:no-write-uow',!source.includes('createCanonicalUnitOfWorkAfterConnectivityCertification'));
 check('source:no-ack-transport',!source.includes('.createTransport('));
 check('source:no-session-verification',!source.includes('.verifySession('));
