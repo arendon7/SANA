@@ -60,7 +60,7 @@ jobs:
           mkdir -p .tmp/control-initial-rc2/vendor
           cp -R vendor/postgres-js-3.4.9 .tmp/control-initial-rc2/vendor/
       - name: Production readiness runtime including initial RC candidate
-        run: node scripts/control-production-readiness-runtime.mjs .tmp/control-initial-rc2/services/pilot-certifier/src/index.js
+        run: node scripts/control-production-readiness-runtime.mjs .tmp/control-initial-rc2/services/pilot-certifier/src/control-production-readiness.js
       - name: Commissioning static guardrail
         run: node scripts/validate-control-production-commissioning.mjs
       - name: Commissioning adversarial runtime
