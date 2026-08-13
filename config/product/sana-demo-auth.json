@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0.0",
+  "product": "SANA",
+  "mode": "DEMO",
+  "purpose": "Functional product demonstration with simple account creation and predefined sandbox personas.",
+  "baseRelease": {
+    "branch": "release/control-v022-initial-rc2",
+    "gitHeadSha": "7f2a47a99b7df6a1682a588d714aca9a18026a95",
+    "immutable": true
+  },
+  "authentication": {
+    "provider": "SUPABASE_AUTH",
+    "primaryMethod": "EMAIL_PASSWORD",
+    "browserEnvironmentVariables": [
+      "SANA_DEMO_SUPABASE_URL",
+      "SANA_DEMO_SUPABASE_PUBLISHABLE_KEY"
+    ],
+    "forbiddenBrowserSecrets": [
+      "service_role",
+      "database_password",
+      "postgres_password",
+      "oidc_client_secret"
+    ],
+    "allowLocalSandboxProfiles": true
+  },
+  "personas": [
+    {"id": "producer", "label": "Productor demo", "scope": "FIELD"},
+    {"id": "technical", "label": "Técnico demo", "scope": "FIELD_AND_MONITORING"},
+    {"id": "investor", "label": "Inversionista demo", "scope": "PORTFOLIO_READ_MODEL"},
+    {"id": "admin", "label": "Administrador demo", "scope": "DEMO_OVERVIEW"},
+    {"id": "visitor", "label": "Visitante demo", "scope": "GUIDED_EXPLORATION"},
+    {"id": "new_user", "label": "Usuario nuevo", "scope": "ONBOARDING"}
+  ],
+  "safetyBoundary": {
+    "sandbox": true,
+    "syntheticDataOnly": true,
+    "productionExecutionAvailable": false,
+    "productionActivationAllowed": false,
+    "d10HumanProductApproval": "PENDING",
+    "externalAckExecutionAvailable": false,
+    "canonicalWriteAvailable": false,
+    "financialMovementAvailable": false,
+    "canonicalMutated": false
+  },
+  "productionAuth": {
+    "auth0MfaRequiredLater": true,
+    "status": "OUT_OF_SCOPE_FOR_DEMO"
+  }
+}
