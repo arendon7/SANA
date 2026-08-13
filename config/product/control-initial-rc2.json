@@ -1,0 +1,75 @@
+{
+  "product": "GREENATICS CONTROL",
+  "release": "0.22.0-initial-rc2",
+  "stage": "INITIAL_PHASE_COMMISSIONING_CANDIDATE",
+  "status": "REVIEW_AND_COMMISSIONING_READY_PENDING_REAL_BINDINGS",
+  "sourceBaseline": {
+    "initialRc1HeadSha": "52e75f285d0d040ba69558b96c0dacce4b89b8d1",
+    "initialRc1ArtifactDigest": "sha256:77c72425b391fd477647567fd1936c8ff803a313b151020f730d2e6328b40099",
+    "controlAlpha22": "PASS_REPO_HARDENING",
+    "rootWorkspaceCount": 41,
+    "canonicalRootLockChanged": false,
+    "externalNpmDependencyAdded": false
+  },
+  "initialPhaseScope": {
+    "architectureAndContracts": "COMPLETE_FOR_REVIEW",
+    "canonicalWriteBoundary": "COMPLETE_FOR_REVIEW",
+    "postgresTransactionAndDriver": "COMPLETE_FOR_REVIEW",
+    "oidcSessionAndProviderWiring": "COMPLETE_FOR_REVIEW",
+    "externalAckAndProviderWiring": "COMPLETE_FOR_REVIEW",
+    "productionReadinessAndActivationGates": "COMPLETE_FOR_REVIEW",
+    "productionBootstrapAndDeploymentHost": "COMPLETE_FOR_REVIEW",
+    "fieldLocalRuntimeAndOfflineReproducibility": "COMPLETE_FOR_REVIEW",
+    "releaseCandidateVersionGate": "COMPLETE_FOR_REVIEW",
+    "productionCommissioningRunner": "COMPLETE_FOR_REVIEW",
+    "realProductionBindings": "PENDING_EXTERNAL_ENVIRONMENT",
+    "humanProductApprovalD10": "PENDING_HUMAN"
+  },
+  "commissioningBoundary": {
+    "protocol": "AGROWAY_CONTROL_COMMISSIONING_V1",
+    "commands": ["describe", "check-config", "preflight", "capture-evidence"],
+    "activationCommandAvailable": false,
+    "d10ApprovalCommandAvailable": false,
+    "browserInvocationAllowed": false,
+    "productionWriteAvailable": false,
+    "externalAckSendAvailable": false,
+    "productionSessionCreationAvailable": false,
+    "realConnectivityProbeKind": "READ_ONLY",
+    "evidenceContainsSecrets": false,
+    "evidenceRequiresAllThreeProviderChecksPass": true,
+    "evidenceStateRequired": "READY_FOR_D10_HUMAN_REVIEW"
+  },
+  "releaseCandidateBinding": {
+    "version": "0.22.0-initial-rc2",
+    "gitHeadShaSuppliedFromExactHeadCertification": true,
+    "reviewBundleSha256SuppliedFromExactArtifactCertification": true,
+    "gitHeadOrDigestStoredAsProductionSecret": false,
+    "d10MustBindExactCandidate": true
+  },
+  "authority": {
+    "approval": "HUMAN_ONLY",
+    "ai": "ADVISORY_ONLY",
+    "productionReady": false,
+    "productionExecutionAvailable": false,
+    "executionState": "NOT_EXECUTED",
+    "canonicalMutated": false,
+    "browserWriteAllowed": false,
+    "realProductionActivationLeaseIssued": false
+  },
+  "productionBlockers": [
+    "PRODUCTION_IDENTITY_PROVIDER_REAL_BINDING_AND_CONNECTIVITY_PENDING",
+    "PRODUCTION_POSTGRES_REAL_SECRET_BINDING_AND_CONNECTIVITY_PENDING",
+    "EXTERNAL_ACK_PROVIDER_REAL_BINDING_AND_CONNECTIVITY_PENDING",
+    "D10_HUMAN_PRODUCT_APPROVAL_PENDING"
+  ],
+  "candidateArtifact": {
+    "directory": "dist/control-initial-rc2",
+    "deterministicManifest": true,
+    "containsProductionSecrets": false,
+    "containsProductionCredentials": false,
+    "containsD10Approval": false,
+    "containsActivationLease": false,
+    "networkRequiredToBuild": false
+  },
+  "decisionBoundary": "RC2 makes the certified initial phase commissionable against real external bindings through read-only preflights. It does not clear a production blocker by assertion, approve D10, authorize activation, or perform a production side effect."
+}
