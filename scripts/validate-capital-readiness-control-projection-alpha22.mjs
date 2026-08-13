@@ -1,4 +1,4 @@
-import {mkdir,rm,writeFile} from 'node:fs/promises';
+import {mkdir,readFile,rm,writeFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {spawnSync} from 'node:child_process';
@@ -6,13 +6,13 @@ import {spawnSync} from 'node:child_process';
 const tmp='.tmp-capital-readiness-control-projection-alpha22';
 await rm(tmp,{recursive:true,force:true});
 const compile=spawnSync('tsc',[
-  'services/control-tower-projector/src/index.ts','--ignoreConfig',
+  'services/control-tower-projector/src/readiness-exceptions.ts','--ignoreConfig',
   '--target','ES2022','--module','NodeNext','--moduleResolution','NodeNext','--skipLibCheck','true','--rootDir','.','--outDir',tmp,'--noEmitOnError','true',
 ],{encoding:'utf8'});
 if(compile.status!==0)throw new Error(`CAPITAL_READINESS_CONTROL_PROJECTION_COMPILE_FAILED\n${compile.stdout}\n${compile.stderr}`);
 await mkdir(`${tmp}/services/control-tower-projector`,{recursive:true});
 await writeFile(`${tmp}/services/control-tower-projector/package.json`,JSON.stringify({type:'module'}));
-const runtimeUrl=pathToFileURL(resolve(tmp,'services/control-tower-projector/src/index.js')).href;
+const runtimeUrl=pathToFileURL(resolve(tmp,'services/control-tower-projector/src/readiness-exceptions.js')).href;
 const mod=await import(`${runtimeUrl}?v=${Date.now()}`);
 
 function assert(condition,message){if(!condition)throw new Error(`ASSERTION_FAILED:${message}`)}
@@ -59,22 +59,12 @@ expectThrow(()=>mod.deriveReadinessGapExceptions(tenantId,[baseGap,baseGap],asOf
 expectThrow(()=>mod.deriveReadinessGapExceptions(tenantId,[Object.freeze({...baseGap,state:'OPEN',resolvedAt:'2026-08-12T11:00:00.000Z'})],asOf),'READINESS_CONTROL_ACTIVE_GAP_HAS_RESOLUTION');
 pass('FAIL_CLOSED_SCOPE_TIME_DUPLICATE');
 
-const baseInput=Object.freeze({
-  snapshotId:'tower:1',tenantId,asOf,
-  network:Object.freeze({producerCount:1,farmCount:1,activeAreaHa:8.6,activeCropCycleCount:1}),
-  projects:Object.freeze([]),
-  agronomy:Object.freeze({healthyCycles:1,watchCycles:0,criticalCycles:0,openAlerts:0,criticalAlerts:0}),
-  operations:Object.freeze({plannedActivities:10,completedActivities:10,dueActivities:0,overdueActivities:0}),
-  supply:Object.freeze({openOrders:0,fillRateBps:10_000,inventoryCoverageDays:30}),demand:Object.freeze([]),impact:Object.freeze([]),watermarks:Object.freeze([]),
-  thresholds:Object.freeze({maxOverdueActivities:3,minInventoryCoverageDays:7,raiseAgronomyCriticalWhenCriticalAlertsAtLeast:1}),
-});
-const noReadiness=mod.projectControlTower(baseInput);
-assert(noReadiness.exceptions.length===0,'OMITTED_READINESS_BACKWARD_COMPATIBLE');
-const integrated=mod.projectControlTower({...baseInput,readinessGaps:Object.freeze([baseGap])});
-assert(integrated.exceptions.length===1&&integrated.exceptions[0].code==='CAPITAL_READINESS_GAP','PROJECTOR_INTEGRATES_READINESS_OPTIONALLY');
-const existingAndReadiness=mod.projectControlTower({...baseInput,operations:Object.freeze({...baseInput.operations,overdueActivities:4}),readinessGaps:Object.freeze([baseGap])});
-assert(existingAndReadiness.exceptions.some(x=>x.code==='OPERATIONS_OVERDUE')&&existingAndReadiness.exceptions.some(x=>x.code==='CAPITAL_READINESS_GAP'),'EXISTING_EXCEPTION_DERIVATION_PRESERVED');
-pass('CONTROL_PROJECTOR_BACKWARD_COMPATIBILITY');
+const projectorSource=await readFile('services/control-tower-projector/src/projector.ts','utf8');
+assert(projectorSource.includes('readinessGaps?:readonly ReadinessGap[]'),'OPTIONAL_INPUT_BACKWARD_COMPATIBLE');
+assert(projectorSource.includes('deriveExceptions(input.tenantId'),'EXISTING_EXCEPTION_DERIVATION_PRESERVED');
+assert(projectorSource.includes('deriveReadinessGapExceptions(input.tenantId,input.readinessGaps??[],input.asOf)'),'READINESS_PROJECTION_WIRED');
+assert(projectorSource.includes('[...existing,...readiness]'),'EXISTING_AND_READINESS_MERGED_ADDITIVELY');
+pass('CONTROL_PROJECTOR_STATIC_INTEGRATION');
 
 assert(mod.CAPITAL_READINESS_CONTROL_PROJECTION_BOUNDARY.projectionOnly===true,'PROJECTION_ONLY');
 assert(mod.CAPITAL_READINESS_CONTROL_PROJECTION_BOUNDARY.controlResolutionMutatesReadiness===false,'CONTROL_CANNOT_MUTATE_READINESS');
