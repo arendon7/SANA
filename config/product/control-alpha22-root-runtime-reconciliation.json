@@ -2,7 +2,7 @@
   "product": "SANA RECONSTRUCTED ROOT",
   "version": "0.22.0-alpha22",
   "capability": "ROOT_RUNTIME_RELEASE_SCRIPT_RECONCILIATION",
-  "status": "PASS_REPO_HARDENING_PENDING_CI",
+  "status": "PASS_REPO_HARDENING",
   "scope": {
     "productFeatureAdded": false,
     "canonicalDomainEventsAdded": 0,
@@ -60,6 +60,14 @@
     "d10MustBeApprovedForProduction": true,
     "productionBlockersMustBeEmptyForProduction": true,
     "productionPassMayNotBeInvented": true
+  },
+  "certification": {
+    "exactHeadBeforeTruthFinalization": "ff2e96b234f5aa52e79c4d523f75d589f1ead453",
+    "workflowFamiliesPassed": 4,
+    "primaryRunId": 31651033329,
+    "artifactId": 9162581069,
+    "artifactDigest": "sha256:f56faa244b1127b55d716fa5a4a2d9266ed8726b5cb541b61392b5d893c31fd4",
+    "status": "PASS_REQUIRES_EXACT_HEAD_RECERTIFICATION_AFTER_TRUTH_FINALIZATION"
   },
   "productionTruthUnchanged": {
     "productionReady": false,
