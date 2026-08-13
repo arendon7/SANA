@@ -1,0 +1,49 @@
+{
+  "product": "GREENATICS CONTROL",
+  "release": "0.22.0-initial-rc1",
+  "stage": "INITIAL_PHASE_RELEASE_CANDIDATE",
+  "status": "REVIEW_CANDIDATE",
+  "sourceBaseline": {
+    "controlAlpha22": "PASS_REPO_HARDENING",
+    "rootWorkspaceCount": 41,
+    "canonicalRootLockChanged": false,
+    "externalNpmDependencyAdded": false
+  },
+  "initialPhaseScope": {
+    "architectureAndContracts": "COMPLETE_FOR_REVIEW",
+    "canonicalWriteBoundary": "COMPLETE_FOR_REVIEW",
+    "postgresTransactionAndDriver": "COMPLETE_FOR_REVIEW",
+    "oidcSessionAndProviderWiring": "COMPLETE_FOR_REVIEW",
+    "externalAckAndProviderWiring": "COMPLETE_FOR_REVIEW",
+    "productionReadinessAndActivationGates": "COMPLETE_FOR_REVIEW",
+    "productionBootstrapAndDeploymentHost": "COMPLETE_FOR_REVIEW",
+    "fieldLocalRuntimeAndOfflineReproducibility": "COMPLETE_FOR_REVIEW",
+    "realProductionBindings": "PENDING_EXTERNAL_ENVIRONMENT",
+    "humanProductApprovalD10": "PENDING_HUMAN"
+  },
+  "authority": {
+    "approval": "HUMAN_ONLY",
+    "ai": "ADVISORY_ONLY",
+    "productionReady": false,
+    "productionExecutionAvailable": false,
+    "executionState": "NOT_EXECUTED",
+    "canonicalMutated": false,
+    "browserWriteAllowed": false,
+    "realProductionActivationLeaseIssued": false
+  },
+  "productionBlockers": [
+    "PRODUCTION_IDENTITY_PROVIDER_REAL_BINDING_AND_CONNECTIVITY_PENDING",
+    "PRODUCTION_POSTGRES_REAL_SECRET_BINDING_AND_CONNECTIVITY_PENDING",
+    "EXTERNAL_ACK_PROVIDER_REAL_BINDING_AND_CONNECTIVITY_PENDING",
+    "D10_HUMAN_PRODUCT_APPROVAL_PENDING"
+  ],
+  "candidateArtifact": {
+    "directory": "dist/control-initial-rc1",
+    "deterministicManifest": true,
+    "containsProductionSecrets": false,
+    "containsProductionCredentials": false,
+    "containsD10Approval": false,
+    "networkRequiredToBuild": false
+  },
+  "decisionBoundary": "RC1 packages already-reviewed code and evidence for human review and real-environment commissioning. It does not clear any production blocker, authorize execution, or constitute D10."
+}

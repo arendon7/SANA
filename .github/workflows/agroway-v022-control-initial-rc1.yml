@@ -1,0 +1,99 @@
+name: AGROWAY CONTROL v0.22 initial RC1
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "config/product/control-initial-rc1.json"
+      - "scripts/build-control-initial-rc.mjs"
+      - "scripts/validate-control-initial-rc.mjs"
+      - ".github/workflows/agroway-v022-control-initial-rc1.yml"
+      - "config/product/control-operational-acceptance.json"
+      - "config/product/control-alpha22-root-runtime-reconciliation.json"
+      - "scripts/release-readiness.mjs"
+      - "scripts/control-production-host.mjs"
+      - "scripts/build-control-production-host.mjs"
+concurrency:
+  group: agroway-control-v022-initial-rc1-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  initial-phase-release-candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Syntax-check RC1 boundaries
+        run: |
+          node --check scripts/build-control-initial-rc.mjs
+          node --check scripts/validate-control-initial-rc.mjs
+          node --check scripts/release-readiness.mjs
+          node --check scripts/control-production-host.mjs
+          node --check scripts/build-control-production-host.mjs
+      - name: Direct-root persistence topology and lock parity
+        run: node scripts/validate-direct-root-persistence.mjs
+      - name: Root executable target audit
+        run: node scripts/validate-root-script-targets.mjs
+      - name: Offline canonical workspace install
+        run: npm ci --ignore-scripts --offline
+      - name: Verify persisted Postgres.js vendor
+        run: node scripts/materialize-postgres-js-v349.mjs --verify
+      - name: Pinned TypeScript strict
+        run: npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit
+      - name: Alpha22 root hardening regression
+        run: node scripts/validate-root-runtime-reconciliation.mjs
+      - name: Full canonical offline verification
+        run: npm run verify:offline
+      - name: CONTROL production truth regression
+        run: node scripts/validate-control-operational-acceptance.mjs
+      - name: Production-host static boundary regression
+        run: node scripts/validate-control-production-host.mjs
+      - name: Review readiness is ready but production remains blocked
+        run: |
+          npm run release:readiness | tee /tmp/rc1-review-readiness.json
+          node -e "const fs=require('fs');const x=JSON.parse(fs.readFileSync('/tmp/rc1-review-readiness.json','utf8').slice(fs.readFileSync('/tmp/rc1-review-readiness.json','utf8').indexOf('{')));if(x.state!=='REVIEW_RELEASE_READY'||x.reviewReady!==true||x.productionReady!==false||x.d10!=='PENDING'||x.productionBlockers.length!==4)process.exit(1);console.log('PASS_RC1_REVIEW_READINESS')"
+          set +e
+          npm run release:readiness:production >/tmp/rc1-production.out 2>/tmp/rc1-production.err
+          code=$?
+          set -e
+          test "$code" = "2"
+          grep -q 'BLOCKED_PRODUCTION_READINESS' /tmp/rc1-production.err
+          grep -q 'D10_HUMAN_PRODUCT_APPROVAL_PENDING' /tmp/rc1-production.err
+          echo PASS_RC1_PRODUCTION_FAIL_CLOSED
+      - name: Build and validate deterministic initial RC1 twice
+        run: |
+          node scripts/build-control-initial-rc.mjs | tee /tmp/rc1-build-a.json
+          node scripts/validate-control-initial-rc.mjs
+          cp dist/control-initial-rc1/MANIFEST.json /tmp/rc1-manifest-a.json
+          node scripts/build-control-initial-rc.mjs | tee /tmp/rc1-build-b.json
+          cmp /tmp/rc1-manifest-a.json dist/control-initial-rc1/MANIFEST.json
+          node scripts/validate-control-initial-rc.mjs
+          echo PASS_RC1_DETERMINISTIC_BUILD
+      - name: Compile reviewed production host dependencies
+        run: |
+          rm -rf .tmp/control-initial-rc1
+          npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit false --outDir .tmp/control-initial-rc1
+          mkdir -p .tmp/control-initial-rc1/vendor
+          cp -R vendor/postgres-js-3.4.9 .tmp/control-initial-rc1/vendor/
+      - name: Build and verify deployable preflight host
+        run: |
+          node scripts/build-control-production-host.mjs .tmp/control-initial-rc1
+          node dist/control-production-host/run.mjs describe | tee /tmp/rc1-host-describe.json
+          node dist/control-production-host/run.mjs verify-layout | tee /tmp/rc1-host-layout.json
+          node -e "const fs=require('fs');const d=JSON.parse(fs.readFileSync('/tmp/rc1-host-describe.json'));const l=JSON.parse(fs.readFileSync('/tmp/rc1-host-layout.json'));if(d.kind!=='SERVER_SIDE_CLI'||d.activationCommandAvailable!==false||d.productionExecutionAvailable!==false||l.state!=='RUNTIME_LAYOUT_VERIFIED'||l.productionExecutionAvailable!==false)process.exit(1);console.log('PASS_RC1_PRODUCTION_HOST_LAYOUT')"
+      - name: Trust boundary
+        run: |
+          echo 'PASS_CONTROL_INITIAL_PHASE_RC1'
+          echo 'Initial code/review scope is packaged. Real IdP/PostgreSQL/ACK bindings and D10 remain required; no production execution is enabled.'
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: agroway-control-v022-initial-rc1
+          path: |
+            dist/control-initial-rc1
+            dist/control-production-host
+          if-no-files-found: error
+          retention-days: 14
