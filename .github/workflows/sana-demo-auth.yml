@@ -1,0 +1,72 @@
+name: SANA DEMO auth sandbox
+
+on:
+  pull_request:
+    paths:
+      - 'apps/control-web/public/demo-*'
+      - 'apps/control-web/server.mjs'
+      - 'config/product/sana-demo-auth.json'
+      - 'infra/supabase-demo/**'
+      - 'scripts/validate-sana-demo-auth.mjs'
+      - '.github/workflows/sana-demo-auth.yml'
+  push:
+    branches:
+      - 'demo/sana-functional-auth-v1'
+    paths:
+      - 'apps/control-web/public/demo-*'
+      - 'apps/control-web/server.mjs'
+      - 'config/product/sana-demo-auth.json'
+      - 'infra/supabase-demo/**'
+      - 'scripts/validate-sana-demo-auth.mjs'
+      - '.github/workflows/sana-demo-auth.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  demo-auth-sandbox:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Syntax and contract validation
+        run: |
+          node --check apps/control-web/server.mjs
+          node --check apps/control-web/public/demo-auth.js
+          node --check apps/control-web/public/demo-session.js
+          node scripts/validate-sana-demo-auth.mjs
+
+      - name: Runtime sandbox smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          node apps/control-web/server.mjs > /tmp/sana-demo.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+
+          for attempt in {1..20}; do
+            if curl --fail --silent http://127.0.0.1:4273/demo/health > /tmp/health.json; then
+              break
+            fi
+            sleep 0.25
+          done
+
+          node -e "const fs=require('fs');const h=JSON.parse(fs.readFileSync('/tmp/health.json','utf8'));if(h.environment!=='DEMO'||h.productionExecutionAvailable!==false||h.productionActivationAllowed!==false||h.canonicalMutated!==false)process.exit(1)"
+
+          curl --fail --silent http://127.0.0.1:4273/ > /tmp/login.html
+          grep -q 'DEMO 100% FUNCIONAL' /tmp/login.html
+          grep -q 'Explorar SANA sin registrarme' /tmp/login.html
+
+          curl --fail --silent http://127.0.0.1:4273/control > /tmp/control.html
+          grep -q '/demo-session.js' /tmp/control.html
+
+          status=$(curl --silent --output /tmp/blocked.json --write-out '%{http_code}' http://127.0.0.1:4273/api/control/production-activation)
+          test "$status" = '404'
+          node -e "const fs=require('fs');const b=JSON.parse(fs.readFileSync('/tmp/blocked.json','utf8'));if(b.browserActivationAllowed!==false||b.productionExecutionAvailable!==false||b.canonicalMutated!==false)process.exit(1)"
