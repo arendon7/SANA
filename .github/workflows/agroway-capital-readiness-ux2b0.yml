@@ -1,0 +1,84 @@
+name: AGROWAY CAPITAL_READINESS UX2B-0 integration
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "packages/invest-control-contracts/**"
+      - "services/investment-portfolio/**"
+      - "services/identity-access/**"
+      - "apps/control-web/**"
+      - "infra/postgres/migrations/0027_identity_membership_permissions.sql"
+      - "infra/postgres/migrations/0028*.sql"
+      - "scripts/validate-capital-readiness-*.mjs"
+      - "scripts/capital-readiness-ux2a-browser-qa.py"
+      - ".github/workflows/agroway-capital-readiness-ux2b0.yml"
+concurrency:
+  group: agroway-capital-readiness-ux2b0-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  ux2b0-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Canonical offline workspace install
+        run: npm ci --ignore-scripts --offline
+      - name: Syntax check integrated Capital + alpha22 server
+        run: |
+          node --check apps/control-web/server.mjs
+          node --check apps/control-web/public/capital-readiness.js
+          node --check scripts/validate-capital-readiness-int1.mjs
+          node --check scripts/validate-capital-readiness-int1-hardening.mjs
+          node --check scripts/validate-capital-readiness-persistence-adapter.mjs
+          node --check scripts/validate-capital-readiness-authority-ux2b0.mjs
+          node --check scripts/validate-capital-readiness-remediation-ux2a.mjs
+          node --check scripts/validate-capital-readiness-ux2b0-identity.mjs
+          node --check scripts/validate-capital-readiness-ux2b0-static.mjs
+          python -m py_compile scripts/capital-readiness-ux2a-browser-qa.py
+      - name: UX2B-0 static integration boundary
+        run: node scripts/validate-capital-readiness-ux2b0-static.mjs
+      - name: Capital INT1.1 deterministic runtime
+        run: node scripts/validate-capital-readiness-int1.mjs
+      - name: Capital INT1.1 hardening
+        run: node scripts/validate-capital-readiness-int1-hardening.mjs
+      - name: Capital INT1.6 persistence adapter hydration
+        run: node scripts/validate-capital-readiness-persistence-adapter.mjs
+      - name: Capital INT1.7 application authority on alpha22 integration
+        run: node scripts/validate-capital-readiness-authority-ux2b0.mjs
+      - name: UX2A remediation projection
+        run: node scripts/validate-capital-readiness-remediation-ux2a.mjs
+      - name: UX2B-0 durable membership and request authority
+        run: node scripts/validate-capital-readiness-ux2b0-identity.mjs
+      - name: Pinned TypeScript 5.8.3 strict
+        run: npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit
+      - name: Install pinned Playwright Chromium
+        run: |
+          python -m pip install --disable-pip-version-check playwright==1.57.0
+          python -m playwright install --with-deps chromium
+      - name: Native Chromium Capital UX1 + UX2A on alpha22 HTTP
+        run: python scripts/capital-readiness-ux2a-browser-qa.py
+      - name: Mutation endpoint remains unavailable
+        shell: bash
+        run: |
+          set -euo pipefail
+          PORT=4288 node apps/control-web/server.mjs >/tmp/capital-ux2b0.log 2>&1 &
+          PID=$!
+          trap 'kill $PID 2>/dev/null || true' EXIT
+          for i in {1..40}; do curl -fsS http://127.0.0.1:4288/control/capital >/dev/null && break || sleep .25; done
+          code=$(curl -sS -o /tmp/capital-api.json -w '%{http_code}' -X POST http://127.0.0.1:4288/api/capital/projects/test/gaps/test/evidence)
+          test "$code" = "404"
+          grep -F 'CAPITAL_READINESS_BROWSER_MUTATION_NOT_ENABLED' /tmp/capital-api.json
+          grep -F '"canonicalMutated":false' /tmp/capital-api.json
+          grep -F '"financingApproval":false' /tmp/capital-api.json
+      - name: Trust boundary
+        run: |
+          echo 'PASS_CAPITAL_READINESS_UX2B0_ALPHA22_INTEGRATION'
+          echo 'Verified-session + durable-membership authority is integrated as a server-side contract. Browser mutation remains disabled; CAPITAL_READY is not financing approval; no money movement/custody/wallet authority; D10 remains pending.'
