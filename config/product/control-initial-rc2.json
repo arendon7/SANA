@@ -42,7 +42,10 @@
   "releaseCandidateBinding": {
     "version": "0.22.0-initial-rc2",
     "gitHeadShaSuppliedFromExactHeadCertification": true,
-    "reviewBundleSha256SuppliedFromExactArtifactCertification": true,
+    "reviewBundleSha256Source": "SHA256_OF_DIST_CONTROL_INITIAL_RC2_MANIFEST_JSON",
+    "reviewBundleSha256File": "dist/control-initial-rc2/MANIFEST.sha256",
+    "githubActionsArtifactDigestIsTransportEvidenceOnly": true,
+    "githubActionsArtifactDigestMaySubstituteReviewBundleSha256": false,
     "gitHeadOrDigestStoredAsProductionSecret": false,
     "d10MustBindExactCandidate": true
   },
@@ -65,6 +68,7 @@
   "candidateArtifact": {
     "directory": "dist/control-initial-rc2",
     "deterministicManifest": true,
+    "manifestSha256File": "dist/control-initial-rc2/MANIFEST.sha256",
     "containsProductionSecrets": false,
     "containsProductionCredentials": false,
     "containsD10Approval": false,
