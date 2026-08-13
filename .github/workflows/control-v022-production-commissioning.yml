@@ -44,32 +44,39 @@ jobs:
           const fs=require('fs');
           const cfg=JSON.parse(fs.readFileSync('config/product/control-commissioning-ops.json','utf8'));
           const workflow=fs.readFileSync('.github/workflows/control-v022-production-commissioning.yml','utf8');
+          const live=workflow.split('\n  commissioning:\n')[1]||'';
           const sha='7f2a47a99b7df6a1682a588d714aca9a18026a95';
           const digest='8b10c59c7a0f99b7ea81b08cd342afd2e62abca786453bccafde56e8642b9ceb';
           const expected=['check-config','preflight','capture-evidence'];
-          const checks=[
-            cfg.protocol==='AGROWAY_CONTROL_COMMISSIONING_HANDOFF_V1',
-            cfg.candidate?.gitHeadSha===sha,
-            cfg.candidate?.reviewBundleSha256===digest,
-            cfg.candidate?.immutable===true,
-            JSON.stringify(cfg.operations)===JSON.stringify(expected),
-            cfg.authority?.activationCommandAvailable===false,
-            cfg.authority?.d10ApprovalCommandAvailable===false,
-            cfg.authority?.canonicalWriteAvailable===false,
-            cfg.authority?.productionExecutionAvailable===false,
-            cfg.productionTruth?.productionReady===false,
-            workflow.includes('workflow_dispatch:'),
-            workflow.includes('environment: control-production-commissioning'),
-            workflow.includes(`ref: ${sha}`),
-            workflow.includes('contents: read'),
-            !workflow.includes('contents: write'),
-            !workflow.includes('id-token: write'),
-            !workflow.includes('control:activate'),
-            !workflow.includes('sendAck'),
-            !workflow.includes('applyApproved')
-          ];
-          if(checks.some(x=>!x)) process.exit(1);
-          console.log('PASS_CONTROL_COMMISSIONING_HANDOFF_GUARDRAILS',checks.length+'/'+checks.length);
+          const forbiddenWritePermission=['contents','write'].join(': ');
+          const forbiddenOidcPermission=['id-token','write'].join(': ');
+          const forbiddenActivation=['control','activate'].join(':');
+          const forbiddenAck=['send','Ack'].join('');
+          const forbiddenApproved=['apply','Approved'].join('');
+          const checks={
+            protocol:cfg.protocol==='AGROWAY_CONTROL_COMMISSIONING_HANDOFF_V1',
+            candidateSha:cfg.candidate?.gitHeadSha===sha,
+            reviewDigest:cfg.candidate?.reviewBundleSha256===digest,
+            immutable:cfg.candidate?.immutable===true,
+            operations:JSON.stringify(cfg.operations)===JSON.stringify(expected),
+            noActivation:cfg.authority?.activationCommandAvailable===false,
+            noD10Command:cfg.authority?.d10ApprovalCommandAvailable===false,
+            noCanonicalWrite:cfg.authority?.canonicalWriteAvailable===false,
+            noExecution:cfg.authority?.productionExecutionAvailable===false,
+            notProductionReady:cfg.productionTruth?.productionReady===false,
+            manualDispatch:workflow.includes('workflow_dispatch:'),
+            protectedEnvironment:live.includes('environment: control-production-commissioning'),
+            fixedCandidateCheckout:live.includes(`ref: ${sha}`),
+            readOnlyPermission:workflow.includes('contents: read'),
+            noWritePermission:!workflow.includes(forbiddenWritePermission),
+            noOidcWritePermission:!workflow.includes(forbiddenOidcPermission),
+            noActivationPath:!live.includes(forbiddenActivation),
+            noAckSendPath:!live.includes(forbiddenAck),
+            noApprovedWritePath:!live.includes(forbiddenApproved)
+          };
+          const failed=Object.entries(checks).filter(([,ok])=>!ok).map(([name])=>name);
+          if(failed.length){console.error('FAIL_CONTROL_COMMISSIONING_HANDOFF_GUARDRAILS',failed.join(','));process.exit(1);}
+          console.log('PASS_CONTROL_COMMISSIONING_HANDOFF_GUARDRAILS',Object.keys(checks).length+'/'+Object.keys(checks).length);
           NODE
 
   commissioning:
