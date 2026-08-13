@@ -1,0 +1,213 @@
+name: GREENATICS CONTROL v0.22 RC2 production commissioning
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/control-v022-production-commissioning.yml"
+      - "config/product/control-commissioning-ops.json"
+      - "docs/control/production-commissioning-operations.md"
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: Reviewed RC2 commissioning operation
+        required: true
+        default: check-config
+        type: choice
+        options:
+          - check-config
+          - preflight
+          - capture-evidence
+
+permissions:
+  contents: read
+
+concurrency:
+  group: control-v022-production-commissioning
+  cancel-in-progress: false
+
+env:
+  RC2_SHA: 7f2a47a99b7df6a1682a588d714aca9a18026a95
+  RC2_REVIEW_BUNDLE_SHA256: 8b10c59c7a0f99b7ea81b08cd342afd2e62abca786453bccafde56e8642b9ceb
+
+jobs:
+  review-guardrails:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate operational handoff is manual, immutable and fail-closed
+        shell: bash
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs=require('fs');
+          const cfg=JSON.parse(fs.readFileSync('config/product/control-commissioning-ops.json','utf8'));
+          const workflow=fs.readFileSync('.github/workflows/control-v022-production-commissioning.yml','utf8');
+          const sha='7f2a47a99b7df6a1682a588d714aca9a18026a95';
+          const digest='8b10c59c7a0f99b7ea81b08cd342afd2e62abca786453bccafde56e8642b9ceb';
+          const expected=['check-config','preflight','capture-evidence'];
+          const checks=[
+            cfg.protocol==='AGROWAY_CONTROL_COMMISSIONING_HANDOFF_V1',
+            cfg.candidate?.gitHeadSha===sha,
+            cfg.candidate?.reviewBundleSha256===digest,
+            cfg.candidate?.immutable===true,
+            JSON.stringify(cfg.operations)===JSON.stringify(expected),
+            cfg.authority?.activationCommandAvailable===false,
+            cfg.authority?.d10ApprovalCommandAvailable===false,
+            cfg.authority?.canonicalWriteAvailable===false,
+            cfg.authority?.productionExecutionAvailable===false,
+            cfg.productionTruth?.productionReady===false,
+            workflow.includes('workflow_dispatch:'),
+            workflow.includes('environment: control-production-commissioning'),
+            workflow.includes(`ref: ${sha}`),
+            workflow.includes('contents: read'),
+            !workflow.includes('contents: write'),
+            !workflow.includes('id-token: write'),
+            !workflow.includes('control:activate'),
+            !workflow.includes('sendAck'),
+            !workflow.includes('applyApproved')
+          ];
+          if(checks.some(x=>!x)) process.exit(1);
+          console.log('PASS_CONTROL_COMMISSIONING_HANDOFF_GUARDRAILS',checks.length+'/'+checks.length);
+          NODE
+
+  commissioning:
+    if: github.event_name == 'workflow_dispatch'
+    environment: control-production-commissioning
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      AGROWAY_CONTROL_RUNTIME_MODE: PRODUCTION
+      AGROWAY_CONTROL_BOOTSTRAP_MODE: PRODUCTION_EXTERNAL_BINDINGS
+      AGROWAY_CONTROL_RELEASE_VERSION: 0.22.0-initial-rc2
+      AGROWAY_CONTROL_GIT_HEAD_SHA: 7f2a47a99b7df6a1682a588d714aca9a18026a95
+      AGROWAY_CONTROL_REVIEW_BUNDLE_SHA256: 8b10c59c7a0f99b7ea81b08cd342afd2e62abca786453bccafde56e8642b9ceb
+
+      AGROWAY_OIDC_ISSUER: ${{ vars.AGROWAY_OIDC_ISSUER }}
+      AGROWAY_OIDC_JWKS_URI: ${{ vars.AGROWAY_OIDC_JWKS_URI }}
+      AGROWAY_OIDC_AUDIENCE: ${{ vars.AGROWAY_OIDC_AUDIENCE }}
+      AGROWAY_OIDC_TENANT_CLAIM: ${{ vars.AGROWAY_OIDC_TENANT_CLAIM }}
+      AGROWAY_OIDC_SESSION_CLAIM: ${{ vars.AGROWAY_OIDC_SESSION_CLAIM }}
+      AGROWAY_OIDC_ALLOWED_ALGORITHMS: ${{ vars.AGROWAY_OIDC_ALLOWED_ALGORITHMS }}
+      AGROWAY_OIDC_AAL2_ACR_VALUES: ${{ vars.AGROWAY_OIDC_AAL2_ACR_VALUES }}
+      AGROWAY_OIDC_AAL3_ACR_VALUES: ${{ vars.AGROWAY_OIDC_AAL3_ACR_VALUES }}
+      AGROWAY_OIDC_MFA_AMR_VALUES: ${{ vars.AGROWAY_OIDC_MFA_AMR_VALUES }}
+      AGROWAY_OIDC_CLOCK_SKEW_SECONDS: ${{ vars.AGROWAY_OIDC_CLOCK_SKEW_SECONDS }}
+      AGROWAY_OIDC_MAX_TOKEN_AGE_SECONDS: ${{ vars.AGROWAY_OIDC_MAX_TOKEN_AGE_SECONDS }}
+      AGROWAY_OIDC_JWKS_TIMEOUT_MS: ${{ vars.AGROWAY_OIDC_JWKS_TIMEOUT_MS }}
+      AGROWAY_OIDC_JWKS_CACHE_TTL_MS: ${{ vars.AGROWAY_OIDC_JWKS_CACHE_TTL_MS }}
+      AGROWAY_OIDC_JWKS_MAX_BYTES: ${{ vars.AGROWAY_OIDC_JWKS_MAX_BYTES }}
+      AGROWAY_OIDC_JWKS_MAX_KEYS: ${{ vars.AGROWAY_OIDC_JWKS_MAX_KEYS }}
+
+      AGROWAY_POSTGRES_HOST: ${{ vars.AGROWAY_POSTGRES_HOST }}
+      AGROWAY_POSTGRES_PORT: ${{ vars.AGROWAY_POSTGRES_PORT }}
+      AGROWAY_POSTGRES_DATABASE: ${{ vars.AGROWAY_POSTGRES_DATABASE }}
+      AGROWAY_POSTGRES_USER: ${{ vars.AGROWAY_POSTGRES_USER }}
+      AGROWAY_POSTGRES_PASSWORD: ${{ secrets.AGROWAY_POSTGRES_PASSWORD }}
+      AGROWAY_POSTGRES_CA_PEM: ${{ secrets.AGROWAY_POSTGRES_CA_PEM }}
+      AGROWAY_POSTGRES_TLS_SERVERNAME: ${{ vars.AGROWAY_POSTGRES_TLS_SERVERNAME }}
+      AGROWAY_POSTGRES_POOL_MAX: ${{ vars.AGROWAY_POSTGRES_POOL_MAX }}
+      AGROWAY_POSTGRES_CONNECT_TIMEOUT_MS: ${{ vars.AGROWAY_POSTGRES_CONNECT_TIMEOUT_MS }}
+      AGROWAY_POSTGRES_STATEMENT_TIMEOUT_MS: ${{ vars.AGROWAY_POSTGRES_STATEMENT_TIMEOUT_MS }}
+
+      AGROWAY_EXTERNAL_ACK_PROVIDER_ID: ${{ vars.AGROWAY_EXTERNAL_ACK_PROVIDER_ID }}
+      AGROWAY_EXTERNAL_ACK_ENDPOINT: ${{ vars.AGROWAY_EXTERNAL_ACK_ENDPOINT }}
+      AGROWAY_EXTERNAL_ACK_METADATA_URI: ${{ vars.AGROWAY_EXTERNAL_ACK_METADATA_URI }}
+      AGROWAY_EXTERNAL_ACK_AUTH_MODE: ${{ vars.AGROWAY_EXTERNAL_ACK_AUTH_MODE }}
+      AGROWAY_EXTERNAL_ACK_BEARER_TOKEN: ${{ secrets.AGROWAY_EXTERNAL_ACK_BEARER_TOKEN }}
+      AGROWAY_EXTERNAL_ACK_VERIFICATION_KEYS_JSON: ${{ vars.AGROWAY_EXTERNAL_ACK_VERIFICATION_KEYS_JSON }}
+      AGROWAY_EXTERNAL_ACK_TIMEOUT_MS: ${{ vars.AGROWAY_EXTERNAL_ACK_TIMEOUT_MS }}
+      AGROWAY_EXTERNAL_ACK_MAX_RESPONSE_BYTES: ${{ vars.AGROWAY_EXTERNAL_ACK_MAX_RESPONSE_BYTES }}
+      AGROWAY_EXTERNAL_ACK_MAX_ACK_AGE_MS: ${{ vars.AGROWAY_EXTERNAL_ACK_MAX_ACK_AGE_MS }}
+      AGROWAY_EXTERNAL_ACK_CLOCK_SKEW_MS: ${{ vars.AGROWAY_EXTERNAL_ACK_CLOCK_SKEW_MS }}
+      AGROWAY_EXTERNAL_ACK_METADATA_TIMEOUT_MS: ${{ vars.AGROWAY_EXTERNAL_ACK_METADATA_TIMEOUT_MS }}
+      AGROWAY_EXTERNAL_ACK_METADATA_MAX_BYTES: ${{ vars.AGROWAY_EXTERNAL_ACK_METADATA_MAX_BYTES }}
+    steps:
+      - name: Checkout immutable certified RC2 candidate
+        uses: actions/checkout@v4
+        with:
+          ref: 7f2a47a99b7df6a1682a588d714aca9a18026a95
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Verify exact source candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$AGROWAY_CONTROL_GIT_HEAD_SHA"
+          node scripts/validate-direct-root-persistence.mjs
+          npm ci --ignore-scripts --offline
+          node scripts/materialize-postgres-js-v349.mjs --verify
+          npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit
+
+      - name: Rebuild deterministic RC2 and verify canonical review digest
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/build-control-initial-rc2.mjs
+          node scripts/validate-control-initial-rc2.mjs
+          test "$(cat dist/control-initial-rc2/MANIFEST.sha256)" = "$AGROWAY_CONTROL_REVIEW_BUNDLE_SHA256"
+          echo PASS_RC2_CANONICAL_REVIEW_DIGEST
+
+      - name: Build reviewed RC2 production preflight host
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .tmp/control-initial-rc2
+          npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit false --outDir .tmp/control-initial-rc2
+          mkdir -p .tmp/control-initial-rc2/vendor
+          cp -R vendor/postgres-js-3.4.9 .tmp/control-initial-rc2/vendor/
+          node scripts/build-control-production-host.mjs .tmp/control-initial-rc2 0.22.0-initial-rc2
+          node dist/control-production-host/run.mjs verify-layout
+
+      - name: Execute selected reviewed commissioning operation
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "${{ github.event.inputs.operation }}" in
+            check-config)
+              node scripts/control-production-commissioning.mjs check-config
+              ;;
+            preflight)
+              node scripts/control-production-commissioning.mjs preflight
+              ;;
+            capture-evidence)
+              node scripts/control-production-commissioning.mjs capture-evidence
+              ;;
+            *)
+              echo 'UNSUPPORTED_COMMISSIONING_OPERATION' >&2
+              exit 2
+              ;;
+          esac
+
+      - name: Verify captured evidence remains redacted and D10-pending
+        if: github.event.inputs.operation == 'capture-evidence'
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f dist/control-commissioning-evidence/PREFLIGHT_EVIDENCE.json
+          node - <<'NODE'
+          const fs=require('fs');
+          const p='dist/control-commissioning-evidence/PREFLIGHT_EVIDENCE.json';
+          const x=JSON.parse(fs.readFileSync(p,'utf8'));
+          const text=fs.readFileSync(p,'utf8');
+          if(x.release!=='0.22.0-initial-rc2') process.exit(1);
+          if(x.gitHeadSha!=='7f2a47a99b7df6a1682a588d714aca9a18026a95') process.exit(1);
+          if(x.reviewBundleSha256!=='8b10c59c7a0f99b7ea81b08cd342afd2e62abca786453bccafde56e8642b9ceb') process.exit(1);
+          if(x.state!=='READY_FOR_D10_HUMAN_REVIEW'||x.d10!=='PENDING'||x.productionExecutionAvailable!==false) process.exit(1);
+          for(const forbidden of ['AGROWAY_POSTGRES_PASSWORD','AGROWAY_POSTGRES_CA_PEM','AGROWAY_EXTERNAL_ACK_BEARER_TOKEN']) if(text.includes(forbidden)) process.exit(1);
+          console.log('PASS_RC2_REDACTED_D10_PENDING_EVIDENCE');
+          NODE
+
+      - name: Upload redacted preflight evidence only
+        if: github.event.inputs.operation == 'capture-evidence'
+        uses: actions/upload-artifact@v4
+        with:
+          name: control-v022-rc2-preflight-evidence
+          path: dist/control-commissioning-evidence/PREFLIGHT_EVIDENCE.json
+          if-no-files-found: error
+          retention-days: 7
