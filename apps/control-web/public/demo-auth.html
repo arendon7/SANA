@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>SANA · Demo funcional</title>
+  <link rel="stylesheet" href="/demo-auth.css">
+</head>
+<body>
+  <main class="demo-shell">
+    <section class="brand-panel" aria-labelledby="brand-title">
+      <div class="brand-lockup">
+        <span class="brand-mark" aria-hidden="true">S</span>
+        <div>
+          <p class="eyebrow">ECOSISTEMA SANA</p>
+          <h1 id="brand-title">Del territorio a la confianza.</h1>
+        </div>
+      </div>
+      <p class="brand-copy">Explora una versión funcional del ecosistema de acompañamiento, trazabilidad e inversión de impacto, sin tocar datos ni operaciones de producción.</p>
+      <div class="sandbox-card">
+        <strong>Entorno DEMO aislado</strong>
+        <span>Los datos son sintéticos. Las acciones financieras, D10, CONTROL productivo y mutaciones canónicas permanecen deshabilitadas.</span>
+      </div>
+      <ul class="value-list">
+        <li><span>01</span> Productores, predios y ciclos productivos</li>
+        <li><span>02</span> Acompañamiento técnico y trazabilidad</li>
+        <li><span>03</span> Evidencia, impacto y lectura de inversión</li>
+      </ul>
+    </section>
+
+    <section class="access-panel" aria-labelledby="access-title">
+      <div class="access-card">
+        <div class="access-heading">
+          <p class="eyebrow">DEMO 100% FUNCIONAL</p>
+          <h2 id="access-title">Entra a SANA</h2>
+          <p>Usa un perfil de prueba o crea tu propia cuenta.</p>
+        </div>
+
+        <div class="mode-tabs" role="tablist" aria-label="Modo de acceso">
+          <button id="signin-tab" class="tab active" type="button" role="tab" aria-selected="true">Ingresar</button>
+          <button id="signup-tab" class="tab" type="button" role="tab" aria-selected="false">Crear cuenta</button>
+        </div>
+
+        <form id="auth-form" novalidate>
+          <label id="name-field" class="field hidden">
+            <span>Nombre</span>
+            <input id="full-name" name="fullName" autocomplete="name" placeholder="Tu nombre">
+          </label>
+          <label class="field">
+            <span>Correo</span>
+            <input id="email" name="email" type="email" autocomplete="email" placeholder="tu@correo.com" required>
+          </label>
+          <label class="field">
+            <span>Contraseña</span>
+            <input id="password" name="password" type="password" autocomplete="current-password" minlength="6" placeholder="Mínimo 6 caracteres" required>
+          </label>
+          <button id="submit-button" class="primary-action" type="submit">Entrar</button>
+          <p id="auth-status" class="status" role="status" aria-live="polite"></p>
+        </form>
+
+        <div class="divider"><span>o entra de inmediato</span></div>
+
+        <div class="demo-profiles" aria-label="Perfiles demo">
+          <button class="profile-button" type="button" data-demo-role="producer">
+            <span class="profile-icon">P</span>
+            <span><strong>Productor demo</strong><small>Predio, labores, evidencias y cosecha</small></span>
+          </button>
+          <button class="profile-button" type="button" data-demo-role="technical">
+            <span class="profile-icon">T</span>
+            <span><strong>Técnico demo</strong><small>Acompañamiento, alertas y seguimiento</small></span>
+          </button>
+          <button class="profile-button" type="button" data-demo-role="investor">
+            <span class="profile-icon">I</span>
+            <span><strong>Inversionista demo</strong><small>Portafolio, impacto y trazabilidad</small></span>
+          </button>
+          <button class="profile-button" type="button" data-demo-role="admin">
+            <span class="profile-icon">A</span>
+            <span><strong>Administrador demo</strong><small>Vista integral del ecosistema</small></span>
+          </button>
+        </div>
+
+        <button id="guest-button" class="secondary-action" type="button">Explorar SANA sin registrarme</button>
+        <p class="privacy-note">La clave nunca se almacena en el navegador por SANA. Cuando Supabase Auth esté conectado, el registro e ingreso se procesan directamente contra el proyecto DEMO.</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="/demo-config.js"></script>
+  <script type="module" src="/demo-auth.js"></script>
+</body>
+</html>
