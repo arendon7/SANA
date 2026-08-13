@@ -6,8 +6,18 @@
     "gitHeadSha": "7f2a47a99b7df6a1682a588d714aca9a18026a95",
     "reviewBundleSha256": "8b10c59c7a0f99b7ea81b08cd342afd2e62abca786453bccafde56e8642b9ceb",
     "actionsArtifactId": 9164839137,
+    "actionsArtifactName": "agroway-control-v022-initial-rc2",
+    "actionsRunId": 31657254524,
     "actionsTransportSha256": "bf6ab3c667a9eb4568e61191d32410351adf9bd70ca4ab827fbd628173b4dcd3",
+    "actionsArtifactExpiresAt": "2026-08-27T01:18:17Z",
+    "productionHostAggregateSha256": "69a618ee3e44c0a55107f4703dc9a5bbd79ffa794dc6f9ea23d2895ba22a2840",
     "immutable": true
+  },
+  "artifactAcquisition": {
+    "strategy": "CERTIFIED_ACTIONS_ARTIFACT_ONLY",
+    "deterministicRebuildDuringCommissioningAllowed": false,
+    "silentFallbackAllowed": false,
+    "expiredArtifactRequiresNewCertificationOrDurableCertifiedCopy": true
   },
   "githubEnvironment": "control-production-commissioning",
   "operations": [
