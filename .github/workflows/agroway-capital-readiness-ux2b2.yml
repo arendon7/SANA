@@ -1,0 +1,78 @@
+name: AGROWAY CAPITAL_READINESS UX2B-2 evidence review
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "packages/invest-control-contracts/src/readiness-evidence-review.ts"
+      - "packages/invest-control-contracts/src/index.ts"
+      - "services/identity-access/src/capital-readiness-access.ts"
+      - "services/investment-portfolio/src/readiness-evidence-review.ts"
+      - "services/investment-portfolio/src/index.ts"
+      - "infra/postgres/migrations/0030_capital_readiness_evidence_review.sql"
+      - "scripts/validate-capital-readiness-evidence-review-ux2b2.mjs"
+      - ".github/workflows/agroway-capital-readiness-ux2b2.yml"
+concurrency:
+  group: agroway-capital-readiness-ux2b2-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  evidence-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Canonical offline workspace install
+        run: npm ci --ignore-scripts --offline
+
+      - name: Syntax check UX2B-2 validator and review server
+        run: |
+          node --check scripts/validate-capital-readiness-evidence-review-ux2b2.mjs
+          node --check apps/control-web/server.mjs
+
+      - name: Human evidence-review adversarial runtime
+        run: node scripts/validate-capital-readiness-evidence-review-ux2b2.mjs
+
+      - name: UX2B-1B bounded ingestion regression
+        run: node scripts/validate-capital-readiness-ingestion-ux2b1b.mjs
+
+      - name: UX2B-1A receipt and submission regression
+        run: node scripts/validate-capital-readiness-evidence-ux2b1a.mjs
+
+      - name: Pinned TypeScript 5.8.3 strict
+        run: npx -y -p typescript@5.8.3 tsc -p tsconfig.json --noEmit
+
+      - name: Browser Capital mutation remains disabled
+        shell: bash
+        run: |
+          set -euo pipefail
+          PORT=4293 node apps/control-web/server.mjs >/tmp/capital-ux2b2.log 2>&1 &
+          PID=$!
+          trap 'kill $PID 2>/dev/null || true' EXIT
+          for i in {1..40}; do curl -fsS http://127.0.0.1:4293/control/capital >/dev/null && break || sleep .25; done
+          for path in \
+            /api/capital/projects/test/gaps/test/evidence \
+            /api/capital/projects/test/gaps/test/evidence/review \
+            /api/capital/projects/test/gaps/test/resolve; do
+            code=$(curl -sS -o /tmp/capital-api.json -w '%{http_code}' "http://127.0.0.1:4293${path}")
+            test "$code" = "404"
+            grep -F 'CAPITAL_READINESS_BROWSER_MUTATION_NOT_ENABLED' /tmp/capital-api.json
+          done
+
+      - name: Human-only semantic boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -F "READINESS_EVIDENCE_REVIEW_PERMISSION='invest:readiness:evidence:review'" services/investment-portfolio/src/readiness-evidence-review.ts
+          grep -F 'READINESS_EVIDENCE_REVIEW_SEPARATION_OF_DUTIES_REQUIRED' services/investment-portfolio/src/readiness-evidence-review.ts
+          grep -F 'READINESS_RESOLUTION_REQUIRES_LATEST_HUMAN_ACCEPTED_EVIDENCE' services/investment-portfolio/src/readiness-evidence-review.ts
+          ! grep -E "wallet|custody|disburse|financingApproved:true|aiReviewAuthority:true|browserMutationEnabled:true" packages/invest-control-contracts/src/readiness-evidence-review.ts services/investment-portfolio/src/readiness-evidence-review.ts
+
+      - name: Trust boundary
+        run: |
+          echo 'PASS_CAPITAL_READINESS_UX2B2_HUMAN_EVIDENCE_REVIEW'
+          echo 'Validated object, evidence submission, human evidence acceptance and explicit gap resolution are separate facts. A distinct human reviewer is required; the latest accepted review is required for resolution proof. Browser mutation, AI review authority, financial approval, money movement, custody, wallet and D10 remain unavailable.'
