@@ -18,14 +18,8 @@
 <body>
   <div class="app-shell">
     <aside class="sidebar" id="sidebar">
-      <a class="brand" href="#home" aria-label="SANA inicio">
-        <span class="brand-word">SANA</span>
-        <span class="brand-sub">Inteligencia para cultivar mejor</span>
-      </a>
-      <div class="agroway-brand">
-        <img src="/agroway-logo-legacy.svg" alt="AGROWAY">
-        <div><strong>AGROWAY</strong><span>Operación y memoria digital del cultivo</span></div>
-      </div>
+      <a class="brand" href="#home" aria-label="SANA inicio"><span class="brand-word">SANA</span><span class="brand-sub">Inteligencia para cultivar mejor</span></a>
+      <div class="agroway-brand"><img src="/agroway-logo-legacy.svg" alt="AGROWAY"><div><strong>AGROWAY</strong><span>Operación y memoria digital del cultivo</span></div></div>
       <nav class="nav" aria-label="Navegación principal">
         <button class="nav-item active" data-view="home"><span>Inicio</span></button>
         <div class="nav-group">OPERACIÓN AGRÍCOLA</div>
@@ -38,6 +32,7 @@
         <button class="nav-item" data-view="nutrition"><span>Nutrición y fertirriego</span></button>
         <button class="nav-item" data-view="health"><span>Sanidad vegetal</span><b class="danger">2</b></button>
         <button class="nav-item" data-view="inventory"><span>Inventarios y espacios</span><b class="warn">2</b></button>
+        <button class="nav-item" data-view="forecast"><span>Proyección de insumos</span></button>
         <button class="nav-item" data-view="circularity"><span>Circularidad y residuos</span></button>
         <button class="nav-item" data-view="results"><span>Cosecha y resultados</span></button>
         <button class="nav-item" data-view="economics"><span>Economía del cultivo</span></button>
@@ -53,21 +48,13 @@
         <div class="nav-group">GOBERNANZA</div>
         <button class="nav-item" data-view="control"><span>CONTROL avanzado</span></button>
       </nav>
-      <div class="sidebar-foot">
-        <div class="demo-state"><i></i><div><strong>DEMO AISLADA</strong><span>Datos sintéticos · sin producción</span></div></div>
-        <small>Sin dinero real, custodia, D10, activación ni mutación canónica.</small>
-      </div>
+      <div class="sidebar-foot"><div class="demo-state"><i></i><div><strong>DEMO AISLADA</strong><span>Datos sintéticos · sin producción</span></div></div><small>Sin dinero real, custodia, D10, activación ni mutación canónica.</small></div>
     </aside>
     <section class="main-shell">
       <header class="topbar">
         <button class="icon-btn menu-btn" id="menu-btn" aria-label="Abrir menú">☰</button>
         <div class="farm-context"><small>UNIDAD DEMO</small><button id="farm-button" type="button"><span class="farm-code">LE</span><span><strong>Finca La Esperanza</strong><em>Támesis · Antioquia · 12.4 ha</em></span><span>⌄</span></button></div>
-        <div class="top-actions">
-          <button id="search-btn" class="search-btn" type="button">Buscar lote, tarea, insumo… <kbd>⌘ K</kbd></button>
-          <button id="offline-btn" class="status-btn" type="button"><i></i><span>Preparando offline</span></button>
-          <button id="alerts-btn" class="icon-btn alerts-btn" type="button" aria-label="Alertas">●<b>3</b></button>
-          <div class="role-pill"><i></i><div><strong id="role-name">Usuario DEMO</strong><span id="role-context">Cargando alcance</span></div></div>
-        </div>
+        <div class="top-actions"><button id="search-btn" class="search-btn" type="button">Buscar lote, tarea, insumo… <kbd>⌘ K</kbd></button><button id="offline-btn" class="status-btn" type="button"><i></i><span>Preparando offline</span></button><button id="alerts-btn" class="icon-btn alerts-btn" type="button" aria-label="Alertas">●<b>3</b></button><div class="role-pill"><i></i><div><strong id="role-name">Usuario DEMO</strong><span id="role-context">Cargando alcance</span></div></div></div>
       </header>
       <main class="content" id="app-content" tabindex="-1"></main>
     </section>
@@ -85,6 +72,7 @@
   <script src="/sana-v3-views-4.js"></script>
   <script src="/sana-v3-circularity.js"></script>
   <script src="/sana-v3-iot-source.js"></script>
+  <script src="/sana-v3-input-forecast.js"></script>
   <script src="/sana-v3-characterization-protocol.js"></script>
   <script src="/sana-v3-plan-protocols.js"></script>
   <script src="/sana-v3-advisory-protocols.js"></script>
