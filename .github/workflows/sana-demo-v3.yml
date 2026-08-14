@@ -35,6 +35,7 @@ jobs:
           node --check apps/control-web/public/sana-v3-views-3.js
           node --check apps/control-web/public/sana-v3-views-4.js
           node --check apps/control-web/public/sana-v3-plan-protocols.js
+          node --check apps/control-web/public/sana-v3-advisory-protocols.js
           node --check apps/control-web/public/sana-v3-runtime.js
       - name: Validate V3 assembly
         shell: bash
@@ -49,6 +50,7 @@ jobs:
             apps/control-web/public/sana-v3-views-3.js \
             apps/control-web/public/sana-v3-views-4.js \
             apps/control-web/public/sana-v3-plan-protocols.js \
+            apps/control-web/public/sana-v3-advisory-protocols.js \
             apps/control-web/public/sana-v3-runtime.js; do
             test -s "$file"
           done
@@ -60,10 +62,13 @@ jobs:
           grep -q '/sana-v3-views-3.js' apps/control-web/public/sana-v3.html
           grep -q '/sana-v3-views-4.js' apps/control-web/public/sana-v3.html
           grep -q '/sana-v3-plan-protocols.js' apps/control-web/public/sana-v3.html
+          grep -q '/sana-v3-advisory-protocols.js' apps/control-web/public/sana-v3.html
           grep -q '/sana-v3-runtime.js' apps/control-web/public/sana-v3.html
           grep -q 'const views=' apps/control-web/public/sana-v3-views-4.js
           grep -q 'views.plans=plansOperational' apps/control-web/public/sana-v3-plan-protocols.js
+          grep -q 'views.advisory=accompanimentOperational' apps/control-web/public/sana-v3-advisory-protocols.js
           grep -q 'HUMAN_REVIEW_REQUIRED' apps/control-web/public/sana-v3-plan-protocols.js
+          grep -q 'structured-visit' apps/control-web/public/sana-v3-advisory-protocols.js
           grep -q 'function render()' apps/control-web/public/sana-v3-runtime.js
           grep -q 'localStorage' apps/control-web/public/sana-v3-core.js
           grep -q 'Capital readiness' apps/control-web/public/sana-v3.html
@@ -71,10 +76,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          FILES='apps/control-web/public/sana-v3-core.js apps/control-web/public/sana-v3-views-1.js apps/control-web/public/sana-v3-views-2.js apps/control-web/public/sana-v3-views-3.js apps/control-web/public/sana-v3-views-4.js apps/control-web/public/sana-v3-plan-protocols.js apps/control-web/public/sana-v3-runtime.js apps/control-web/public/sana-v3.html'
+          FILES='apps/control-web/public/sana-v3-core.js apps/control-web/public/sana-v3-views-1.js apps/control-web/public/sana-v3-views-2.js apps/control-web/public/sana-v3-views-3.js apps/control-web/public/sana-v3-views-4.js apps/control-web/public/sana-v3-plan-protocols.js apps/control-web/public/sana-v3-advisory-protocols.js apps/control-web/public/sana-v3-runtime.js apps/control-web/public/sana-v3.html'
           ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|productionReady[[:space:]]*=[[:space:]]*true|id-token:[[:space:]]*write|MIGRATION_LIVE_ACK|D10_APPROV|activation lease|/api/[^ ]*activat' $FILES
           grep -q 'productionExecutionAvailable=false' apps/control-web/public/sana-v3-core.js
           grep -q 'canonicalMutated=false' apps/control-web/public/sana-v3-core.js
           grep -q 'D10=PENDING' apps/control-web/public/sana-v3-core.js
           grep -q 'no mueve dinero' apps/control-web/public/sana-v3-views-4.js
           grep -q 'sin cambio canónico' apps/control-web/public/sana-v3-plan-protocols.js
+          grep -q 'LOCAL_ONLY' apps/control-web/public/sana-v3-advisory-protocols.js
