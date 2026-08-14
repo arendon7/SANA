@@ -10,6 +10,27 @@ service cloud.firestore {
       return signedIn() && request.auth.uid == userId;
     }
 
+    function validDemoStateShape(userId) {
+      return request.resource.data.keys().hasOnly([
+          'userId',
+          'environment',
+          'schemaVersion',
+          'revision',
+          'payload',
+          'clientUpdatedAtMs',
+          'lastWriterId',
+          'updatedAt'
+        ])
+        && request.resource.data.userId == userId
+        && request.resource.data.environment == 'DEMO'
+        && request.resource.data.schemaVersion == '1.0.0'
+        && request.resource.data.revision is int
+        && request.resource.data.revision > 0
+        && request.resource.data.payload is list
+        && request.resource.data.clientUpdatedAtMs is int
+        && request.resource.data.lastWriterId is string;
+    }
+
     match /demo_profiles/{userId} {
       allow read: if owns(userId);
       allow create: if owns(userId)
@@ -20,6 +41,19 @@ service cloud.firestore {
         && request.resource.data.userId == userId
         && request.resource.data.environment == 'DEMO'
         && request.resource.data.role == resource.data.role;
+      allow delete: if false;
+    }
+
+    match /demo_user_state/{userId} {
+      allow read: if owns(userId);
+      allow create: if owns(userId)
+        && validDemoStateShape(userId)
+        && request.resource.data.revision == 1;
+      allow update: if owns(userId)
+        && validDemoStateShape(userId)
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.environment == resource.data.environment
+        && request.resource.data.revision == resource.data.revision + 1;
       allow delete: if false;
     }
 
