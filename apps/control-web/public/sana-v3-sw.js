@@ -1,4 +1,4 @@
-const CACHE='sana-v3-demo-shell-v1';
+const CACHE='sana-v3-demo-shell-v2';
 const SHELL=[
   '/sana-v3.html',
   '/sana-v3.css',
@@ -8,6 +8,7 @@ const SHELL=[
   '/sana-v3-economics.css',
   '/sana-v3-impact.css',
   '/sana-v3-mobile.css',
+  '/sana-v3-cloud-state.js',
   '/sana-v3-core.js',
   '/sana-v3-views-1.js',
   '/sana-v3-views-2.js',
@@ -20,9 +21,11 @@ const SHELL=[
   '/sana-v3-capital-dossier.js',
   '/sana-v3-economics.js',
   '/sana-v3-impact-methodology.js',
+  '/sana-v3-integration-bridge.js',
   '/sana-v3-field-mobile.js',
-  '/sana-v3-offline-runtime.js',
   '/sana-v3-runtime.js',
+  '/sana-v3-access.js',
+  '/sana-v3-offline-runtime.js',
   '/demo-session.js',
   '/agroway-logo-legacy.svg',
   '/sana-v3-manifest.webmanifest'
