@@ -132,6 +132,21 @@ Verify all of the following:
 13. Confirm `/api/control/production-activation` remains unavailable.
 14. Confirm D10 remains pending and no canonical write or financial movement is available.
 
+## Current validated deployment
+
+```text
+source functional SHA: 48f911cb307ba9fe17983437d4ad9f1b66715cef
+mirror deploy SHA:     f8aad1ea27d259e3f683e49f6e81d63d3f3f468f
+Vercel:                 success
+```
+
+Both dedicated source gates were successful before mirror promotion:
+
+```text
+SANA Demo V3            success
+SANA DEMO auth sandbox  success
+```
+
 ## Production boundary
 
 This setup is DEMO-only. It must not be used as a substitute for the production OIDC/MFA boundary, D10 human approval, external ACK, commissioning or activation ceremony. The certified RC2 base remains immutable.
