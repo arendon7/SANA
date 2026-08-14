@@ -46,8 +46,10 @@ jobs:
           node --check apps/control-web/public/sana-v3-capital-dossier.js
           node --check apps/control-web/public/sana-v3-integration-bridge.js
           node --check apps/control-web/public/sana-v3-field-mobile.js
+          node --check apps/control-web/public/sana-v3-role-home.js
           node --check apps/control-web/public/sana-v3-runtime.js
           node --check apps/control-web/public/sana-v3-access.js
+          node --check apps/control-web/public/sana-v3-account.js
           node --check apps/control-web/public/sana-v3-offline-runtime.js
           node --check apps/control-web/public/sana-v3-sw.js
           node -e "JSON.parse(require('fs').readFileSync('apps/control-web/public/sana-v3-manifest.webmanifest','utf8'))"
@@ -80,15 +82,19 @@ jobs:
             apps/control-web/public/sana-v3-capital-dossier.js \
             apps/control-web/public/sana-v3-integration-bridge.js \
             apps/control-web/public/sana-v3-field-mobile.js \
+            apps/control-web/public/sana-v3-role-home.js \
             apps/control-web/public/sana-v3-runtime.js \
             apps/control-web/public/sana-v3-access.js \
+            apps/control-web/public/sana-v3-account.js \
             apps/control-web/public/sana-v3-offline-runtime.js \
             apps/control-web/public/sana-v3-sw.js; do
             test -s "$file"
           done
           grep -q 'id="app-content"' apps/control-web/public/sana-v3.html
           grep -q '/sana-v3-cloud-state.js' apps/control-web/public/sana-v3.html
+          grep -q '/sana-v3-role-home.js' apps/control-web/public/sana-v3.html
           grep -q '/sana-v3-access.js' apps/control-web/public/sana-v3.html
+          grep -q '/sana-v3-account.js' apps/control-web/public/sana-v3.html
           grep -q 'data-view="economics"' apps/control-web/public/sana-v3.html
           grep -q 'data-view="impact"' apps/control-web/public/sana-v3.html
           grep -q 'data-view="field"' apps/control-web/public/sana-v3.html
@@ -103,6 +109,13 @@ jobs:
           grep -q 'NO_SILENT_OVERWRITE' config/product/sana-demo-auth.json
           grep -q "new_user:new Set" apps/control-web/public/sana-v3-access.js
           grep -q 'stopImmediatePropagation' apps/control-web/public/sana-v3-access.js
+          grep -q 'USUARIO NUEVO · ONBOARDING LIMITADO' apps/control-web/public/sana-v3-role-home.js
+          grep -q 'SANA · VISTA DE EVIDENCIA' apps/control-web/public/sana-v3-role-home.js
+          grep -q 'SANA · CONSOLA TÉCNICA' apps/control-web/public/sana-v3-role-home.js
+          grep -q 'SANA · MI PREDIO' apps/control-web/public/sana-v3-role-home.js
+          grep -q 'Mi cuenta y sincronización' apps/control-web/public/sana-v3-account.js
+          grep -q 'NO DISPONIBLE EN BROWSER' apps/control-web/public/sana-v3-account.js
+          grep -q '__SANA_CLOUD_STATE__' apps/control-web/public/sana-v3-account.js
           grep -q 'views.economics=economics' apps/control-web/public/sana-v3-economics.js
           grep -q 'views.impact=impactMethodology' apps/control-web/public/sana-v3-impact-methodology.js
           grep -q 'views.field=fieldMobile' apps/control-web/public/sana-v3-field-mobile.js
@@ -111,7 +124,9 @@ jobs:
           grep -q 'LOCAL_ONLY ≠ SYNCED ≠ ACK' apps/control-web/public/sana-v3-field-mobile.js
           grep -q "navigator.serviceWorker.register('/sana-v3-sw.js'" apps/control-web/public/sana-v3-offline-runtime.js
           grep -q "'/sana-v3-cloud-state.js'" apps/control-web/public/sana-v3-sw.js
+          grep -q "'/sana-v3-role-home.js'" apps/control-web/public/sana-v3-sw.js
           grep -q "'/sana-v3-access.js'" apps/control-web/public/sana-v3-sw.js
+          grep -q "'/sana-v3-account.js'" apps/control-web/public/sana-v3-sw.js
           grep -q "self.addEventListener('fetch'" apps/control-web/public/sana-v3-sw.js
           grep -q "url.pathname.startsWith('/api/')" apps/control-web/public/sana-v3-sw.js
           grep -q 'function render()' apps/control-web/public/sana-v3-runtime.js
@@ -119,7 +134,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          FILES='apps/control-web/public/sana-v3-core.js apps/control-web/public/sana-v3-views-1.js apps/control-web/public/sana-v3-views-2.js apps/control-web/public/sana-v3-views-3.js apps/control-web/public/sana-v3-views-4.js apps/control-web/public/sana-v3-characterization-protocol.js apps/control-web/public/sana-v3-plan-protocols.js apps/control-web/public/sana-v3-advisory-protocols.js apps/control-web/public/sana-v3-passport-chain.js apps/control-web/public/sana-v3-economics.js apps/control-web/public/sana-v3-impact-methodology.js apps/control-web/public/sana-v3-capital-dossier.js apps/control-web/public/sana-v3-integration-bridge.js apps/control-web/public/sana-v3-field-mobile.js apps/control-web/public/sana-v3-runtime.js apps/control-web/public/sana-v3-access.js apps/control-web/public/sana-v3-offline-runtime.js apps/control-web/public/sana-v3.html'
+          FILES='apps/control-web/public/sana-v3-core.js apps/control-web/public/sana-v3-views-1.js apps/control-web/public/sana-v3-views-2.js apps/control-web/public/sana-v3-views-3.js apps/control-web/public/sana-v3-views-4.js apps/control-web/public/sana-v3-characterization-protocol.js apps/control-web/public/sana-v3-plan-protocols.js apps/control-web/public/sana-v3-advisory-protocols.js apps/control-web/public/sana-v3-passport-chain.js apps/control-web/public/sana-v3-economics.js apps/control-web/public/sana-v3-impact-methodology.js apps/control-web/public/sana-v3-capital-dossier.js apps/control-web/public/sana-v3-integration-bridge.js apps/control-web/public/sana-v3-field-mobile.js apps/control-web/public/sana-v3-role-home.js apps/control-web/public/sana-v3-runtime.js apps/control-web/public/sana-v3-access.js apps/control-web/public/sana-v3-account.js apps/control-web/public/sana-v3-offline-runtime.js apps/control-web/public/sana-v3.html'
           ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|productionReady[[:space:]]*=[[:space:]]*true|id-token:[[:space:]]*write|MIGRATION_LIVE_ACK|D10_APPROV|activation lease|/api/[^ ]*activat' $FILES
           ! grep -Eiq 'productionReady[[:space:]]*=[[:space:]]*true|MIGRATION_LIVE_ACK|D10_APPROV|activation lease|/api/[^ ]*activat' apps/control-web/public/sana-v3-cloud-state.js
           ! grep -Eiq "request\.method.*(POST|PUT|PATCH|DELETE)" apps/control-web/public/sana-v3-sw.js
@@ -133,4 +148,6 @@ jobs:
           grep -q 'NO CONTABILIDAD OFICIAL' apps/control-web/public/sana-v3-economics.js
           grep -q 'NO_VERIFICADO_EXTERNO' apps/control-web/public/sana-v3-impact-methodology.js
           grep -q 'PENDING_SERVER' apps/control-web/public/sana-v3-field-mobile.js
+          grep -q 'no capta recursos' apps/control-web/public/sana-v3-capital-dossier.js
+          grep -q 'no recomienda invertir' apps/control-web/public/sana-v3-capital-dossier.js
           grep -q "if(url.pathname.startsWith('/api/'))return" apps/control-web/public/sana-v3-sw.js
