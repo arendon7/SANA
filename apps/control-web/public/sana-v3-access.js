@@ -6,20 +6,20 @@
   const rawRole=String(identity?.role||'new_user').toLowerCase();
   const role=rawRole.includes('admin')?'admin':rawRole.includes('technical')||rawRole.includes('técn')?'technical':rawRole.includes('producer')||rawRole.includes('productor')?'producer':rawRole.includes('invest')?'investor':rawRole.includes('visitor')||rawRole.includes('guest')?'visitor':'new_user';
 
-  const allViews=['home','territory','characterization','material','plans','field','phenology','nutrition','health','inventory','economics','team','iot','reports','advisory','passport','intelligence','impact','capital','control'];
+  const allViews=['home','territory','characterization','material','plans','field','phenology','nutrition','health','inventory','results','economics','team','iot','reports','advisory','passport','intelligence','impact','capital','control'];
   const viewPolicy={
     admin:new Set(allViews),
-    technical:new Set(['home','territory','characterization','material','plans','field','phenology','nutrition','health','inventory','economics','iot','reports','advisory','passport','intelligence','impact','capital']),
-    producer:new Set(['home','territory','characterization','plans','field','phenology','nutrition','health','inventory','economics','iot','reports','advisory','passport','intelligence','impact','capital']),
-    investor:new Set(['home','territory','economics','reports','passport','impact','capital']),
+    technical:new Set(['home','territory','characterization','material','plans','field','phenology','nutrition','health','inventory','results','economics','iot','reports','advisory','passport','intelligence','impact','capital']),
+    producer:new Set(['home','territory','characterization','plans','field','phenology','nutrition','health','inventory','results','economics','iot','reports','advisory','passport','intelligence','impact','capital']),
+    investor:new Set(['home','territory','results','economics','reports','passport','impact','capital']),
     visitor:new Set(['home','territory','passport','impact','capital']),
     new_user:new Set(['home','characterization','passport','impact','capital'])
   };
 
   const actionPolicy={
     admin:['*'],
-    technical:['fieldRecord','quickField','task-toggle','phenology','nutrition','health','inventory','material','sensor','visit','structured-visit','plan','plan-review','report','reportOpen','methodology','impact-methodology','knowledge','exportPassport','queue-review'],
-    producer:['fieldRecord','quickField','task-toggle','phenology','nutrition','health','inventory','cost','methodology','reportOpen','exportPassport','queue-review','characterization:*','capital-dossier'],
+    technical:['fieldRecord','quickField','task-toggle','phenology','nutrition','health','inventory','material','sensor','visit','structured-visit','plan','plan-review','harvest-result','report','reportOpen','methodology','impact-methodology','knowledge','exportPassport','queue-review'],
+    producer:['fieldRecord','quickField','task-toggle','phenology','nutrition','health','inventory','harvest-result','cost','methodology','reportOpen','exportPassport','queue-review','characterization:*','capital-dossier'],
     investor:['reportOpen','methodology','exportPassport'],
     visitor:['methodology','exportPassport'],
     new_user:['methodology','exportPassport','characterization:*']
@@ -56,6 +56,7 @@
     ['[data-plan-review]','plan-review'],
     ['[data-plan-transition]','plan-review'],
     ['[data-structured-visit]','structured-visit'],
+    ['[data-harvest-result]','harvest-result'],
     ['[data-capital-config]','capital-dossier'],
     ['[data-economics-cost]','cost'],
     ['[data-impact-methodology]','impact-methodology']
