@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'apps/control-web/public/demo-*'
+      - 'apps/control-web/public/sana-v3*'
       - 'apps/control-web/server.mjs'
       - 'config/product/sana-demo-auth.json'
       - 'infra/firebase-demo/**'
@@ -15,6 +16,7 @@ on:
       - 'demo/sana-functional-auth-v1'
     paths:
       - 'apps/control-web/public/demo-*'
+      - 'apps/control-web/public/sana-v3*'
       - 'apps/control-web/server.mjs'
       - 'config/product/sana-demo-auth.json'
       - 'infra/firebase-demo/**'
@@ -78,6 +80,14 @@ jobs:
           grep -q 'DEMO 100% FUNCIONAL' /tmp/login.html
           grep -q 'Explorar SANA sin registrarme' /tmp/login.html
           grep -q 'Firebase Authentication' /tmp/login.html
+          grep -q "'/sana-v3.html'" apps/control-web/public/demo-auth.js
+
+          curl --fail --silent http://127.0.0.1:4273/sana-v3.html > /tmp/sana-v3.html
+          grep -q 'id="app-content"' /tmp/sana-v3.html
+          grep -q '/sana-v3-core.js' /tmp/sana-v3.html
+          grep -q '/sana-v3-plan-protocols.js' /tmp/sana-v3.html
+          grep -q '/sana-v3-advisory-protocols.js' /tmp/sana-v3.html
+          grep -q '/sana-v3-runtime.js' /tmp/sana-v3.html
 
           curl --fail --silent http://127.0.0.1:4273/control > /tmp/control.html
           grep -q '/demo-session.js' /tmp/control.html
