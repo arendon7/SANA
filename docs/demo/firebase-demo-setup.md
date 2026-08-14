@@ -68,7 +68,7 @@ The browser uses optimistic concurrency. If the remote revision advanced while a
 
 Firebase Console → Firestore Database → **Rules** → replace the current rules with the complete contents of `infra/firebase-demo/firestore.rules` → **Publish**.
 
-Until these updated rules are published, SANA V3 remains functional with isolated local storage and shows `Reglas pendientes`; it must not label local records as synchronized or ACK.
+This is the **remaining manual activation step for cloud state**. Until the updated rules are published, SANA V3 remains functional with isolated local storage and shows `Reglas pendientes`; it must not label local records as synchronized or ACK.
 
 ## 3. Multiuser state model
 
