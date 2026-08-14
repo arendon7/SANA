@@ -84,7 +84,7 @@
     }
     if(typeof window.saveModal==='function'&&!window.saveModal.__sanaRoleGuard){
       const original=window.saveModal;
-      const guarded=function(){const type=typeof window.modalAction==='string'?window.modalAction:'record';if(type&&type!=='record'&&!canAction(type)){deny('El rol actual no puede guardar este tipo de registro.');return}return original()};
+      const guarded=function(){const type=typeof modalAction==='string'?modalAction:'record';if(type&&type!=='record'&&!canAction(type)){deny('El rol actual no puede guardar este tipo de registro.');return}return original()};
       guarded.__sanaRoleGuard=true;window.saveModal=guarded;
     }
     const requested=(location.hash||'#home').slice(1);
