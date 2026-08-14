@@ -61,6 +61,36 @@
     });
   }
 
+  function wrapRuntime(){
+    if(typeof window.go==='function'&&!window.go.__sanaRoleGuard){
+      const original=window.go;
+      const guarded=function(view){if(!canView(view)){deny('Este rol no tiene acceso a esa vista en la DEMO.');return}return original(view)};
+      guarded.__sanaRoleGuard=true;window.go=guarded;
+    }
+    if(typeof window.action==='function'&&!window.action.__sanaRoleGuard){
+      const original=window.action;
+      const guarded=function(type,item){if(!canAction(type)){deny('El rol actual no puede ejecutar esta acción DEMO.');return}return original(type,item)};
+      guarded.__sanaRoleGuard=true;window.action=guarded;
+    }
+    if(typeof window.toggleTask==='function'&&!window.toggleTask.__sanaRoleGuard){
+      const original=window.toggleTask;
+      const guarded=function(id){if(!canAction('task-toggle')){deny('Este rol no puede cambiar actividades.');return}return original(id)};
+      guarded.__sanaRoleGuard=true;window.toggleTask=guarded;
+    }
+    if(typeof window.reviewQueue==='function'&&!window.reviewQueue.__sanaRoleGuard){
+      const original=window.reviewQueue;
+      const guarded=function(id){if(!canAction('queue-review')){deny('Este rol no puede revisar la cola de campo.');return}return original(id)};
+      guarded.__sanaRoleGuard=true;window.reviewQueue=guarded;
+    }
+    if(typeof window.saveModal==='function'&&!window.saveModal.__sanaRoleGuard){
+      const original=window.saveModal;
+      const guarded=function(){const type=typeof window.modalAction==='string'?window.modalAction:'record';if(type&&type!=='record'&&!canAction(type)){deny('El rol actual no puede guardar este tipo de registro.');return}return original()};
+      guarded.__sanaRoleGuard=true;window.saveModal=guarded;
+    }
+    const requested=(location.hash||'#home').slice(1);
+    if(!canView(requested)&&typeof window.go==='function')window.go(defaultView());
+  }
+
   document.addEventListener('click',event=>{
     const nav=event.target.closest('[data-view],[data-view-link]');
     if(nav){const view=nav.dataset.view||nav.dataset.viewLink;if(view&&!canView(view)){event.preventDefault();event.stopImmediatePropagation();deny('Este rol no tiene acceso a esa vista en la DEMO.');return}}
@@ -71,9 +101,11 @@
     }
   },true);
 
-  const observer=new MutationObserver(enforceNav);
+  const observer=new MutationObserver(()=>{enforceNav();wrapRuntime()});
   observer.observe(document.documentElement,{subtree:true,childList:true});
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',enforceNav,{once:true});else enforceNav();
+  const mount=()=>{enforceNav();wrapRuntime()};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
+  setTimeout(wrapRuntime,0);
 
-  window.__SANA_ACCESS__=Object.freeze({role,canView,canAction,defaultView,deny,viewPolicy:Object.freeze([...viewPolicy[role]||[]])});
+  window.__SANA_ACCESS__=Object.freeze({role,canView,canAction,defaultView,deny,viewPolicy:Object.freeze([...(viewPolicy[role]||[])])});
 })();
