@@ -44,7 +44,8 @@ assert(contract.safetyBoundary?.canonicalWriteAvailable === false, 'CANONICAL_WR
 assert(contract.safetyBoundary?.financialMovementAvailable === false, 'FINANCIAL_MOVEMENT_MUST_BE_FALSE');
 assert(contract.safetyBoundary?.canonicalMutated === false, 'CANONICAL_MUTATED_MUST_BE_FALSE');
 
-assert(html.includes('Crear mi cuenta'), 'SIGNUP_UI_REQUIRED');
+assert(html.includes('Crear cuenta'), 'SIGNUP_TAB_REQUIRED');
+assert(auth.includes('Crear mi cuenta'), 'SIGNUP_ACTION_REQUIRED');
 assert(html.includes('Productor demo'), 'PRODUCER_PERSONA_REQUIRED');
 assert(html.includes('Técnico demo'), 'TECHNICAL_PERSONA_REQUIRED');
 assert(html.includes('Inversionista demo'), 'INVESTOR_PERSONA_REQUIRED');
