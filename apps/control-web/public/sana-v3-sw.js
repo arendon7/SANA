@@ -1,4 +1,4 @@
-const CACHE='sana-v3-demo-shell-v2';
+const CACHE='sana-v3-demo-shell-v3';
 const SHELL=[
   '/sana-v3.html',
   '/sana-v3.css',
@@ -23,8 +23,10 @@ const SHELL=[
   '/sana-v3-impact-methodology.js',
   '/sana-v3-integration-bridge.js',
   '/sana-v3-field-mobile.js',
+  '/sana-v3-role-home.js',
   '/sana-v3-runtime.js',
   '/sana-v3-access.js',
+  '/sana-v3-account.js',
   '/sana-v3-offline-runtime.js',
   '/demo-session.js',
   '/agroway-logo-legacy.svg',
