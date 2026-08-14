@@ -6,14 +6,14 @@ on:
       - demo/sana-functional-auth-v1
     paths:
       - 'apps/control-web/public/sana-v3*.js'
+      - 'apps/control-web/public/sana-v3*.css'
       - 'apps/control-web/public/sana-v3.html'
-      - 'apps/control-web/public/sana-v3.css'
       - '.github/workflows/sana-demo-v3.yml'
   pull_request:
     paths:
       - 'apps/control-web/public/sana-v3*.js'
+      - 'apps/control-web/public/sana-v3*.css'
       - 'apps/control-web/public/sana-v3.html'
-      - 'apps/control-web/public/sana-v3.css'
       - '.github/workflows/sana-demo-v3.yml'
 
 permissions:
@@ -44,6 +44,7 @@ jobs:
           for file in \
             apps/control-web/public/sana-v3.html \
             apps/control-web/public/sana-v3.css \
+            apps/control-web/public/sana-v3-extensions.css \
             apps/control-web/public/sana-v3-core.js \
             apps/control-web/public/sana-v3-views-1.js \
             apps/control-web/public/sana-v3-views-2.js \
@@ -56,6 +57,8 @@ jobs:
           done
           grep -q 'id="app-content"' apps/control-web/public/sana-v3.html
           grep -q 'data-view="plans"' apps/control-web/public/sana-v3.html
+          grep -q '/sana-v3.css' apps/control-web/public/sana-v3.html
+          grep -q '/sana-v3-extensions.css' apps/control-web/public/sana-v3.html
           grep -q '/sana-v3-core.js' apps/control-web/public/sana-v3.html
           grep -q '/sana-v3-views-1.js' apps/control-web/public/sana-v3.html
           grep -q '/sana-v3-views-2.js' apps/control-web/public/sana-v3.html
@@ -69,6 +72,8 @@ jobs:
           grep -q 'views.advisory=accompanimentOperational' apps/control-web/public/sana-v3-advisory-protocols.js
           grep -q 'HUMAN_REVIEW_REQUIRED' apps/control-web/public/sana-v3-plan-protocols.js
           grep -q 'structured-visit' apps/control-web/public/sana-v3-advisory-protocols.js
+          grep -q '.plan-switcher' apps/control-web/public/sana-v3-extensions.css
+          grep -q '.stage.current' apps/control-web/public/sana-v3-extensions.css
           grep -q 'function render()' apps/control-web/public/sana-v3-runtime.js
           grep -q 'localStorage' apps/control-web/public/sana-v3-core.js
           grep -q 'Capital readiness' apps/control-web/public/sana-v3.html
