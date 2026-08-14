@@ -82,13 +82,15 @@
     openModal(`CARACTERIZACIÓN · ${section.source}`,section.title,formFor(section),true,`characterization:${section.id}`);
   });
 
-  document.addEventListener('sana:record-saved',event=>{
-    const type=event.detail?.type||'';
-    if(!type.startsWith('characterization:'))return;
-    const id=type.split(':')[1];
+  document.addEventListener('click',event=>{
+    const saveButton=event.target.closest('#modal-save');
+    if(!saveButton||typeof modalAction==='undefined'||!String(modalAction).startsWith('characterization:'))return;
+    const id=String(modalAction).split(':')[1];
+    const form=document.getElementById('modal-form');
+    if(!form)return;
+    const values=Object.fromEntries(new FormData(form).entries());
     const rows=state();
-    const values=event.detail?.values||{};
     rows[id]={status:values.status||'review',summary:values.summary||'Sin resumen',updated:values.updated||'Hoy · DEMO',by:values.by||identity?.displayName||'Responsable DEMO'};
     save(rows);
-  });
+  },true);
 })();
