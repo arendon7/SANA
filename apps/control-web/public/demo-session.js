@@ -18,7 +18,8 @@ async function firebaseSignOut() {
       import(`${base}/firebase-app.js`),
       import(`${base}/firebase-auth.js`)
     ]);
-    const app = appModule.initializeApp({
+    const existing = appModule.getApps().find((app) => app.name === 'sana-demo-session-signout');
+    const app = existing || appModule.initializeApp({
       apiKey: config.firebaseApiKey,
       authDomain: config.firebaseAuthDomain,
       projectId: config.firebaseProjectId,
@@ -28,6 +29,19 @@ async function firebaseSignOut() {
     await authModule.signOut(auth);
   } catch {
     // Local session cleanup still proceeds if the Firebase network call fails.
+  }
+}
+
+async function flushDemoState() {
+  try {
+    const flush = window.__SANA_CLOUD_STATE__?.flush;
+    if (typeof flush !== 'function') return;
+    await Promise.race([
+      flush(),
+      new Promise((resolve) => setTimeout(resolve, 1400))
+    ]);
+  } catch {
+    // Sign-out must remain available even if cloud state cannot be flushed.
   }
 }
 
@@ -59,6 +73,7 @@ if (!identity || identity.environment !== 'DEMO') {
     exit.textContent = 'Salir';
     exit.addEventListener('click', async () => {
       exit.disabled = true;
+      await flushDemoState();
       await firebaseSignOut();
       localStorage.removeItem(key);
       window.location.replace('/demo-auth.html');
