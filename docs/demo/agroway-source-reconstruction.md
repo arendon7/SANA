@@ -44,6 +44,12 @@ This document records the historical AGROWAY materials used to reconstruct produ
 - No historical language is used to weaken the current CONTROL boundary.
 - Production execution, D10, canonical mutation, external ACK, financial custody and movement remain disabled in this branch.
 
+## Latest deployed product source
+
+- Product source with circularity, source IoT, agronomist cases, crop input projections and provenance-aware reports: `fa59b455f4b19a30b00b71c4a2f05ca8cfc036f4`.
+- Mirror deployment commit: `13584d7869b1b70e499f198f870b754e96dd5393`.
+- The branch may contain later documentation-only commits; product promotion remains pinned to a source commit that passed the dedicated DEMO gates.
+
 ## Next reconstruction targets
 
 1. Plant-material life-cycle chain through mother/propagation/seed → material → crop → harvest → final disposition.
