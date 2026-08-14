@@ -8,6 +8,7 @@ on:
       - 'config/product/sana-demo-auth.json'
       - 'infra/firebase-demo/**'
       - 'scripts/validate-sana-demo-auth.mjs'
+      - 'vercel.json'
       - '.github/workflows/sana-demo-auth.yml'
   push:
     branches:
@@ -18,6 +19,7 @@ on:
       - 'config/product/sana-demo-auth.json'
       - 'infra/firebase-demo/**'
       - 'scripts/validate-sana-demo-auth.mjs'
+      - 'vercel.json'
       - '.github/workflows/sana-demo-auth.yml'
 
 permissions:
@@ -42,6 +44,14 @@ jobs:
           node --check apps/control-web/public/demo-auth.js
           node --check apps/control-web/public/demo-session.js
           node scripts/validate-sana-demo-auth.mjs
+          node - <<'NODE'
+          const fs = require('fs');
+          const cfg = JSON.parse(fs.readFileSync('vercel.json', 'utf8'));
+          if (cfg.services?.sana_demo?.root !== 'apps/control-web/') throw new Error('VERCEL_DEMO_ROOT_DRIFT');
+          if (cfg.services?.sana_demo?.entrypoint !== 'server.mjs') throw new Error('VERCEL_DEMO_ENTRYPOINT_DRIFT');
+          const rewrite = cfg.rewrites?.find((item) => item.source === '/(.*)');
+          if (rewrite?.destination?.service !== 'sana_demo') throw new Error('VERCEL_DEMO_ROUTING_DRIFT');
+          NODE
 
       - name: Runtime sandbox smoke
         shell: bash
