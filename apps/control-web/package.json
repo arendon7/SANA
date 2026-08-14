@@ -1,7 +1,16 @@
 {
   "name": "@agroway/control-web",
   "private": true,
-  "version": "0.21.0-alpha10",
+  "version": "0.22.0-demo.1",
   "type": "module",
-  "exports": {".": "./src/index.ts"}
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node server.mjs"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  }
 }
