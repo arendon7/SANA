@@ -9,6 +9,8 @@ const files = {
   auth: 'apps/control-web/public/demo-auth.js',
   session: 'apps/control-web/public/demo-session.js',
   v3: 'apps/control-web/public/sana-v3.html',
+  cloud: 'apps/control-web/public/sana-v3-cloud-state.js',
+  access: 'apps/control-web/public/sana-v3-access.js',
   contract: 'config/product/sana-demo-auth.json',
   firestoreRules: 'infra/firebase-demo/firestore.rules'
 };
@@ -21,12 +23,14 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-const [server, html, auth, session, v3, contractText, firestoreRules] = await Promise.all([
+const [server, html, auth, session, v3, cloud, access, contractText, firestoreRules] = await Promise.all([
   text(files.server),
   text(files.html),
   text(files.auth),
   text(files.session),
   text(files.v3),
+  text(files.cloud),
+  text(files.access),
   text(files.contract),
   text(files.firestoreRules)
 ]);
@@ -41,6 +45,11 @@ assert(contract.authentication?.publicWebConfigBound === true, 'PUBLIC_FIREBASE_
 assert(contract.dataStore?.provider === 'CLOUD_FIRESTORE', 'CLOUD_FIRESTORE_REQUIRED');
 assert(contract.dataStore?.firebaseProjectId === 'sana-demo-web', 'FIRESTORE_PROJECT_MUST_MATCH_AUTH_PROJECT');
 assert(contract.dataStore?.accessModel === 'OWNER_UID_ONLY', 'OWNER_UID_ACCESS_REQUIRED');
+assert(contract.dataStore?.stateCollection === 'demo_user_state', 'DEMO_STATE_COLLECTION_REQUIRED');
+assert(contract.dataStore?.stateDocumentId === 'AUTH_UID', 'DEMO_STATE_UID_DOCUMENT_REQUIRED');
+assert(contract.dataStore?.optimisticRevisionRequired === true, 'OPTIMISTIC_REVISION_REQUIRED');
+assert(contract.dataStore?.conflictPolicy === 'NO_SILENT_OVERWRITE', 'NO_SILENT_OVERWRITE_REQUIRED');
+assert(contract.dataStore?.roleStoredOutsideOperationalState === true, 'ROLE_MUST_BE_OUTSIDE_OPERATIONAL_STATE');
 assert(contract.safetyBoundary?.sandbox === true, 'SANDBOX_REQUIRED');
 assert(contract.safetyBoundary?.syntheticDataOnly === true, 'SYNTHETIC_DATA_ONLY_REQUIRED');
 assert(contract.safetyBoundary?.productionExecutionAvailable === false, 'PRODUCTION_EXECUTION_MUST_BE_FALSE');
@@ -62,8 +71,10 @@ assert(auth.includes("|| '/sana-v3.html'"), 'SANA_V3_DEFAULT_DESTINATION_REQUIRE
 assert(auth.includes("nextUrl === '/sana-v3.html'"), 'SANA_V3_ALLOWLIST_REQUIRED');
 assert(auth.includes("nextUrl.startsWith('/control')"), 'CONTROL_EXPLICIT_DESTINATION_MUST_REMAIN_ALLOWED');
 assert(v3.includes('id="app-content"'), 'SANA_V3_APP_SHELL_REQUIRED');
+assert(v3.includes('/sana-v3-cloud-state.js'), 'SANA_V3_CLOUD_STATE_WIRING_REQUIRED');
 assert(v3.includes('/sana-v3-core.js'), 'SANA_V3_CORE_WIRING_REQUIRED');
 assert(v3.includes('/sana-v3-runtime.js'), 'SANA_V3_RUNTIME_WIRING_REQUIRED');
+assert(v3.includes('/sana-v3-access.js'), 'SANA_V3_ACCESS_GUARD_WIRING_REQUIRED');
 
 assert(auth.includes('createUserWithEmailAndPassword'), 'FIREBASE_SIGNUP_REQUIRED');
 assert(auth.includes('signInWithEmailAndPassword'), 'FIREBASE_PASSWORD_SIGNIN_REQUIRED');
@@ -79,6 +90,23 @@ assert(session.includes('productionExecutionAvailable: false'), 'SESSION_PRODUCT
 assert(session.includes('productionActivationAllowed: false'), 'SESSION_PRODUCTION_ACTIVATION_MUST_BE_FALSE');
 assert(session.includes('canonicalMutated: false'), 'SESSION_CANONICAL_MUTATION_MUST_BE_FALSE');
 assert(session.includes('signOut'), 'FIREBASE_SIGNOUT_REQUIRED');
+assert(session.includes('__SANA_CLOUD_STATE__'), 'STATE_FLUSH_BEFORE_SIGNOUT_REQUIRED');
+
+assert(cloud.includes("const COLLECTION='demo_user_state'"), 'CLOUD_STATE_COLLECTION_REQUIRED');
+assert(cloud.includes("request") === false, 'CLOUD_STATE_RAW_HTTP_FORBIDDEN');
+assert(cloud.includes('runTransaction'), 'CLOUD_STATE_TRANSACTION_REQUIRED');
+assert(cloud.includes('REMOTE_REVISION_CONFLICT'), 'CLOUD_STATE_CONFLICT_DETECTION_REQUIRED');
+assert(cloud.includes('RULES_REQUIRED'), 'CLOUD_STATE_PERMISSION_FALLBACK_REQUIRED');
+assert(cloud.includes('LOCAL_ONLY'), 'LOCAL_PROFILE_ISOLATION_REQUIRED');
+assert(cloud.includes('ownerId'), 'OWNER_SCOPING_REQUIRED');
+assert(!cloud.includes('productionExecutionAvailable=true'), 'CLOUD_STATE_PRODUCTION_EXECUTION_FORBIDDEN');
+assert(!cloud.includes('canonicalMutated=true'), 'CLOUD_STATE_CANONICAL_MUTATION_FORBIDDEN');
+
+assert(access.includes("new_user:new Set(['home','characterization','passport','impact','capital'])"), 'NEW_USER_LIMITED_VIEWS_REQUIRED');
+assert(access.includes("investor:new Set(['home','territory','economics','reports','passport','impact','capital'])"), 'INVESTOR_READ_MODEL_REQUIRED');
+assert(access.includes('canAction'), 'ROLE_ACTION_GUARD_REQUIRED');
+assert(access.includes('stopImmediatePropagation'), 'ROLE_CAPTURE_GUARD_REQUIRED');
+assert(!access.includes("new_user:['*']"), 'NEW_USER_ADMIN_ESCALATION_FORBIDDEN');
 
 assert(server.includes("projectId: 'sana-demo-web'"), 'FIREBASE_DEFAULT_PROJECT_REQUIRED');
 assert(server.includes("authDomain: 'sana-demo-web.firebaseapp.com'"), 'FIREBASE_DEFAULT_AUTH_DOMAIN_REQUIRED');
@@ -97,6 +125,10 @@ assert(server.includes("d10HumanProductApproval: 'PENDING'"), 'D10_MUST_REMAIN_P
 
 assert(firestoreRules.includes('request.auth != null'), 'FIRESTORE_AUTH_REQUIRED');
 assert(firestoreRules.includes('request.auth.uid == userId'), 'FIRESTORE_OWNER_UID_RULE_REQUIRED');
+assert(firestoreRules.includes('match /demo_user_state/{userId}'), 'FIRESTORE_STATE_RULE_REQUIRED');
+assert(firestoreRules.includes('request.resource.data.revision == resource.data.revision + 1'), 'FIRESTORE_STATE_REVISION_INCREMENT_REQUIRED');
+assert(firestoreRules.includes("request.resource.data.environment == 'DEMO'"), 'FIRESTORE_STATE_DEMO_BOUNDARY_REQUIRED');
+assert(firestoreRules.includes("request.resource.data.keys().hasOnly"), 'FIRESTORE_STATE_CLOSED_SHAPE_REQUIRED');
 assert(!firestoreRules.includes('allow read, write: if true'), 'FIRESTORE_OPEN_RULE_FORBIDDEN');
 
 console.log(JSON.stringify({
@@ -105,6 +137,8 @@ console.log(JSON.stringify({
   authProvider: contract.authentication.provider,
   firebaseProjectId: contract.authentication.firebaseProjectId,
   dataStore: contract.dataStore.provider,
+  stateCollection: contract.dataStore.stateCollection,
+  conflictPolicy: contract.dataStore.conflictPolicy,
   baseReleaseSha: contract.baseRelease.gitHeadSha,
   defaultDestination: '/sana-v3.html',
   personas: contract.personas.map((persona) => persona.id),
