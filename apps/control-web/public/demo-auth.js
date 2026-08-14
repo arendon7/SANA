@@ -1,6 +1,7 @@
 const config = window.__SANA_DEMO_CONFIG__ || {};
-const nextUrl = new URLSearchParams(window.location.search).get('next') || '/control';
-const safeNext = nextUrl.startsWith('/control') ? nextUrl : '/control';
+const nextUrl = new URLSearchParams(window.location.search).get('next') || '/sana-v3.html';
+const allowedNext = nextUrl === '/sana-v3.html' || nextUrl.startsWith('/control');
+const safeNext = allowedNext ? nextUrl : '/sana-v3.html';
 const FIREBASE_SDK_VERSION = '12.16.0';
 
 const tabs = {
