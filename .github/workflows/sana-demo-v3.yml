@@ -36,6 +36,7 @@ jobs:
           set -euo pipefail
           for file in \
             sana-v3-cloud-state.js sana-v3-core.js sana-v3-views-1.js sana-v3-views-2.js sana-v3-views-3.js sana-v3-views-4.js \
+            sana-v3-circularity.js sana-v3-iot-source.js \
             sana-v3-characterization-protocol.js sana-v3-plan-protocols.js sana-v3-advisory-protocols.js sana-v3-passport-chain.js \
             sana-v3-results.js sana-v3-economics.js sana-v3-impact-methodology.js sana-v3-capital-dossier.js sana-v3-integration-bridge.js \
             sana-v3-field-mobile.js sana-v3-role-home.js sana-v3-runtime.js sana-v3-access.js sana-v3-account.js sana-v3-firestore-selftest.js sana-v3-offline-runtime.js sana-v3-sw.js; do
@@ -50,22 +51,38 @@ jobs:
           test -s "$html"
           for asset in \
             sana-v3.css sana-v3-extensions.css sana-v3-characterization.css sana-v3-capital.css sana-v3-economics.css sana-v3-impact.css sana-v3-mobile.css \
-            sana-v3-cloud-state.js sana-v3-core.js sana-v3-results.js sana-v3-economics.js sana-v3-impact-methodology.js sana-v3-passport-chain.js \
+            sana-v3-cloud-state.js sana-v3-core.js sana-v3-circularity.js sana-v3-iot-source.js sana-v3-results.js sana-v3-economics.js sana-v3-impact-methodology.js sana-v3-passport-chain.js \
             sana-v3-role-home.js sana-v3-runtime.js sana-v3-access.js sana-v3-account.js sana-v3-firestore-selftest.js sana-v3-offline-runtime.js sana-v3-sw.js sana-v3-manifest.webmanifest; do
             test -s "apps/control-web/public/$asset"
           done
+          grep -q 'data-view="circularity"' "$html"
           grep -q 'data-view="results"' "$html"
+          grep -q '/sana-v3-circularity.js' "$html"
+          grep -q '/sana-v3-iot-source.js' "$html"
           grep -q '/sana-v3-results.js' "$html"
           grep -q '/sana-v3-role-home.js' "$html"
           grep -q '/sana-v3-account.js' "$html"
           grep -q '/sana-v3-firestore-selftest.js' "$html"
+          grep -q 'views.circularity=circularity' apps/control-web/public/sana-v3-circularity.js
+          grep -q 'circularity-residue' apps/control-web/public/sana-v3-circularity.js
+          grep -q 'gestión del ciclo de vida' apps/control-web/public/sana-v3-circularity.js
+          grep -q "name:'Fuentes de agua'" apps/control-web/public/sana-v3-iot-source.js
+          grep -q "name:'Ambiente'" apps/control-web/public/sana-v3-iot-source.js
+          grep -q "name:'Suelo'" apps/control-web/public/sana-v3-iot-source.js
+          grep -q 'Electroconductividad' apps/control-web/public/sana-v3-iot-source.js
+          grep -q 'Radiación solar directa' apps/control-web/public/sana-v3-iot-source.js
+          grep -q 'Fósforo' apps/control-web/public/sana-v3-iot-source.js
+          grep -q 'HUMAN_REVIEW_REQUIRED' apps/control-web/public/sana-v3-iot-source.js
           grep -q 'views.results=results' apps/control-web/public/sana-v3-results.js
           grep -q '__SANA_RESULT_BASE__' apps/control-web/public/sana-v3-results.js
           grep -q 'LOCAL_ONLY · NO ES FACTURA, INGRESO NI CERTIFICACIÓN' apps/control-web/public/sana-v3-results.js
           grep -q "chainBlock('06','Resultado productivo'" apps/control-web/public/sana-v3-passport-chain.js
           grep -q 'CAUSALIDAD / VERIFICACIÓN EXTERNA' apps/control-web/public/sana-v3-passport-chain.js
-          grep -q "investor:new Set(\['home','territory','results','economics','reports','passport','impact','capital'\])" apps/control-web/public/sana-v3-access.js
+          grep -q "investor:new Set(\['home','territory','circularity','results','economics','reports','passport','impact','capital'\])" apps/control-web/public/sana-v3-access.js
+          grep -q "circularity-residue" apps/control-web/public/sana-v3-access.js
           grep -q "harvest-result" apps/control-web/public/sana-v3-access.js
+          grep -q "'/sana-v3-circularity.js'" apps/control-web/public/sana-v3-sw.js
+          grep -q "'/sana-v3-iot-source.js'" apps/control-web/public/sana-v3-sw.js
           grep -q "'/sana-v3-results.js'" apps/control-web/public/sana-v3-sw.js
           grep -q "'/sana-v3-firestore-selftest.js'" apps/control-web/public/sana-v3-sw.js
           grep -q 'USUARIO NUEVO · ONBOARDING LIMITADO' apps/control-web/public/sana-v3-role-home.js
@@ -79,13 +96,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          FILES='apps/control-web/public/sana-v3-core.js apps/control-web/public/sana-v3-views-1.js apps/control-web/public/sana-v3-views-2.js apps/control-web/public/sana-v3-views-3.js apps/control-web/public/sana-v3-views-4.js apps/control-web/public/sana-v3-characterization-protocol.js apps/control-web/public/sana-v3-plan-protocols.js apps/control-web/public/sana-v3-advisory-protocols.js apps/control-web/public/sana-v3-passport-chain.js apps/control-web/public/sana-v3-results.js apps/control-web/public/sana-v3-economics.js apps/control-web/public/sana-v3-impact-methodology.js apps/control-web/public/sana-v3-capital-dossier.js apps/control-web/public/sana-v3-integration-bridge.js apps/control-web/public/sana-v3-field-mobile.js apps/control-web/public/sana-v3-role-home.js apps/control-web/public/sana-v3-runtime.js apps/control-web/public/sana-v3-access.js apps/control-web/public/sana-v3-account.js apps/control-web/public/sana-v3-firestore-selftest.js apps/control-web/public/sana-v3-offline-runtime.js apps/control-web/public/sana-v3.html'
+          FILES='apps/control-web/public/sana-v3-core.js apps/control-web/public/sana-v3-views-1.js apps/control-web/public/sana-v3-views-2.js apps/control-web/public/sana-v3-views-3.js apps/control-web/public/sana-v3-views-4.js apps/control-web/public/sana-v3-circularity.js apps/control-web/public/sana-v3-iot-source.js apps/control-web/public/sana-v3-characterization-protocol.js apps/control-web/public/sana-v3-plan-protocols.js apps/control-web/public/sana-v3-advisory-protocols.js apps/control-web/public/sana-v3-passport-chain.js apps/control-web/public/sana-v3-results.js apps/control-web/public/sana-v3-economics.js apps/control-web/public/sana-v3-impact-methodology.js apps/control-web/public/sana-v3-capital-dossier.js apps/control-web/public/sana-v3-integration-bridge.js apps/control-web/public/sana-v3-field-mobile.js apps/control-web/public/sana-v3-role-home.js apps/control-web/public/sana-v3-runtime.js apps/control-web/public/sana-v3-access.js apps/control-web/public/sana-v3-account.js apps/control-web/public/sana-v3-firestore-selftest.js apps/control-web/public/sana-v3-offline-runtime.js apps/control-web/public/sana-v3.html'
           ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|productionReady[[:space:]]*=[[:space:]]*true|MIGRATION_LIVE_ACK|D10_APPROV|activation lease|/api/[^ ]*activat' $FILES
           ! grep -Eiq 'productionReady[[:space:]]*=[[:space:]]*true|MIGRATION_LIVE_ACK|D10_APPROV|activation lease|/api/[^ ]*activat' apps/control-web/public/sana-v3-cloud-state.js
           ! grep -Eiq "request\.method.*(POST|PUT|PATCH|DELETE)" apps/control-web/public/sana-v3-sw.js
           grep -q 'productionExecutionAvailable=false' apps/control-web/public/sana-v3-core.js
           grep -q 'canonicalMutated=false' apps/control-web/public/sana-v3-core.js
           grep -q 'D10=PENDING' apps/control-web/public/sana-v3-core.js
+          grep -q 'NO CERTIFICA TRATAMIENTO NI COMPOSICIÓN' apps/control-web/public/sana-v3-circularity.js
+          grep -q 'ninguna lectura aislada autoriza manejo agronómico' apps/control-web/public/sana-v3-iot-source.js
           grep -q 'NO CONTABILIDAD OFICIAL' apps/control-web/public/sana-v3-economics.js
           grep -q 'NO_VERIFICADO_EXTERNO' apps/control-web/public/sana-v3-impact-methodology.js
           grep -q 'no capta recursos' apps/control-web/public/sana-v3-capital-dossier.js
