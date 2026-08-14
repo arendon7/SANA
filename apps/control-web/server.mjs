@@ -6,6 +6,15 @@ import { fileURLToPath } from 'node:url';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(here, 'public');
 const port = Number(process.env.PORT || 4273);
+const firebaseDefaults = Object.freeze({
+  apiKey: 'AIzaSyCN-Jv1hWXHO0fDvauPbwfqhKNdW3i0k3I',
+  authDomain: 'sana-demo-web.firebaseapp.com',
+  projectId: 'sana-demo-web',
+  storageBucket: 'sana-demo-web.firebasestorage.app',
+  messagingSenderId: '454867293969',
+  appId: '1:454867293969:web:1b4384820692b58449deb0',
+  measurementId: 'G-BMSHC9CVD3'
+});
 const types = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
@@ -67,22 +76,34 @@ function jsonForbidden(res, payload) {
   return jsonResponse(res, 404, payload);
 }
 
+function firebaseRuntimeConfig() {
+  return {
+    apiKey: process.env.SANA_DEMO_FIREBASE_API_KEY || firebaseDefaults.apiKey,
+    authDomain: process.env.SANA_DEMO_FIREBASE_AUTH_DOMAIN || firebaseDefaults.authDomain,
+    projectId: process.env.SANA_DEMO_FIREBASE_PROJECT_ID || firebaseDefaults.projectId,
+    storageBucket: process.env.SANA_DEMO_FIREBASE_STORAGE_BUCKET || firebaseDefaults.storageBucket,
+    messagingSenderId: process.env.SANA_DEMO_FIREBASE_MESSAGING_SENDER_ID || firebaseDefaults.messagingSenderId,
+    appId: process.env.SANA_DEMO_FIREBASE_APP_ID || firebaseDefaults.appId,
+    measurementId: process.env.SANA_DEMO_FIREBASE_MEASUREMENT_ID || firebaseDefaults.measurementId
+  };
+}
+
 function firebaseConfigured() {
-  return Boolean(
-    process.env.SANA_DEMO_FIREBASE_API_KEY &&
-    process.env.SANA_DEMO_FIREBASE_AUTH_DOMAIN &&
-    process.env.SANA_DEMO_FIREBASE_PROJECT_ID &&
-    process.env.SANA_DEMO_FIREBASE_APP_ID
-  );
+  const config = firebaseRuntimeConfig();
+  return Boolean(config.apiKey && config.authDomain && config.projectId && config.appId);
 }
 
 function demoConfigJavascript() {
+  const firebase = firebaseRuntimeConfig();
   const config = {
     environment: 'DEMO',
-    firebaseApiKey: process.env.SANA_DEMO_FIREBASE_API_KEY || '',
-    firebaseAuthDomain: process.env.SANA_DEMO_FIREBASE_AUTH_DOMAIN || '',
-    firebaseProjectId: process.env.SANA_DEMO_FIREBASE_PROJECT_ID || '',
-    firebaseAppId: process.env.SANA_DEMO_FIREBASE_APP_ID || '',
+    firebaseApiKey: firebase.apiKey,
+    firebaseAuthDomain: firebase.authDomain,
+    firebaseProjectId: firebase.projectId,
+    firebaseStorageBucket: firebase.storageBucket,
+    firebaseMessagingSenderId: firebase.messagingSenderId,
+    firebaseAppId: firebase.appId,
+    firebaseMeasurementId: firebase.measurementId,
     emailPasswordEnabled: firebaseConfigured(),
     localProfilesEnabled: true,
     productionExecutionAvailable: false,
@@ -123,6 +144,7 @@ const server = http.createServer(async (req, res) => {
         status: 'OK',
         environment: 'DEMO',
         firebaseConfigured: firebaseConfigured(),
+        firebaseProjectId: firebaseRuntimeConfig().projectId,
         localProfilesEnabled: true,
         productionExecutionAvailable: false,
         productionActivationAllowed: false,
@@ -144,7 +166,7 @@ const server = http.createServer(async (req, res) => {
       return jsonForbidden(res, { error: 'PRODUCTION_HOST_BROWSER_ENDPOINT_FORBIDDEN', trust: 'DEMO_RECONSTRUCTED', productionDeploymentHostImplemented: true, productionDeploymentHostReviewCertified: true, realProductionHostExecuted: false, productionHostEnvironmentBound: false, browserCanInvokeHost: false, browserCanProvideEnvironment: false, browserCanRunPreflights: false, browserActivationAllowed: false, productionExecutionAvailable: false, executionState: 'NOT_EXECUTED', canonicalMutated: false });
     }
     if (url.pathname.startsWith('/api/control/production-bootstrap')) {
-      return jsonForbidden(res, { error: 'PRODUCTION_BOOTSTRAP_BROWSER_ENDPOINT_FORBIDDEN', trust: 'DEMO_RECONSTRUCTED', productionBootstrapImplemented: true, productionBootstrapReviewCertified: true, realProductionBootstrapExecuted: false, realProductionBindingEvidenceIssued: false, realProductionActivationLeaseIssued: false, browserCanProvideEnvironment: false, browserCanRunPreflights: false, browserActivationAllowed: false, productionExecutionAvailable: false, executionState: 'NOT_EXECUTED', canonicalMutated: false });
+      return jsonForbidden(res, { error: 'PRODUCTION_BOOTSTRAP_BROWSER_ENDPOINT_FORBIDDEN', trust: 'DEMO_RECONSTRUCTED', productionBootstrapImplemented: true, productionBootstrapReviewCertified: true, realProductionBootstrapExecuted: false, realProductionBindingEvidenceIssued: false, realProductionActivationLeaseIssued: false, browserCanProvideEnvironment: false, browserCanRunPreflights:false, browserActivationAllowed: false, productionExecutionAvailable: false, executionState: 'NOT_EXECUTED', canonicalMutated: false });
     }
     if (url.pathname.startsWith('/api/control/production-activation')) {
       return jsonForbidden(res, { error: 'PRODUCTION_ACTIVATION_BROWSER_ENDPOINT_FORBIDDEN', trust: 'DEMO_RECONSTRUCTED', productionActivationAuthorizationImplemented: true, productionActivationGateReviewCertified: true, realProductionActivationLeaseIssued: false, browserCanRequestActivation: false, browserCanApproveActivation: false, browserActivationAllowed: false, productionExecutionAvailable: false, executionState: 'NOT_EXECUTED', canonicalMutated: false });
