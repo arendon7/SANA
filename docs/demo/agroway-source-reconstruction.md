@@ -18,8 +18,10 @@ This document records the historical AGROWAY materials used to reconstruct produ
 - Phenology, nutrition/fertigation, health and operational activities.
 - Inventories, spaces/tanks and team/productivity.
 - Mobile/offline-first capture with explicit `LOCAL_ONLY ≠ SYNCED ≠ ACK` states.
-- Reports and per-unit economics (DEMO only).
 - Technical accompaniment and evidence/Passport.
+- Agronomist support modeled as traceable technical cases rather than an unaudited chat: question, lot, context, human reviewer, human response, commitment, evidence and status.
+- Input projections by crop/cycle linked to plan, phase, inventory and horizon; projections never generate orders, purchases, prescriptions or automatic applications.
+- Versioned report cuts with purpose, source set, source/version metadata, cutoff date, reviewer, quality notes and explicit non-official status. Historical report families represented: input projections, alerts, crop economics, custom reports and regulator-oriented dossiers.
 - IoT source matrix:
   - Water: temperature, pH, electrical conductivity.
   - Environment: temperature, relative humidity, CO2, direct and indirect solar radiation.
@@ -44,8 +46,7 @@ This document records the historical AGROWAY materials used to reconstruct produ
 
 ## Next reconstruction targets
 
-1. Agronomist conversation/technical support as a case-based workflow rather than a generic chat.
-2. Input projections by crop and cycle tied to inventory and plan versions.
-3. Custom reports with explicit source/version/cutoff metadata.
-4. Plant-material life-cycle chain through propagation → crop → harvest → final disposition.
-5. Training/onboarding workflows suitable for low-connectivity and low-digital-literacy field contexts.
+1. Plant-material life-cycle chain through mother/propagation/seed → material → crop → harvest → final disposition.
+2. Training/onboarding workflows suitable for low-connectivity and low-digital-literacy field contexts.
+3. Deeper report rendering/export after the source/version contract is stable.
+4. Search SharePoint for canonical AGROWAY visual identity/logos before replacing the current legacy placeholder asset.
