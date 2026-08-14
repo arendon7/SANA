@@ -67,12 +67,23 @@ function jsonForbidden(res, payload) {
   return jsonResponse(res, 404, payload);
 }
 
+function firebaseConfigured() {
+  return Boolean(
+    process.env.SANA_DEMO_FIREBASE_API_KEY &&
+    process.env.SANA_DEMO_FIREBASE_AUTH_DOMAIN &&
+    process.env.SANA_DEMO_FIREBASE_PROJECT_ID &&
+    process.env.SANA_DEMO_FIREBASE_APP_ID
+  );
+}
+
 function demoConfigJavascript() {
   const config = {
     environment: 'DEMO',
-    supabaseUrl: process.env.SANA_DEMO_SUPABASE_URL || '',
-    supabasePublishableKey: process.env.SANA_DEMO_SUPABASE_PUBLISHABLE_KEY || '',
-    emailPasswordEnabled: Boolean(process.env.SANA_DEMO_SUPABASE_URL && process.env.SANA_DEMO_SUPABASE_PUBLISHABLE_KEY),
+    firebaseApiKey: process.env.SANA_DEMO_FIREBASE_API_KEY || '',
+    firebaseAuthDomain: process.env.SANA_DEMO_FIREBASE_AUTH_DOMAIN || '',
+    firebaseProjectId: process.env.SANA_DEMO_FIREBASE_PROJECT_ID || '',
+    firebaseAppId: process.env.SANA_DEMO_FIREBASE_APP_ID || '',
+    emailPasswordEnabled: firebaseConfigured(),
     localProfilesEnabled: true,
     productionExecutionAvailable: false,
     productionActivationAllowed: false,
@@ -111,7 +122,7 @@ const server = http.createServer(async (req, res) => {
       return jsonResponse(res, 200, {
         status: 'OK',
         environment: 'DEMO',
-        supabaseConfigured: Boolean(process.env.SANA_DEMO_SUPABASE_URL && process.env.SANA_DEMO_SUPABASE_PUBLISHABLE_KEY),
+        firebaseConfigured: firebaseConfigured(),
         localProfilesEnabled: true,
         productionExecutionAvailable: false,
         productionActivationAllowed: false,
