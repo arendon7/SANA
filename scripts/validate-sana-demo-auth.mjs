@@ -62,6 +62,7 @@ assert(auth.includes("nextUrl === '/sana-v3.html'"), 'SANA_V3_ALLOWLIST_REQUIRED
 assert(auth.includes("nextUrl.startsWith('/control')"), 'CONTROL_EXPLICIT_DESTINATION_MUST_REMAIN_ALLOWED');
 assert(v3.includes('id="app-content"'), 'SANA_V3_APP_SHELL_REQUIRED');
 assert(v3.includes('/sana-v3-cloud-state.js'), 'SANA_V3_CLOUD_STATE_WIRING_REQUIRED');
+assert(v3.includes('/sana-v3-material-lifecycle.js'), 'MATERIAL_LIFECYCLE_WIRING_REQUIRED');
 assert(v3.includes('/sana-v3-results.js'), 'SANA_V3_RESULTS_WIRING_REQUIRED');
 assert(v3.includes('/sana-v3-role-home.js'), 'SANA_V3_ROLE_HOME_WIRING_REQUIRED');
 assert(v3.includes('/sana-v3-runtime.js'), 'SANA_V3_RUNTIME_WIRING_REQUIRED');
@@ -96,13 +97,15 @@ assert(!cloud.includes('productionExecutionAvailable=true'), 'CLOUD_STATE_PRODUC
 assert(!cloud.includes('canonicalMutated=true'), 'CLOUD_STATE_CANONICAL_MUTATION_FORBIDDEN');
 
 assert(access.includes("new_user:new Set(['home','characterization','passport','impact','capital'])"), 'NEW_USER_LIMITED_VIEWS_REQUIRED');
+assert(access.includes("producer:new Set(['home','territory','characterization','material','plans'"), 'PRODUCER_MATERIAL_VIEW_REQUIRED');
 assert(access.includes("investor:new Set(['home','territory','forecast','circularity','results','economics','reports','passport','impact','capital'])"), 'INVESTOR_READ_MODEL_WITH_FORECAST_REQUIRED');
-assert(access.includes("technical:['fieldRecord','quickField','task-toggle','phenology','nutrition','health','inventory','material','sensor','visit','structured-visit','agronomist-case','input-forecast-adjustment'"), 'TECHNICAL_FORECAST_WRITE_REQUIRED');
-assert(access.includes("producer:['fieldRecord','quickField','task-toggle','phenology','nutrition','health','inventory','structured-visit','agronomist-case','input-forecast-adjustment'"), 'PRODUCER_FORECAST_WRITE_REQUIRED');
+assert(access.includes("technical:['fieldRecord','quickField','task-toggle','phenology','nutrition','health','inventory','material','material-lifecycle-event'"), 'TECHNICAL_MATERIAL_LIFECYCLE_WRITE_REQUIRED');
+assert(access.includes("producer:['fieldRecord','quickField','task-toggle','phenology','nutrition','health','inventory','material-lifecycle-event'"), 'PRODUCER_MATERIAL_LIFECYCLE_WRITE_REQUIRED');
 assert(access.includes("new_user:['methodology','exportPassport','characterization:*']"), 'NEW_USER_LIMITED_ACTIONS_REQUIRED');
 assert(access.includes("Usuario nuevo','Onboarding limitado"), 'NEW_USER_ROLE_LABEL_REQUIRED');
 assert(access.includes('canAction'), 'ROLE_ACTION_GUARD_REQUIRED');
 assert(access.includes('stopImmediatePropagation'), 'ROLE_CAPTURE_GUARD_REQUIRED');
+assert(!access.includes("investor:['material-lifecycle-event'"), 'INVESTOR_MATERIAL_LIFECYCLE_WRITE_FORBIDDEN');
 assert(!access.includes("investor:['harvest-result'"), 'INVESTOR_RESULT_WRITE_FORBIDDEN');
 assert(!access.includes("investor:['circularity-residue'"), 'INVESTOR_CIRCULARITY_WRITE_FORBIDDEN');
 assert(!access.includes("investor:['agronomist-case'"), 'INVESTOR_AGRONOMIST_CASE_WRITE_FORBIDDEN');
@@ -164,6 +167,7 @@ console.log(JSON.stringify({
   defaultDestination: '/sana-v3.html',
   roleAwareHome: true,
   accountDiagnostics: true,
+  plantMaterialLifecycle: true,
   harvestResults: true,
   agronomistCases: true,
   inputForecasts: true,
