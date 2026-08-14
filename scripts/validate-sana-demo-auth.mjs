@@ -94,7 +94,7 @@ assert(!cloud.includes('productionExecutionAvailable=true'), 'CLOUD_STATE_PRODUC
 assert(!cloud.includes('canonicalMutated=true'), 'CLOUD_STATE_CANONICAL_MUTATION_FORBIDDEN');
 
 assert(access.includes("new_user:new Set(['home','characterization','passport','impact','capital'])"), 'NEW_USER_LIMITED_VIEWS_REQUIRED');
-assert(access.includes("investor:new Set(['home','territory','results','economics','reports','passport','impact','capital'])"), 'INVESTOR_READ_MODEL_WITH_RESULTS_REQUIRED');
+assert(access.includes("investor:new Set(['home','territory','circularity','results','economics','reports','passport','impact','capital'])"), 'INVESTOR_READ_MODEL_WITH_RESULTS_REQUIRED');
 assert(access.includes("technical:['fieldRecord','quickField','task-toggle','phenology','nutrition','health','inventory','material','sensor','visit','structured-visit','plan','plan-review','harvest-result'"), 'TECHNICAL_RESULT_WRITE_REQUIRED');
 assert(access.includes("producer:['fieldRecord','quickField','task-toggle','phenology','nutrition','health','inventory','harvest-result'"), 'PRODUCER_RESULT_WRITE_REQUIRED');
 assert(access.includes("new_user:['methodology','exportPassport','characterization:*']"), 'NEW_USER_LIMITED_ACTIONS_REQUIRED');
@@ -102,6 +102,7 @@ assert(access.includes("Usuario nuevo','Onboarding limitado"), 'NEW_USER_ROLE_LA
 assert(access.includes('canAction'), 'ROLE_ACTION_GUARD_REQUIRED');
 assert(access.includes('stopImmediatePropagation'), 'ROLE_CAPTURE_GUARD_REQUIRED');
 assert(!access.includes("investor:['harvest-result'"), 'INVESTOR_RESULT_WRITE_FORBIDDEN');
+assert(!access.includes("investor:['circularity-residue'"), 'INVESTOR_CIRCULARITY_WRITE_FORBIDDEN');
 assert(!access.includes("new_user:['*']"), 'NEW_USER_ADMIN_ESCALATION_FORBIDDEN');
 
 assert(results.includes('views.results=results'), 'HARVEST_RESULTS_VIEW_REQUIRED');
