@@ -13,30 +13,16 @@ const files = {
   access: 'apps/control-web/public/sana-v3-access.js',
   roleHome: 'apps/control-web/public/sana-v3-role-home.js',
   account: 'apps/control-web/public/sana-v3-account.js',
+  results: 'apps/control-web/public/sana-v3-results.js',
   contract: 'config/product/sana-demo-auth.json',
   firestoreRules: 'infra/firebase-demo/firestore.rules'
 };
 
-async function text(rel) {
-  return readFile(path.join(root, rel), 'utf8');
-}
+async function text(rel) { return readFile(path.join(root, rel), 'utf8'); }
+function assert(condition, message) { if (!condition) throw new Error(message); }
 
-function assert(condition, message) {
-  if (!condition) throw new Error(message);
-}
-
-const [server, html, auth, session, v3, cloud, access, roleHome, account, contractText, firestoreRules] = await Promise.all([
-  text(files.server),
-  text(files.html),
-  text(files.auth),
-  text(files.session),
-  text(files.v3),
-  text(files.cloud),
-  text(files.access),
-  text(files.roleHome),
-  text(files.account),
-  text(files.contract),
-  text(files.firestoreRules)
+const [server, html, auth, session, v3, cloud, access, roleHome, account, results, contractText, firestoreRules] = await Promise.all([
+  text(files.server), text(files.html), text(files.auth), text(files.session), text(files.v3), text(files.cloud), text(files.access), text(files.roleHome), text(files.account), text(files.results), text(files.contract), text(files.firestoreRules)
 ]);
 const contract = JSON.parse(contractText);
 
@@ -76,7 +62,7 @@ assert(auth.includes("nextUrl === '/sana-v3.html'"), 'SANA_V3_ALLOWLIST_REQUIRED
 assert(auth.includes("nextUrl.startsWith('/control')"), 'CONTROL_EXPLICIT_DESTINATION_MUST_REMAIN_ALLOWED');
 assert(v3.includes('id="app-content"'), 'SANA_V3_APP_SHELL_REQUIRED');
 assert(v3.includes('/sana-v3-cloud-state.js'), 'SANA_V3_CLOUD_STATE_WIRING_REQUIRED');
-assert(v3.includes('/sana-v3-core.js'), 'SANA_V3_CORE_WIRING_REQUIRED');
+assert(v3.includes('/sana-v3-results.js'), 'SANA_V3_RESULTS_WIRING_REQUIRED');
 assert(v3.includes('/sana-v3-role-home.js'), 'SANA_V3_ROLE_HOME_WIRING_REQUIRED');
 assert(v3.includes('/sana-v3-runtime.js'), 'SANA_V3_RUNTIME_WIRING_REQUIRED');
 assert(v3.includes('/sana-v3-access.js'), 'SANA_V3_ACCESS_GUARD_WIRING_REQUIRED');
@@ -108,12 +94,21 @@ assert(!cloud.includes('productionExecutionAvailable=true'), 'CLOUD_STATE_PRODUC
 assert(!cloud.includes('canonicalMutated=true'), 'CLOUD_STATE_CANONICAL_MUTATION_FORBIDDEN');
 
 assert(access.includes("new_user:new Set(['home','characterization','passport','impact','capital'])"), 'NEW_USER_LIMITED_VIEWS_REQUIRED');
-assert(access.includes("investor:new Set(['home','territory','economics','reports','passport','impact','capital'])"), 'INVESTOR_READ_MODEL_REQUIRED');
+assert(access.includes("investor:new Set(['home','territory','results','economics','reports','passport','impact','capital'])"), 'INVESTOR_READ_MODEL_WITH_RESULTS_REQUIRED');
+assert(access.includes("technical:['fieldRecord','quickField','task-toggle','phenology','nutrition','health','inventory','material','sensor','visit','structured-visit','plan','plan-review','harvest-result'"), 'TECHNICAL_RESULT_WRITE_REQUIRED');
+assert(access.includes("producer:['fieldRecord','quickField','task-toggle','phenology','nutrition','health','inventory','harvest-result'"), 'PRODUCER_RESULT_WRITE_REQUIRED');
 assert(access.includes("new_user:['methodology','exportPassport','characterization:*']"), 'NEW_USER_LIMITED_ACTIONS_REQUIRED');
 assert(access.includes("Usuario nuevo','Onboarding limitado"), 'NEW_USER_ROLE_LABEL_REQUIRED');
 assert(access.includes('canAction'), 'ROLE_ACTION_GUARD_REQUIRED');
 assert(access.includes('stopImmediatePropagation'), 'ROLE_CAPTURE_GUARD_REQUIRED');
+assert(!access.includes("investor:['harvest-result'"), 'INVESTOR_RESULT_WRITE_FORBIDDEN');
 assert(!access.includes("new_user:['*']"), 'NEW_USER_ADMIN_ESCALATION_FORBIDDEN');
+
+assert(results.includes('views.results=results'), 'HARVEST_RESULTS_VIEW_REQUIRED');
+assert(results.includes('LOCAL_ONLY · NO ES FACTURA, INGRESO NI CERTIFICACIÓN'), 'HARVEST_RESULT_INTEGRITY_DISCLOSURE_REQUIRED');
+assert(results.includes('__SANA_RESULT_BASE__'), 'SINGLE_RESULT_BASELINE_EXPORT_REQUIRED');
+assert(results.includes("type==='harvest-result'"), 'HARVEST_RESULT_RECORD_TYPE_REQUIRED');
+assert(results.includes('Un escenario económico nunca se convierte automáticamente en cosecha real'), 'SCENARIO_RESULT_SEPARATION_REQUIRED');
 
 assert(roleHome.includes('SANA · MI PREDIO'), 'PRODUCER_HOME_REQUIRED');
 assert(roleHome.includes('SANA · CONSOLA TÉCNICA'), 'TECHNICAL_HOME_REQUIRED');
@@ -164,6 +159,7 @@ console.log(JSON.stringify({
   defaultDestination: '/sana-v3.html',
   roleAwareHome: true,
   accountDiagnostics: true,
+  harvestResults: true,
   personas: contract.personas.map((persona) => persona.id),
   productionExecutionAvailable: false,
   productionActivationAllowed: false,
