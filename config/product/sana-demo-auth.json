@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.0.0",
+  "schemaVersion": "1.1.0",
   "product": "SANA",
   "mode": "DEMO",
   "purpose": "Functional product demonstration with simple account creation and predefined sandbox personas.",
@@ -9,19 +9,29 @@
     "immutable": true
   },
   "authentication": {
-    "provider": "SUPABASE_AUTH",
+    "provider": "FIREBASE_AUTH",
     "primaryMethod": "EMAIL_PASSWORD",
     "browserEnvironmentVariables": [
-      "SANA_DEMO_SUPABASE_URL",
-      "SANA_DEMO_SUPABASE_PUBLISHABLE_KEY"
+      "SANA_DEMO_FIREBASE_API_KEY",
+      "SANA_DEMO_FIREBASE_AUTH_DOMAIN",
+      "SANA_DEMO_FIREBASE_PROJECT_ID",
+      "SANA_DEMO_FIREBASE_APP_ID"
     ],
     "forbiddenBrowserSecrets": [
-      "service_role",
+      "firebase_admin_private_key",
+      "firebase_service_account_json",
+      "google_application_credentials",
       "database_password",
       "postgres_password",
       "oidc_client_secret"
     ],
     "allowLocalSandboxProfiles": true
+  },
+  "dataStore": {
+    "provider": "CLOUD_FIRESTORE",
+    "profileCollection": "demo_profiles",
+    "accessModel": "OWNER_UID_ONLY",
+    "rulesPath": "infra/firebase-demo/firestore.rules"
   },
   "personas": [
     {"id": "producer", "label": "Productor demo", "scope": "FIELD"},
