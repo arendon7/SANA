@@ -38,6 +38,7 @@ jobs:
           node --check apps/control-web/public/sana-v3-plan-protocols.js
           node --check apps/control-web/public/sana-v3-advisory-protocols.js
           node --check apps/control-web/public/sana-v3-passport-chain.js
+          node --check apps/control-web/public/sana-v3-capital-dossier.js
           node --check apps/control-web/public/sana-v3-runtime.js
       - name: Validate V3 assembly
         shell: bash
@@ -48,6 +49,7 @@ jobs:
             apps/control-web/public/sana-v3.css \
             apps/control-web/public/sana-v3-extensions.css \
             apps/control-web/public/sana-v3-characterization.css \
+            apps/control-web/public/sana-v3-capital.css \
             apps/control-web/public/sana-v3-core.js \
             apps/control-web/public/sana-v3-views-1.js \
             apps/control-web/public/sana-v3-views-2.js \
@@ -57,47 +59,53 @@ jobs:
             apps/control-web/public/sana-v3-plan-protocols.js \
             apps/control-web/public/sana-v3-advisory-protocols.js \
             apps/control-web/public/sana-v3-passport-chain.js \
+            apps/control-web/public/sana-v3-capital-dossier.js \
             apps/control-web/public/sana-v3-runtime.js; do
             test -s "$file"
           done
           grep -q 'id="app-content"' apps/control-web/public/sana-v3.html
           grep -q 'data-view="characterization"' apps/control-web/public/sana-v3.html
-          grep -q 'data-view="plans"' apps/control-web/public/sana-v3.html
+          grep -q 'data-view="capital"' apps/control-web/public/sana-v3.html
           grep -q '/sana-v3.css' apps/control-web/public/sana-v3.html
           grep -q '/sana-v3-extensions.css' apps/control-web/public/sana-v3.html
           grep -q '/sana-v3-characterization.css' apps/control-web/public/sana-v3.html
+          grep -q '/sana-v3-capital.css' apps/control-web/public/sana-v3.html
           grep -q '/sana-v3-core.js' apps/control-web/public/sana-v3.html
           grep -q '/sana-v3-characterization-protocol.js' apps/control-web/public/sana-v3.html
           grep -q '/sana-v3-plan-protocols.js' apps/control-web/public/sana-v3.html
           grep -q '/sana-v3-advisory-protocols.js' apps/control-web/public/sana-v3.html
           grep -q '/sana-v3-passport-chain.js' apps/control-web/public/sana-v3.html
+          grep -q '/sana-v3-capital-dossier.js' apps/control-web/public/sana-v3.html
           grep -q '/sana-v3-runtime.js' apps/control-web/public/sana-v3.html
-          grep -q 'const views=' apps/control-web/public/sana-v3-views-4.js
           grep -q 'views.characterization=characterization' apps/control-web/public/sana-v3-characterization-protocol.js
           grep -q 'views.plans=plansOperational' apps/control-web/public/sana-v3-plan-protocols.js
           grep -q 'views.advisory=accompanimentOperational' apps/control-web/public/sana-v3-advisory-protocols.js
           grep -q 'views.passport=passportOperational' apps/control-web/public/sana-v3-passport-chain.js
+          grep -q 'views.capital=capitalDossier' apps/control-web/public/sana-v3-capital-dossier.js
           grep -q 'HUMAN_REVIEW_REQUIRED' apps/control-web/public/sana-v3-characterization-protocol.js
           grep -q 'HUMAN_REVIEW_REQUIRED' apps/control-web/public/sana-v3-plan-protocols.js
           grep -q 'structured-visit' apps/control-web/public/sana-v3-advisory-protocols.js
           grep -q 'LOCAL_ONLY' apps/control-web/public/sana-v3-passport-chain.js
+          grep -q 'SIN TRANSACCIONES' apps/control-web/public/sana-v3-capital-dossier.js
           grep -q '.character-grid' apps/control-web/public/sana-v3-characterization.css
+          grep -q '.capital-case' apps/control-web/public/sana-v3-capital.css
           grep -q '.plan-switcher' apps/control-web/public/sana-v3-extensions.css
           grep -q '.passport-chain' apps/control-web/public/sana-v3-extensions.css
           grep -q 'function render()' apps/control-web/public/sana-v3-runtime.js
           grep -q 'localStorage' apps/control-web/public/sana-v3-core.js
-          grep -q 'Capital readiness' apps/control-web/public/sana-v3.html
       - name: Assert demo-only execution boundary
         shell: bash
         run: |
           set -euo pipefail
-          FILES='apps/control-web/public/sana-v3-core.js apps/control-web/public/sana-v3-views-1.js apps/control-web/public/sana-v3-views-2.js apps/control-web/public/sana-v3-views-3.js apps/control-web/public/sana-v3-views-4.js apps/control-web/public/sana-v3-characterization-protocol.js apps/control-web/public/sana-v3-plan-protocols.js apps/control-web/public/sana-v3-advisory-protocols.js apps/control-web/public/sana-v3-passport-chain.js apps/control-web/public/sana-v3-runtime.js apps/control-web/public/sana-v3.html'
+          FILES='apps/control-web/public/sana-v3-core.js apps/control-web/public/sana-v3-views-1.js apps/control-web/public/sana-v3-views-2.js apps/control-web/public/sana-v3-views-3.js apps/control-web/public/sana-v3-views-4.js apps/control-web/public/sana-v3-characterization-protocol.js apps/control-web/public/sana-v3-plan-protocols.js apps/control-web/public/sana-v3-advisory-protocols.js apps/control-web/public/sana-v3-passport-chain.js apps/control-web/public/sana-v3-capital-dossier.js apps/control-web/public/sana-v3-runtime.js apps/control-web/public/sana-v3.html'
           ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|productionReady[[:space:]]*=[[:space:]]*true|id-token:[[:space:]]*write|MIGRATION_LIVE_ACK|D10_APPROV|activation lease|/api/[^ ]*activat' $FILES
           grep -q 'productionExecutionAvailable=false' apps/control-web/public/sana-v3-core.js
           grep -q 'canonicalMutated=false' apps/control-web/public/sana-v3-core.js
           grep -q 'D10=PENDING' apps/control-web/public/sana-v3-core.js
-          grep -q 'no mueve dinero' apps/control-web/public/sana-v3-views-4.js
           grep -q 'LOCAL_ONLY' apps/control-web/public/sana-v3-characterization-protocol.js
           grep -q 'sin cambio canónico' apps/control-web/public/sana-v3-plan-protocols.js
           grep -q 'LOCAL_ONLY' apps/control-web/public/sana-v3-advisory-protocols.js
           grep -q 'No aumenta autoridad' apps/control-web/public/sana-v3-passport-chain.js
+          grep -q 'no recomienda invertir' apps/control-web/public/sana-v3-capital-dossier.js
+          grep -q 'no capta recursos' apps/control-web/public/sana-v3-capital-dossier.js
+          grep -q 'no custodia fondos' apps/control-web/public/sana-v3-capital-dossier.js
