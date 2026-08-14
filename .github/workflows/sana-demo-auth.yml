@@ -45,6 +45,8 @@ jobs:
           node --check apps/control-web/server.mjs
           node --check apps/control-web/public/demo-auth.js
           node --check apps/control-web/public/demo-session.js
+          node --check apps/control-web/public/sana-v3-cloud-state.js
+          node --check apps/control-web/public/sana-v3-access.js
           node scripts/validate-sana-demo-auth.mjs
           node - <<'NODE'
           const fs = require('fs');
@@ -84,10 +86,12 @@ jobs:
 
           curl --fail --silent http://127.0.0.1:4273/sana-v3.html > /tmp/sana-v3.html
           grep -q 'id="app-content"' /tmp/sana-v3.html
+          grep -q '/sana-v3-cloud-state.js' /tmp/sana-v3.html
           grep -q '/sana-v3-core.js' /tmp/sana-v3.html
           grep -q '/sana-v3-plan-protocols.js' /tmp/sana-v3.html
           grep -q '/sana-v3-advisory-protocols.js' /tmp/sana-v3.html
           grep -q '/sana-v3-runtime.js' /tmp/sana-v3.html
+          grep -q '/sana-v3-access.js' /tmp/sana-v3.html
 
           curl --fail --silent http://127.0.0.1:4273/control > /tmp/control.html
           grep -q '/demo-session.js' /tmp/control.html
@@ -96,8 +100,12 @@ jobs:
           test "$status" = '404'
           node -e "const fs=require('fs');const b=JSON.parse(fs.readFileSync('/tmp/blocked.json','utf8'));if(b.browserActivationAllowed!==false||b.productionExecutionAvailable!==false||b.canonicalMutated!==false)process.exit(1)"
 
-      - name: Confirm Supabase demo runtime path is gone
+      - name: Confirm Firestore owner boundary and Supabase removal
         shell: bash
         run: |
           test ! -e infra/supabase-demo/001_auth_profiles.sql
           ! grep -R "SANA_DEMO_SUPABASE\|SUPABASE_AUTH" apps/control-web config/product/sana-demo-auth.json
+          grep -q 'match /demo_user_state/{userId}' infra/firebase-demo/firestore.rules
+          grep -q 'request.auth.uid == userId' infra/firebase-demo/firestore.rules
+          grep -q 'request.resource.data.revision == resource.data.revision + 1' infra/firebase-demo/firestore.rules
+          grep -q 'NO_SILENT_OVERWRITE' config/product/sana-demo-auth.json
