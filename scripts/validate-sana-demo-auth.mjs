@@ -8,6 +8,7 @@ const files = {
   html: 'apps/control-web/public/demo-auth.html',
   auth: 'apps/control-web/public/demo-auth.js',
   session: 'apps/control-web/public/demo-session.js',
+  v3: 'apps/control-web/public/sana-v3.html',
   contract: 'config/product/sana-demo-auth.json',
   firestoreRules: 'infra/firebase-demo/firestore.rules'
 };
@@ -20,11 +21,12 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-const [server, html, auth, session, contractText, firestoreRules] = await Promise.all([
+const [server, html, auth, session, v3, contractText, firestoreRules] = await Promise.all([
   text(files.server),
   text(files.html),
   text(files.auth),
   text(files.session),
+  text(files.v3),
   text(files.contract),
   text(files.firestoreRules)
 ]);
@@ -55,6 +57,13 @@ assert(html.includes('Inversionista demo'), 'INVESTOR_PERSONA_REQUIRED');
 assert(html.includes('Administrador demo'), 'ADMIN_PERSONA_REQUIRED');
 assert(html.includes('Explorar SANA sin registrarme'), 'GUEST_ENTRY_REQUIRED');
 assert(html.includes('Firebase Authentication'), 'FIREBASE_DISCLOSURE_REQUIRED');
+
+assert(auth.includes("|| '/sana-v3.html'"), 'SANA_V3_DEFAULT_DESTINATION_REQUIRED');
+assert(auth.includes("nextUrl === '/sana-v3.html'"), 'SANA_V3_ALLOWLIST_REQUIRED');
+assert(auth.includes("nextUrl.startsWith('/control')"), 'CONTROL_EXPLICIT_DESTINATION_MUST_REMAIN_ALLOWED');
+assert(v3.includes('id="app-content"'), 'SANA_V3_APP_SHELL_REQUIRED');
+assert(v3.includes('/sana-v3-core.js'), 'SANA_V3_CORE_WIRING_REQUIRED');
+assert(v3.includes('/sana-v3-runtime.js'), 'SANA_V3_RUNTIME_WIRING_REQUIRED');
 
 assert(auth.includes('createUserWithEmailAndPassword'), 'FIREBASE_SIGNUP_REQUIRED');
 assert(auth.includes('signInWithEmailAndPassword'), 'FIREBASE_PASSWORD_SIGNIN_REQUIRED');
@@ -97,6 +106,7 @@ console.log(JSON.stringify({
   firebaseProjectId: contract.authentication.firebaseProjectId,
   dataStore: contract.dataStore.provider,
   baseReleaseSha: contract.baseRelease.gitHeadSha,
+  defaultDestination: '/sana-v3.html',
   personas: contract.personas.map((persona) => persona.id),
   productionExecutionAvailable: false,
   productionActivationAllowed: false,
