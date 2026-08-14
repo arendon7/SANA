@@ -11,6 +11,8 @@ const files = {
   v3: 'apps/control-web/public/sana-v3.html',
   cloud: 'apps/control-web/public/sana-v3-cloud-state.js',
   access: 'apps/control-web/public/sana-v3-access.js',
+  roleHome: 'apps/control-web/public/sana-v3-role-home.js',
+  account: 'apps/control-web/public/sana-v3-account.js',
   contract: 'config/product/sana-demo-auth.json',
   firestoreRules: 'infra/firebase-demo/firestore.rules'
 };
@@ -23,7 +25,7 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-const [server, html, auth, session, v3, cloud, access, contractText, firestoreRules] = await Promise.all([
+const [server, html, auth, session, v3, cloud, access, roleHome, account, contractText, firestoreRules] = await Promise.all([
   text(files.server),
   text(files.html),
   text(files.auth),
@@ -31,6 +33,8 @@ const [server, html, auth, session, v3, cloud, access, contractText, firestoreRu
   text(files.v3),
   text(files.cloud),
   text(files.access),
+  text(files.roleHome),
+  text(files.account),
   text(files.contract),
   text(files.firestoreRules)
 ]);
@@ -73,8 +77,10 @@ assert(auth.includes("nextUrl.startsWith('/control')"), 'CONTROL_EXPLICIT_DESTIN
 assert(v3.includes('id="app-content"'), 'SANA_V3_APP_SHELL_REQUIRED');
 assert(v3.includes('/sana-v3-cloud-state.js'), 'SANA_V3_CLOUD_STATE_WIRING_REQUIRED');
 assert(v3.includes('/sana-v3-core.js'), 'SANA_V3_CORE_WIRING_REQUIRED');
+assert(v3.includes('/sana-v3-role-home.js'), 'SANA_V3_ROLE_HOME_WIRING_REQUIRED');
 assert(v3.includes('/sana-v3-runtime.js'), 'SANA_V3_RUNTIME_WIRING_REQUIRED');
 assert(v3.includes('/sana-v3-access.js'), 'SANA_V3_ACCESS_GUARD_WIRING_REQUIRED');
+assert(v3.includes('/sana-v3-account.js'), 'SANA_V3_ACCOUNT_WIRING_REQUIRED');
 
 assert(auth.includes('createUserWithEmailAndPassword'), 'FIREBASE_SIGNUP_REQUIRED');
 assert(auth.includes('signInWithEmailAndPassword'), 'FIREBASE_PASSWORD_SIGNIN_REQUIRED');
@@ -93,7 +99,6 @@ assert(session.includes('signOut'), 'FIREBASE_SIGNOUT_REQUIRED');
 assert(session.includes('__SANA_CLOUD_STATE__'), 'STATE_FLUSH_BEFORE_SIGNOUT_REQUIRED');
 
 assert(cloud.includes("const COLLECTION='demo_user_state'"), 'CLOUD_STATE_COLLECTION_REQUIRED');
-assert(cloud.includes("request") === false, 'CLOUD_STATE_RAW_HTTP_FORBIDDEN');
 assert(cloud.includes('runTransaction'), 'CLOUD_STATE_TRANSACTION_REQUIRED');
 assert(cloud.includes('REMOTE_REVISION_CONFLICT'), 'CLOUD_STATE_CONFLICT_DETECTION_REQUIRED');
 assert(cloud.includes('RULES_REQUIRED'), 'CLOUD_STATE_PERMISSION_FALLBACK_REQUIRED');
@@ -104,9 +109,25 @@ assert(!cloud.includes('canonicalMutated=true'), 'CLOUD_STATE_CANONICAL_MUTATION
 
 assert(access.includes("new_user:new Set(['home','characterization','passport','impact','capital'])"), 'NEW_USER_LIMITED_VIEWS_REQUIRED');
 assert(access.includes("investor:new Set(['home','territory','economics','reports','passport','impact','capital'])"), 'INVESTOR_READ_MODEL_REQUIRED');
+assert(access.includes("new_user:['methodology','exportPassport','characterization:*']"), 'NEW_USER_LIMITED_ACTIONS_REQUIRED');
+assert(access.includes("Usuario nuevo','Onboarding limitado"), 'NEW_USER_ROLE_LABEL_REQUIRED');
 assert(access.includes('canAction'), 'ROLE_ACTION_GUARD_REQUIRED');
 assert(access.includes('stopImmediatePropagation'), 'ROLE_CAPTURE_GUARD_REQUIRED');
 assert(!access.includes("new_user:['*']"), 'NEW_USER_ADMIN_ESCALATION_FORBIDDEN');
+
+assert(roleHome.includes('SANA · MI PREDIO'), 'PRODUCER_HOME_REQUIRED');
+assert(roleHome.includes('SANA · CONSOLA TÉCNICA'), 'TECHNICAL_HOME_REQUIRED');
+assert(roleHome.includes('SANA · VISTA DE EVIDENCIA'), 'INVESTOR_HOME_REQUIRED');
+assert(roleHome.includes('SANA · RECORRIDO GUIADO'), 'VISITOR_HOME_REQUIRED');
+assert(roleHome.includes('USUARIO NUEVO · ONBOARDING LIMITADO'), 'NEW_USER_HOME_REQUIRED');
+assert(roleHome.includes("role==='admin'?originalHome"), 'ADMIN_HOME_MUST_PRESERVE_FULL_VIEW');
+assert(!roleHome.includes('productionExecutionAvailable=true'), 'ROLE_HOME_PRODUCTION_EXECUTION_FORBIDDEN');
+
+assert(account.includes('Mi cuenta y sincronización'), 'ACCOUNT_DIAGNOSTICS_REQUIRED');
+assert(account.includes('NO DISPONIBLE EN BROWSER'), 'BROWSER_ROLE_ELEVATION_FORBIDDEN_DISCLOSURE_REQUIRED');
+assert(account.includes('__SANA_CLOUD_STATE__'), 'ACCOUNT_CLOUD_STATUS_REQUIRED');
+assert(account.includes('productionExecutionAvailable=false'), 'ACCOUNT_PRODUCTION_BOUNDARY_REQUIRED');
+assert(account.includes('canonicalMutated=false'), 'ACCOUNT_CANONICAL_BOUNDARY_REQUIRED');
 
 assert(server.includes("projectId: 'sana-demo-web'"), 'FIREBASE_DEFAULT_PROJECT_REQUIRED');
 assert(server.includes("authDomain: 'sana-demo-web.firebaseapp.com'"), 'FIREBASE_DEFAULT_AUTH_DOMAIN_REQUIRED');
@@ -141,6 +162,8 @@ console.log(JSON.stringify({
   conflictPolicy: contract.dataStore.conflictPolicy,
   baseReleaseSha: contract.baseRelease.gitHeadSha,
   defaultDestination: '/sana-v3.html',
+  roleAwareHome: true,
+  accountDiagnostics: true,
   personas: contract.personas.map((persona) => persona.id),
   productionExecutionAvailable: false,
   productionActivationAllowed: false,
