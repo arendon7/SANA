@@ -5,6 +5,7 @@ on:
     paths:
       - 'apps/control-web/public/demo-*'
       - 'apps/control-web/server.mjs'
+      - 'apps/control-web/package.json'
       - 'config/product/sana-demo-auth.json'
       - 'infra/firebase-demo/**'
       - 'scripts/validate-sana-demo-auth.mjs'
@@ -15,6 +16,7 @@ on:
     paths:
       - 'apps/control-web/public/demo-*'
       - 'apps/control-web/server.mjs'
+      - 'apps/control-web/package.json'
       - 'config/product/sana-demo-auth.json'
       - 'infra/firebase-demo/**'
       - 'scripts/validate-sana-demo-auth.mjs'
@@ -36,12 +38,13 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Syntax and contract validation
+      - name: Syntax, contract and deployment package validation
         run: |
           node --check apps/control-web/server.mjs
           node --check apps/control-web/public/demo-auth.js
           node --check apps/control-web/public/demo-session.js
           node scripts/validate-sana-demo-auth.mjs
+          node -e "const p=require('./apps/control-web/package.json');if(p.scripts?.start!=='node server.mjs'||p.engines?.node!=='22.x')process.exit(1)"
 
       - name: Runtime sandbox smoke
         shell: bash
