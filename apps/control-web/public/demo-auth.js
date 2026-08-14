@@ -1,6 +1,7 @@
 const config = window.__SANA_DEMO_CONFIG__ || {};
 const nextUrl = new URLSearchParams(window.location.search).get('next') || '/control';
 const safeNext = nextUrl.startsWith('/control') ? nextUrl : '/control';
+const FIREBASE_SDK_VERSION = '12.16.0';
 
 const tabs = {
   signin: document.getElementById('signin-tab'),
@@ -15,7 +16,7 @@ const submitButton = document.getElementById('submit-button');
 const status = document.getElementById('auth-status');
 const guestButton = document.getElementById('guest-button');
 let mode = 'signin';
-let supabase = null;
+let firebase = null;
 
 function setStatus(message = '', kind = '') {
   status.textContent = message;
@@ -40,6 +41,7 @@ function saveIdentity(identity) {
     ...identity,
     environment: 'DEMO',
     productionExecutionAvailable: false,
+    productionActivationAllowed: false,
     canonicalMutated: false,
     signedInAt: new Date().toISOString()
   }));
@@ -60,37 +62,95 @@ function enterLocalProfile(role, displayName) {
   goToDemo();
 }
 
-async function getSupabase() {
-  if (supabase) return supabase;
-  if (!config.supabaseUrl || !config.supabasePublishableKey) return null;
-  const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
-  supabase = createClient(config.supabaseUrl, config.supabasePublishableKey, {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true
-    }
-  });
-  return supabase;
+function firebaseConfig() {
+  return {
+    apiKey: config.firebaseApiKey || '',
+    authDomain: config.firebaseAuthDomain || '',
+    projectId: config.firebaseProjectId || '',
+    appId: config.firebaseAppId || ''
+  };
+}
+
+function firebaseConfigured() {
+  const cfg = firebaseConfig();
+  return Boolean(cfg.apiKey && cfg.authDomain && cfg.projectId && cfg.appId);
+}
+
+async function getFirebase() {
+  if (firebase) return firebase;
+  if (!firebaseConfigured()) return null;
+
+  const base = `https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}`;
+  const [appModule, authModule, firestoreModule] = await Promise.all([
+    import(`${base}/firebase-app.js`),
+    import(`${base}/firebase-auth.js`),
+    import(`${base}/firebase-firestore.js`)
+  ]);
+
+  const app = appModule.initializeApp(firebaseConfig());
+  const auth = authModule.getAuth(app);
+  await authModule.setPersistence(auth, authModule.browserLocalPersistence);
+  const db = firestoreModule.getFirestore(app);
+
+  firebase = { app, auth, db, authModule, firestoreModule };
+  return firebase;
+}
+
+async function readProfile(client, user) {
+  try {
+    const ref = client.firestoreModule.doc(client.db, 'demo_profiles', user.uid);
+    const snapshot = await client.firestoreModule.getDoc(ref);
+    if (!snapshot.exists()) return null;
+    return snapshot.data();
+  } catch {
+    return null;
+  }
+}
+
+async function persistProfile(client, user, { displayName, role = 'new_user' }) {
+  const ref = client.firestoreModule.doc(client.db, 'demo_profiles', user.uid);
+  await client.firestoreModule.setDoc(ref, {
+    userId: user.uid,
+    email: user.email || '',
+    displayName,
+    role,
+    environment: 'DEMO',
+    updatedAt: client.firestoreModule.serverTimestamp()
+  }, { merge: true });
 }
 
 async function hydrateExistingSession() {
   try {
-    const client = await getSupabase();
+    const client = await getFirebase();
     if (!client) return;
-    const { data } = await client.auth.getSession();
-    const user = data?.session?.user;
+    const user = await new Promise((resolve) => {
+      let unsubscribe = () => {};
+      unsubscribe = client.authModule.onAuthStateChanged(client.auth, (currentUser) => {
+        unsubscribe();
+        resolve(currentUser);
+      });
+    });
     if (!user) return;
+    const profile = await readProfile(client, user);
     saveIdentity({
-      id: user.id,
+      id: user.uid,
       email: user.email || '',
-      displayName: user.user_metadata?.full_name || user.email || 'Usuario SANA',
-      role: user.user_metadata?.demo_role || 'new_user',
-      authProvider: 'SUPABASE_AUTH'
+      displayName: profile?.displayName || user.displayName || user.email || 'Usuario SANA',
+      role: profile?.role || 'new_user',
+      authProvider: 'FIREBASE_AUTH'
     });
   } catch {
-    // The demo remains usable through local sandbox profiles if Supabase is unavailable.
+    // Local sandbox profiles keep the demo usable when Firebase is unavailable.
   }
+}
+
+function friendlyFirebaseError(error) {
+  const code = error?.code || '';
+  if (code === 'auth/email-already-in-use') return 'Ese correo ya tiene una cuenta. Intenta ingresar.';
+  if (code === 'auth/invalid-credential') return 'Correo o contraseña incorrectos.';
+  if (code === 'auth/weak-password') return 'Usa una contraseña más segura.';
+  if (code === 'auth/too-many-requests') return 'Hay demasiados intentos. Intenta nuevamente más tarde.';
+  return error?.message || 'No fue posible completar el acceso.';
 }
 
 async function submitAuth(event) {
@@ -102,55 +162,49 @@ async function submitAuth(event) {
 
   submitButton.disabled = true;
   try {
-    const client = await getSupabase();
+    const client = await getFirebase();
     if (!client) {
-      setStatus('El registro por correo quedará habilitado al conectar el proyecto Supabase SANA-DEMO. Mientras tanto puedes entrar con cualquiera de los perfiles demo.', 'error');
+      setStatus('El registro por correo quedará habilitado al conectar el proyecto Firebase SANA-DEMO. Mientras tanto puedes entrar con cualquiera de los perfiles demo.', 'error');
       return;
     }
 
     if (mode === 'signup') {
-      const { data, error } = await client.auth.signUp({
-        email: email.value.trim(),
-        password: password.value,
-        options: {
-          data: {
-            full_name: fullName.value.trim(),
-            demo_role: 'new_user',
-            environment: 'DEMO'
-          }
-        }
+      const credential = await client.authModule.createUserWithEmailAndPassword(
+        client.auth,
+        email.value.trim(),
+        password.value
+      );
+      await client.authModule.updateProfile(credential.user, { displayName: fullName.value.trim() });
+      await persistProfile(client, credential.user, { displayName: fullName.value.trim(), role: 'new_user' });
+      saveIdentity({
+        id: credential.user.uid,
+        email: credential.user.email || email.value.trim(),
+        displayName: fullName.value.trim(),
+        role: 'new_user',
+        authProvider: 'FIREBASE_AUTH'
       });
-      if (error) throw error;
-      if (data.session && data.user) {
-        saveIdentity({
-          id: data.user.id,
-          email: data.user.email || email.value.trim(),
-          displayName: fullName.value.trim(),
-          role: 'new_user',
-          authProvider: 'SUPABASE_AUTH'
-        });
-        return goToDemo();
-      }
-      setStatus('Cuenta creada. Revisa tu correo si la confirmación está habilitada en Supabase.', 'success');
-      return;
+      return goToDemo();
     }
 
-    const { data, error } = await client.auth.signInWithPassword({
-      email: email.value.trim(),
-      password: password.value
-    });
-    if (error) throw error;
-    if (!data.user) throw new Error('No fue posible recuperar el usuario.');
+    const credential = await client.authModule.signInWithEmailAndPassword(
+      client.auth,
+      email.value.trim(),
+      password.value
+    );
+    const profile = await readProfile(client, credential.user);
+    const displayName = profile?.displayName || credential.user.displayName || credential.user.email || 'Usuario SANA';
+    const role = profile?.role || 'new_user';
+    if (!profile) await persistProfile(client, credential.user, { displayName, role });
     saveIdentity({
-      id: data.user.id,
-      email: data.user.email || email.value.trim(),
-      displayName: data.user.user_metadata?.full_name || data.user.email || 'Usuario SANA',
-      role: data.user.user_metadata?.demo_role || 'new_user',
-      authProvider: 'SUPABASE_AUTH'
+      id: credential.user.uid,
+      email: credential.user.email || email.value.trim(),
+      displayName,
+      role,
+      authProvider: 'FIREBASE_AUTH'
     });
     goToDemo();
   } catch (error) {
-    setStatus(error?.message || 'No fue posible completar el acceso.', 'error');
+    setStatus(friendlyFirebaseError(error), 'error');
   } finally {
     submitButton.disabled = false;
   }
