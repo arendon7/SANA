@@ -6,6 +6,7 @@
     'AGU-A2':{planned:28.00,observed:26.32,unit:'t',quality:'89% primera DEMO',date:'02 ago 2026',evidence:78,status:'BASELINE_DEMO'},
     'CAC-B1':{planned:1.80,observed:1.64,unit:'t',quality:'81% fermentación DEMO',date:'06 ago 2026',evidence:74,status:'BASELINE_DEMO'}
   };
+  window.__SANA_RESULT_BASE__=Object.freeze(Object.fromEntries(Object.entries(BASE_RESULTS).map(([key,value])=>[key,Object.freeze({...value})])));
 
   function localResults(){return storage.records.filter(r=>r.type==='harvest-result')}
   function lotResults(lotId){return localResults().filter(r=>r.lot===lotId)}
