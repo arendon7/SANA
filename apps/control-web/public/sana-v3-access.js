@@ -25,6 +25,15 @@
     new_user:['methodology','exportPassport','characterization:*']
   };
 
+  const roleLabels={
+    admin:['Administrador demo','Vista integral'],
+    technical:['Técnico demo','Campo + acompañamiento'],
+    producer:['Productor demo','Operación del predio'],
+    investor:['Inversionista demo','Lectura de evidencia + readiness'],
+    visitor:['Visitante demo','Exploración guiada'],
+    new_user:['Usuario nuevo','Onboarding limitado']
+  };
+
   function matchAction(type,allowed){
     if(allowed==='*')return true;
     if(allowed.endsWith(':*'))return String(type||'').startsWith(allowed.slice(0,-1));
@@ -59,6 +68,14 @@
       button.setAttribute('aria-hidden',String(!allowed));
       if(!allowed)button.tabIndex=-1;
     });
+  }
+
+  function enforceRoleLabel(){
+    const [name,context]=roleLabels[role]||roleLabels.new_user;
+    const nameNode=document.getElementById('role-name');
+    const contextNode=document.getElementById('role-context');
+    if(nameNode)nameNode.textContent=name;
+    if(contextNode)contextNode.textContent=context;
   }
 
   function wrapRuntime(){
@@ -101,9 +118,9 @@
     }
   },true);
 
-  const observer=new MutationObserver(()=>{enforceNav();wrapRuntime()});
+  const observer=new MutationObserver(()=>{enforceNav();enforceRoleLabel();wrapRuntime()});
   observer.observe(document.documentElement,{subtree:true,childList:true});
-  const mount=()=>{enforceNav();wrapRuntime()};
+  const mount=()=>{enforceNav();enforceRoleLabel();wrapRuntime()};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
   setTimeout(wrapRuntime,0);
 
