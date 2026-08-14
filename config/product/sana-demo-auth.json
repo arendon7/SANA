@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.1.0",
+  "schemaVersion": "1.2.0",
   "product": "SANA",
   "mode": "DEMO",
   "purpose": "Functional product demonstration with simple account creation and predefined sandbox personas.",
@@ -11,11 +11,17 @@
   "authentication": {
     "provider": "FIREBASE_AUTH",
     "primaryMethod": "EMAIL_PASSWORD",
-    "browserEnvironmentVariables": [
+    "firebaseProjectId": "sana-demo-web",
+    "firebaseAuthDomain": "sana-demo-web.firebaseapp.com",
+    "publicWebConfigBound": true,
+    "browserEnvironmentOverrides": [
       "SANA_DEMO_FIREBASE_API_KEY",
       "SANA_DEMO_FIREBASE_AUTH_DOMAIN",
       "SANA_DEMO_FIREBASE_PROJECT_ID",
-      "SANA_DEMO_FIREBASE_APP_ID"
+      "SANA_DEMO_FIREBASE_STORAGE_BUCKET",
+      "SANA_DEMO_FIREBASE_MESSAGING_SENDER_ID",
+      "SANA_DEMO_FIREBASE_APP_ID",
+      "SANA_DEMO_FIREBASE_MEASUREMENT_ID"
     ],
     "forbiddenBrowserSecrets": [
       "firebase_admin_private_key",
@@ -29,6 +35,7 @@
   },
   "dataStore": {
     "provider": "CLOUD_FIRESTORE",
+    "firebaseProjectId": "sana-demo-web",
     "profileCollection": "demo_profiles",
     "accessModel": "OWNER_UID_ONLY",
     "rulesPath": "infra/firebase-demo/firestore.rules"
