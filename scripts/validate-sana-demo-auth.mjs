@@ -67,6 +67,7 @@ assert(v3.includes('/sana-v3-role-home.js'), 'SANA_V3_ROLE_HOME_WIRING_REQUIRED'
 assert(v3.includes('/sana-v3-runtime.js'), 'SANA_V3_RUNTIME_WIRING_REQUIRED');
 assert(v3.includes('/sana-v3-access.js'), 'SANA_V3_ACCESS_GUARD_WIRING_REQUIRED');
 assert(v3.includes('/sana-v3-account.js'), 'SANA_V3_ACCOUNT_WIRING_REQUIRED');
+assert(v3.includes('/sana-v3-advisory-cases.js'), 'AGRONOMIST_CASE_WIRING_REQUIRED');
 
 assert(auth.includes('createUserWithEmailAndPassword'), 'FIREBASE_SIGNUP_REQUIRED');
 assert(auth.includes('signInWithEmailAndPassword'), 'FIREBASE_PASSWORD_SIGNIN_REQUIRED');
@@ -95,14 +96,15 @@ assert(!cloud.includes('canonicalMutated=true'), 'CLOUD_STATE_CANONICAL_MUTATION
 
 assert(access.includes("new_user:new Set(['home','characterization','passport','impact','capital'])"), 'NEW_USER_LIMITED_VIEWS_REQUIRED');
 assert(access.includes("investor:new Set(['home','territory','circularity','results','economics','reports','passport','impact','capital'])"), 'INVESTOR_READ_MODEL_WITH_RESULTS_REQUIRED');
-assert(access.includes("technical:['fieldRecord','quickField','task-toggle','phenology','nutrition','health','inventory','material','sensor','visit','structured-visit','plan','plan-review','harvest-result'"), 'TECHNICAL_RESULT_WRITE_REQUIRED');
-assert(access.includes("producer:['fieldRecord','quickField','task-toggle','phenology','nutrition','health','inventory','harvest-result'"), 'PRODUCER_RESULT_WRITE_REQUIRED');
+assert(access.includes("technical:['fieldRecord','quickField','task-toggle','phenology','nutrition','health','inventory','material','sensor','visit','structured-visit','agronomist-case'"), 'TECHNICAL_AGRONOMIST_CASE_REQUIRED');
+assert(access.includes("producer:['fieldRecord','quickField','task-toggle','phenology','nutrition','health','inventory','structured-visit','agronomist-case','harvest-result'"), 'PRODUCER_AGRONOMIST_CASE_REQUIRED');
 assert(access.includes("new_user:['methodology','exportPassport','characterization:*']"), 'NEW_USER_LIMITED_ACTIONS_REQUIRED');
 assert(access.includes("Usuario nuevo','Onboarding limitado"), 'NEW_USER_ROLE_LABEL_REQUIRED');
 assert(access.includes('canAction'), 'ROLE_ACTION_GUARD_REQUIRED');
 assert(access.includes('stopImmediatePropagation'), 'ROLE_CAPTURE_GUARD_REQUIRED');
 assert(!access.includes("investor:['harvest-result'"), 'INVESTOR_RESULT_WRITE_FORBIDDEN');
 assert(!access.includes("investor:['circularity-residue'"), 'INVESTOR_CIRCULARITY_WRITE_FORBIDDEN');
+assert(!access.includes("investor:['agronomist-case'"), 'INVESTOR_AGRONOMIST_CASE_WRITE_FORBIDDEN');
 assert(!access.includes("new_user:['*']"), 'NEW_USER_ADMIN_ESCALATION_FORBIDDEN');
 
 assert(results.includes('views.results=results'), 'HARVEST_RESULTS_VIEW_REQUIRED');
@@ -161,6 +163,7 @@ console.log(JSON.stringify({
   roleAwareHome: true,
   accountDiagnostics: true,
   harvestResults: true,
+  agronomistCases: true,
   personas: contract.personas.map((persona) => persona.id),
   productionExecutionAvailable: false,
   productionActivationAllowed: false,
