@@ -1,9 +1,34 @@
 const key = 'sana.demo.identity';
+const config = window.__SANA_DEMO_CONFIG__ || {};
+const FIREBASE_SDK_VERSION = '12.16.0';
 let identity = null;
 try {
   identity = JSON.parse(localStorage.getItem(key) || 'null');
 } catch {
   identity = null;
+}
+
+async function firebaseSignOut() {
+  if (identity?.authProvider !== 'FIREBASE_AUTH') return;
+  if (!config.firebaseApiKey || !config.firebaseAuthDomain || !config.firebaseProjectId || !config.firebaseAppId) return;
+
+  try {
+    const base = `https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}`;
+    const [appModule, authModule] = await Promise.all([
+      import(`${base}/firebase-app.js`),
+      import(`${base}/firebase-auth.js`)
+    ]);
+    const app = appModule.initializeApp({
+      apiKey: config.firebaseApiKey,
+      authDomain: config.firebaseAuthDomain,
+      projectId: config.firebaseProjectId,
+      appId: config.firebaseAppId
+    }, 'sana-demo-session-signout');
+    const auth = authModule.getAuth(app);
+    await authModule.signOut(auth);
+  } catch {
+    // Local session cleanup still proceeds if the Firebase network call fails.
+  }
 }
 
 if (!identity || identity.environment !== 'DEMO') {
@@ -32,7 +57,9 @@ if (!identity || identity.environment !== 'DEMO') {
     const exit = document.createElement('button');
     exit.type = 'button';
     exit.textContent = 'Salir';
-    exit.addEventListener('click', () => {
+    exit.addEventListener('click', async () => {
+      exit.disabled = true;
+      await firebaseSignOut();
       localStorage.removeItem(key);
       window.location.replace('/demo-auth.html');
     });
