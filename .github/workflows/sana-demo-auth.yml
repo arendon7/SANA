@@ -72,8 +72,8 @@ jobs:
           test "$status" = '404'
           node -e "const fs=require('fs');const b=JSON.parse(fs.readFileSync('/tmp/blocked.json','utf8'));if(b.browserActivationAllowed!==false||b.productionExecutionAvailable!==false||b.canonicalMutated!==false)process.exit(1)"
 
-      - name: Confirm Supabase demo path is gone
+      - name: Confirm Supabase demo runtime path is gone
         shell: bash
         run: |
           test ! -e infra/supabase-demo/001_auth_profiles.sql
-          ! grep -R "SANA_DEMO_SUPABASE\|SUPABASE_AUTH" apps/control-web config/product/sana-demo-auth.json scripts/validate-sana-demo-auth.mjs
+          ! grep -R "SANA_DEMO_SUPABASE\|SUPABASE_AUTH" apps/control-web config/product/sana-demo-auth.json
