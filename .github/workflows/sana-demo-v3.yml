@@ -1,0 +1,48 @@
+name: SANA Demo V3
+
+on:
+  push:
+    branches:
+      - demo/sana-functional-auth-v1
+    paths:
+      - 'apps/control-web/public/sana-v3.*'
+      - 'apps/control-web/public/demo-portal.html'
+      - '.github/workflows/sana-demo-v3.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3.*'
+      - 'apps/control-web/public/demo-portal.html'
+      - '.github/workflows/sana-demo-v3.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  static-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate JavaScript syntax
+        run: node --check apps/control-web/public/sana-v3.js
+      - name: Validate V3 shell
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s apps/control-web/public/sana-v3.html
+          test -s apps/control-web/public/sana-v3.css
+          test -s apps/control-web/public/sana-v3.js
+          grep -q '/sana-v3.css' apps/control-web/public/sana-v3.html
+          grep -q '/sana-v3.js' apps/control-web/public/sana-v3.html
+          grep -q 'ENTORNO DEMO' apps/control-web/public/sana-v3.html
+          grep -q 'localStorage' apps/control-web/public/sana-v3.js
+          grep -q 'Financiación DEMO' apps/control-web/public/sana-v3.js
+          grep -q 'location.replace' apps/control-web/public/demo-portal.html
+      - name: Assert no production execution wiring in V3
+        shell: bash
+        run: |
+          set -euo pipefail
+          ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|productionReady[[:space:]]*=[[:space:]]*true|id-token:[[:space:]]*write|MIGRATION_LIVE_ACK|D10_APPROV|activation lease|/api/[^ ]*activat' apps/control-web/public/sana-v3.js apps/control-web/public/sana-v3.html
+          grep -q 'No recibe, custodia, aprueba ni mueve dinero' apps/control-web/public/sana-v3.js
