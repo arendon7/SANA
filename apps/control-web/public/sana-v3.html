@@ -6,10 +6,14 @@
   <meta name="theme-color" content="#173b2b">
   <meta name="description" content="SANA + AGROWAY · operación agrícola, trazabilidad, acompañamiento, impacto y preparación para capital.">
   <title>SANA · AGROWAY operativo</title>
+  <link rel="manifest" href="/sana-v3-manifest.webmanifest">
   <link rel="stylesheet" href="/sana-v3.css">
   <link rel="stylesheet" href="/sana-v3-extensions.css">
   <link rel="stylesheet" href="/sana-v3-characterization.css">
   <link rel="stylesheet" href="/sana-v3-capital.css">
+  <link rel="stylesheet" href="/sana-v3-economics.css">
+  <link rel="stylesheet" href="/sana-v3-impact.css">
+  <link rel="stylesheet" href="/sana-v3-mobile.css">
 </head>
 <body>
   <div class="app-shell">
@@ -31,11 +35,12 @@
         <button class="nav-item" data-view="characterization"><span>Caracterización integral</span><b class="warn">4</b></button>
         <button class="nav-item" data-view="material"><span>Material vegetal</span><b>3</b></button>
         <button class="nav-item" data-view="plans"><span>Planes de cultivo</span><b>4</b></button>
-        <button class="nav-item" data-view="field"><span>Campo y actividades</span><b class="warn">7</b></button>
+        <button class="nav-item" data-view="field"><span>Campo móvil</span><b class="warn">7</b></button>
         <button class="nav-item" data-view="phenology"><span>Fenología y variables</span></button>
         <button class="nav-item" data-view="nutrition"><span>Nutrición y fertirriego</span></button>
         <button class="nav-item" data-view="health"><span>Sanidad vegetal</span><b class="danger">2</b></button>
         <button class="nav-item" data-view="inventory"><span>Inventarios y espacios</span><b class="warn">2</b></button>
+        <button class="nav-item" data-view="economics"><span>Economía del cultivo</span></button>
         <button class="nav-item" data-view="team"><span>Equipo y productividad</span></button>
         <button class="nav-item" data-view="iot"><span>IoT y captura offline</span></button>
         <button class="nav-item" data-view="reports"><span>Informes</span></button>
@@ -66,7 +71,7 @@
         </div>
         <div class="top-actions">
           <button id="search-btn" class="search-btn" type="button">Buscar lote, tarea, insumo… <kbd>⌘ K</kbd></button>
-          <button id="offline-btn" class="status-btn" type="button"><i></i><span>Offline-ready</span></button>
+          <button id="offline-btn" class="status-btn" type="button"><i></i><span>Preparando offline</span></button>
           <button id="alerts-btn" class="icon-btn alerts-btn" type="button" aria-label="Alertas">●<b>3</b></button>
           <div class="role-pill"><i></i><div><strong id="role-name">Administrador demo</strong><span id="role-context">Vista integral</span></div></div>
         </div>
@@ -104,7 +109,11 @@
   <script src="/sana-v3-plan-protocols.js"></script>
   <script src="/sana-v3-advisory-protocols.js"></script>
   <script src="/sana-v3-passport-chain.js"></script>
+  <script src="/sana-v3-economics.js"></script>
+  <script src="/sana-v3-impact-methodology.js"></script>
   <script src="/sana-v3-capital-dossier.js"></script>
+  <script src="/sana-v3-field-mobile.js"></script>
   <script src="/sana-v3-runtime.js"></script>
+  <script src="/sana-v3-offline-runtime.js"></script>
 </body>
 </html>
