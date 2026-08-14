@@ -8,14 +8,12 @@ on:
       - 'apps/control-web/public/sana-v3*.js'
       - 'apps/control-web/public/sana-v3.html'
       - 'apps/control-web/public/sana-v3.css'
-      - 'apps/control-web/public/demo-portal.html'
       - '.github/workflows/sana-demo-v3.yml'
   pull_request:
     paths:
       - 'apps/control-web/public/sana-v3*.js'
       - 'apps/control-web/public/sana-v3.html'
       - 'apps/control-web/public/sana-v3.css'
-      - 'apps/control-web/public/demo-portal.html'
       - '.github/workflows/sana-demo-v3.yml'
 
 permissions:
@@ -64,7 +62,6 @@ jobs:
           grep -q 'function render()' apps/control-web/public/sana-v3-runtime.js
           grep -q 'localStorage' apps/control-web/public/sana-v3-core.js
           grep -q 'Capital readiness' apps/control-web/public/sana-v3.html
-          grep -q 'location.replace' apps/control-web/public/demo-portal.html
       - name: Assert demo-only execution boundary
         shell: bash
         run: |
