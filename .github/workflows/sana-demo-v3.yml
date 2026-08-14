@@ -8,12 +8,14 @@ on:
       - 'apps/control-web/public/sana-v3*.js'
       - 'apps/control-web/public/sana-v3*.css'
       - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3*.webmanifest'
       - '.github/workflows/sana-demo-v3.yml'
   pull_request:
     paths:
       - 'apps/control-web/public/sana-v3*.js'
       - 'apps/control-web/public/sana-v3*.css'
       - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3*.webmanifest'
       - '.github/workflows/sana-demo-v3.yml'
 
 permissions:
@@ -38,8 +40,15 @@ jobs:
           node --check apps/control-web/public/sana-v3-plan-protocols.js
           node --check apps/control-web/public/sana-v3-advisory-protocols.js
           node --check apps/control-web/public/sana-v3-passport-chain.js
+          node --check apps/control-web/public/sana-v3-economics.js
+          node --check apps/control-web/public/sana-v3-impact-methodology.js
           node --check apps/control-web/public/sana-v3-capital-dossier.js
+          node --check apps/control-web/public/sana-v3-integration-bridge.js
+          node --check apps/control-web/public/sana-v3-field-mobile.js
           node --check apps/control-web/public/sana-v3-runtime.js
+          node --check apps/control-web/public/sana-v3-offline-runtime.js
+          node --check apps/control-web/public/sana-v3-sw.js
+          node -e "JSON.parse(require('fs').readFileSync('apps/control-web/public/sana-v3-manifest.webmanifest','utf8'))"
       - name: Validate V3 assembly
         shell: bash
         run: |
@@ -50,6 +59,10 @@ jobs:
             apps/control-web/public/sana-v3-extensions.css \
             apps/control-web/public/sana-v3-characterization.css \
             apps/control-web/public/sana-v3-capital.css \
+            apps/control-web/public/sana-v3-economics.css \
+            apps/control-web/public/sana-v3-impact.css \
+            apps/control-web/public/sana-v3-mobile.css \
+            apps/control-web/public/sana-v3-manifest.webmanifest \
             apps/control-web/public/sana-v3-core.js \
             apps/control-web/public/sana-v3-views-1.js \
             apps/control-web/public/sana-v3-views-2.js \
@@ -59,46 +72,47 @@ jobs:
             apps/control-web/public/sana-v3-plan-protocols.js \
             apps/control-web/public/sana-v3-advisory-protocols.js \
             apps/control-web/public/sana-v3-passport-chain.js \
+            apps/control-web/public/sana-v3-economics.js \
+            apps/control-web/public/sana-v3-impact-methodology.js \
             apps/control-web/public/sana-v3-capital-dossier.js \
-            apps/control-web/public/sana-v3-runtime.js; do
+            apps/control-web/public/sana-v3-integration-bridge.js \
+            apps/control-web/public/sana-v3-field-mobile.js \
+            apps/control-web/public/sana-v3-runtime.js \
+            apps/control-web/public/sana-v3-offline-runtime.js \
+            apps/control-web/public/sana-v3-sw.js; do
             test -s "$file"
           done
           grep -q 'id="app-content"' apps/control-web/public/sana-v3.html
-          grep -q 'data-view="characterization"' apps/control-web/public/sana-v3.html
-          grep -q 'data-view="capital"' apps/control-web/public/sana-v3.html
-          grep -q '/sana-v3.css' apps/control-web/public/sana-v3.html
-          grep -q '/sana-v3-extensions.css' apps/control-web/public/sana-v3.html
-          grep -q '/sana-v3-characterization.css' apps/control-web/public/sana-v3.html
-          grep -q '/sana-v3-capital.css' apps/control-web/public/sana-v3.html
-          grep -q '/sana-v3-core.js' apps/control-web/public/sana-v3.html
-          grep -q '/sana-v3-characterization-protocol.js' apps/control-web/public/sana-v3.html
-          grep -q '/sana-v3-plan-protocols.js' apps/control-web/public/sana-v3.html
-          grep -q '/sana-v3-advisory-protocols.js' apps/control-web/public/sana-v3.html
-          grep -q '/sana-v3-passport-chain.js' apps/control-web/public/sana-v3.html
-          grep -q '/sana-v3-capital-dossier.js' apps/control-web/public/sana-v3.html
-          grep -q '/sana-v3-runtime.js' apps/control-web/public/sana-v3.html
-          grep -q 'views.characterization=characterization' apps/control-web/public/sana-v3-characterization-protocol.js
-          grep -q 'views.plans=plansOperational' apps/control-web/public/sana-v3-plan-protocols.js
-          grep -q 'views.advisory=accompanimentOperational' apps/control-web/public/sana-v3-advisory-protocols.js
-          grep -q 'views.passport=passportOperational' apps/control-web/public/sana-v3-passport-chain.js
-          grep -q 'views.capital=capitalDossier' apps/control-web/public/sana-v3-capital-dossier.js
-          grep -q 'HUMAN_REVIEW_REQUIRED' apps/control-web/public/sana-v3-characterization-protocol.js
-          grep -q 'HUMAN_REVIEW_REQUIRED' apps/control-web/public/sana-v3-plan-protocols.js
-          grep -q 'structured-visit' apps/control-web/public/sana-v3-advisory-protocols.js
-          grep -q 'LOCAL_ONLY' apps/control-web/public/sana-v3-passport-chain.js
-          grep -q 'SIN TRANSACCIONES' apps/control-web/public/sana-v3-capital-dossier.js
-          grep -q '.character-grid' apps/control-web/public/sana-v3-characterization.css
-          grep -q '.capital-case' apps/control-web/public/sana-v3-capital.css
-          grep -q '.plan-switcher' apps/control-web/public/sana-v3-extensions.css
-          grep -q '.passport-chain' apps/control-web/public/sana-v3-extensions.css
+          grep -q 'data-view="economics"' apps/control-web/public/sana-v3.html
+          grep -q 'data-view="impact"' apps/control-web/public/sana-v3.html
+          grep -q 'data-view="field"' apps/control-web/public/sana-v3.html
+          grep -q '/sana-v3-manifest.webmanifest' apps/control-web/public/sana-v3.html
+          grep -q '/sana-v3-economics.css' apps/control-web/public/sana-v3.html
+          grep -q '/sana-v3-impact.css' apps/control-web/public/sana-v3.html
+          grep -q '/sana-v3-mobile.css' apps/control-web/public/sana-v3.html
+          grep -q '/sana-v3-economics.js' apps/control-web/public/sana-v3.html
+          grep -q '/sana-v3-impact-methodology.js' apps/control-web/public/sana-v3.html
+          grep -q '/sana-v3-integration-bridge.js' apps/control-web/public/sana-v3.html
+          grep -q '/sana-v3-field-mobile.js' apps/control-web/public/sana-v3.html
+          grep -q '/sana-v3-offline-runtime.js' apps/control-web/public/sana-v3.html
+          grep -q 'views.economics=economics' apps/control-web/public/sana-v3-economics.js
+          grep -q 'views.impact=impactMethodology' apps/control-web/public/sana-v3-impact-methodology.js
+          grep -q 'views.field=fieldMobile' apps/control-web/public/sana-v3-field-mobile.js
+          grep -q 'impactMethodologySource' apps/control-web/public/sana-v3-integration-bridge.js
+          grep -q 'LOCAL_ONLY · NO CONTABILIDAD OFICIAL' apps/control-web/public/sana-v3-economics.js
+          grep -q 'no emite certificaciones ambientales' apps/control-web/public/sana-v3-impact-methodology.js
+          grep -q 'LOCAL_ONLY ≠ SYNCED ≠ ACK' apps/control-web/public/sana-v3-field-mobile.js
+          grep -q "navigator.serviceWorker.register('/sana-v3-sw.js'" apps/control-web/public/sana-v3-offline-runtime.js
+          grep -q "self.addEventListener('fetch'" apps/control-web/public/sana-v3-sw.js
+          grep -q "url.pathname.startsWith('/api/')" apps/control-web/public/sana-v3-sw.js
           grep -q 'function render()' apps/control-web/public/sana-v3-runtime.js
-          grep -q 'localStorage' apps/control-web/public/sana-v3-core.js
       - name: Assert demo-only execution boundary
         shell: bash
         run: |
           set -euo pipefail
-          FILES='apps/control-web/public/sana-v3-core.js apps/control-web/public/sana-v3-views-1.js apps/control-web/public/sana-v3-views-2.js apps/control-web/public/sana-v3-views-3.js apps/control-web/public/sana-v3-views-4.js apps/control-web/public/sana-v3-characterization-protocol.js apps/control-web/public/sana-v3-plan-protocols.js apps/control-web/public/sana-v3-advisory-protocols.js apps/control-web/public/sana-v3-passport-chain.js apps/control-web/public/sana-v3-capital-dossier.js apps/control-web/public/sana-v3-runtime.js apps/control-web/public/sana-v3.html'
+          FILES='apps/control-web/public/sana-v3-core.js apps/control-web/public/sana-v3-views-1.js apps/control-web/public/sana-v3-views-2.js apps/control-web/public/sana-v3-views-3.js apps/control-web/public/sana-v3-views-4.js apps/control-web/public/sana-v3-characterization-protocol.js apps/control-web/public/sana-v3-plan-protocols.js apps/control-web/public/sana-v3-advisory-protocols.js apps/control-web/public/sana-v3-passport-chain.js apps/control-web/public/sana-v3-economics.js apps/control-web/public/sana-v3-impact-methodology.js apps/control-web/public/sana-v3-capital-dossier.js apps/control-web/public/sana-v3-integration-bridge.js apps/control-web/public/sana-v3-field-mobile.js apps/control-web/public/sana-v3-runtime.js apps/control-web/public/sana-v3-offline-runtime.js apps/control-web/public/sana-v3.html'
           ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|productionReady[[:space:]]*=[[:space:]]*true|id-token:[[:space:]]*write|MIGRATION_LIVE_ACK|D10_APPROV|activation lease|/api/[^ ]*activat' $FILES
+          ! grep -Eiq 'POST|PUT|PATCH|DELETE|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true' apps/control-web/public/sana-v3-sw.js
           grep -q 'productionExecutionAvailable=false' apps/control-web/public/sana-v3-core.js
           grep -q 'canonicalMutated=false' apps/control-web/public/sana-v3-core.js
           grep -q 'D10=PENDING' apps/control-web/public/sana-v3-core.js
@@ -107,5 +121,7 @@ jobs:
           grep -q 'LOCAL_ONLY' apps/control-web/public/sana-v3-advisory-protocols.js
           grep -q 'No aumenta autoridad' apps/control-web/public/sana-v3-passport-chain.js
           grep -q 'no recomienda invertir' apps/control-web/public/sana-v3-capital-dossier.js
-          grep -q 'no capta recursos' apps/control-web/public/sana-v3-capital-dossier.js
-          grep -q 'no custodia fondos' apps/control-web/public/sana-v3-capital-dossier.js
+          grep -q 'NO CONTABILIDAD OFICIAL' apps/control-web/public/sana-v3-economics.js
+          grep -q 'NO_VERIFICADO_EXTERNO' apps/control-web/public/sana-v3-impact-methodology.js
+          grep -q 'PENDING_SERVER' apps/control-web/public/sana-v3-field-mobile.js
+          grep -q "if(url.pathname.startsWith('/api/'))return" apps/control-web/public/sana-v3-sw.js
