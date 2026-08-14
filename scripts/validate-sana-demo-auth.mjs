@@ -11,6 +11,7 @@ const files = {
   v3: 'apps/control-web/public/sana-v3.html',
   cloud: 'apps/control-web/public/sana-v3-cloud-state.js',
   access: 'apps/control-web/public/sana-v3-access.js',
+  guide: 'apps/control-web/public/sana-v3-guided-field.js',
   roleHome: 'apps/control-web/public/sana-v3-role-home.js',
   account: 'apps/control-web/public/sana-v3-account.js',
   results: 'apps/control-web/public/sana-v3-results.js',
@@ -21,8 +22,8 @@ const files = {
 async function text(rel) { return readFile(path.join(root, rel), 'utf8'); }
 function assert(condition, message) { if (!condition) throw new Error(message); }
 
-const [server, html, auth, session, v3, cloud, access, roleHome, account, results, contractText, firestoreRules] = await Promise.all([
-  text(files.server), text(files.html), text(files.auth), text(files.session), text(files.v3), text(files.cloud), text(files.access), text(files.roleHome), text(files.account), text(files.results), text(files.contract), text(files.firestoreRules)
+const [server, html, auth, session, v3, cloud, access, guide, roleHome, account, results, contractText, firestoreRules] = await Promise.all([
+  text(files.server), text(files.html), text(files.auth), text(files.session), text(files.v3), text(files.cloud), text(files.access), text(files.guide), text(files.roleHome), text(files.account), text(files.results), text(files.contract), text(files.firestoreRules)
 ]);
 const contract = JSON.parse(contractText);
 
@@ -63,6 +64,8 @@ assert(auth.includes("nextUrl.startsWith('/control')"), 'CONTROL_EXPLICIT_DESTIN
 assert(v3.includes('id="app-content"'), 'SANA_V3_APP_SHELL_REQUIRED');
 assert(v3.includes('/sana-v3-cloud-state.js'), 'SANA_V3_CLOUD_STATE_WIRING_REQUIRED');
 assert(v3.includes('/sana-v3-material-lifecycle.js'), 'MATERIAL_LIFECYCLE_WIRING_REQUIRED');
+assert(v3.includes('/sana-v3-guided-field.js'), 'GUIDED_FIELD_WIRING_REQUIRED');
+assert(v3.includes('data-view="guide"'), 'GUIDED_FIELD_NAV_REQUIRED');
 assert(v3.includes('/sana-v3-results.js'), 'SANA_V3_RESULTS_WIRING_REQUIRED');
 assert(v3.includes('/sana-v3-role-home.js'), 'SANA_V3_ROLE_HOME_WIRING_REQUIRED');
 assert(v3.includes('/sana-v3-runtime.js'), 'SANA_V3_RUNTIME_WIRING_REQUIRED');
@@ -96,21 +99,32 @@ assert(cloud.includes('ownerId'), 'OWNER_SCOPING_REQUIRED');
 assert(!cloud.includes('productionExecutionAvailable=true'), 'CLOUD_STATE_PRODUCTION_EXECUTION_FORBIDDEN');
 assert(!cloud.includes('canonicalMutated=true'), 'CLOUD_STATE_CANONICAL_MUTATION_FORBIDDEN');
 
-assert(access.includes("new_user:new Set(['home','characterization','passport','impact','capital'])"), 'NEW_USER_LIMITED_VIEWS_REQUIRED');
-assert(access.includes("producer:new Set(['home','territory','characterization','material','plans'"), 'PRODUCER_MATERIAL_VIEW_REQUIRED');
+assert(access.includes("new_user:new Set(['home','guide','characterization','passport','impact','capital'])"), 'NEW_USER_GUIDED_LIMITED_VIEWS_REQUIRED');
+assert(access.includes("producer:new Set(['home','guide','territory','characterization','material','plans'"), 'PRODUCER_GUIDED_MATERIAL_VIEW_REQUIRED');
+assert(access.includes("technical:new Set(['home','guide','territory','characterization','material','plans'"), 'TECHNICAL_GUIDED_VIEW_REQUIRED');
 assert(access.includes("investor:new Set(['home','territory','forecast','circularity','results','economics','reports','passport','impact','capital'])"), 'INVESTOR_READ_MODEL_WITH_FORECAST_REQUIRED');
-assert(access.includes("technical:['fieldRecord','quickField','task-toggle','phenology','nutrition','health','inventory','material','material-lifecycle-event'"), 'TECHNICAL_MATERIAL_LIFECYCLE_WRITE_REQUIRED');
-assert(access.includes("producer:['fieldRecord','quickField','task-toggle','phenology','nutrition','health','inventory','material-lifecycle-event'"), 'PRODUCER_MATERIAL_LIFECYCLE_WRITE_REQUIRED');
-assert(access.includes("new_user:['methodology','exportPassport','characterization:*']"), 'NEW_USER_LIMITED_ACTIONS_REQUIRED');
+assert(access.includes("technical:['guided-checkpoint','fieldRecord','quickField'"), 'TECHNICAL_GUIDED_CHECKPOINT_REQUIRED');
+assert(access.includes("producer:['guided-checkpoint','fieldRecord','quickField'"), 'PRODUCER_GUIDED_CHECKPOINT_REQUIRED');
+assert(access.includes("new_user:['guided-checkpoint','methodology','exportPassport','characterization:*']"), 'NEW_USER_GUIDED_LIMITED_ACTIONS_REQUIRED');
 assert(access.includes("Usuario nuevo','Onboarding limitado"), 'NEW_USER_ROLE_LABEL_REQUIRED');
 assert(access.includes('canAction'), 'ROLE_ACTION_GUARD_REQUIRED');
 assert(access.includes('stopImmediatePropagation'), 'ROLE_CAPTURE_GUARD_REQUIRED');
+assert(!access.includes("investor:['guided-checkpoint'"), 'INVESTOR_GUIDED_WRITE_FORBIDDEN');
+assert(!access.includes("visitor:['guided-checkpoint'"), 'VISITOR_GUIDED_WRITE_FORBIDDEN');
 assert(!access.includes("investor:['material-lifecycle-event'"), 'INVESTOR_MATERIAL_LIFECYCLE_WRITE_FORBIDDEN');
 assert(!access.includes("investor:['harvest-result'"), 'INVESTOR_RESULT_WRITE_FORBIDDEN');
 assert(!access.includes("investor:['circularity-residue'"), 'INVESTOR_CIRCULARITY_WRITE_FORBIDDEN');
 assert(!access.includes("investor:['agronomist-case'"), 'INVESTOR_AGRONOMIST_CASE_WRITE_FORBIDDEN');
 assert(!access.includes("investor:['input-forecast-adjustment'"), 'INVESTOR_FORECAST_WRITE_FORBIDDEN');
 assert(!access.includes("new_user:['*']"), 'NEW_USER_ADMIN_ESCALATION_FORBIDDEN');
+
+assert(guide.includes("views.guide=guided"), 'GUIDED_VIEW_REQUIRED');
+assert(guide.includes("type==='guided-checkpoint'"), 'GUIDED_PROGRESS_RECORD_REQUIRED');
+assert(guide.includes('LOCAL_ONLY no equivale a sincronizado ni ACK'), 'GUIDED_OFFLINE_BOUNDARY_REQUIRED');
+assert(guide.includes("new_user:["), 'NEW_USER_GUIDED_FLOW_REQUIRED');
+assert(guide.includes("producer:["), 'PRODUCER_GUIDED_FLOW_REQUIRED');
+assert(guide.includes("technical:["), 'TECHNICAL_GUIDED_FLOW_REQUIRED');
+assert(guide.includes('no asigna privilegios operativos'), 'GUIDED_NO_PRIVILEGE_ESCALATION_REQUIRED');
 
 assert(results.includes('views.results=results'), 'HARVEST_RESULTS_VIEW_REQUIRED');
 assert(results.includes('LOCAL_ONLY · NO ES FACTURA, INGRESO NI CERTIFICACIÓN'), 'HARVEST_RESULT_INTEGRITY_DISCLOSURE_REQUIRED');
@@ -166,6 +180,7 @@ console.log(JSON.stringify({
   baseReleaseSha: contract.baseRelease.gitHeadSha,
   defaultDestination: '/sana-v3.html',
   roleAwareHome: true,
+  guidedFieldMode: true,
   accountDiagnostics: true,
   plantMaterialLifecycle: true,
   harvestResults: true,
