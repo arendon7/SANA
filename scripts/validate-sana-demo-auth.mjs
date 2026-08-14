@@ -34,7 +34,10 @@ assert(contract.mode === 'DEMO', 'DEMO_MODE_REQUIRED');
 assert(contract.baseRelease?.immutable === true, 'BASE_RELEASE_MUST_REMAIN_IMMUTABLE');
 assert(contract.baseRelease?.gitHeadSha === '7f2a47a99b7df6a1682a588d714aca9a18026a95', 'CERTIFIED_BASE_SHA_DRIFT');
 assert(contract.authentication?.provider === 'FIREBASE_AUTH', 'FIREBASE_AUTH_REQUIRED');
+assert(contract.authentication?.firebaseProjectId === 'sana-demo-web', 'BOUND_FIREBASE_PROJECT_REQUIRED');
+assert(contract.authentication?.publicWebConfigBound === true, 'PUBLIC_FIREBASE_WEB_CONFIG_MUST_BE_BOUND');
 assert(contract.dataStore?.provider === 'CLOUD_FIRESTORE', 'CLOUD_FIRESTORE_REQUIRED');
+assert(contract.dataStore?.firebaseProjectId === 'sana-demo-web', 'FIRESTORE_PROJECT_MUST_MATCH_AUTH_PROJECT');
 assert(contract.dataStore?.accessModel === 'OWNER_UID_ONLY', 'OWNER_UID_ACCESS_REQUIRED');
 assert(contract.safetyBoundary?.sandbox === true, 'SANDBOX_REQUIRED');
 assert(contract.safetyBoundary?.syntheticDataOnly === true, 'SYNTHETIC_DATA_ONLY_REQUIRED');
@@ -68,10 +71,13 @@ assert(session.includes('productionActivationAllowed: false'), 'SESSION_PRODUCTI
 assert(session.includes('canonicalMutated: false'), 'SESSION_CANONICAL_MUTATION_MUST_BE_FALSE');
 assert(session.includes('signOut'), 'FIREBASE_SIGNOUT_REQUIRED');
 
-assert(server.includes('SANA_DEMO_FIREBASE_API_KEY'), 'FIREBASE_API_KEY_CONFIG_REQUIRED');
-assert(server.includes('SANA_DEMO_FIREBASE_AUTH_DOMAIN'), 'FIREBASE_AUTH_DOMAIN_CONFIG_REQUIRED');
-assert(server.includes('SANA_DEMO_FIREBASE_PROJECT_ID'), 'FIREBASE_PROJECT_ID_CONFIG_REQUIRED');
-assert(server.includes('SANA_DEMO_FIREBASE_APP_ID'), 'FIREBASE_APP_ID_CONFIG_REQUIRED');
+assert(server.includes("projectId: 'sana-demo-web'"), 'FIREBASE_DEFAULT_PROJECT_REQUIRED');
+assert(server.includes("authDomain: 'sana-demo-web.firebaseapp.com'"), 'FIREBASE_DEFAULT_AUTH_DOMAIN_REQUIRED');
+assert(server.includes("appId: '1:454867293969:web:1b4384820692b58449deb0'"), 'FIREBASE_DEFAULT_APP_ID_REQUIRED');
+assert(server.includes('SANA_DEMO_FIREBASE_API_KEY'), 'FIREBASE_API_KEY_OVERRIDE_REQUIRED');
+assert(server.includes('SANA_DEMO_FIREBASE_AUTH_DOMAIN'), 'FIREBASE_AUTH_DOMAIN_OVERRIDE_REQUIRED');
+assert(server.includes('SANA_DEMO_FIREBASE_PROJECT_ID'), 'FIREBASE_PROJECT_ID_OVERRIDE_REQUIRED');
+assert(server.includes('SANA_DEMO_FIREBASE_APP_ID'), 'FIREBASE_APP_ID_OVERRIDE_REQUIRED');
 assert(!server.includes('SANA_DEMO_FIREBASE_ADMIN_PRIVATE_KEY'), 'FIREBASE_ADMIN_SECRET_MUST_NOT_BE_EXPOSED');
 assert(!server.includes('SANA_DEMO_SUPABASE_'), 'SUPABASE_DEMO_CONFIG_MUST_BE_REMOVED');
 assert(server.includes('OIDC_BROWSER_SESSION_ENDPOINT_FORBIDDEN'), 'PRODUCTION_IDENTITY_BROWSER_BLOCK_MUST_REMAIN');
@@ -88,6 +94,7 @@ console.log(JSON.stringify({
   ok: true,
   mode: contract.mode,
   authProvider: contract.authentication.provider,
+  firebaseProjectId: contract.authentication.firebaseProjectId,
   dataStore: contract.dataStore.provider,
   baseReleaseSha: contract.baseRelease.gitHeadSha,
   personas: contract.personas.map((persona) => persona.id),
