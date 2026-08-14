@@ -18,8 +18,8 @@
 
   const actionPolicy={
     admin:['*'],
-    technical:['fieldRecord','quickField','task-toggle','phenology','nutrition','health','inventory','material','sensor','visit','structured-visit','plan','plan-review','harvest-result','circularity-residue','report','reportOpen','methodology','impact-methodology','knowledge','exportPassport','queue-review'],
-    producer:['fieldRecord','quickField','task-toggle','phenology','nutrition','health','inventory','harvest-result','circularity-residue','cost','methodology','reportOpen','exportPassport','queue-review','characterization:*','capital-dossier'],
+    technical:['fieldRecord','quickField','task-toggle','phenology','nutrition','health','inventory','material','sensor','visit','structured-visit','agronomist-case','plan','plan-review','harvest-result','circularity-residue','report','reportOpen','methodology','impact-methodology','knowledge','exportPassport','queue-review'],
+    producer:['fieldRecord','quickField','task-toggle','phenology','nutrition','health','inventory','structured-visit','agronomist-case','harvest-result','circularity-residue','cost','methodology','reportOpen','exportPassport','queue-review','characterization:*','capital-dossier'],
     investor:['reportOpen','methodology','exportPassport'],
     visitor:['methodology','exportPassport'],
     new_user:['methodology','exportPassport','characterization:*']
@@ -56,6 +56,7 @@
     ['[data-plan-review]','plan-review'],
     ['[data-plan-transition]','plan-review'],
     ['[data-structured-visit]','structured-visit'],
+    ['[data-agronomist-case]','agronomist-case'],
     ['[data-harvest-result]','harvest-result'],
     ['[data-circularity-residue]','circularity-residue'],
     ['[data-capital-config]','capital-dossier'],
