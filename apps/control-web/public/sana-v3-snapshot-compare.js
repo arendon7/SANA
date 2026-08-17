@@ -89,6 +89,22 @@
       ['overallQuality','Calidad metodológica %'],['humanReviewed','Revisión humana'],['reviewer','Revisor metodológico'],['reviewedAt','Fecha de revisión'],['internallyVerified','Verificación interna'],['externallyVerified','Verificación externa'],['externallyUnverified','No verificados externamente'],['estimated','Indicadores estimados']
     ];
     impactFields.forEach(([key,label])=>addChange(changes,'Impacto','SANA Impact',label,a.impact?.[key],b.impact?.[key],'METODOLOGICO'));
+    compareKeyed(changes,'Impacto',a.impact?.indicators,b.impact?.indicators,'id',[
+      {key:'baseline',label:'Línea base capturada',kind:'METODOLOGICO'},
+      {key:'current',label:'Observación capturada',kind:'METODOLOGICO'},
+      {key:'unit',label:'Unidad',kind:'METODOLOGICO'},
+      {key:'calculation',label:'Cálculo capturado',kind:'METODOLOGICO'},
+      {key:'estimated',label:'Estimado explícito',kind:'METODOLOGICO'},
+      {key:'estimationType',label:'Tipo de estimación',kind:'METODOLOGICO'},
+      {key:'quality',label:'Calidad de procedencia',kind:'METODOLOGICO'},
+      {key:'qualityScore',label:'Calidad DEMO %',kind:'METODOLOGICO'},
+      {key:'verification',label:'Estado de verificación',kind:'METODOLOGICO'},
+      {key:'method',label:'Método',kind:'METODOLOGICO'},
+      {key:'source',label:'Fuente',kind:'FUENTE'},
+      {key:'frequency',label:'Frecuencia',kind:'METODOLOGICO'},
+      {key:'boundaryPeriod',label:'Periodo de frontera',kind:'METODOLOGICO'},
+      {key:'temporalState',label:'Estado temporal',kind:'PROCEDENCIA'}
+    ]);
 
     addChange(changes,'Readiness','Capital','Readiness compuesto %',a.capital?.readiness,b.capital?.readiness,'DOCUMENTAL');
     const gateIds=new Set([...Object.keys(a.capital?.gates||{}),...Object.keys(b.capital?.gates||{})]);
@@ -117,7 +133,7 @@
     const result=base&&target&&base.id!==target?compare(base,target):{valid:false,changes:[],counts:{},domains:[],total:0};
     const documentary=result.counts?.DOCUMENTAL||0;const operational=result.counts?.OPERATIVO||0;const economic=(result.counts?.ECONOMICO||0)+(result.counts?.ESCENARIO||0)+(result.counts?.PROCEDENCIA||0);const methodological=result.counts?.METODOLOGICO||0;
     return `<section class="card" style="margin-top:14px"><div class="card-head"><div><p class="kicker">COMPARADOR DE CORTES · READ ONLY</p><h2>Qué cambió entre dos snapshots</h2><p>Compara manifests registrados. Un delta describe diferencia de estado/procedencia; no determina que el cultivo, el riesgo o una inversión hayan mejorado o empeorado.</p></div><span class="status warn">DIFF_DEMO</span></div><div class="card-body"><div class="fields"><label>Snapshot base<select data-snapshot-base>${selectorOptions(list,chosen.base)}</select></label><label>Snapshot comparado<select data-snapshot-target>${selectorOptions(list,chosen.target)}</select></label></div><div class="head-actions" style="margin-top:10px"><button class="btn secondary" data-snapshot-swap>Intercambiar cortes</button></div>${base&&target?`<div class="section-note" style="margin-top:12px"><strong>Base:</strong> ${esc(snapshotLabel(base))}<br><strong>Comparado:</strong> ${esc(snapshotLabel(target))}<br>La dirección A → B es descriptiva. No equivale a tendencia favorable, causalidad, reducción de riesgo ni señal de inversión.</div>`:''}</div></section>
-      ${result.valid?`<section class="grid metrics" style="margin-top:14px">${metric('Cambios detectados',result.total,`${result.domains.length} dominio(s)`)}${metric('Documentales',documentary,'versiones · completitud · readiness',documentary?'warn':'good')}${metric('Operativos / económicos',operational+economic,`${operational} operativos · ${economic} económicos/escenario/procedencia`,operational+economic?'warn':'good')}${metric('Metodológicos',methodological,'Impact Contract',methodological?'warn':'good')}</section><section class="grid two" style="margin-top:14px">${domainSections(result)}</section><section class="card" style="margin-top:14px"><div class="card-body"><div class="section-note"><strong>Frontera de interpretación:</strong> CHANGE ≠ IMPROVEMENT ≠ CAUSALITY ≠ FINANCIAL PERFORMANCE ≠ INVESTMENT SIGNAL. Un aumento de cobertura de soporte o una nueva granularidad describe procedencia capturada; no demuestra mayor rentabilidad, menor riesgo crediticio ni elegibilidad.</div></div></section>`:'<section class="card" style="margin-top:14px"><div class="card-body"><div class="empty">Selecciona dos snapshots distintos y compatibles con el schema actual.</div></div></section>'}`;
+      ${result.valid?`<section class="grid metrics" style="margin-top:14px">${metric('Cambios detectados',result.total,`${result.domains.length} dominio(s)`)}${metric('Documentales',documentary,'versiones · completitud · readiness',documentary?'warn':'good')}${metric('Operativos / económicos',operational+economic,`${operational} operativos · ${economic} económicos/escenario/procedencia`,operational+economic?'warn':'good')}${metric('Metodológicos',methodological,'Impact Contract + ledger capturado',methodological?'warn':'good')}</section><section class="grid two" style="margin-top:14px">${domainSections(result)}</section><section class="card" style="margin-top:14px"><div class="card-body"><div class="section-note"><strong>Frontera de interpretación:</strong> CHANGE ≠ IMPROVEMENT ≠ CAUSALITY ≠ FINANCIAL PERFORMANCE ≠ INVESTMENT SIGNAL. Un cambio de indicador, cobertura de soporte o granularidad describe lo capturado en dos cortes; no demuestra causalidad, certificación, mayor rentabilidad, menor riesgo crediticio ni elegibilidad.</div></div></section>`:'<section class="card" style="margin-top:14px"><div class="card-body"><div class="empty">Selecciona dos snapshots distintos y compatibles con el schema actual.</div></div></section>'}`;
   }
   function insertAfterHead(html,section){const marker='</header>';const at=html.indexOf(marker);return at<0?`${section}${html}`:`${html.slice(0,at+marker.length)}${section}${html.slice(at+marker.length)}`}
 
