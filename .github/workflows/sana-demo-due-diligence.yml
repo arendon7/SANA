@@ -11,6 +11,7 @@ on:
       - 'apps/control-web/public/sana-v3-due-diligence-gaps.js'
       - 'apps/control-web/public/sana-v3-due-diligence-remediation.js'
       - 'apps/control-web/public/sana-v3-dd-next-cut.js'
+      - 'apps/control-web/public/sana-v3-dataroom-360.js'
       - 'apps/control-web/public/sana-v3-capital-dossier.js'
       - 'apps/control-web/public/sana-v3-impact-methodology.js'
       - 'apps/control-web/public/sana-v3-access.js'
@@ -21,6 +22,7 @@ on:
       - 'scripts/validate-sana-due-diligence-gaps.mjs'
       - 'scripts/validate-sana-dd-remediation.mjs'
       - 'scripts/validate-sana-dd-next-cut.mjs'
+      - 'scripts/validate-sana-dataroom-360.mjs'
       - '.github/workflows/sana-demo-due-diligence.yml'
   pull_request:
     paths:
@@ -31,6 +33,7 @@ on:
       - 'apps/control-web/public/sana-v3-due-diligence-gaps.js'
       - 'apps/control-web/public/sana-v3-due-diligence-remediation.js'
       - 'apps/control-web/public/sana-v3-dd-next-cut.js'
+      - 'apps/control-web/public/sana-v3-dataroom-360.js'
       - 'apps/control-web/public/sana-v3-capital-dossier.js'
       - 'apps/control-web/public/sana-v3-impact-methodology.js'
       - 'apps/control-web/public/sana-v3-access.js'
@@ -41,6 +44,7 @@ on:
       - 'scripts/validate-sana-due-diligence-gaps.mjs'
       - 'scripts/validate-sana-dd-remediation.mjs'
       - 'scripts/validate-sana-dd-next-cut.mjs'
+      - 'scripts/validate-sana-dataroom-360.mjs'
       - '.github/workflows/sana-demo-due-diligence.yml'
 
 permissions:
@@ -67,6 +71,7 @@ jobs:
             apps/control-web/public/sana-v3-due-diligence-gaps.js
             apps/control-web/public/sana-v3-due-diligence-remediation.js
             apps/control-web/public/sana-v3-dd-next-cut.js
+            apps/control-web/public/sana-v3-dataroom-360.js
             apps/control-web/public/sana-v3-capital-dossier.js
             apps/control-web/public/sana-v3-impact-methodology.js
             apps/control-web/public/sana-v3-access.js
@@ -82,6 +87,7 @@ jobs:
           node scripts/validate-sana-due-diligence-gaps.mjs
           node scripts/validate-sana-dd-remediation.mjs
           node scripts/validate-sana-dd-next-cut.mjs
+          node scripts/validate-sana-dataroom-360.mjs
 
       - name: Validate contracts and RBAC
         shell: bash
@@ -94,6 +100,7 @@ jobs:
           gaps='apps/control-web/public/sana-v3-due-diligence-gaps.js'
           remediation='apps/control-web/public/sana-v3-due-diligence-remediation.js'
           nextcut='apps/control-web/public/sana-v3-dd-next-cut.js'
+          dataroom='apps/control-web/public/sana-v3-dataroom-360.js'
           access='apps/control-web/public/sana-v3-access.js'
 
           grep -q "SNAPSHOT_SCHEMA='SANA_DUE_DILIGENCE_SNAPSHOT_V1'" "$reports"
@@ -135,6 +142,24 @@ jobs:
           ! grep -q 'saveModal' "$nextcut"
           ! grep -q 'currentManifest' "$nextcut"
 
+          grep -q '__SANA_DATAROOM_360__' "$dataroom"
+          grep -q '__SANA_DUE_DILIGENCE_SNAPSHOT__' "$dataroom"
+          grep -q '__SANA_DUE_DILIGENCE_GAPS__' "$dataroom"
+          grep -q '__SANA_DUE_DILIGENCE_REMEDIATION__' "$dataroom"
+          grep -q '__SANA_DD_NEXT_CUT__' "$dataroom"
+          grep -q '__SANA_SNAPSHOT_COMPARE__' "$dataroom"
+          grep -q 'SNAPSHOT_HISTORY ≠ POST_CUT_REMEDIATION ≠ LIVE_STATE ≠ INVESTMENT_DECISION' "$dataroom"
+          grep -q 'views.dataroom=dataroom360' "$dataroom"
+          ! grep -q 'storage\.' "$dataroom"
+          ! grep -q 'openModal(' "$dataroom"
+          ! grep -q 'saveModal' "$dataroom"
+          ! grep -q 'currentManifest' "$dataroom"
+
+          grep -q "technical:new Set(\[[^]]*'dataroom'" "$access"
+          grep -q "producer:new Set(\[[^]]*'dataroom'" "$access"
+          grep -q "investor:new Set(\[[^]]*'dataroom'" "$access"
+          ! grep -q "visitor:new Set(\[[^]]*'dataroom'" "$access"
+          ! grep -q "new_user:new Set(\[[^]]*'dataroom'" "$access"
           grep -q "technical:\[[^]]*'dd-remediation'" "$access"
           grep -q "producer:\[[^]]*'dd-remediation'" "$access"
           ! grep -q "investor:.*'dd-remediation'" "$access"
@@ -149,19 +174,21 @@ jobs:
           set -euo pipefail
           html='apps/control-web/public/sana-v3.html'
           sw='apps/control-web/public/sana-v3-sw.js'
-          grep -q '/sana-v3-snapshot-compare.js.*sana-v3-snapshot-freshness.js.*sana-v3-due-diligence-gaps.js.*sana-v3-due-diligence-remediation.js.*sana-v3-dd-next-cut.js.*sana-v3-runtime.js' "$html"
+          grep -q 'data-view="dataroom"' "$html"
+          grep -q '/sana-v3-snapshot-compare.js.*sana-v3-snapshot-freshness.js.*sana-v3-due-diligence-gaps.js.*sana-v3-due-diligence-remediation.js.*sana-v3-dd-next-cut.js.*sana-v3-dataroom-360.js.*sana-v3-runtime.js' "$html"
           grep -q "'/sana-v3-snapshot-compare.js'" "$sw"
           grep -q "'/sana-v3-snapshot-freshness.js'" "$sw"
           grep -q "'/sana-v3-due-diligence-gaps.js'" "$sw"
           grep -q "'/sana-v3-due-diligence-remediation.js'" "$sw"
           grep -q "'/sana-v3-dd-next-cut.js'" "$sw"
-          grep -q 'sana-v3-demo-shell-v25' "$sw"
+          grep -q "'/sana-v3-dataroom-360.js'" "$sw"
+          grep -q 'sana-v3-demo-shell-v26' "$sw"
 
       - name: Assert no external execution or financial authority
         shell: bash
         run: |
           set -euo pipefail
-          files='apps/control-web/public/sana-v3-reports-provenance.js apps/control-web/public/sana-v3-report-snapshot-sync.js apps/control-web/public/sana-v3-snapshot-compare.js apps/control-web/public/sana-v3-snapshot-freshness.js apps/control-web/public/sana-v3-due-diligence-gaps.js apps/control-web/public/sana-v3-due-diligence-remediation.js apps/control-web/public/sana-v3-dd-next-cut.js apps/control-web/public/sana-v3-capital-dossier.js apps/control-web/public/sana-v3-impact-methodology.js'
+          files='apps/control-web/public/sana-v3-reports-provenance.js apps/control-web/public/sana-v3-report-snapshot-sync.js apps/control-web/public/sana-v3-snapshot-compare.js apps/control-web/public/sana-v3-snapshot-freshness.js apps/control-web/public/sana-v3-due-diligence-gaps.js apps/control-web/public/sana-v3-due-diligence-remediation.js apps/control-web/public/sana-v3-dd-next-cut.js apps/control-web/public/sana-v3-dataroom-360.js apps/control-web/public/sana-v3-capital-dossier.js apps/control-web/public/sana-v3-impact-methodology.js'
           ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|graph\.microsoft\.com|Authorization:[[:space:]]*Bearer|access_token|refresh_token|client_secret' $files
           ! grep -Eiq 'productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true|investmentApproved[[:space:]]*=[[:space:]]*true|accountingClosed[[:space:]]*=[[:space:]]*true|kycApproved[[:space:]]*=[[:space:]]*true' $files
           ! grep -Eiq 'approveInvestment|investmentRecommendation|eligibilityApproved|creditApproved|executePayment|custodyFunds|autoCreateSnapshot|markGapResolved|resolveGap' $files
@@ -169,3 +196,4 @@ jobs:
           grep -q 'no capta recursos' apps/control-web/public/sana-v3-capital-dossier.js
           grep -q 'REMEDIATION_LOCAL_ONLY · REMEDIATION_ITEM ≠ SNAPSHOT_GAP ≠ GAP_RESOLVED ≠ HISTORICAL_EVIDENCE' apps/control-web/public/sana-v3-due-diligence-remediation.js
           grep -q 'CUT_PREP_ONLY · READY_FOR_HUMAN_REVIEW ≠ SNAPSHOT_CREATED ≠ GAP_RESOLVED ≠ INVESTMENT_READY' apps/control-web/public/sana-v3-dd-next-cut.js
+          grep -q 'DATAROOM_360_READ_ONLY · SNAPSHOT_HISTORY ≠ POST_CUT_REMEDIATION ≠ LIVE_STATE ≠ INVESTMENT_DECISION' apps/control-web/public/sana-v3-dataroom-360.js
