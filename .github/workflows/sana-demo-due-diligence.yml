@@ -201,7 +201,7 @@ jobs:
           grep -q '/sana-v3-dataroom-360.js.*sana-v3-dataroom-impact-history.js.*sana-v3-dataroom-entry.js.*sana-v3-runtime.js' "$html"
           grep -q "'/sana-v3-impact-ledger.js'" "$sw"
           grep -q "'/sana-v3-dataroom-impact-history.js'" "$sw"
-          grep -q 'sana-v3-demo-shell-v29' "$sw"
+          grep -q 'sana-v3-demo-shell-v30' "$sw"
 
       - name: Assert no external execution or financial authority
         shell: bash
