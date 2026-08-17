@@ -8,12 +8,14 @@
   function syncManifest(){
     const form=activeForm();
     const api=window.__SANA_DUE_DILIGENCE_SNAPSHOT__;
-    if(!form||!api?.currentManifest)return;
+    if(!form||!api?.currentManifest||!api?.schema)return;
     const reportType=form.querySelector('[name="reportType"]')?.value||'RPT-DD';
     const manifest=api.currentManifest(reportType);
+    if(!manifest||manifest.schema!==api.schema)return;
     manifest.cutoff=form.querySelector('[name="cutoff"]')?.value||'';
     manifest.reviewer=form.querySelector('[name="reviewer"]')?.value||'';
     manifest.snapshotContext='FORM_BOUND_DEMO';
+    manifest.formBoundAt=new Date().toISOString();
     const manifestField=form.querySelector('[name="manifest"]');
     if(manifestField)manifestField.value=JSON.stringify(manifest);
     const sourcesField=form.querySelector('[name="sources"]');
