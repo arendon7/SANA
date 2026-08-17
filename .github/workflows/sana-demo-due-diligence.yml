@@ -12,6 +12,7 @@ on:
       - 'apps/control-web/public/sana-v3-access.js'
       - 'apps/control-web/public/sana-v3.html'
       - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-snapshot-compare.mjs'
       - '.github/workflows/sana-demo-due-diligence.yml'
   pull_request:
     paths:
@@ -23,6 +24,7 @@ on:
       - 'apps/control-web/public/sana-v3-access.js'
       - 'apps/control-web/public/sana-v3.html'
       - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-snapshot-compare.mjs'
       - '.github/workflows/sana-demo-due-diligence.yml'
 
 permissions:
@@ -49,6 +51,8 @@ jobs:
             apps/control-web/public/sana-v3-access.js; do
             node --check "$f"
           done
+      - name: Run snapshot comparison semantic contract
+        run: node scripts/validate-sana-snapshot-compare.mjs
       - name: Validate canonical read models and assembly
         shell: bash
         run: |
