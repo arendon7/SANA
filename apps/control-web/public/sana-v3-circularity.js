@@ -32,6 +32,10 @@
   }
 
   views.circularity=circularity;
+  window.__SANA_CIRCULARITY__=Object.freeze({
+    rows:()=>rows().map(row=>({...row})),
+    forLot:lotId=>rows().filter(row=>row.lot===lotId).map(row=>({...row}))
+  });
 
   function openForm(){
     const lots=DEMO.lots.map(l=>`<option value="${l.id}">${l.id} · ${esc(l.crop)}</option>`).join('');
