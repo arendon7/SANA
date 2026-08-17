@@ -6,6 +6,7 @@ on:
     paths:
       - 'apps/control-web/public/sana-v3-reports-provenance.js'
       - 'apps/control-web/public/sana-v3-report-snapshot-sync.js'
+      - 'apps/control-web/public/sana-v3-snapshot-compare.js'
       - 'apps/control-web/public/sana-v3-capital-dossier.js'
       - 'apps/control-web/public/sana-v3-impact-methodology.js'
       - 'apps/control-web/public/sana-v3-access.js'
@@ -16,6 +17,7 @@ on:
     paths:
       - 'apps/control-web/public/sana-v3-reports-provenance.js'
       - 'apps/control-web/public/sana-v3-report-snapshot-sync.js'
+      - 'apps/control-web/public/sana-v3-snapshot-compare.js'
       - 'apps/control-web/public/sana-v3-capital-dossier.js'
       - 'apps/control-web/public/sana-v3-impact-methodology.js'
       - 'apps/control-web/public/sana-v3-access.js'
@@ -41,6 +43,7 @@ jobs:
           for f in \
             apps/control-web/public/sana-v3-reports-provenance.js \
             apps/control-web/public/sana-v3-report-snapshot-sync.js \
+            apps/control-web/public/sana-v3-snapshot-compare.js \
             apps/control-web/public/sana-v3-capital-dossier.js \
             apps/control-web/public/sana-v3-impact-methodology.js \
             apps/control-web/public/sana-v3-access.js; do
@@ -52,6 +55,7 @@ jobs:
           set -euo pipefail
           reports='apps/control-web/public/sana-v3-reports-provenance.js'
           sync='apps/control-web/public/sana-v3-report-snapshot-sync.js'
+          compare='apps/control-web/public/sana-v3-snapshot-compare.js'
           capital='apps/control-web/public/sana-v3-capital-dossier.js'
           impact='apps/control-web/public/sana-v3-impact-methodology.js'
           access='apps/control-web/public/sana-v3-access.js'
@@ -99,22 +103,43 @@ jobs:
           grep -q 'manifest.reviewer=' "$sync"
           grep -q 'FORM_CONTEXT_BOUND · SNAPSHOT_DEMO · NO_EXTERNAL_WRITE' "$sync"
 
+          grep -q '__SANA_SNAPSHOT_COMPARE__' "$compare"
+          grep -q '__SANA_DUE_DILIGENCE_SNAPSHOT__' "$compare"
+          grep -q "SCHEMA='SANA_DUE_DILIGENCE_SNAPSHOT_V1'" "$compare"
+          grep -q 'function compare(baseSnapshot,targetSnapshot)' "$compare"
+          grep -q "a.schema!==SCHEMA||b.schema!==SCHEMA" "$compare"
+          grep -q "'Plan'" "$compare"
+          grep -q "'Cierre de ciclo'" "$compare"
+          grep -q "'Passport'" "$compare"
+          grep -q "'Economía'" "$compare"
+          grep -q "'Fuentes'" "$compare"
+          grep -q "'Impacto'" "$compare"
+          grep -q "'Readiness'" "$compare"
+          grep -q 'CHANGE ≠ IMPROVEMENT ≠ CAUSALITY ≠ INVESTMENT_SIGNAL' "$compare"
+          grep -q 'Un aumento de readiness significa únicamente' "$compare"
+          ! grep -q 'storage.records' "$compare"
+          ! grep -q 'modalAction' "$compare"
+
           grep -q "technical:\[[^]]*'report-snapshot'" "$access"
           grep -q "producer:\[[^]]*'report-snapshot'" "$access"
           ! grep -q "investor:.*'report-snapshot'" "$access"
           grep -q "\['\[data-report-snapshot\]','report-snapshot'\]" "$access"
 
           grep -q '/sana-v3-reports-provenance.js.*sana-v3-report-snapshot-sync.js' "$html"
+          grep -q '/sana-v3-operational-journey.js.*sana-v3-snapshot-compare.js.*sana-v3-runtime.js' "$html"
           grep -q "'/sana-v3-report-snapshot-sync.js'" "$sw"
-          grep -q "sana-v3-demo-shell-v20" "$sw"
+          grep -q "'/sana-v3-snapshot-compare.js'" "$sw"
+          grep -q "sana-v3-demo-shell-v21" "$sw"
       - name: Assert no external execution or financial authority
         shell: bash
         run: |
           set -euo pipefail
-          files='apps/control-web/public/sana-v3-reports-provenance.js apps/control-web/public/sana-v3-report-snapshot-sync.js apps/control-web/public/sana-v3-capital-dossier.js apps/control-web/public/sana-v3-impact-methodology.js'
+          files='apps/control-web/public/sana-v3-reports-provenance.js apps/control-web/public/sana-v3-report-snapshot-sync.js apps/control-web/public/sana-v3-snapshot-compare.js apps/control-web/public/sana-v3-capital-dossier.js apps/control-web/public/sana-v3-impact-methodology.js'
           ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|graph\.microsoft\.com|Authorization:[[:space:]]*Bearer|access_token|refresh_token|client_secret' $files
           ! grep -Eiq 'productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true|investmentApproved[[:space:]]*=[[:space:]]*true|accountingClosed[[:space:]]*=[[:space:]]*true|kycApproved[[:space:]]*=[[:space:]]*true' $files
+          ! grep -Eiq 'approveInvestment|investmentRecommendation|eligibilityApproved|creditApproved|executePayment|custodyFunds' apps/control-web/public/sana-v3-snapshot-compare.js
           grep -q 'no recomienda invertir' apps/control-web/public/sana-v3-capital-dossier.js
           grep -q 'no capta recursos' apps/control-web/public/sana-v3-capital-dossier.js
           grep -q 'No existe envío, firma, ACL, upload ni escritura a un Data Room externo' apps/control-web/public/sana-v3-reports-provenance.js
           grep -q 'Readiness y snapshot no sustituyen due diligence humana o regulatoria' apps/control-web/public/sana-v3-reports-provenance.js
+          grep -q 'READ_ONLY_DIFF · CHANGE ≠ IMPROVEMENT ≠ CAUSALITY ≠ INVESTMENT_SIGNAL' apps/control-web/public/sana-v3-snapshot-compare.js
