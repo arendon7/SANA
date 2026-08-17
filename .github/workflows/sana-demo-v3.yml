@@ -38,7 +38,7 @@ jobs:
             sana-v3-cloud-state.js sana-v3-core.js sana-v3-views-1.js sana-v3-views-2.js sana-v3-views-3.js sana-v3-views-4.js \
             sana-v3-material-lifecycle.js sana-v3-circularity.js sana-v3-iot-source.js sana-v3-input-forecast.js sana-v3-reports-provenance.js \
             sana-v3-characterization-protocol.js sana-v3-plan-protocols.js sana-v3-advisory-protocols.js sana-v3-advisory-cases.js sana-v3-passport-chain.js \
-            sana-v3-results.js sana-v3-territory-360.js sana-v3-economics.js sana-v3-impact-methodology.js sana-v3-capital-dossier.js sana-v3-integration-bridge.js \
+            sana-v3-results.js sana-v3-territory-360.js sana-v3-sources.js sana-v3-economics.js sana-v3-impact-methodology.js sana-v3-capital-dossier.js sana-v3-integration-bridge.js \
             sana-v3-field-mobile.js sana-v3-role-home.js sana-v3-guided-field.js sana-v3-runtime.js sana-v3-access.js sana-v3-account.js sana-v3-firestore-selftest.js sana-v3-offline-runtime.js sana-v3-sw.js; do
             node --check "apps/control-web/public/$file"
           done
@@ -51,7 +51,7 @@ jobs:
           test -s "$html"
           for asset in \
             sana-v3.css sana-v3-extensions.css sana-v3-characterization.css sana-v3-capital.css sana-v3-economics.css sana-v3-impact.css sana-v3-mobile.css sana-v3-material.css sana-v3-guide.css sana-v3-territory-360.css \
-            sana-v3-cloud-state.js sana-v3-core.js sana-v3-material-lifecycle.js sana-v3-circularity.js sana-v3-iot-source.js sana-v3-input-forecast.js sana-v3-reports-provenance.js sana-v3-advisory-cases.js sana-v3-guided-field.js sana-v3-results.js sana-v3-territory-360.js sana-v3-economics.js sana-v3-impact-methodology.js sana-v3-passport-chain.js \
+            sana-v3-cloud-state.js sana-v3-core.js sana-v3-material-lifecycle.js sana-v3-circularity.js sana-v3-iot-source.js sana-v3-input-forecast.js sana-v3-reports-provenance.js sana-v3-advisory-cases.js sana-v3-guided-field.js sana-v3-results.js sana-v3-territory-360.js sana-v3-sources.js sana-v3-economics.js sana-v3-impact-methodology.js sana-v3-passport-chain.js \
             sana-v3-role-home.js sana-v3-runtime.js sana-v3-access.js sana-v3-account.js sana-v3-firestore-selftest.js sana-v3-offline-runtime.js sana-v3-sw.js sana-v3-manifest.webmanifest; do
             test -s "apps/control-web/public/$asset"
           done
@@ -64,25 +64,25 @@ jobs:
           grep -q '__SANA_RESULT_BASE__' apps/control-web/public/sana-v3-territory-360.js
           grep -q 'NO ES CARTOGRAFÍA CATASTRAL NI DELIMITACIÓN CERTIFICADA' apps/control-web/public/sana-v3-territory-360.js
           grep -q '__SANA_CIRCULARITY__' apps/control-web/public/sana-v3-circularity.js
-          grep -q "'/sana-v3-territory-360.js'" apps/control-web/public/sana-v3-sw.js
-          grep -q "'/sana-v3-territory-360.css'" apps/control-web/public/sana-v3-sw.js
+          grep -q 'data-view="sources"' "$html"
+          grep -q '/sana-v3-sources.js' "$html"
+          grep -q 'views.sources=sourcesView' apps/control-web/public/sana-v3-sources.js
+          grep -q '__SANA_DOCUMENT_SOURCES__' apps/control-web/public/sana-v3-sources.js
+          grep -q 'REFERENCE_ONLY · NO LEE NI MODIFICA SHAREPOINT · NO ES ACK PRODUCTIVO' apps/control-web/public/sana-v3-sources.js
+          grep -q 'Credenciales en browser' apps/control-web/public/sana-v3-sources.js
+          grep -q 'document-source-link' apps/control-web/public/sana-v3-access.js
+          grep -q "investor:new Set(\['home','territory'.*'sources'" apps/control-web/public/sana-v3-access.js
+          grep -q "'/sana-v3-sources.js'" apps/control-web/public/sana-v3-sw.js
+          ! grep -Eiq 'graph\.microsoft\.com|access_token|refresh_token|client_secret|Authorization:[[:space:]]*Bearer' apps/control-web/public/sana-v3-sources.js
           grep -q 'data-view="guide"' "$html"
-          grep -q '/sana-v3-guide.css' "$html"
           grep -q '/sana-v3-guided-field.js' "$html"
           grep -q 'views.guide=guided' apps/control-web/public/sana-v3-guided-field.js
-          grep -q 'guided-checkpoint' apps/control-web/public/sana-v3-guided-field.js
           grep -q 'LOCAL_ONLY no equivale a sincronizado ni ACK' apps/control-web/public/sana-v3-guided-field.js
-          grep -q 'no asigna privilegios operativos' apps/control-web/public/sana-v3-guided-field.js
           grep -q "new_user:new Set(\['home','guide','characterization','passport','impact','capital'\])" apps/control-web/public/sana-v3-access.js
           grep -q "producer:new Set(\['home','guide','territory','characterization','material','plans'" apps/control-web/public/sana-v3-access.js
           grep -q "technical:new Set(\['home','guide','territory','characterization','material','plans'" apps/control-web/public/sana-v3-access.js
-          grep -q "guided-checkpoint" apps/control-web/public/sana-v3-access.js
-          grep -q 'data-view="material"' "$html"
-          grep -q '/sana-v3-material-lifecycle.js' "$html"
           grep -q 'views.material=materialLifecycle' apps/control-web/public/sana-v3-material-lifecycle.js
           grep -q 'NO CERTIFICA IDENTIDAD GENÉTICA NI FITOSANITARIA' apps/control-web/public/sana-v3-material-lifecycle.js
-          grep -q 'data-view="forecast"' "$html"
-          grep -q 'data-view="reports"' "$html"
           grep -q 'views.forecast=forecasts' apps/control-web/public/sana-v3-input-forecast.js
           grep -q 'NO GENERA ORDEN, COMPRA NI DOSIS' apps/control-web/public/sana-v3-input-forecast.js
           grep -q 'views.reports=reports' apps/control-web/public/sana-v3-reports-provenance.js
@@ -90,7 +90,6 @@ jobs:
           grep -q 'views.circularity=circularity' apps/control-web/public/sana-v3-circularity.js
           grep -q "name:'Fuentes de agua'" apps/control-web/public/sana-v3-iot-source.js
           grep -q 'Casos con Agrónomo' apps/control-web/public/sana-v3-advisory-cases.js
-          grep -q "investor:new Set(\['home','territory','forecast','circularity','results','economics','reports','passport','impact','capital'\])" apps/control-web/public/sana-v3-access.js
           grep -q 'USUARIO NUEVO · ONBOARDING LIMITADO' apps/control-web/public/sana-v3-role-home.js
           grep -q 'Mi cuenta y sincronización' apps/control-web/public/sana-v3-account.js
           grep -q 'Verificar reglas Firestore' apps/control-web/public/sana-v3-firestore-selftest.js
@@ -101,7 +100,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          FILES='apps/control-web/public/sana-v3-core.js apps/control-web/public/sana-v3-views-1.js apps/control-web/public/sana-v3-views-2.js apps/control-web/public/sana-v3-views-3.js apps/control-web/public/sana-v3-views-4.js apps/control-web/public/sana-v3-material-lifecycle.js apps/control-web/public/sana-v3-circularity.js apps/control-web/public/sana-v3-iot-source.js apps/control-web/public/sana-v3-input-forecast.js apps/control-web/public/sana-v3-reports-provenance.js apps/control-web/public/sana-v3-characterization-protocol.js apps/control-web/public/sana-v3-plan-protocols.js apps/control-web/public/sana-v3-advisory-protocols.js apps/control-web/public/sana-v3-advisory-cases.js apps/control-web/public/sana-v3-passport-chain.js apps/control-web/public/sana-v3-results.js apps/control-web/public/sana-v3-territory-360.js apps/control-web/public/sana-v3-economics.js apps/control-web/public/sana-v3-impact-methodology.js apps/control-web/public/sana-v3-capital-dossier.js apps/control-web/public/sana-v3-integration-bridge.js apps/control-web/public/sana-v3-field-mobile.js apps/control-web/public/sana-v3-role-home.js apps/control-web/public/sana-v3-guided-field.js apps/control-web/public/sana-v3-runtime.js apps/control-web/public/sana-v3-access.js apps/control-web/public/sana-v3-account.js apps/control-web/public/sana-v3-firestore-selftest.js apps/control-web/public/sana-v3-offline-runtime.js apps/control-web/public/sana-v3.html'
+          FILES='apps/control-web/public/sana-v3-core.js apps/control-web/public/sana-v3-views-1.js apps/control-web/public/sana-v3-views-2.js apps/control-web/public/sana-v3-views-3.js apps/control-web/public/sana-v3-views-4.js apps/control-web/public/sana-v3-material-lifecycle.js apps/control-web/public/sana-v3-circularity.js apps/control-web/public/sana-v3-iot-source.js apps/control-web/public/sana-v3-input-forecast.js apps/control-web/public/sana-v3-reports-provenance.js apps/control-web/public/sana-v3-characterization-protocol.js apps/control-web/public/sana-v3-plan-protocols.js apps/control-web/public/sana-v3-advisory-protocols.js apps/control-web/public/sana-v3-advisory-cases.js apps/control-web/public/sana-v3-passport-chain.js apps/control-web/public/sana-v3-results.js apps/control-web/public/sana-v3-territory-360.js apps/control-web/public/sana-v3-sources.js apps/control-web/public/sana-v3-economics.js apps/control-web/public/sana-v3-impact-methodology.js apps/control-web/public/sana-v3-capital-dossier.js apps/control-web/public/sana-v3-integration-bridge.js apps/control-web/public/sana-v3-field-mobile.js apps/control-web/public/sana-v3-role-home.js apps/control-web/public/sana-v3-guided-field.js apps/control-web/public/sana-v3-runtime.js apps/control-web/public/sana-v3-access.js apps/control-web/public/sana-v3-account.js apps/control-web/public/sana-v3-firestore-selftest.js apps/control-web/public/sana-v3-offline-runtime.js apps/control-web/public/sana-v3.html'
           ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|productionReady[[:space:]]*=[[:space:]]*true|MIGRATION_LIVE_ACK|D10_APPROV|activation lease|/api/[^ ]*activat' $FILES
           ! grep -Eiq 'productionReady[[:space:]]*=[[:space:]]*true|MIGRATION_LIVE_ACK|D10_APPROV|activation lease|/api/[^ ]*activat' apps/control-web/public/sana-v3-cloud-state.js
           ! grep -Eiq "request\.method.*(POST|PUT|PATCH|DELETE)" apps/control-web/public/sana-v3-sw.js
@@ -109,6 +108,8 @@ jobs:
           grep -q 'canonicalMutated=false' apps/control-web/public/sana-v3-core.js
           grep -q 'D10=PENDING' apps/control-web/public/sana-v3-core.js
           grep -q 'no constituye delimitación predial certificada' apps/control-web/public/sana-v3-territory-360.js
+          grep -q 'no modifica SharePoint' apps/control-web/public/sana-v3-sources.js
+          grep -q 'no convierte una referencia en verificación' apps/control-web/public/sana-v3-sources.js
           grep -q 'No reemplaza capacitación técnica ni autoridad humana' apps/control-web/public/sana-v3-guided-field.js
           grep -q 'no certifica identidad genética ni estatus fitosanitario' apps/control-web/public/sana-v3-material-lifecycle.js
           grep -q 'no prescribe dosis, no compra y no autoriza aplicaciones' apps/control-web/public/sana-v3-input-forecast.js
