@@ -9,6 +9,7 @@ on:
       - 'apps/control-web/public/sana-v3-snapshot-compare.js'
       - 'apps/control-web/public/sana-v3-snapshot-freshness.js'
       - 'apps/control-web/public/sana-v3-due-diligence-gaps.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-remediation.js'
       - 'apps/control-web/public/sana-v3-capital-dossier.js'
       - 'apps/control-web/public/sana-v3-impact-methodology.js'
       - 'apps/control-web/public/sana-v3-access.js'
@@ -17,6 +18,7 @@ on:
       - 'scripts/validate-sana-snapshot-compare.mjs'
       - 'scripts/validate-sana-snapshot-freshness.mjs'
       - 'scripts/validate-sana-due-diligence-gaps.mjs'
+      - 'scripts/validate-sana-dd-remediation.mjs'
       - '.github/workflows/sana-demo-due-diligence.yml'
   pull_request:
     paths:
@@ -25,6 +27,7 @@ on:
       - 'apps/control-web/public/sana-v3-snapshot-compare.js'
       - 'apps/control-web/public/sana-v3-snapshot-freshness.js'
       - 'apps/control-web/public/sana-v3-due-diligence-gaps.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-remediation.js'
       - 'apps/control-web/public/sana-v3-capital-dossier.js'
       - 'apps/control-web/public/sana-v3-impact-methodology.js'
       - 'apps/control-web/public/sana-v3-access.js'
@@ -33,6 +36,7 @@ on:
       - 'scripts/validate-sana-snapshot-compare.mjs'
       - 'scripts/validate-sana-snapshot-freshness.mjs'
       - 'scripts/validate-sana-due-diligence-gaps.mjs'
+      - 'scripts/validate-sana-dd-remediation.mjs'
       - '.github/workflows/sana-demo-due-diligence.yml'
 
 permissions:
@@ -56,6 +60,7 @@ jobs:
             apps/control-web/public/sana-v3-snapshot-compare.js \
             apps/control-web/public/sana-v3-snapshot-freshness.js \
             apps/control-web/public/sana-v3-due-diligence-gaps.js \
+            apps/control-web/public/sana-v3-due-diligence-remediation.js \
             apps/control-web/public/sana-v3-capital-dossier.js \
             apps/control-web/public/sana-v3-impact-methodology.js \
             apps/control-web/public/sana-v3-access.js; do
@@ -67,6 +72,8 @@ jobs:
         run: node scripts/validate-sana-snapshot-freshness.mjs
       - name: Run due diligence gap matrix semantic contract
         run: node scripts/validate-sana-due-diligence-gaps.mjs
+      - name: Run due diligence remediation semantic contract
+        run: node scripts/validate-sana-dd-remediation.mjs
       - name: Validate canonical read models and assembly
         shell: bash
         run: |
@@ -76,6 +83,7 @@ jobs:
           compare='apps/control-web/public/sana-v3-snapshot-compare.js'
           freshness='apps/control-web/public/sana-v3-snapshot-freshness.js'
           gaps='apps/control-web/public/sana-v3-due-diligence-gaps.js'
+          remediation='apps/control-web/public/sana-v3-due-diligence-remediation.js'
           capital='apps/control-web/public/sana-v3-capital-dossier.js'
           impact='apps/control-web/public/sana-v3-impact-methodology.js'
           access='apps/control-web/public/sana-v3-access.js'
@@ -160,26 +168,42 @@ jobs:
           ! grep -q 'currentManifest' "$gaps"
           ! grep -Eiq 'approveInvestment|creditScore|creditRiskScore|eligibilityApproved|investmentRecommendation' "$gaps"
 
+          grep -q '__SANA_DUE_DILIGENCE_REMEDIATION__' "$remediation"
+          grep -q '__SANA_DUE_DILIGENCE_GAPS__' "$remediation"
+          grep -q "const TYPE='dd-remediation'" "$remediation"
+          grep -q 'snapshotId' "$remediation"
+          grep -q 'gapId' "$remediation"
+          grep -q 'LISTO_PARA_NUEVO_CORTE' "$remediation"
+          grep -q 'REMEDIATION_ITEM ≠ SNAPSHOT_GAP ≠ GAP_RESOLVED' "$remediation"
+          ! grep -q 'storage.records.push' "$remediation"
+          ! grep -q 'currentManifest' "$remediation"
+          ! grep -Eiq 'markGapResolved|resolveGap|creditScore|eligibilityApproved|investmentRecommendation' "$remediation"
+
           grep -q "technical:\[[^]]*'report-snapshot'" "$access"
           grep -q "producer:\[[^]]*'report-snapshot'" "$access"
           ! grep -q "investor:.*'report-snapshot'" "$access"
+          grep -q "technical:\[[^]]*'dd-remediation'" "$access"
+          grep -q "producer:\[[^]]*'dd-remediation'" "$access"
+          ! grep -q "investor:.*'dd-remediation'" "$access"
           grep -q "\['\[data-report-snapshot\]','report-snapshot'\]" "$access"
+          grep -q "\['\[data-dd-remediation\]','dd-remediation'\]" "$access"
 
           grep -q '/sana-v3-reports-provenance.js.*sana-v3-report-snapshot-sync.js' "$html"
-          grep -q '/sana-v3-operational-journey.js.*sana-v3-snapshot-compare.js.*sana-v3-snapshot-freshness.js.*sana-v3-due-diligence-gaps.js.*sana-v3-runtime.js' "$html"
+          grep -q '/sana-v3-operational-journey.js.*sana-v3-snapshot-compare.js.*sana-v3-snapshot-freshness.js.*sana-v3-due-diligence-gaps.js.*sana-v3-due-diligence-remediation.js.*sana-v3-runtime.js' "$html"
           grep -q "'/sana-v3-report-snapshot-sync.js'" "$sw"
           grep -q "'/sana-v3-snapshot-compare.js'" "$sw"
           grep -q "'/sana-v3-snapshot-freshness.js'" "$sw"
           grep -q "'/sana-v3-due-diligence-gaps.js'" "$sw"
-          grep -q "sana-v3-demo-shell-v23" "$sw"
+          grep -q "'/sana-v3-due-diligence-remediation.js'" "$sw"
+          grep -q "sana-v3-demo-shell-v24" "$sw"
       - name: Assert no external execution or financial authority
         shell: bash
         run: |
           set -euo pipefail
-          files='apps/control-web/public/sana-v3-reports-provenance.js apps/control-web/public/sana-v3-report-snapshot-sync.js apps/control-web/public/sana-v3-snapshot-compare.js apps/control-web/public/sana-v3-snapshot-freshness.js apps/control-web/public/sana-v3-due-diligence-gaps.js apps/control-web/public/sana-v3-capital-dossier.js apps/control-web/public/sana-v3-impact-methodology.js'
+          files='apps/control-web/public/sana-v3-reports-provenance.js apps/control-web/public/sana-v3-report-snapshot-sync.js apps/control-web/public/sana-v3-snapshot-compare.js apps/control-web/public/sana-v3-snapshot-freshness.js apps/control-web/public/sana-v3-due-diligence-gaps.js apps/control-web/public/sana-v3-due-diligence-remediation.js apps/control-web/public/sana-v3-capital-dossier.js apps/control-web/public/sana-v3-impact-methodology.js'
           ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|graph\.microsoft\.com|Authorization:[[:space:]]*Bearer|access_token|refresh_token|client_secret' $files
           ! grep -Eiq 'productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true|investmentApproved[[:space:]]*=[[:space:]]*true|accountingClosed[[:space:]]*=[[:space:]]*true|kycApproved[[:space:]]*=[[:space:]]*true' $files
-          ! grep -Eiq 'approveInvestment|investmentRecommendation|eligibilityApproved|creditApproved|executePayment|custodyFunds' apps/control-web/public/sana-v3-snapshot-compare.js apps/control-web/public/sana-v3-snapshot-freshness.js apps/control-web/public/sana-v3-due-diligence-gaps.js
+          ! grep -Eiq 'approveInvestment|investmentRecommendation|eligibilityApproved|creditApproved|executePayment|custodyFunds' apps/control-web/public/sana-v3-snapshot-compare.js apps/control-web/public/sana-v3-snapshot-freshness.js apps/control-web/public/sana-v3-due-diligence-gaps.js apps/control-web/public/sana-v3-due-diligence-remediation.js
           grep -q 'no recomienda invertir' apps/control-web/public/sana-v3-capital-dossier.js
           grep -q 'no capta recursos' apps/control-web/public/sana-v3-capital-dossier.js
           grep -q 'No existe envío, firma, ACL, upload ni escritura a un Data Room externo' apps/control-web/public/sana-v3-reports-provenance.js
@@ -187,3 +211,4 @@ jobs:
           grep -q 'READ_ONLY_DIFF · CHANGE ≠ IMPROVEMENT ≠ CAUSALITY ≠ INVESTMENT_SIGNAL' apps/control-web/public/sana-v3-snapshot-compare.js
           grep -q 'FRESHNESS_ONLY · NO_INVESTMENT_SIGNAL' apps/control-web/public/sana-v3-snapshot-freshness.js
           grep -q 'SNAPSHOT_GAPS_ONLY · DOCUMENTARY_PRIORITY ≠ CREDIT_RISK ≠ ELIGIBILITY ≠ INVESTMENT_RECOMMENDATION' apps/control-web/public/sana-v3-due-diligence-gaps.js
+          grep -q 'REMEDIATION_LOCAL_ONLY · REMEDIATION_ITEM ≠ SNAPSHOT_GAP ≠ GAP_RESOLVED ≠ HISTORICAL_EVIDENCE' apps/control-web/public/sana-v3-due-diligence-remediation.js
