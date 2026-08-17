@@ -7,7 +7,7 @@
     {id:'identity',title:'Identidad y caracterización',weight:16,source:'Caracterización integral',why:'La contraparte debe entender quién produce, dónde, bajo qué contexto y con qué brechas.'},
     {id:'technical',title:'Plan técnico y responsables',weight:18,source:'Planes versionados',why:'La necesidad de capital debe conectarse con una hipótesis productiva y responsables humanos.'},
     {id:'operations',title:'Ejecución y trazabilidad',weight:18,source:'AGROWAY + Passport',why:'Demostrar que las actividades y decisiones pueden reconstruirse con evidencia.'},
-    {id:'costs',title:'Costos y necesidad financiera',weight:14,source:'Registros administrativos',why:'Separar necesidad estimada, presupuesto, uso previsto y costos históricos respaldados.'},
+    {id:'costs',title:'Costos y necesidad financiera',weight:14,source:'__SANA_ECONOMICS__',why:'Separar necesidad estimada, presupuesto/escenario, BASELINE_DEMO y costos LOCAL_ONLY explícitamente respaldados.'},
     {id:'risk',title:'Riesgo y mitigación',weight:12,source:'Sanidad + agua + plan',why:'Mostrar riesgos relevantes, señales abiertas y mecanismos de mitigación sin prometer resultados.'},
     {id:'impact',title:'Impacto y metodología',weight:10,source:'SANA Impact',why:'Distinguir indicador trazable de estimación o afirmación que requiere verificación externa.'},
     {id:'legal',title:'Arquitectura jurídica / regulatoria',weight:12,source:'Proceso externo autorizado',why:'La eventual oferta, onboarding, KYC, contratación, pagos y custodia requieren diseño y proveedores autorizados cuando aplique.'}
@@ -17,6 +17,7 @@
   function planReviewCount(){try{return JSON.parse(localStorage.getItem('sana.v3.plan.reviews')||'[]').length}catch{return 0}}
   function dossierState(){try{return JSON.parse(localStorage.getItem(CAPITAL_KEY)||'{}')}catch{return {}}}
   function saveDossier(next){localStorage.setItem(CAPITAL_KEY,JSON.stringify(next))}
+  function moneyDemo(value){const n=Number(value)||0;try{return new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(n)}catch{return `${n} COP`}}
 
   function characterizationScore(){
     const local=characterizationState();
@@ -29,28 +30,59 @@
     return Math.round(total/keys.length*100);
   }
 
-  function costEvidence(){
+  function economicsEvidence(){
+    const api=window.__SANA_ECONOMICS__;
     const local=dossierState();
-    const records=storage.records.filter(r=>/cost|costo|presupuesto|budget/i.test(`${r.type} ${r.title} ${JSON.stringify(r.values||{})}`));
+    const rows=api?.rows?.()||[];
+    const costs=api?.costs?.()||[];
+    const cycles=DEMO.plans.map(p=>api?.cycleSummary?.(p.id)).filter(Boolean);
+    const explicit=cycles.flatMap(c=>c.explicitCosts||[]);
+    const supported=explicit.filter(c=>c.supported&&c.linkIntegrity==='OK');
+    const mismatches=cycles.reduce((sum,c)=>sum+(c.mismatchedCosts?.length||0),0);
+    const unallocated=cycles.reduce((sum,c)=>sum+(c.unallocatedLotCosts?.length||0),0);
     const configured=Boolean(local.needAmount&&local.useOfFunds&&local.horizon);
-    return {score:Math.min(100,(configured?55:20)+Math.min(35,records.length*12)),records,configured};
+    const supportCoverage=explicit.length?Math.round(supported.length/explicit.length*100):0;
+    const budget=rows.reduce((sum,r)=>sum+(Number(r.budget)||0),0);
+    const baseline=rows.reduce((sum,r)=>sum+(Number(r.baseRecorded)||0),0);
+    const localRecorded=rows.reduce((sum,r)=>sum+(Number(r.localRecorded)||0),0);
+    const explicitAmount=cycles.reduce((sum,c)=>sum+(Number(c.explicitAmount)||0),0);
+    const score=Math.min(100,
+      (configured?30:10)+
+      (api?15:0)+
+      (explicit.length?20:0)+
+      Math.round(supportCoverage*.25)+
+      (explicit.length&&mismatches===0?10:0)
+    );
+    return {score,configured,rows,costs,cycles,explicit,supported,mismatches,unallocated,supportCoverage,budget,baseline,localRecorded,explicitAmount,contractAvailable:Boolean(api)};
+  }
+
+  function operationsEvidence(){
+    const dossiers=window.__SANA_CYCLE_CLOSURE__?.dossiers?.()||[];
+    if(dossiers.length){
+      const avg=Math.round(dossiers.reduce((sum,d)=>sum+d.completeness,0)/dossiers.length);
+      const gaps=dossiers.reduce((sum,d)=>sum+d.evidenceGaps+d.open.length,0);
+      return {score:avg,detail:`${avg}% completitud media de cierre · ${gaps} brecha(s) operativas/documentales`};
+    }
+    const taskEvidence=DEMO.tasks.length?Math.round(DEMO.tasks.filter(t=>t.evidence&&t.evidence!=='Pendiente').length/DEMO.tasks.length*100):0;
+    const passport=Math.round((DEMO.lots.reduce((a,l)=>a+l.evidence,0)/DEMO.lots.length+taskEvidence)/2);
+    return {score:passport,detail:`${passport}% trazabilidad operativa estimada DEMO`};
   }
 
   function gateData(){
     const char=characterizationScore();
-    const cost=costEvidence();
+    const cost=economicsEvidence();
+    const operations=operationsEvidence();
     const planEvidence=Math.round(DEMO.plans.reduce((a,p)=>a+p.progress,0)/DEMO.plans.length);
-    const taskEvidence=DEMO.tasks.length?Math.round(DEMO.tasks.filter(t=>t.evidence&&t.evidence!=='Pendiente').length/DEMO.tasks.length*100):0;
-    const passport=Math.round((DEMO.lots.reduce((a,l)=>a+l.evidence,0)/DEMO.lots.length+taskEvidence)/2);
     const openRisks=DEMO.incidents.filter(i=>!i.status.toLowerCase().includes('cerrada')).length;
     const risk=Math.max(45,92-openRisks*14);
     const local=dossierState();
     const impact=local.impactMethodologyReviewed?78:62;
+    const costDetail=!cost.contractAvailable?'Read-model económico no disponible':cost.configured?`${cost.explicit.length} costo(s) explícitos · ${cost.supportCoverage}% con soporte · ${cost.mismatches} mismatch`:'Falta estructurar necesidad, horizonte y uso de fondos; la evidencia económica permanece separada';
     return {
       identity:{score:char,state:char>=85?'ready':char>=65?'review':'gap',detail:`${char}% cobertura ponderada de línea base`},
       technical:{score:Math.min(100,planEvidence+planReviewCount()*2),state:planEvidence>=80?'ready':'review',detail:`${DEMO.plans.length} planes · ${planReviewCount()} revisión(es) humana(s) DEMO`},
-      operations:{score:passport,state:passport>=85?'ready':'review',detail:`${passport}% trazabilidad operativa estimada DEMO`},
-      costs:{score:cost.score,state:cost.score>=80?'ready':'gap',detail:cost.configured?'Necesidad estructurada; revisar respaldo histórico':'Falta estructurar necesidad, horizonte y uso de fondos'},
+      operations:{score:operations.score,state:operations.score>=85?'ready':operations.score>=65?'review':'gap',detail:operations.detail},
+      costs:{score:cost.score,state:cost.score>=80?'ready':cost.score>=55?'review':'gap',detail:costDetail},
       risk:{score:risk,state:risk>=75?'ready':'review',detail:`${openRisks} señal(es) abiertas en la unidad DEMO`},
       impact:{score:impact,state:impact>=75?'review':'gap',detail:'Indicadores DEMO; verificación externa no asumida'},
       legal:{score:20,state:'blocked',detail:'Fuera de la DEMO: arquitectura jurídica, onboarding, KYC, contratación, pagos/custodia'}
@@ -62,13 +94,9 @@
     return Math.round(GATE_DEFS.reduce((sum,g)=>sum+gates[g.id].score*g.weight,0)/total);
   }
 
-  function moneyDemo(value){
-    const n=Number(value)||48000000;
-    try{return new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(n)}catch{return `${n} COP`}
-  }
-
   function capitalDossier(){
     const gates=gateData();
+    const economics=economicsEvidence();
     const score=overall(gates);
     const local=dossierState();
     const need=local.needAmount||48000000;
@@ -77,16 +105,20 @@
     const ready=GATE_DEFS.filter(g=>gates[g.id].state==='ready').length;
     const review=GATE_DEFS.filter(g=>gates[g.id].state==='review').length;
     const gaps=GATE_DEFS.filter(g=>['gap','blocked'].includes(gates[g.id].state)).length;
+    const role=window.__SANA_ACCESS__?.role||String(identity?.role||'new_user').toLowerCase();
+    const canConfigure=/admin|technical|técn|producer|productor/.test(role)&&window.__SANA_ACCESS__?.canAction?.('capital-dossier')!==false;
 
-    return `${head('SANA · CAPITAL READINESS','Preparar un expediente antes de hablar de transacciones.','SANA conecta necesidad productiva, línea base, plan, ejecución, riesgo, evidencia e impacto para revisión humana. Esta capa no recomienda invertir, no capta recursos, no custodia fondos y no ejecuta pagos.',`<button class="btn primary" data-capital-config>Configurar caso DEMO</button>`)}
+    return `${head('SANA · CAPITAL READINESS','Preparar un expediente antes de hablar de transacciones.','SANA conecta necesidad productiva, línea base, plan, ejecución, riesgo, evidencia, economía e impacto para revisión humana. Esta capa no recomienda invertir, no capta recursos, no custodia fondos y no ejecuta pagos.',canConfigure?`<button class="btn primary" data-capital-config>Configurar caso DEMO</button>`:'')}
       <section class="capital-case"><article><small>CASO DEMOSTRATIVO · ${DEMO.farm.id}</small><h2>${esc(DEMO.farm.name)} · ${esc(DEMO.farm.producer)}</h2><p>${esc(use)}</p><div class="capital-case-meta"><div><span>Necesidad simulada</span><strong>${moneyDemo(need)}</strong></div><div><span>Horizonte</span><strong>${esc(horizon)}</strong></div><div><span>Readiness</span><strong>${score}%</strong></div><div><span>Dinero movido</span><strong>$0</strong></div></div></article><aside><span class="status danger">SIN OFERTA · SIN CUSTODIA</span><p>La puntuación es una herramienta de completitud documental DEMO. No es calificación crediticia, recomendación de inversión ni promesa de retorno.</p></aside></section>
-      <section class="grid metrics" style="margin-top:14px">${metric('Readiness compuesto',`${score}%`,`${ready} gates listos · ${review} en revisión`,score>=75?'good':'warn')}${metric('Brechas / bloqueos',gaps,'incluye frontera regulatoria','warn')}${metric('Trazabilidad Passport',`${gates.operations.score}%`,'operación reconstruible DEMO','good')}${metric('Costos / necesidad',`${gates.costs.score}%`,gates.costs.state==='ready'?'evidencia suficiente DEMO':'requiere respaldo','warn')}</section>
+      <section class="grid metrics" style="margin-top:14px">${metric('Readiness compuesto',`${score}%`,`${ready} gates listos · ${review} en revisión`,score>=75?'good':'warn')}${metric('Brechas / bloqueos',gaps,'incluye frontera regulatoria','warn')}${metric('Trazabilidad de cierre',`${gates.operations.score}%`,'consume Cierre de ciclo cuando está disponible','good')}${metric('Economía contractual',`${gates.costs.score}%`,`${economics.explicit.length} costo(s) explícitos · soporte ${economics.supportCoverage}%`,gates.costs.state==='ready'?'good':'warn')}</section>
       <section class="capital-gates">${GATE_DEFS.map((def,index)=>{const g=gates[def.id];return `<article class="capital-gate ${g.state}"><header><span>${String(index+1).padStart(2,'0')}</span><div><strong>${esc(def.title)}</strong><small>${esc(def.source)} · peso ${def.weight}%</small></div><b>${g.score}%</b><em class="status ${g.state==='ready'?'teal':g.state==='blocked'?'danger':'warn'}">${g.state==='ready'?'LISTO':g.state==='review'?'REVISAR':g.state==='blocked'?'FUERA DE DEMO':'BRECHA'}</em></header><p>${esc(g.detail)}</p><footer>${esc(def.why)}</footer></article>`}).join('')}</section>
-      <section class="grid two" style="margin-top:14px"><article class="card"><div class="card-head"><div><h2>Expediente de preparación</h2><p>Qué puede revisar una contraparte autorizada sin acceder a funciones de ejecución.</p></div></div><div class="card-body"><div class="workflow"><div class="stage done"><span class="num">1</span><strong>Caracterización</strong><span>Quién + dónde + contexto</span></div><div class="stage done"><span class="num">2</span><strong>Plan</strong><span>Hipótesis + responsables</span></div><div class="stage current"><span class="num">3</span><strong>Evidencia</strong><span>Passport + operación</span></div><div class="stage"><span class="num">4</span><strong>Due diligence</strong><span>Humana / externa</span></div><div class="stage"><span class="num">5</span><strong>Decisión</strong><span>HUMAN_ONLY</span></div><div class="stage"><span class="num">6</span><strong>Proveedor autorizado</strong><span>Fuera de DEMO</span></div></div><div class="section-note" style="margin-top:12px">SANA puede preparar información y trazabilidad. Una futura experiencia transaccional debe estar separada, con roles, cumplimiento, contratos, pagos/custodia y proveedores adecuados definidos jurídicamente antes de habilitar cualquier ejecución.</div></div></article><article class="card"><div class="card-head"><div><h2>Uso previsto del capital DEMO</h2><p>El monto debe explicarse desde el plan, no desde una cifra aislada.</p></div></div><div class="card-body"><div class="capital-use"><div><span>Operación del plan</span><strong>42%</strong></div><div><span>Insumos / material</span><strong>27%</strong></div><div><span>Acompañamiento y evidencia</span><strong>18%</strong></div><div><span>Reserva de contingencia DEMO</span><strong>13%</strong></div></div><div class="section-note" style="margin-top:12px">Distribución ilustrativa. No constituye presupuesto aprobado ni instrucción de desembolso.</div></div></article></section>
-      <section class="grid two" style="margin-top:14px"><article class="card"><div class="card-head"><div><h2>Conexiones</h2><p>El dossier no duplica información: la referencia.</p></div></div><div class="card-body"><div class="quick-grid" style="grid-template-columns:1fr 1fr"><button class="quick" data-view-link="characterization"><strong>Caracterización</strong><span>Línea base y procedencia.</span></button><button class="quick" data-view-link="plans"><strong>Plan técnico</strong><span>Versiones y gates.</span></button><button class="quick" data-view-link="passport"><strong>Passport</strong><span>Cadena de evidencia.</span></button><button class="quick" data-view-link="impact"><strong>Impacto</strong><span>Indicadores y calidad.</span></button></div></div></article><article class="card"><div class="card-head"><div><h2>Límites no negociables</h2><p>Lo que esta capa nunca debe aparentar que hace.</p></div></div><div class="card-body"><div class="gate"><i class="blocked">×</i><div><strong>Recomendar una inversión</strong><p>Fuera del alcance de IA y DEMO.</p></div><span class="status danger">HUMAN_ONLY</span></div><div class="gate"><i class="blocked">×</i><div><strong>Aprobar / desembolsar / custodiar</strong><p>No existe capacidad transaccional.</p></div><span class="status danger">$0</span></div><div class="gate"><i class="blocked">×</i><div><strong>Presentar readiness como elegibilidad</strong><p>La puntuación solo mide completitud DEMO.</p></div><span class="status danger">PROHIBIDO</span></div></div></article></section>${footer()}`;
+      <section class="grid two" style="margin-top:14px"><article class="card"><div class="card-head"><div><h2>Procedencia económica</h2><p>El gate económico consume una sola verdad; no busca palabras sueltas en el storage.</p></div></div><div class="card-body"><div class="grid metrics">${metric('Presupuesto DEMO',moneyDemo(economics.budget),'escenario operativo')}${metric('BASELINE_DEMO',moneyDemo(economics.baseline),'agregado histórico · no itemizado','warn')}${metric('LOCAL_ONLY',moneyDemo(economics.localRecorded),`${economics.costs.length} costo(s) itemizados`,economics.costs.length?'good':'warn')}${metric('Asignado a ciclos',moneyDemo(economics.explicitAmount),`${economics.explicit.length} explícitos · ${economics.unallocated} no asignados`,economics.explicit.length?'good':'warn')}</div><div class="section-note" style="margin-top:12px"><strong>Regla:</strong> BASELINE_DEMO ≠ ITEMIZED_CYCLE_COST ≠ ACCOUNTING_ENTRY ≠ REALIZED_REVENUE. La necesidad simulada de ${moneyDemo(need)} no se deduce automáticamente de estos montos y no representa una solicitud, oferta o recomendación.</div></div></article><article class="card"><div class="card-head"><div><h2>Expediente de preparación</h2><p>Qué puede revisar una contraparte autorizada sin acceder a funciones de ejecución.</p></div></div><div class="card-body"><div class="workflow"><div class="stage done"><span class="num">1</span><strong>Caracterización</strong><span>Quién + dónde + contexto</span></div><div class="stage done"><span class="num">2</span><strong>Plan</strong><span>Hipótesis + responsables</span></div><div class="stage current"><span class="num">3</span><strong>Evidencia</strong><span>Passport + cierre + economía</span></div><div class="stage"><span class="num">4</span><strong>Due diligence</strong><span>Humana / externa</span></div><div class="stage"><span class="num">5</span><strong>Decisión</strong><span>HUMAN_ONLY</span></div><div class="stage"><span class="num">6</span><strong>Proveedor autorizado</strong><span>Fuera de DEMO</span></div></div><div class="section-note" style="margin-top:12px">SANA puede preparar información y trazabilidad. Una futura experiencia transaccional debe estar separada, con roles, cumplimiento, contratos, pagos/custodia y proveedores adecuados definidos jurídicamente antes de habilitar cualquier ejecución.</div></div></article></section>
+      <section class="grid two" style="margin-top:14px"><article class="card"><div class="card-head"><div><h2>Uso previsto del capital DEMO</h2><p>El monto debe explicarse desde el plan, no desde una cifra aislada.</p></div></div><div class="card-body"><div class="capital-use"><div><span>Operación del plan</span><strong>42%</strong></div><div><span>Insumos / material</span><strong>27%</strong></div><div><span>Acompañamiento y evidencia</span><strong>18%</strong></div><div><span>Reserva de contingencia DEMO</span><strong>13%</strong></div></div><div class="section-note" style="margin-top:12px">Distribución ilustrativa. No se infiere desde costos registrados y no constituye presupuesto aprobado ni instrucción de desembolso.</div></div></article><article class="card"><div class="card-head"><div><h2>Conexiones</h2><p>El dossier no duplica información: la referencia.</p></div></div><div class="card-body"><div class="quick-grid" style="grid-template-columns:1fr 1fr"><button class="quick" data-view-link="cycle"><strong>Cierre de ciclo</strong><span>Completitud y brechas.</span></button><button class="quick" data-view-link="economics"><strong>Economía</strong><span>Costos y procedencia.</span></button><button class="quick" data-view-link="passport"><strong>Passport</strong><span>Cadena de evidencia.</span></button><button class="quick" data-view-link="impact"><strong>Impacto</strong><span>Indicadores y calidad.</span></button></div></div></article></section>
+      <section class="card" style="margin-top:14px"><div class="card-head"><div><h2>Límites no negociables</h2><p>Lo que esta capa nunca debe aparentar que hace.</p></div></div><div class="card-body"><div class="gate"><i class="blocked">×</i><div><strong>Recomendar una inversión</strong><p>Fuera del alcance de IA y DEMO.</p></div><span class="status danger">HUMAN_ONLY</span></div><div class="gate"><i class="blocked">×</i><div><strong>Aprobar / desembolsar / custodiar</strong><p>No existe capacidad transaccional.</p></div><span class="status danger">$0</span></div><div class="gate"><i class="blocked">×</i><div><strong>Presentar readiness como elegibilidad</strong><p>La puntuación solo mide completitud DEMO.</p></div><span class="status danger">PROHIBIDO</span></div><div class="gate"><i class="blocked">×</i><div><strong>Inferir retorno o capacidad de pago</strong><p>Presupuesto, costo y escenario no equivalen a ingreso realizado, flujo de caja ni retorno.</p></div><span class="status danger">NO</span></div></div></section>${footer()}`;
   }
 
   views.capital=capitalDossier;
+  window.__SANA_CAPITAL_READINESS__=Object.freeze({gateData,overall,economicsEvidence,operationsEvidence});
 
   document.addEventListener('click',event=>{
     const button=event.target.closest('[data-capital-config]');
