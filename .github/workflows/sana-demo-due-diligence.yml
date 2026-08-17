@@ -8,6 +8,7 @@ on:
       - 'apps/control-web/public/sana-v3-report-snapshot-sync.js'
       - 'apps/control-web/public/sana-v3-snapshot-compare.js'
       - 'apps/control-web/public/sana-v3-snapshot-freshness.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-gaps.js'
       - 'apps/control-web/public/sana-v3-capital-dossier.js'
       - 'apps/control-web/public/sana-v3-impact-methodology.js'
       - 'apps/control-web/public/sana-v3-access.js'
@@ -15,6 +16,7 @@ on:
       - 'apps/control-web/public/sana-v3-sw.js'
       - 'scripts/validate-sana-snapshot-compare.mjs'
       - 'scripts/validate-sana-snapshot-freshness.mjs'
+      - 'scripts/validate-sana-due-diligence-gaps.mjs'
       - '.github/workflows/sana-demo-due-diligence.yml'
   pull_request:
     paths:
@@ -22,6 +24,7 @@ on:
       - 'apps/control-web/public/sana-v3-report-snapshot-sync.js'
       - 'apps/control-web/public/sana-v3-snapshot-compare.js'
       - 'apps/control-web/public/sana-v3-snapshot-freshness.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-gaps.js'
       - 'apps/control-web/public/sana-v3-capital-dossier.js'
       - 'apps/control-web/public/sana-v3-impact-methodology.js'
       - 'apps/control-web/public/sana-v3-access.js'
@@ -29,6 +32,7 @@ on:
       - 'apps/control-web/public/sana-v3-sw.js'
       - 'scripts/validate-sana-snapshot-compare.mjs'
       - 'scripts/validate-sana-snapshot-freshness.mjs'
+      - 'scripts/validate-sana-due-diligence-gaps.mjs'
       - '.github/workflows/sana-demo-due-diligence.yml'
 
 permissions:
@@ -51,6 +55,7 @@ jobs:
             apps/control-web/public/sana-v3-report-snapshot-sync.js \
             apps/control-web/public/sana-v3-snapshot-compare.js \
             apps/control-web/public/sana-v3-snapshot-freshness.js \
+            apps/control-web/public/sana-v3-due-diligence-gaps.js \
             apps/control-web/public/sana-v3-capital-dossier.js \
             apps/control-web/public/sana-v3-impact-methodology.js \
             apps/control-web/public/sana-v3-access.js; do
@@ -60,6 +65,8 @@ jobs:
         run: node scripts/validate-sana-snapshot-compare.mjs
       - name: Run snapshot freshness semantic contract
         run: node scripts/validate-sana-snapshot-freshness.mjs
+      - name: Run due diligence gap matrix semantic contract
+        run: node scripts/validate-sana-due-diligence-gaps.mjs
       - name: Validate canonical read models and assembly
         shell: bash
         run: |
@@ -68,6 +75,7 @@ jobs:
           sync='apps/control-web/public/sana-v3-report-snapshot-sync.js'
           compare='apps/control-web/public/sana-v3-snapshot-compare.js'
           freshness='apps/control-web/public/sana-v3-snapshot-freshness.js'
+          gaps='apps/control-web/public/sana-v3-due-diligence-gaps.js'
           capital='apps/control-web/public/sana-v3-capital-dossier.js'
           impact='apps/control-web/public/sana-v3-impact-methodology.js'
           access='apps/control-web/public/sana-v3-access.js'
@@ -111,9 +119,14 @@ jobs:
 
           grep -q '__SANA_REPORT_SNAPSHOT_SYNC__' "$sync"
           grep -q "modalAction==='report-snapshot'" "$sync"
+          grep -q 'function enrichEconomics' "$sync"
+          grep -q 'explicitCostCount' "$sync"
+          grep -q 'supportCoverage' "$sync"
+          grep -q 'mismatchCount' "$sync"
+          grep -q 'unallocatedCount' "$sync"
           grep -q 'manifest.cutoff=' "$sync"
           grep -q 'manifest.reviewer=' "$sync"
-          grep -q 'FORM_CONTEXT_BOUND · SNAPSHOT_DEMO · NO_EXTERNAL_WRITE' "$sync"
+          grep -q 'ADDITIVE_V1_PROVENANCE · SNAPSHOT_DEMO · NO_EXTERNAL_WRITE' "$sync"
 
           grep -q '__SANA_SNAPSHOT_COMPARE__' "$compare"
           grep -q '__SANA_DUE_DILIGENCE_SNAPSHOT__' "$compare"
@@ -136,28 +149,41 @@ jobs:
           ! grep -q '\.before' "$freshness"
           ! grep -q '\.after' "$freshness"
 
+          grep -q '__SANA_DUE_DILIGENCE_GAPS__' "$gaps"
+          grep -q '__SANA_DUE_DILIGENCE_SNAPSHOT__' "$gaps"
+          grep -q "REPORT_TYPE='RPT-DD'" "$gaps"
+          grep -q 'OPEN_AT_SNAPSHOT' "$gaps"
+          grep -q 'SNAPSHOT_GAPS_ONLY · DOCUMENTARY_PRIORITY ≠ CREDIT_RISK ≠ ELIGIBILITY ≠ INVESTMENT_RECOMMENDATION' "$gaps"
+          grep -q 'Un snapshot posterior debe demostrar el cambio' "$gaps"
+          grep -q 'supportCoverage' "$gaps"
+          ! grep -q 'storage.records' "$gaps"
+          ! grep -q 'currentManifest' "$gaps"
+          ! grep -Eiq 'approveInvestment|creditScore|creditRiskScore|eligibilityApproved|investmentRecommendation' "$gaps"
+
           grep -q "technical:\[[^]]*'report-snapshot'" "$access"
           grep -q "producer:\[[^]]*'report-snapshot'" "$access"
           ! grep -q "investor:.*'report-snapshot'" "$access"
           grep -q "\['\[data-report-snapshot\]','report-snapshot'\]" "$access"
 
           grep -q '/sana-v3-reports-provenance.js.*sana-v3-report-snapshot-sync.js' "$html"
-          grep -q '/sana-v3-operational-journey.js.*sana-v3-snapshot-compare.js.*sana-v3-snapshot-freshness.js.*sana-v3-runtime.js' "$html"
+          grep -q '/sana-v3-operational-journey.js.*sana-v3-snapshot-compare.js.*sana-v3-snapshot-freshness.js.*sana-v3-due-diligence-gaps.js.*sana-v3-runtime.js' "$html"
           grep -q "'/sana-v3-report-snapshot-sync.js'" "$sw"
           grep -q "'/sana-v3-snapshot-compare.js'" "$sw"
           grep -q "'/sana-v3-snapshot-freshness.js'" "$sw"
-          grep -q "sana-v3-demo-shell-v22" "$sw"
+          grep -q "'/sana-v3-due-diligence-gaps.js'" "$sw"
+          grep -q "sana-v3-demo-shell-v23" "$sw"
       - name: Assert no external execution or financial authority
         shell: bash
         run: |
           set -euo pipefail
-          files='apps/control-web/public/sana-v3-reports-provenance.js apps/control-web/public/sana-v3-report-snapshot-sync.js apps/control-web/public/sana-v3-snapshot-compare.js apps/control-web/public/sana-v3-snapshot-freshness.js apps/control-web/public/sana-v3-capital-dossier.js apps/control-web/public/sana-v3-impact-methodology.js'
+          files='apps/control-web/public/sana-v3-reports-provenance.js apps/control-web/public/sana-v3-report-snapshot-sync.js apps/control-web/public/sana-v3-snapshot-compare.js apps/control-web/public/sana-v3-snapshot-freshness.js apps/control-web/public/sana-v3-due-diligence-gaps.js apps/control-web/public/sana-v3-capital-dossier.js apps/control-web/public/sana-v3-impact-methodology.js'
           ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|graph\.microsoft\.com|Authorization:[[:space:]]*Bearer|access_token|refresh_token|client_secret' $files
           ! grep -Eiq 'productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true|investmentApproved[[:space:]]*=[[:space:]]*true|accountingClosed[[:space:]]*=[[:space:]]*true|kycApproved[[:space:]]*=[[:space:]]*true' $files
-          ! grep -Eiq 'approveInvestment|investmentRecommendation|eligibilityApproved|creditApproved|executePayment|custodyFunds' apps/control-web/public/sana-v3-snapshot-compare.js apps/control-web/public/sana-v3-snapshot-freshness.js
+          ! grep -Eiq 'approveInvestment|investmentRecommendation|eligibilityApproved|creditApproved|executePayment|custodyFunds' apps/control-web/public/sana-v3-snapshot-compare.js apps/control-web/public/sana-v3-snapshot-freshness.js apps/control-web/public/sana-v3-due-diligence-gaps.js
           grep -q 'no recomienda invertir' apps/control-web/public/sana-v3-capital-dossier.js
           grep -q 'no capta recursos' apps/control-web/public/sana-v3-capital-dossier.js
           grep -q 'No existe envío, firma, ACL, upload ni escritura a un Data Room externo' apps/control-web/public/sana-v3-reports-provenance.js
           grep -q 'Readiness y snapshot no sustituyen due diligence humana o regulatoria' apps/control-web/public/sana-v3-reports-provenance.js
           grep -q 'READ_ONLY_DIFF · CHANGE ≠ IMPROVEMENT ≠ CAUSALITY ≠ INVESTMENT_SIGNAL' apps/control-web/public/sana-v3-snapshot-compare.js
           grep -q 'FRESHNESS_ONLY · NO_INVESTMENT_SIGNAL' apps/control-web/public/sana-v3-snapshot-freshness.js
+          grep -q 'SNAPSHOT_GAPS_ONLY · DOCUMENTARY_PRIORITY ≠ CREDIT_RISK ≠ ELIGIBILITY ≠ INVESTMENT_RECOMMENDATION' apps/control-web/public/sana-v3-due-diligence-gaps.js
