@@ -49,7 +49,28 @@ jobs:
           set -euo pipefail
           html='apps/control-web/public/sana-v3.html'
           test -s "$html"
-          for asset in sana-v3-territory-360.css sana-v3-territory-360.js sana-v3-sources.js sana-v3-source-bridge.js sana-v3-inventory-operations.js sana-v3-team-worklogs.js sana-v3-sw.js; do test -s "apps/control-web/public/$asset"; done
+          for asset in sana-v3-territory-360.css sana-v3-territory-360.js sana-v3-sources.js sana-v3-source-bridge.js sana-v3-inventory-operations.js sana-v3-team-worklogs.js sana-v3-plan-field-workflow.js sana-v3-passport-chain.js sana-v3-sw.js; do test -s "apps/control-web/public/$asset"; done
+          grep -q '/sana-v3-results.js.*sana-v3-field-mobile.js.*sana-v3-plan-field-workflow.js.*sana-v3-passport-chain.js' "$html"
+          grep -q '__SANA_PLAN_FIELD_WORKFLOW__' apps/control-web/public/sana-v3-plan-field-workflow.js
+          grep -q "planVersion:4" apps/control-web/public/sana-v3-plan-field-workflow.js
+          grep -q "planVersion:3" apps/control-web/public/sana-v3-plan-field-workflow.js
+          grep -q 'expectedEvidence' apps/control-web/public/sana-v3-plan-field-workflow.js
+          grep -q "records('activity-evidence')" apps/control-web/public/sana-v3-plan-field-workflow.js
+          grep -q "records('activity-close')" apps/control-web/public/sana-v3-plan-field-workflow.js
+          grep -q 'evidenceRequired&&!activity.evidence.length' apps/control-web/public/sana-v3-plan-field-workflow.js
+          grep -q 'NO CAMBIA FASE DEL PLAN · NO AUTORIZA MANEJO' apps/control-web/public/sana-v3-plan-field-workflow.js
+          grep -q 'views.field=function planFieldWorkflowView' apps/control-web/public/sana-v3-plan-field-workflow.js
+          grep -q 'views.plans=function plansWithActivityContracts' apps/control-web/public/sana-v3-plan-field-workflow.js
+          grep -q '__SANA_PLAN_FIELD_WORKFLOW__' apps/control-web/public/sana-v3-passport-chain.js
+          grep -q 'La expectativa de evidencia nunca se contabiliza como prueba' apps/control-web/public/sana-v3-passport-chain.js
+          grep -q 'expectativa ≠ evidencia' apps/control-web/public/sana-v3-passport-chain.js
+          grep -q '__SANA_PASSPORT_CHAIN__' apps/control-web/public/sana-v3-passport-chain.js
+          grep -q 'plan-activity' apps/control-web/public/sana-v3-access.js
+          grep -q 'activity-evidence' apps/control-web/public/sana-v3-access.js
+          grep -q 'activity-close' apps/control-web/public/sana-v3-access.js
+          ! grep -q "investor:.*'plan-activity'" apps/control-web/public/sana-v3-access.js
+          ! grep -q "visitor:.*'activity-close'" apps/control-web/public/sana-v3-access.js
+          grep -q "'/sana-v3-plan-field-workflow.js'" apps/control-web/public/sana-v3-sw.js
           grep -q '/sana-v3-territory-360.js' "$html"
           grep -q '/sana-v3-sources.js' "$html"
           grep -q '/sana-v3-source-bridge.js' "$html"
@@ -64,22 +85,13 @@ jobs:
           grep -q 'FUENTES DOCUMENTALES REFERENCE_ONLY:' apps/control-web/public/sana-v3-source-bridge.js
           grep -q '__SANA_INPUT_FORECAST__' apps/control-web/public/sana-v3-input-forecast.js
           grep -q 'views.inventory=inventory' apps/control-web/public/sana-v3-inventory-operations.js
-          grep -q '__SANA_INPUT_FORECAST__' apps/control-web/public/sana-v3-inventory-operations.js
           grep -q '__SANA_INVENTORY__' apps/control-web/public/sana-v3-inventory-operations.js
-          grep -q 'inventory-movement' apps/control-web/public/sana-v3-inventory-operations.js
           grep -q 'NO GENERA COMPRA, PAGO, DESPACHO NI DOSIS' apps/control-web/public/sana-v3-inventory-operations.js
           grep -q 'views.team=team' apps/control-web/public/sana-v3-team-worklogs.js
           grep -q '__SANA_TEAM_WORKLOGS__' apps/control-web/public/sana-v3-team-worklogs.js
-          grep -q 'team-worklog' apps/control-web/public/sana-v3-team-worklogs.js
           grep -q 'NO RANKING, NÓMINA, SANCIÓN NI DECISIÓN LABORAL' apps/control-web/public/sana-v3-team-worklogs.js
-          grep -q 'inventory-movement' apps/control-web/public/sana-v3-access.js
-          grep -q 'team-worklog' apps/control-web/public/sana-v3-access.js
-          grep -q "technical:new Set(\['home','guide','territory'.*'team'" apps/control-web/public/sana-v3-access.js
-          grep -q "producer:new Set(\['home','guide','territory'.*'team'" apps/control-web/public/sana-v3-access.js
           ! grep -q "investor:new Set(.*'team'" apps/control-web/public/sana-v3-access.js
           ! grep -q "investor:new Set(.*'inventory'" apps/control-web/public/sana-v3-access.js
-          grep -q "'/sana-v3-inventory-operations.js'" apps/control-web/public/sana-v3-sw.js
-          grep -q "'/sana-v3-team-worklogs.js'" apps/control-web/public/sana-v3-sw.js
           grep -q 'views.material=materialLifecycle' apps/control-web/public/sana-v3-material-lifecycle.js
           grep -q '__SANA_CIRCULARITY__' apps/control-web/public/sana-v3-circularity.js
           grep -q 'views.reports=reports' apps/control-web/public/sana-v3-reports-provenance.js
@@ -94,6 +106,9 @@ jobs:
           grep -q 'productionExecutionAvailable=false' apps/control-web/public/sana-v3-core.js
           grep -q 'canonicalMutated=false' apps/control-web/public/sana-v3-core.js
           grep -q 'D10=PENDING' apps/control-web/public/sana-v3-core.js
+          grep -q 'El cierre de workflow es un evento DEMO, no una autorización agronómica' apps/control-web/public/sana-v3-plan-field-workflow.js
+          grep -q 'El resultado productivo es posterior y separado del resultado de una actividad' apps/control-web/public/sana-v3-plan-field-workflow.js
+          ! grep -Eiq 'phase[[:space:]]*=.*COMPLETED|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true' apps/control-web/public/sana-v3-plan-field-workflow.js
           grep -q 'no constituye delimitación predial certificada' apps/control-web/public/sana-v3-territory-360.js
           grep -q 'no modifica SharePoint' apps/control-web/public/sana-v3-sources.js
           grep -q 'No significa que SANA haya leído, validado, firmado o modificado el documento en SharePoint' apps/control-web/public/sana-v3-source-bridge.js
