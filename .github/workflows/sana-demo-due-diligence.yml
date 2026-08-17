@@ -1,0 +1,120 @@
+name: SANA Demo Due Diligence
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-reports-provenance.js'
+      - 'apps/control-web/public/sana-v3-report-snapshot-sync.js'
+      - 'apps/control-web/public/sana-v3-capital-dossier.js'
+      - 'apps/control-web/public/sana-v3-impact-methodology.js'
+      - 'apps/control-web/public/sana-v3-access.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - '.github/workflows/sana-demo-due-diligence.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-reports-provenance.js'
+      - 'apps/control-web/public/sana-v3-report-snapshot-sync.js'
+      - 'apps/control-web/public/sana-v3-capital-dossier.js'
+      - 'apps/control-web/public/sana-v3-impact-methodology.js'
+      - 'apps/control-web/public/sana-v3-access.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - '.github/workflows/sana-demo-due-diligence.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  due-diligence-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate JavaScript syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          for f in \
+            apps/control-web/public/sana-v3-reports-provenance.js \
+            apps/control-web/public/sana-v3-report-snapshot-sync.js \
+            apps/control-web/public/sana-v3-capital-dossier.js \
+            apps/control-web/public/sana-v3-impact-methodology.js \
+            apps/control-web/public/sana-v3-access.js; do
+            node --check "$f"
+          done
+      - name: Validate canonical read models and assembly
+        shell: bash
+        run: |
+          set -euo pipefail
+          reports='apps/control-web/public/sana-v3-reports-provenance.js'
+          sync='apps/control-web/public/sana-v3-report-snapshot-sync.js'
+          capital='apps/control-web/public/sana-v3-capital-dossier.js'
+          impact='apps/control-web/public/sana-v3-impact-methodology.js'
+          access='apps/control-web/public/sana-v3-access.js'
+          html='apps/control-web/public/sana-v3.html'
+          sw='apps/control-web/public/sana-v3-sw.js'
+
+          grep -q '__SANA_IMPACT__' "$impact"
+          grep -q 'function summary()' "$impact"
+          grep -q 'IMPACT_METHOD_REVIEW ≠ EXTERNAL_VERIFICATION ≠ CERTIFICATION ≠ CAUSALITY' "$impact"
+          grep -q 'impact-methodology-review' "$impact"
+          grep -q "technical:\[[^]]*'impact-methodology-review'" "$access"
+          grep -q "\['\[data-impact-review\]','impact-methodology-review'\]" "$access"
+          ! grep -q "investor:.*'impact-methodology-review'" "$access"
+          ! grep -q "producer:.*'impact-methodology-review'" "$access"
+
+          grep -q 'function operationsEvidence()' "$capital"
+          grep -q '__SANA_PLAN_FIELD_WORKFLOW__' "$capital"
+          grep -q 'planCoverage.*closureCoverage.*evidenceCoverage' "$capital"
+          ! grep -q '__SANA_CYCLE_CLOSURE__' "$capital"
+          grep -q 'no recicla la completitud total de Cierre de ciclo' "$capital"
+          grep -q 'function impactEvidence()' "$capital"
+          grep -q '__SANA_IMPACT__' "$capital"
+          ! grep -q 'impactMethodologyReviewed' "$capital"
+          grep -q "canConfigure=\['admin','producer'\]" "$capital"
+          grep -q 'Inferir retorno o capacidad de pago' "$capital"
+
+          grep -q "SNAPSHOT_SCHEMA='SANA_DUE_DILIGENCE_SNAPSHOT_V1'" "$reports"
+          grep -q '__SANA_DUE_DILIGENCE_SNAPSHOT__' "$reports"
+          grep -q 'function currentManifest' "$reports"
+          grep -q '__SANA_CYCLE_CLOSURE__' "$reports"
+          grep -q '__SANA_PASSPORT_CHAIN__' "$reports"
+          grep -q '__SANA_ECONOMICS__' "$reports"
+          grep -q '__SANA_DOCUMENT_SOURCES__' "$reports"
+          grep -q '__SANA_IMPACT__' "$reports"
+          grep -q '__SANA_CAPITAL_READINESS__' "$reports"
+          grep -q 'SNAPSHOT_DEMO ≠ EXTERNAL_VERIFICATION' "$reports"
+          grep -q 'NO KYC · NO OFFER · NO CUSTODY · NO PAYMENT · NO EXTERNAL DATA ROOM WRITE' "$reports"
+          grep -q 'El manifest se genera desde contratos fuente' "$reports"
+          grep -q 'textarea name="manifest" hidden' "$reports"
+          grep -q 'name="sources"' "$reports"
+
+          grep -q '__SANA_REPORT_SNAPSHOT_SYNC__' "$sync"
+          grep -q "modalAction==='report-snapshot'" "$sync"
+          grep -q 'manifest.cutoff=' "$sync"
+          grep -q 'manifest.reviewer=' "$sync"
+          grep -q 'FORM_CONTEXT_BOUND · SNAPSHOT_DEMO · NO_EXTERNAL_WRITE' "$sync"
+
+          grep -q "technical:\[[^]]*'report-snapshot'" "$access"
+          grep -q "producer:\[[^]]*'report-snapshot'" "$access"
+          ! grep -q "investor:.*'report-snapshot'" "$access"
+          grep -q "\['\[data-report-snapshot\]','report-snapshot'\]" "$access"
+
+          grep -q '/sana-v3-reports-provenance.js.*sana-v3-report-snapshot-sync.js' "$html"
+          grep -q "'/sana-v3-report-snapshot-sync.js'" "$sw"
+          grep -q "sana-v3-demo-shell-v20" "$sw"
+      - name: Assert no external execution or financial authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          files='apps/control-web/public/sana-v3-reports-provenance.js apps/control-web/public/sana-v3-report-snapshot-sync.js apps/control-web/public/sana-v3-capital-dossier.js apps/control-web/public/sana-v3-impact-methodology.js'
+          ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|graph\.microsoft\.com|Authorization:[[:space:]]*Bearer|access_token|refresh_token|client_secret' $files
+          ! grep -Eiq 'productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true|investmentApproved[[:space:]]*=[[:space:]]*true|accountingClosed[[:space:]]*=[[:space:]]*true|kycApproved[[:space:]]*=[[:space:]]*true' $files
+          grep -q 'no recomienda invertir' apps/control-web/public/sana-v3-capital-dossier.js
+          grep -q 'no capta recursos' apps/control-web/public/sana-v3-capital-dossier.js
+          grep -q 'No existe envío, firma, ACL, upload ni escritura a un Data Room externo' apps/control-web/public/sana-v3-reports-provenance.js
+          grep -q 'Readiness y snapshot no sustituyen due diligence humana o regulatoria' apps/control-web/public/sana-v3-reports-provenance.js
