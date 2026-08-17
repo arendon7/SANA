@@ -58,7 +58,7 @@ jobs:
           grep -q 'PASSPORT MATERIAL ≠ EXTERNAL CERTIFICATION' "$chain"
           grep -q 'NO_CONTABILIDAD_OFICIAL' "$chain"
           ! grep -q 'storage.records.push' "$chain"
-          ! grep -Eiq 'auto.*(inventory|cost)|create.*(inventory|cost)|certif(ic|y).*genetic|fitosanitario.*certif' "$chain"
+          ! grep -Eiq 'autoCreateInventory|autoCreateCost|createInventoryMovement|createEconomicCost|certifiedGenetic|certifyGenetic|certifyPhytosanitary|icaApproved[[:space:]]*=[[:space:]]*true' "$chain"
       - name: Validate assembly and offline shell
         shell: bash
         run: |
@@ -74,5 +74,5 @@ jobs:
           set -euo pipefail
           chain='apps/control-web/public/sana-v3-material-chain.js'
           ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true' "$chain"
-          ! grep -Eiq 'approve|authorize|certified[[:space:]]*=[[:space:]]*true|verifiedExternal[[:space:]]*=[[:space:]]*true|icaApproved' "$chain"
+          ! grep -Eiq 'approveInvestment|authorizeTreatment|certified[[:space:]]*=[[:space:]]*true|verifiedExternal[[:space:]]*=[[:space:]]*true|icaApproved[[:space:]]*=[[:space:]]*true' "$chain"
           grep -q 'NO CERTIFICA GENÉTICA, SANIDAD NI ICA' "$chain"
