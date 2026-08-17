@@ -6,12 +6,12 @@
   const rawRole=String(identity?.role||'new_user').toLowerCase();
   const role=rawRole.includes('admin')?'admin':rawRole.includes('technical')||rawRole.includes('técn')?'technical':rawRole.includes('producer')||rawRole.includes('productor')?'producer':rawRole.includes('invest')?'investor':rawRole.includes('visitor')||rawRole.includes('guest')?'visitor':'new_user';
 
-  const allViews=['home','guide','territory','characterization','material','plans','field','phenology','nutrition','health','inventory','forecast','circularity','results','cycle','economics','team','iot','reports','sources','advisory','passport','intelligence','impact','capital','control'];
+  const allViews=['home','guide','territory','characterization','material','plans','field','phenology','nutrition','health','inventory','forecast','circularity','results','cycle','economics','team','iot','reports','dataroom','sources','advisory','passport','intelligence','impact','capital','control'];
   const viewPolicy={
     admin:new Set(allViews),
-    technical:new Set(['home','guide','territory','characterization','material','plans','field','phenology','nutrition','health','inventory','forecast','circularity','results','cycle','economics','team','iot','reports','sources','advisory','passport','intelligence','impact','capital']),
-    producer:new Set(['home','guide','territory','characterization','material','plans','field','phenology','nutrition','health','inventory','forecast','circularity','results','cycle','economics','team','iot','reports','sources','advisory','passport','intelligence','impact','capital']),
-    investor:new Set(['home','territory','forecast','circularity','results','cycle','economics','reports','sources','passport','impact','capital']),
+    technical:new Set(['home','guide','territory','characterization','material','plans','field','phenology','nutrition','health','inventory','forecast','circularity','results','cycle','economics','team','iot','reports','dataroom','sources','advisory','passport','intelligence','impact','capital']),
+    producer:new Set(['home','guide','territory','characterization','material','plans','field','phenology','nutrition','health','inventory','forecast','circularity','results','cycle','economics','team','iot','reports','dataroom','sources','advisory','passport','intelligence','impact','capital']),
+    investor:new Set(['home','territory','forecast','circularity','results','cycle','economics','reports','dataroom','sources','passport','impact','capital']),
     visitor:new Set(['home','territory','passport','impact','capital']),
     new_user:new Set(['home','guide','characterization','passport','impact','capital'])
   };
