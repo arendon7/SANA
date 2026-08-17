@@ -49,10 +49,32 @@ jobs:
           set -euo pipefail
           html='apps/control-web/public/sana-v3.html'
           test -s "$html"
-          for asset in sana-v3-territory-360.css sana-v3-territory-360.js sana-v3-sources.js sana-v3-source-bridge.js sana-v3-inventory-operations.js sana-v3-team-worklogs.js sana-v3-plan-field-workflow.js sana-v3-passport-chain.js sana-v3-activity-relations.js sana-v3-cycle-closure.js sana-v3-operational-journey.js sana-v3-sw.js; do test -s "apps/control-web/public/$asset"; done
+          for asset in sana-v3-territory-360.css sana-v3-territory-360.js sana-v3-sources.js sana-v3-source-bridge.js sana-v3-inventory-operations.js sana-v3-team-worklogs.js sana-v3-plan-field-workflow.js sana-v3-passport-chain.js sana-v3-activity-relations.js sana-v3-cycle-closure.js sana-v3-operational-journey.js sana-v3-economics.js sana-v3-sw.js; do test -s "apps/control-web/public/$asset"; done
           grep -q '/sana-v3-results.js.*sana-v3-field-mobile.js.*sana-v3-plan-field-workflow.js.*sana-v3-passport-chain.js' "$html"
           grep -q '/sana-v3-impact-methodology.js.*sana-v3-activity-relations.js.*sana-v3-cycle-closure.js.*sana-v3-capital-dossier.js' "$html"
           grep -q '/sana-v3-role-home.js.*sana-v3-guided-field.js.*sana-v3-operational-journey.js.*sana-v3-runtime.js' "$html"
+          grep -q '__SANA_ECONOMICS__' apps/control-web/public/sana-v3-economics.js
+          grep -q 'function cycleSummary(planId)' apps/control-web/public/sana-v3-economics.js
+          grep -q 'forActivity:activityId=>forActivity' apps/control-web/public/sana-v3-economics.js
+          grep -q 'activityId + planId + planVersion' apps/control-web/public/sana-v3-economics.js
+          grep -q 'BASELINE_DEMO ≠ LOCAL_ONLY_COST ≠ ACCOUNTING_ENTRY ≠ REALIZED_REVENUE' apps/control-web/public/sana-v3-economics.js
+          grep -q 'COST LINK ≠ ACCOUNTING ENTRY' apps/control-web/public/sana-v3-economics.js
+          grep -q '__SANA_ECONOMICS__?.cycleSummary' apps/control-web/public/sana-v3-cycle-closure.js
+          ! grep -q "storage.records.filter(r=>r.type==='economics-cost'" apps/control-web/public/sana-v3-cycle-closure.js
+          grep -q 'BASELINE_DEMO ≠ ITEMIZED_CYCLE_COST' apps/control-web/public/sana-v3-cycle-closure.js
+          grep -q 'Economía explícita con soporte' apps/control-web/public/sana-v3-cycle-closure.js
+          grep -q "'economics-cost'].includes" apps/control-web/public/sana-v3-passport-chain.js
+          grep -q "chainBlock('07','Procedencia económica'" apps/control-web/public/sana-v3-passport-chain.js
+          grep -q '__SANA_ECONOMICS__' apps/control-web/public/sana-v3-passport-chain.js
+          grep -q 'costo nunca se confunde con prueba agronómica' apps/control-web/public/sana-v3-passport-chain.js
+          grep -q '__SANA_ECONOMICS__?.cycleSummary' apps/control-web/public/sana-v3-operational-journey.js
+          grep -q 'No se calcula ROI, IRR, utilidad realizada ni recomendación' apps/control-web/public/sana-v3-operational-journey.js
+          grep -q "technical:\[[^]]*'economics-cost'[^]]*'economics-scenario'" apps/control-web/public/sana-v3-access.js
+          grep -q "producer:\[[^]]*'economics-cost'[^]]*'economics-scenario'" apps/control-web/public/sana-v3-access.js
+          grep -q "\['\[data-econ-cost\]','economics-cost'\]" apps/control-web/public/sana-v3-access.js
+          grep -q "\['\[data-econ-scenario\]','economics-scenario'\]" apps/control-web/public/sana-v3-access.js
+          ! grep -q "investor:.*'economics-cost'" apps/control-web/public/sana-v3-access.js
+          ! grep -q "investor:.*'economics-scenario'" apps/control-web/public/sana-v3-access.js
           grep -q '__SANA_OPERATIONAL_JOURNEY__' apps/control-web/public/sana-v3-operational-journey.js
           grep -q '__SANA_PLAN_FIELD_WORKFLOW__' apps/control-web/public/sana-v3-operational-journey.js
           grep -q '__SANA_CYCLE_CLOSURE__' apps/control-web/public/sana-v3-operational-journey.js
@@ -119,11 +141,16 @@ jobs:
           grep -q 'productionExecutionAvailable=false' apps/control-web/public/sana-v3-core.js
           grep -q 'canonicalMutated=false' apps/control-web/public/sana-v3-core.js
           grep -q 'D10=PENDING' apps/control-web/public/sana-v3-core.js
+          grep -q 'BASELINE_DEMO ≠ LOCAL_ONLY_COST ≠ ACCOUNTING_ENTRY ≠ REALIZED_REVENUE' apps/control-web/public/sana-v3-economics.js
+          grep -q 'no infiere venta, precio realizado, recaudo, utilidad ni margen contable' apps/control-web/public/sana-v3-economics.js
+          grep -q 'no se reasigna retroactivamente a una actividad o plan' apps/control-web/public/sana-v3-economics.js
+          grep -q 'El baseline agregado' apps/control-web/public/sana-v3-cycle-closure.js
+          grep -q 'No se calcula ROI, IRR, utilidad realizada ni recomendación' apps/control-web/public/sana-v3-operational-journey.js
+          ! grep -Eiq 'roi[[:space:]]*[:=][[:space:]]*[0-9]|irr[[:space:]]*[:=][[:space:]]*[0-9]|realizedRevenue[[:space:]]*=[[:space:]]*[1-9]|accountingClosed[[:space:]]*=[[:space:]]*true' apps/control-web/public/sana-v3-economics.js apps/control-web/public/sana-v3-cycle-closure.js apps/control-web/public/sana-v3-operational-journey.js
           grep -q 'SANA organiza; no decide manejo' apps/control-web/public/sana-v3-operational-journey.js
           grep -q 'La completitud no es score de inversión, rendimiento ni impacto' apps/control-web/public/sana-v3-operational-journey.js
           ! grep -Eiq 'productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true|investmentRecommendation' apps/control-web/public/sana-v3-operational-journey.js
           grep -q 'La completitud mide reconstrucción documental: no rendimiento, rentabilidad, causalidad ni certificación' apps/control-web/public/sana-v3-cycle-closure.js
-          grep -q 'No se infiere venta, ingreso ni margen contable' apps/control-web/public/sana-v3-cycle-closure.js
           grep -q 'No demuestra que una actividad haya causado un cambio' apps/control-web/public/sana-v3-cycle-closure.js
           ! grep -Eiq 'certified[[:space:]]*=[[:space:]]*true|investmentApproved[[:space:]]*=[[:space:]]*true|impactVerified[[:space:]]*=[[:space:]]*true' apps/control-web/public/sana-v3-cycle-closure.js
           grep -q 'El cierre de workflow es un evento DEMO, no una autorización agronómica' apps/control-web/public/sana-v3-plan-field-workflow.js
