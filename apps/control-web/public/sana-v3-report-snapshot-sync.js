@@ -27,12 +27,44 @@
     });
     return manifest;
   }
+  function enrichImpact(manifest){
+    const ledger=window.__SANA_IMPACT_LEDGER__;
+    if(!manifest||!ledger?.rows)return manifest;
+    const rows=ledger.rows();
+    manifest.impact={
+      ...(manifest.impact||{}),
+      indicators:rows.map(row=>({
+        id:row.id,
+        layer:row.layer,
+        name:row.name,
+        baseline:row.baseline?.value,
+        current:row.observation?.value,
+        unit:row.baseline?.unit||row.observation?.unit||'',
+        calculation:row.calculation?.value||'',
+        estimated:Boolean(row.estimation?.explicit),
+        estimationType:row.estimation?.type||'',
+        quality:row.provenance?.quality||'',
+        qualityScore:row.provenance?.qualityScore??null,
+        verification:row.verification?.state||'',
+        method:row.calculation?.method||'',
+        source:row.provenance?.source||'',
+        frequency:row.provenance?.frequency||'',
+        boundaryUnit:row.boundary?.unit||'',
+        boundaryScope:row.boundary?.scope||'',
+        boundaryPeriod:row.boundary?.period||'',
+        temporalState:'SNAPSHOT_CAPTURED_FROM_LIVE_METHOD'
+      })),
+      methodologyGranularity:'ADDITIVE_V1 · IMPACT_LEDGER',
+      ledgerCapturedAt:new Date().toISOString()
+    };
+    return manifest;
+  }
   function syncManifest(){
     const form=activeForm();
     const api=window.__SANA_DUE_DILIGENCE_SNAPSHOT__;
     if(!form||!api?.currentManifest||!api?.schema)return;
     const reportType=form.querySelector('[name="reportType"]')?.value||'RPT-DD';
-    const manifest=enrichEconomics(api.currentManifest(reportType));
+    const manifest=enrichImpact(enrichEconomics(api.currentManifest(reportType)));
     if(!manifest||manifest.schema!==api.schema)return;
     manifest.cutoff=form.querySelector('[name="cutoff"]')?.value||'';
     manifest.reviewer=form.querySelector('[name="reviewer"]')?.value||'';
@@ -54,5 +86,5 @@
     if(event.target.closest('#modal-save')&&typeof modalAction!=='undefined'&&modalAction==='report-snapshot')syncManifest();
   },true);
 
-  window.__SANA_REPORT_SNAPSHOT_SYNC__=Object.freeze({syncManifest,enrichEconomics,integrity:'FORM_CONTEXT_BOUND · ADDITIVE_V1_PROVENANCE · SNAPSHOT_DEMO · NO_EXTERNAL_WRITE'});
+  window.__SANA_REPORT_SNAPSHOT_SYNC__=Object.freeze({syncManifest,enrichEconomics,enrichImpact,integrity:'FORM_CONTEXT_BOUND · ADDITIVE_V1_PROVENANCE · ECONOMICS_AND_IMPACT · SNAPSHOT_DEMO · NO_EXTERNAL_WRITE'});
 })();
