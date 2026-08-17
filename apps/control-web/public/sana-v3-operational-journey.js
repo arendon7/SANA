@@ -8,6 +8,8 @@
 
   function activities(){return window.__SANA_PLAN_FIELD_WORKFLOW__?.activities?.()||[]}
   function dossiers(){return window.__SANA_CYCLE_CLOSURE__?.dossiers?.()||[]}
+  function economyForPlan(planId){return window.__SANA_ECONOMICS__?.cycleSummary?.(planId)||null}
+  function money(n){try{return new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(Number(n)||0)}catch{return `${Number(n)||0} COP`}}
   function priorityValue(v=''){return v==='Alta'?0:v==='Media'?1:2}
   function nextActivity(){
     const list=activities();
@@ -44,7 +46,9 @@
   }
   function investorCard(){
     const d=leastCompleteDossier();if(!d)return '';
-    return `<section class="card" style="margin-top:14px"><div class="card-head"><div><p class="kicker">LECTURA DE CIERRE · SOLO EVIDENCIA</p><h2>${esc(d.plan.id)} · ${esc(d.plan.name)}</h2><p>${d.completeness}% de completitud documental · ${d.evidenceGaps} brecha(s) de evidencia · ${d.open.length} actividad(es) abiertas.</p></div><span class="status warn">READ_ONLY</span></div><div class="card-body"><div class="section-note">La completitud no es score de inversión, rendimiento ni impacto. Solo indica cuánto del expediente puede reconstruirse con las fuentes DEMO actuales.</div><div class="head-actions" style="margin-top:12px"><button class="btn primary" data-journey-cycle="${esc(d.plan.id)}">Abrir Cierre de ciclo</button><button class="btn secondary" data-view-link="passport">Auditar Passport</button></div></div></section>`;
+    const econ=economyForPlan(d.plan.id);
+    const econBlock=econ?`<div class="grid metrics" style="margin-top:12px">${metric('Presupuesto DEMO',money(econ.budget),'escenario operativo · no compromiso')}${metric('BASELINE_DEMO',money(econ.baseRecorded),'agregado histórico · no itemizado','warn')}${metric('LOCAL_ONLY lote',money(econ.localRecorded),`${econ.explicitCosts.length} costo(s) explícitos al ciclo`,econ.localRecorded?'good':'warn')}${metric('Soporte ciclo',`${econ.evidenceCoverage}%`,`${econ.supportedExplicit.length}/${econ.explicitCosts.length} costo(s) explícitos con soporte`,econ.evidenceCoverage===100&&econ.explicitCosts.length?'good':'warn')}</div>`:'<div class="section-note" style="margin-top:12px">Read-model económico no disponible para este plan.</div>';
+    return `<section class="card" style="margin-top:14px"><div class="card-head"><div><p class="kicker">LECTURA DE CIERRE · SOLO EVIDENCIA</p><h2>${esc(d.plan.id)} · ${esc(d.plan.name)}</h2><p>${d.completeness}% de completitud documental · ${d.evidenceGaps} brecha(s) de evidencia · ${d.open.length} actividad(es) abiertas.</p></div><span class="status warn">READ_ONLY</span></div><div class="card-body"><div class="section-note">La completitud no es score de inversión, rendimiento ni impacto. La lectura económica proviene del mismo contrato de Economía: presupuesto/escenario, BASELINE_DEMO y costos LOCAL_ONLY permanecen separados. No se calcula ROI, IRR, utilidad realizada ni recomendación.</div>${econBlock}<div class="head-actions" style="margin-top:12px"><button class="btn primary" data-journey-cycle="${esc(d.plan.id)}">Abrir Cierre de ciclo</button><button class="btn secondary" data-view-link="passport">Auditar Passport</button><button class="btn secondary" data-view-link="economics">Ver procedencia económica</button></div></div></section>`;
   }
 
   const baseHome=views.home;
@@ -68,5 +72,5 @@
     if(event.target.closest('[data-journey-clear]')){localStorage.removeItem('sana.v3.journey.activity');if(typeof render==='function')render();}
   });
 
-  window.__SANA_OPERATIONAL_JOURNEY__=Object.freeze({role,state:journeyState,nextActivity,leastCompleteDossier});
+  window.__SANA_OPERATIONAL_JOURNEY__=Object.freeze({role,state:journeyState,nextActivity,leastCompleteDossier,economyForPlan});
 })();
