@@ -17,6 +17,24 @@
   function good(i){return i.direction==='down'?i.current<i.baseline:i.current>i.baseline}
   function reviewed(){return Boolean(state().humanReviewed)}
   function overallQuality(){return Math.round(INDICATORS.reduce((s,i)=>s+qualityScore(i.quality),0)/INDICATORS.length)}
+  function rows(){return INDICATORS.map(i=>({...i,qualityScore:qualityScore(i.quality),delta:delta(i),trend:good(i)?'FAVORABLE_DEMO':'REVISAR'}))}
+  function summary(){
+    const review=state();
+    const list=rows();
+    return {
+      indicators:list.length,
+      overallQuality:overallQuality(),
+      humanReviewed:Boolean(review.humanReviewed),
+      reviewer:review.by||'',
+      reviewNote:review.note||'',
+      reviewedAt:review.updatedAt||null,
+      internallyVerified:list.filter(i=>i.verification==='INTERNO').length,
+      externallyVerified:list.filter(i=>i.verification==='VERIFICADO_EXTERNO').length,
+      externallyUnverified:list.filter(i=>i.verification==='NO_VERIFICADO_EXTERNO').length,
+      estimated:list.filter(i=>i.quality==='ESTIMADO').length,
+      integrity:'IMPACT_METHOD_REVIEW ≠ EXTERNAL_VERIFICATION ≠ CERTIFICATION ≠ CAUSALITY'
+    };
+  }
 
   function impactMethodology(){
     const review=state();
@@ -29,6 +47,7 @@
   }
 
   views.impact=impactMethodology;
+  window.__SANA_IMPACT__=Object.freeze({rows:()=>rows().map(i=>({...i,delta:{...i.delta}})),summary,review:()=>({...state()}),overallQuality,integrity:'REVIEWED_DEMO ≠ VERIFIED_EXTERNAL ≠ CERTIFIED'});
 
   document.addEventListener('click',event=>{
     const button=event.target.closest('[data-impact-review]');
