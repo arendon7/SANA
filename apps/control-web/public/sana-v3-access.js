@@ -6,20 +6,20 @@
   const rawRole=String(identity?.role||'new_user').toLowerCase();
   const role=rawRole.includes('admin')?'admin':rawRole.includes('technical')||rawRole.includes('técn')?'technical':rawRole.includes('producer')||rawRole.includes('productor')?'producer':rawRole.includes('invest')?'investor':rawRole.includes('visitor')||rawRole.includes('guest')?'visitor':'new_user';
 
-  const allViews=['home','guide','territory','characterization','material','plans','field','phenology','nutrition','health','inventory','forecast','circularity','results','economics','team','iot','reports','advisory','passport','intelligence','impact','capital','control'];
+  const allViews=['home','guide','territory','characterization','material','plans','field','phenology','nutrition','health','inventory','forecast','circularity','results','economics','team','iot','reports','sources','advisory','passport','intelligence','impact','capital','control'];
   const viewPolicy={
     admin:new Set(allViews),
-    technical:new Set(['home','guide','territory','characterization','material','plans','field','phenology','nutrition','health','inventory','forecast','circularity','results','economics','iot','reports','advisory','passport','intelligence','impact','capital']),
-    producer:new Set(['home','guide','territory','characterization','material','plans','field','phenology','nutrition','health','inventory','forecast','circularity','results','economics','iot','reports','advisory','passport','intelligence','impact','capital']),
-    investor:new Set(['home','territory','forecast','circularity','results','economics','reports','passport','impact','capital']),
+    technical:new Set(['home','guide','territory','characterization','material','plans','field','phenology','nutrition','health','inventory','forecast','circularity','results','economics','iot','reports','sources','advisory','passport','intelligence','impact','capital']),
+    producer:new Set(['home','guide','territory','characterization','material','plans','field','phenology','nutrition','health','inventory','forecast','circularity','results','economics','iot','reports','sources','advisory','passport','intelligence','impact','capital']),
+    investor:new Set(['home','territory','forecast','circularity','results','economics','reports','sources','passport','impact','capital']),
     visitor:new Set(['home','territory','passport','impact','capital']),
     new_user:new Set(['home','guide','characterization','passport','impact','capital'])
   };
 
   const actionPolicy={
     admin:['*'],
-    technical:['guided-checkpoint','fieldRecord','quickField','task-toggle','phenology','nutrition','health','inventory','material','material-lifecycle-event','sensor','visit','structured-visit','agronomist-case','input-forecast-adjustment','plan','plan-review','harvest-result','circularity-residue','report','reportOpen','report-snapshot','methodology','impact-methodology','knowledge','exportPassport','queue-review'],
-    producer:['guided-checkpoint','fieldRecord','quickField','task-toggle','phenology','nutrition','health','inventory','material-lifecycle-event','structured-visit','agronomist-case','input-forecast-adjustment','harvest-result','circularity-residue','cost','report-snapshot','methodology','reportOpen','exportPassport','queue-review','characterization:*','capital-dossier'],
+    technical:['guided-checkpoint','fieldRecord','quickField','task-toggle','phenology','nutrition','health','inventory','material','material-lifecycle-event','sensor','visit','structured-visit','agronomist-case','input-forecast-adjustment','plan','plan-review','harvest-result','circularity-residue','report','reportOpen','report-snapshot','document-source-link','methodology','impact-methodology','knowledge','exportPassport','queue-review'],
+    producer:['guided-checkpoint','fieldRecord','quickField','task-toggle','phenology','nutrition','health','inventory','material-lifecycle-event','structured-visit','agronomist-case','input-forecast-adjustment','harvest-result','circularity-residue','cost','report-snapshot','document-source-link','methodology','reportOpen','exportPassport','queue-review','characterization:*','capital-dossier'],
     investor:['reportOpen','methodology','exportPassport'],
     visitor:['methodology','exportPassport'],
     new_user:['guided-checkpoint','methodology','exportPassport','characterization:*']
@@ -32,7 +32,7 @@
   function defaultView(){return canView('home')?'home':[...(viewPolicy[role]||[])][0]||'home'}
   function deny(message='Esta acción no está disponible para este rol DEMO.'){if(typeof window.toast==='function')window.toast('Permiso DEMO',message,'warn');else window.dispatchEvent(new CustomEvent('sana:access-denied',{detail:{message,role}}))}
 
-  const selectorActions=[['[data-guide-complete]','guided-checkpoint'],['[data-task]','task-toggle'],['[data-queue]','queue-review'],['[data-field-quick]','quickField'],['[data-character-section]','characterization:*'],['[data-material-event]','material-lifecycle-event'],['[data-plan-review]','plan-review'],['[data-plan-transition]','plan-review'],['[data-structured-visit]','structured-visit'],['[data-agronomist-case]','agronomist-case'],['[data-forecast-adjust]','input-forecast-adjustment'],['[data-report-snapshot]','report-snapshot'],['[data-harvest-result]','harvest-result'],['[data-circularity-residue]','circularity-residue'],['[data-capital-config]','capital-dossier'],['[data-economics-cost]','cost'],['[data-impact-methodology]','impact-methodology']];
+  const selectorActions=[['[data-guide-complete]','guided-checkpoint'],['[data-task]','task-toggle'],['[data-queue]','queue-review'],['[data-field-quick]','quickField'],['[data-character-section]','characterization:*'],['[data-material-event]','material-lifecycle-event'],['[data-plan-review]','plan-review'],['[data-plan-transition]','plan-review'],['[data-structured-visit]','structured-visit'],['[data-agronomist-case]','agronomist-case'],['[data-forecast-adjust]','input-forecast-adjustment'],['[data-report-snapshot]','report-snapshot'],['[data-document-source]','document-source-link'],['[data-harvest-result]','harvest-result'],['[data-circularity-residue]','circularity-residue'],['[data-capital-config]','capital-dossier'],['[data-economics-cost]','cost'],['[data-impact-methodology]','impact-methodology']];
   function enforceNav(){document.querySelectorAll('[data-view]').forEach(button=>{const allowed=canView(button.dataset.view);button.hidden=!allowed;button.setAttribute('aria-hidden',String(!allowed));if(!allowed)button.tabIndex=-1})}
   function enforceRoleLabel(){const [name,context]=roleLabels[role]||roleLabels.new_user;const nameNode=document.getElementById('role-name');const contextNode=document.getElementById('role-context');if(nameNode)nameNode.textContent=name;if(contextNode)contextNode.textContent=context}
   function wrapRuntime(){
