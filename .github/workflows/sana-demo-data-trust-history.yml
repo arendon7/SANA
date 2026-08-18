@@ -1,0 +1,100 @@
+name: SANA Demo Data Trust History
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-data-trust.js'
+      - 'apps/control-web/public/sana-v3-report-snapshot-data-trust.js'
+      - 'apps/control-web/public/sana-v3-dataroom-data-trust-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-data-trust-gaps.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-remediation.js'
+      - 'apps/control-web/public/sana-v3-dd-next-cut.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-data-trust-snapshot.mjs'
+      - 'scripts/validate-sana-data-trust-gaps.mjs'
+      - '.github/workflows/sana-demo-data-trust-history.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-data-trust.js'
+      - 'apps/control-web/public/sana-v3-report-snapshot-data-trust.js'
+      - 'apps/control-web/public/sana-v3-dataroom-data-trust-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-data-trust-gaps.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-remediation.js'
+      - 'apps/control-web/public/sana-v3-dd-next-cut.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-data-trust-snapshot.mjs'
+      - 'scripts/validate-sana-data-trust-gaps.mjs'
+      - '.github/workflows/sana-demo-data-trust-history.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  data-trust-history-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-report-snapshot-data-trust.js
+          node --check apps/control-web/public/sana-v3-dataroom-data-trust-history.js
+          node --check apps/control-web/public/sana-v3-due-diligence-data-trust-gaps.js
+          node scripts/validate-sana-data-trust-snapshot.mjs
+          node scripts/validate-sana-data-trust-gaps.mjs
+      - name: Validate snapshot-only history boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          sync='apps/control-web/public/sana-v3-report-snapshot-data-trust.js'
+          history='apps/control-web/public/sana-v3-dataroom-data-trust-history.js'
+          grep -q '__SANA_REPORT_SNAPSHOT_DATA_TRUST__' "$sync"
+          grep -q 'ADDITIVE_V1 · DATA_TRUST' "$sync"
+          grep -q 'NO_ACCOUNT_STATUS_TO_RECORD_ACK_INFERENCE' "$sync"
+          grep -q 'NO_ACK_TO_HARDWARE_VERIFICATION_INFERENCE' "$sync"
+          grep -q 'NO_READING_TO_VALIDATION_INFERENCE' "$sync"
+          grep -q '__SANA_DATAROOM_DATA_TRUST_HISTORY__' "$history"
+          grep -q 'NO_LIVE_FALLBACK' "$history"
+          grep -q 'ACCOUNT_SYNC_STATUS ≠ RECORD_ACK' "$history"
+          grep -q 'CHANGE ≠ IMPROVEMENT ≠ RECORD_ACK' "$history"
+          ! grep -q '__SANA_DATA_TRUST__' "$history"
+          ! grep -q 'storage\.' "$history"
+      - name: Validate documentary gaps only
+        shell: bash
+        run: |
+          set -euo pipefail
+          gaps='apps/control-web/public/sana-v3-due-diligence-data-trust-gaps.js'
+          grep -q '__SANA_DD_DATA_TRUST_GAPS__' "$gaps"
+          grep -q 'READING_OR_NO_ACK ≠ GAP' "$gaps"
+          grep -q 'HARDWARE_NOT_VERIFIED ≠ GAP' "$gaps"
+          grep -q 'DATA TRUST GAP ≠ SENSOR FAILURE ≠ AGRONOMIC PERFORMANCE ≠ CREDIT RISK ≠ INVESTMENT SIGNAL' "$gaps"
+          grep -q 'SERVER_ACK_DEMO_EXPLICIT' "$gaps"
+          grep -q 'CONFLICT_REVIEW_REQUIRED' "$gaps"
+          ! grep -q '__SANA_DATA_TRUST__' "$gaps"
+          ! grep -q 'storage\.' "$gaps"
+      - name: Validate assembly and active v44 shell
+        shell: bash
+        run: |
+          set -euo pipefail
+          html='apps/control-web/public/sana-v3.html'; sw='apps/control-web/public/sana-v3-sw.js'
+          grep -q '/sana-v3-circularity-ledger.js.*sana-v3-report-snapshot-circularity.js.*sana-v3-report-snapshot-data-trust.js.*sana-v3-cycle-closure.js' "$html"
+          grep -q '/sana-v3-due-diligence-circularity-gaps.js.*sana-v3-due-diligence-data-trust-gaps.js.*sana-v3-due-diligence-remediation.js' "$html"
+          grep -q '/sana-v3-dataroom-circularity-history.js.*sana-v3-dataroom-data-trust-history.js.*sana-v3-dataroom-entry.js' "$html"
+          grep -q "'/sana-v3-report-snapshot-data-trust.js'" "$sw"
+          grep -q "'/sana-v3-due-diligence-data-trust-gaps.js'" "$sw"
+          grep -q "'/sana-v3-dataroom-data-trust-history.js'" "$sw"
+          grep -q "^const CACHE='sana-v3-demo-shell-v44';" "$sw"
+      - name: Assert no production or external authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          files='apps/control-web/public/sana-v3-report-snapshot-data-trust.js apps/control-web/public/sana-v3-dataroom-data-trust-history.js apps/control-web/public/sana-v3-due-diligence-data-trust-gaps.js'
+          ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true' $files
+          ! grep -Eiq 'creditApproved|investmentApproved|eligibilityApproved|hardwareVerified[[:space:]]*=[[:space:]]*true|validatedMeasurement[[:space:]]*=[[:space:]]*true|verifiedExternal[[:space:]]*=[[:space:]]*true' $files
