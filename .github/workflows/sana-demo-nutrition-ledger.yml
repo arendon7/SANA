@@ -6,6 +6,9 @@ on:
     paths:
       - 'apps/control-web/public/sana-v3-nutrition-ledger.js'
       - 'apps/control-web/public/sana-v3-cycle-nutrition-provenance.js'
+      - 'apps/control-web/public/sana-v3-report-snapshot-sync.js'
+      - 'apps/control-web/public/sana-v3-dataroom-nutrition-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-nutrition-gaps.js'
       - 'apps/control-web/public/sana-v3-inventory-operations.js'
       - 'apps/control-web/public/sana-v3-plan-field-workflow.js'
       - 'apps/control-web/public/sana-v3-passport-chain.js'
@@ -13,11 +16,16 @@ on:
       - 'apps/control-web/public/sana-v3-sw.js'
       - 'scripts/validate-sana-nutrition-ledger.mjs'
       - 'scripts/validate-sana-cycle-nutrition.mjs'
+      - 'scripts/validate-sana-nutrition-snapshot.mjs'
+      - 'scripts/validate-sana-nutrition-gaps.mjs'
       - '.github/workflows/sana-demo-nutrition-ledger.yml'
   pull_request:
     paths:
       - 'apps/control-web/public/sana-v3-nutrition-ledger.js'
       - 'apps/control-web/public/sana-v3-cycle-nutrition-provenance.js'
+      - 'apps/control-web/public/sana-v3-report-snapshot-sync.js'
+      - 'apps/control-web/public/sana-v3-dataroom-nutrition-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-nutrition-gaps.js'
       - 'apps/control-web/public/sana-v3-inventory-operations.js'
       - 'apps/control-web/public/sana-v3-plan-field-workflow.js'
       - 'apps/control-web/public/sana-v3-passport-chain.js'
@@ -25,6 +33,8 @@ on:
       - 'apps/control-web/public/sana-v3-sw.js'
       - 'scripts/validate-sana-nutrition-ledger.mjs'
       - 'scripts/validate-sana-cycle-nutrition.mjs'
+      - 'scripts/validate-sana-nutrition-snapshot.mjs'
+      - 'scripts/validate-sana-nutrition-gaps.mjs'
       - '.github/workflows/sana-demo-nutrition-ledger.yml'
 
 permissions:
@@ -44,8 +54,13 @@ jobs:
           set -euo pipefail
           node --check apps/control-web/public/sana-v3-nutrition-ledger.js
           node --check apps/control-web/public/sana-v3-cycle-nutrition-provenance.js
+          node --check apps/control-web/public/sana-v3-report-snapshot-sync.js
+          node --check apps/control-web/public/sana-v3-dataroom-nutrition-history.js
+          node --check apps/control-web/public/sana-v3-due-diligence-nutrition-gaps.js
           node scripts/validate-sana-nutrition-ledger.mjs
           node scripts/validate-sana-cycle-nutrition.mjs
+          node scripts/validate-sana-nutrition-snapshot.mjs
+          node scripts/validate-sana-nutrition-gaps.mjs
       - name: Validate nutrition boundaries
         shell: bash
         run: |
@@ -74,6 +89,28 @@ jobs:
           grep -q 'NO_EXPLICIT_RELATION' "$ledger"
           grep -q 'MOVEMENT_DIRECTION_REVIEW' "$ledger"
           ! grep -Eiq 'autoInventoryMovement|autoStockMutation|inventoryMutationAllowed[[:space:]]*=[[:space:]]*true|stockMutationAllowed[[:space:]]*=[[:space:]]*true' "$ledger"
+      - name: Validate snapshot history and gaps
+        shell: bash
+        run: |
+          set -euo pipefail
+          sync='apps/control-web/public/sana-v3-report-snapshot-sync.js'
+          history='apps/control-web/public/sana-v3-dataroom-nutrition-history.js'
+          gaps='apps/control-web/public/sana-v3-due-diligence-nutrition-gaps.js'
+          grep -q 'function enrichNutrition' "$sync"
+          grep -q 'SNAPSHOT_CAPTURED_FROM_NUTRITION_LEDGER' "$sync"
+          grep -q 'ADDITIVE_V1 · NUTRITION_LEDGER' "$sync"
+          grep -q 'NO_PROGRAM_TO_APPLICATION_INFERENCE' "$sync"
+          grep -q 'NO_INVENTORY_MOVEMENT_INFERENCE' "$sync"
+          grep -q '__SANA_DATAROOM_NUTRITION_HISTORY__' "$history"
+          grep -q 'NOT_CAPTURED_IN_SNAPSHOT' "$history"
+          grep -q 'SNAPSHOT_NUTRITION_DIFF_ONLY · CHANGE ≠ IMPROVEMENT ≠ APPLICATION_CAUSALITY ≠ RESPONSE_CAUSALITY ≠ CREDIT_RISK ≠ INVESTMENT_SIGNAL' "$history"
+          ! grep -q '__SANA_NUTRITION_LEDGER__' "$history"
+          ! grep -q 'storage\.' "$history"
+          grep -q '__SANA_DD_NUTRITION_GAPS__' "$gaps"
+          grep -q 'PROGRAM_OR_APPLICATION ≠ GAP' "$gaps"
+          grep -q 'NUTRITION GAP ≠ AGRONOMIC PERFORMANCE ≠ APPLICATION FAILURE ≠ CREDIT RISK ≠ INVESTMENT SIGNAL' "$gaps"
+          ! grep -q '__SANA_NUTRITION_LEDGER__' "$gaps"
+          ! grep -q 'storage\.' "$gaps"
       - name: Validate cycle projection is read-only and non-weighted
         shell: bash
         run: |
@@ -94,13 +131,17 @@ jobs:
           sw='apps/control-web/public/sana-v3-sw.js'
           grep -q '/sana-v3-activity-relations.js.*sana-v3-nutrition-ledger.js.*sana-v3-health-ledger.js' "$html"
           grep -q '/sana-v3-cycle-material-provenance.js.*sana-v3-cycle-nutrition-provenance.js.*sana-v3-cycle-health-provenance.js' "$html"
+          grep -q '/sana-v3-due-diligence-health-gaps.js.*sana-v3-due-diligence-nutrition-gaps.js.*sana-v3-due-diligence-remediation.js' "$html"
+          grep -q '/sana-v3-dataroom-health-history.js.*sana-v3-dataroom-nutrition-history.js.*sana-v3-dataroom-entry.js' "$html"
           grep -q "'/sana-v3-nutrition-ledger.js'" "$sw"
           grep -q "'/sana-v3-cycle-nutrition-provenance.js'" "$sw"
-          grep -q "^const CACHE='sana-v3-demo-shell-v37';" "$sw"
+          grep -q "'/sana-v3-due-diligence-nutrition-gaps.js'" "$sw"
+          grep -q "'/sana-v3-dataroom-nutrition-history.js'" "$sw"
+          grep -q "^const CACHE='sana-v3-demo-shell-v38';" "$sw"
       - name: Assert no production, purchase or financial authority
         shell: bash
         run: |
           set -euo pipefail
-          files='apps/control-web/public/sana-v3-nutrition-ledger.js apps/control-web/public/sana-v3-cycle-nutrition-provenance.js'
+          files='apps/control-web/public/sana-v3-nutrition-ledger.js apps/control-web/public/sana-v3-cycle-nutrition-provenance.js apps/control-web/public/sana-v3-dataroom-nutrition-history.js apps/control-web/public/sana-v3-due-diligence-nutrition-gaps.js apps/control-web/public/sana-v3-report-snapshot-sync.js'
           ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true' $files
-          ! grep -Eiq 'purchaseOrder|executePayment|authorizePayment|autoPurchase|autoDispatch|certified[[:space:]]*=[[:space:]]*true|verifiedExternal[[:space:]]*=[[:space:]]*true|icaApproved[[:space:]]*=[[:space:]]*true' $files
+          ! grep -Eiq 'purchaseOrder|executePayment|authorizePayment|autoPurchase|autoDispatch|certified[[:space:]]*=[[:space:]]*true|verifiedExternal[[:space:]]*=[[:space:]]*true|icaApproved[[:space:]]*=[[:space:]]*true|creditApproved|investmentApproved' $files
