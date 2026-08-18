@@ -1,0 +1,73 @@
+name: Assemble SANA v83-v84 Batch
+
+on:
+  push:
+    branches: [demo/sana-v83-v84-batch]
+    paths:
+      - 'apps/control-web/public/sana-v3-dataroom-review-disposition.js'
+      - 'apps/control-web/public/sana-v3-report-snapshot-dataroom-review-disposition.js'
+      - 'apps/control-web/public/sana-v3-dataroom-review-disposition-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-dataroom-review-disposition-gaps.js'
+      - '.github/workflows/assemble-sana-v83-v84-batch.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: demo/sana-v83-v84-batch
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate source before assembly
+        run: |
+          node --check apps/control-web/public/sana-v3-dataroom-review-disposition.js
+          node scripts/validate-sana-dataroom-review-disposition.mjs
+          node scripts/validate-sana-dataroom-review-disposition-history.mjs
+      - name: Assemble v83-v84 HTML and PWA shell
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          html=Path('apps/control-web/public/sana-v3.html'); s=html.read_text(); reps=[
+          ('<script src="/sana-v3-report-snapshot-dataroom-review-response.js"></script><script src="/sana-v3-cycle-closure.js"></script>','<script src="/sana-v3-report-snapshot-dataroom-review-response.js"></script><script src="/sana-v3-report-snapshot-dataroom-review-disposition.js"></script><script src="/sana-v3-cycle-closure.js"></script>','/sana-v3-report-snapshot-dataroom-review-disposition.js'),
+          ('<script src="/sana-v3-due-diligence-dataroom-review-response-gaps.js"></script><script src="/sana-v3-due-diligence-remediation.js"></script>','<script src="/sana-v3-due-diligence-dataroom-review-response-gaps.js"></script><script src="/sana-v3-due-diligence-dataroom-review-disposition-gaps.js"></script><script src="/sana-v3-due-diligence-remediation.js"></script>','/sana-v3-due-diligence-dataroom-review-disposition-gaps.js'),
+          ('<script src="/sana-v3-dataroom-review-response.js"></script><script src="/sana-v3-dataroom-impact-history.js"></script>','<script src="/sana-v3-dataroom-review-response.js"></script><script src="/sana-v3-dataroom-review-disposition.js"></script><script src="/sana-v3-dataroom-impact-history.js"></script>','/sana-v3-dataroom-review-disposition.js'),
+          ('<script src="/sana-v3-dataroom-review-response-history.js"></script><script src="/sana-v3-dataroom-entry.js"></script>','<script src="/sana-v3-dataroom-review-response-history.js"></script><script src="/sana-v3-dataroom-review-disposition-history.js"></script><script src="/sana-v3-dataroom-entry.js"></script>','/sana-v3-dataroom-review-disposition-history.js')]
+          for old,new,needle in reps:
+              if needle not in s:
+                  assert old in s,f'HTML anchor missing {needle}'
+                  s=s.replace(old,new,1)
+          html.write_text(s)
+          sw=Path('apps/control-web/public/sana-v3-sw.js'); s=sw.read_text()
+          if "const CACHE='sana-v3-demo-shell-v84';" not in s:
+              old="const CACHE='sana-v3-demo-shell-v82';"; rep="if(false){\nconst CACHE='sana-v3-demo-shell-v82';\n}\nconst CACHE='sana-v3-demo-shell-v84';"; assert old in s,'v82 active shell marker missing'; s=s.replace(old,rep,1)
+          reps=[
+          ("'/sana-v3-report-snapshot-dataroom-review-response.js','/sana-v3-cycle-closure.js'","'/sana-v3-report-snapshot-dataroom-review-response.js','/sana-v3-report-snapshot-dataroom-review-disposition.js','/sana-v3-cycle-closure.js'","'/sana-v3-report-snapshot-dataroom-review-disposition.js'"),
+          ("'/sana-v3-due-diligence-dataroom-review-response-gaps.js','/sana-v3-due-diligence-remediation.js'","'/sana-v3-due-diligence-dataroom-review-response-gaps.js','/sana-v3-due-diligence-dataroom-review-disposition-gaps.js','/sana-v3-due-diligence-remediation.js'","'/sana-v3-due-diligence-dataroom-review-disposition-gaps.js'"),
+          ("'/sana-v3-dataroom-review-response.js','/sana-v3-dataroom-impact-history.js'","'/sana-v3-dataroom-review-response.js','/sana-v3-dataroom-review-disposition.js','/sana-v3-dataroom-impact-history.js'","'/sana-v3-dataroom-review-disposition.js'"),
+          ("'/sana-v3-dataroom-review-response-history.js','/sana-v3-dataroom-entry.js'","'/sana-v3-dataroom-review-response-history.js','/sana-v3-dataroom-review-disposition-history.js','/sana-v3-dataroom-entry.js'","'/sana-v3-dataroom-review-disposition-history.js'")]
+          for old,new,needle in reps:
+              if needle not in s:
+                  assert old in s,f'PWA anchor missing {needle}'
+                  s=s.replace(old,new,1)
+          sw.write_text(s)
+          PY
+      - name: Validate assembled shell
+        run: |
+          node scripts/validate-sana-dataroom-review-disposition.mjs
+          node scripts/validate-sana-dataroom-review-disposition-history.mjs
+          grep -q "const CACHE='sana-v3-demo-shell-v84';" apps/control-web/public/sana-v3-sw.js
+          grep -q '/sana-v3-dataroom-review-response.js.*sana-v3-dataroom-review-disposition.js.*sana-v3-dataroom-impact-history.js' apps/control-web/public/sana-v3.html
+          grep -q '/sana-v3-due-diligence-dataroom-review-response-gaps.js.*sana-v3-due-diligence-dataroom-review-disposition-gaps.js.*sana-v3-due-diligence-remediation.js' apps/control-web/public/sana-v3.html
+      - name: Commit integration assembly
+        run: |
+          if git diff --quiet; then echo 'v84 already assembled.'; exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/control-web/public/sana-v3.html apps/control-web/public/sana-v3-sw.js
+          git commit -m 'demo: assemble Data Room review disposition v83-v84'
+          git push origin HEAD:demo/sana-v83-v84-batch
