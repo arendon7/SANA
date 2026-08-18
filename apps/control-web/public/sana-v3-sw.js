@@ -91,3 +91,4 @@ self.addEventListener('fetch',event=>{if(event.request.method!=='GET')return;con
 // v61 assembled Capital Governance certification trigger; document completeness is not eligibility, credit scoring or investment recommendation.
 // v62 assembled Capital Governance snapshot/history/DD; snapshot-only, documentary, data-minimized and non-decisional.
 // v63 assembled Capital Human Review trail; review and decision references remain non-executing and non-decisional for eligibility/scoring.
+// v64 assembled Capital Human Review snapshot/history/DD; reviewer-ref-only, snapshot-only and non-decisional.
