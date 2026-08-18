@@ -24,7 +24,7 @@ assert.equal(state.explicit[0].observedPresence,1);
 assert.equal(state.explicit[0].confirmedDiagnosis,1);
 assert.equal(state.legacy.length,1);
 assert.match(api.integrity,/PHYTOSANITARY_PROVENANCE ≠ CYCLE_GATE/);
-assert.match(api.integrity,/NO_CAUSAL_EFFICACY/);
+assert.match(api.integrity,/≠ CAUSAL_EFFICACY/);
 assert.equal(source.includes('completeness='),false,'health provenance must not redefine cycle completeness');
 assert.equal(source.includes('readyForArchive='),false,'health provenance must not redefine archive readiness');
 assert.equal(source.includes('storage.records.push'),false);
