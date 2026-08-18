@@ -1,0 +1,86 @@
+name: SANA Demo Nutrition Ledger
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-nutrition-ledger.js'
+      - 'apps/control-web/public/sana-v3-inventory-operations.js'
+      - 'apps/control-web/public/sana-v3-plan-field-workflow.js'
+      - 'apps/control-web/public/sana-v3-passport-chain.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-nutrition-ledger.mjs'
+      - '.github/workflows/sana-demo-nutrition-ledger.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-nutrition-ledger.js'
+      - 'apps/control-web/public/sana-v3-inventory-operations.js'
+      - 'apps/control-web/public/sana-v3-plan-field-workflow.js'
+      - 'apps/control-web/public/sana-v3-passport-chain.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-nutrition-ledger.mjs'
+      - '.github/workflows/sana-demo-nutrition-ledger.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  nutrition-ledger-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-nutrition-ledger.js
+          node scripts/validate-sana-nutrition-ledger.mjs
+      - name: Validate nutrition boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          ledger='apps/control-web/public/sana-v3-nutrition-ledger.js'
+          grep -q '__SANA_NUTRITION_LEDGER__' "$ledger"
+          grep -q 'SANA_NUTRITION_LEDGER_V1' "$ledger"
+          grep -q 'PROGRAM ≠ APPLICATION' "$ledger"
+          grep -q 'PREFLIGHT ≠ AUTHORIZATION' "$ledger"
+          grep -q 'HUMAN_DECISION_REQUIRED' "$ledger"
+          grep -q 'INVENTORY_MOVEMENT_EXPLICIT_ONLY' "$ledger"
+          grep -q 'RESPONSE ≠ CAUSAL_EFFECT' "$ledger"
+          grep -q 'DEFERRED_HUMAN' "$ledger"
+          grep -q 'NO_CAUSAL_ATTRIBUTION' "$ledger"
+          grep -q 'MOVEMENT_NOT_CAPTURED' "$ledger"
+          ! grep -q 'storage.records.push' "$ledger"
+      - name: Validate inventory relation is explicit-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          ledger='apps/control-web/public/sana-v3-nutrition-ledger.js'
+          inventory='apps/control-web/public/sana-v3-inventory-operations.js'
+          grep -q '__SANA_INVENTORY__' "$inventory"
+          grep -q 'forActivity:id=>movements().filter' "$inventory"
+          grep -q 'NUNCA se descuenta o repone inventario por inferencia\|Nunca se descuenta o repone inventario por inferencia' "$inventory"
+          grep -q 'NO_EXPLICIT_RELATION' "$ledger"
+          grep -q 'MOVEMENT_DIRECTION_REVIEW' "$ledger"
+          ! grep -Eiq 'auto.*inventory|auto.*stock|stock.*automatic|inventory.*automatic' "$ledger"
+      - name: Validate assembly and active shell
+        shell: bash
+        run: |
+          set -euo pipefail
+          html='apps/control-web/public/sana-v3.html'
+          sw='apps/control-web/public/sana-v3-sw.js'
+          grep -q '/sana-v3-activity-relations.js.*sana-v3-nutrition-ledger.js.*sana-v3-health-ledger.js' "$html"
+          grep -q "'/sana-v3-nutrition-ledger.js'" "$sw"
+          grep -q "^const CACHE='sana-v3-demo-shell-v36';" "$sw"
+      - name: Assert no production, purchase or financial authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          ledger='apps/control-web/public/sana-v3-nutrition-ledger.js'
+          ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true' "$ledger"
+          ! grep -Eiq 'purchaseOrder|executePayment|authorizePayment|autoPurchase|autoDispatch|certified[[:space:]]*=[[:space:]]*true|verifiedExternal[[:space:]]*=[[:space:]]*true|icaApproved[[:space:]]*=[[:space:]]*true' "$ledger"
