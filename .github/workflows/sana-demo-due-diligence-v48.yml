@@ -1,0 +1,70 @@
+name: SANA Demo Due Diligence V48
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-inventory.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-inventory-gaps.js'
+      - 'apps/control-web/public/sana-v3-dataroom-inventory-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-remediation.js'
+      - 'apps/control-web/public/sana-v3-dd-next-cut.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-inventory-snapshot.mjs'
+      - 'scripts/validate-sana-inventory-gaps.mjs'
+      - '.github/workflows/sana-demo-due-diligence-v48.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-inventory.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-inventory-gaps.js'
+      - 'apps/control-web/public/sana-v3-dataroom-inventory-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-remediation.js'
+      - 'apps/control-web/public/sana-v3-dd-next-cut.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-inventory-snapshot.mjs'
+      - 'scripts/validate-sana-inventory-gaps.mjs'
+      - '.github/workflows/sana-demo-due-diligence-v48.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  composed-dd-v48:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate inventory historical semantics
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/validate-sana-inventory-snapshot.mjs
+          node scripts/validate-sana-inventory-gaps.mjs
+      - name: Validate Inventory is composed before remediation
+        shell: bash
+        run: |
+          set -euo pipefail
+          html='apps/control-web/public/sana-v3.html'; sw='apps/control-web/public/sana-v3-sw.js'
+          grep -q '/sana-v3-report-snapshot-harvest.js.*sana-v3-report-snapshot-inventory.js.*sana-v3-cycle-closure.js' "$html"
+          grep -q '/sana-v3-due-diligence-harvest-gaps.js.*sana-v3-due-diligence-inventory-gaps.js.*sana-v3-due-diligence-remediation.js.*sana-v3-dd-next-cut.js' "$html"
+          grep -q '/sana-v3-dataroom-harvest-history.js.*sana-v3-dataroom-inventory-history.js.*sana-v3-dataroom-entry.js' "$html"
+          grep -q '__SANA_REPORT_SNAPSHOT_INVENTORY__' apps/control-web/public/sana-v3-report-snapshot-inventory.js
+          grep -q '__SANA_DD_INVENTORY_GAPS__' apps/control-web/public/sana-v3-due-diligence-inventory-gaps.js
+          grep -q '__SANA_DATAROOM_INVENTORY_HISTORY__' apps/control-web/public/sana-v3-dataroom-inventory-history.js
+          grep -q "^const CACHE='sana-v3-demo-shell-v48';" "$sw"
+      - name: Validate no live fallback or procurement/investment inference
+        shell: bash
+        run: |
+          set -euo pipefail
+          hist='apps/control-web/public/sana-v3-dataroom-inventory-history.js'; gaps='apps/control-web/public/sana-v3-due-diligence-inventory-gaps.js'; snap='apps/control-web/public/sana-v3-report-snapshot-inventory.js'
+          ! grep -q '__SANA_INVENTORY_LEDGER__' "$hist"
+          ! grep -q '__SANA_INVENTORY_LEDGER__' "$gaps"
+          ! grep -q 'storage\.' "$hist"
+          ! grep -q 'storage\.' "$gaps"
+          grep -q 'LOW_STOCK_OR_PENDING_REQUEST ≠ GAP' "$gaps"
+          grep -q 'NO_AUTOMATIC_PROCUREMENT' "$snap"
+          ! grep -Eiq 'purchaseOrderCreated[[:space:]]*=[[:space:]]*true|paymentExecuted[[:space:]]*=[[:space:]]*true|creditApproved|investmentApproved|eligibilityApproved|profitabilityApproved' "$hist" "$gaps" "$snap"
