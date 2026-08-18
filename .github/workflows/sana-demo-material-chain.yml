@@ -9,9 +9,12 @@ on:
       - 'apps/control-web/public/sana-v3-inventory-operations.js'
       - 'apps/control-web/public/sana-v3-economics.js'
       - 'apps/control-web/public/sana-v3-passport-chain.js'
+      - 'apps/control-web/public/sana-v3-report-snapshot-sync.js'
+      - 'apps/control-web/public/sana-v3-dataroom-material-history.js'
       - 'apps/control-web/public/sana-v3.html'
       - 'apps/control-web/public/sana-v3-sw.js'
       - 'scripts/validate-sana-material-chain.mjs'
+      - 'scripts/validate-sana-material-snapshot.mjs'
       - '.github/workflows/sana-demo-material-chain.yml'
   pull_request:
     paths:
@@ -20,9 +23,12 @@ on:
       - 'apps/control-web/public/sana-v3-inventory-operations.js'
       - 'apps/control-web/public/sana-v3-economics.js'
       - 'apps/control-web/public/sana-v3-passport-chain.js'
+      - 'apps/control-web/public/sana-v3-report-snapshot-sync.js'
+      - 'apps/control-web/public/sana-v3-dataroom-material-history.js'
       - 'apps/control-web/public/sana-v3.html'
       - 'apps/control-web/public/sana-v3-sw.js'
       - 'scripts/validate-sana-material-chain.mjs'
+      - 'scripts/validate-sana-material-snapshot.mjs'
       - '.github/workflows/sana-demo-material-chain.yml'
 
 permissions:
@@ -36,13 +42,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Validate syntax and semantic contract
+      - name: Validate syntax and semantic contracts
         shell: bash
         run: |
           set -euo pipefail
           node --check apps/control-web/public/sana-v3-material-chain.js
+          node --check apps/control-web/public/sana-v3-dataroom-material-history.js
+          node --check apps/control-web/public/sana-v3-report-snapshot-sync.js
           node scripts/validate-sana-material-chain.mjs
-      - name: Validate chain contracts
+          node scripts/validate-sana-material-snapshot.mjs
+      - name: Validate live chain contracts
         shell: bash
         run: |
           set -euo pipefail
@@ -59,6 +68,25 @@ jobs:
           grep -q 'NO_CONTABILIDAD_OFICIAL' "$chain"
           ! grep -q 'storage.records.push' "$chain"
           ! grep -Eiq 'autoCreateInventory|autoCreateCost|createInventoryMovement|createEconomicCost|certifiedGenetic|certifyGenetic|certifyPhytosanitary|icaApproved[[:space:]]*=[[:space:]]*true' "$chain"
+      - name: Validate snapshot and historical contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          sync='apps/control-web/public/sana-v3-report-snapshot-sync.js'
+          history='apps/control-web/public/sana-v3-dataroom-material-history.js'
+          grep -q 'function enrichMaterial' "$sync"
+          grep -q 'SNAPSHOT_CAPTURED_FROM_MATERIAL_CHAIN' "$sync"
+          grep -q 'ADDITIVE_V1 · MATERIAL_CHAIN' "$sync"
+          grep -q 'SNAPSHOT_MATERIAL_ONLY · NO_RETROACTIVE_FILL · NO_EXTERNAL_CERTIFICATION' "$sync"
+          grep -q '__SANA_DATAROOM_MATERIAL_HISTORY__' "$history"
+          grep -q 'NOT_CAPTURED_IN_SNAPSHOT' "$history"
+          grep -q 'SNAPSHOT_MATERIAL_ONLY · NO_LIVE_FALLBACK · NO_RETROACTIVE_FILL · NO_EXTERNAL_CERTIFICATION' "$history"
+          grep -q 'CHANGE ≠ IMPROVEMENT ≠ SURVIVAL_CAUSALITY ≠ INVESTMENT_SIGNAL' "$history"
+          ! grep -q '__SANA_MATERIAL_CHAIN__' "$history"
+          ! grep -q 'currentManifest' "$history"
+          ! grep -q 'storage\.' "$history"
+          ! grep -q 'openModal(' "$history"
+          ! grep -q 'saveModal' "$history"
       - name: Validate assembly and offline shell
         shell: bash
         run: |
@@ -66,13 +94,16 @@ jobs:
           html='apps/control-web/public/sana-v3.html'
           sw='apps/control-web/public/sana-v3-sw.js'
           grep -q '/sana-v3-economics.js.*sana-v3-material-chain.js.*sana-v3-impact-methodology.js' "$html"
+          grep -q '/sana-v3-dataroom-impact-history.js.*sana-v3-dataroom-material-history.js.*sana-v3-dataroom-entry.js' "$html"
           grep -q "'/sana-v3-material-chain.js'" "$sw"
-          grep -q 'sana-v3-demo-shell-v30' "$sw"
+          grep -q "'/sana-v3-dataroom-material-history.js'" "$sw"
+          grep -q 'sana-v3-demo-shell-v31' "$sw"
       - name: Assert no execution or certification authority
         shell: bash
         run: |
           set -euo pipefail
-          chain='apps/control-web/public/sana-v3-material-chain.js'
-          ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true' "$chain"
-          ! grep -Eiq 'approveInvestment|authorizeTreatment|certified[[:space:]]*=[[:space:]]*true|verifiedExternal[[:space:]]*=[[:space:]]*true|icaApproved[[:space:]]*=[[:space:]]*true' "$chain"
-          grep -q 'NO CERTIFICA GENÉTICA, SANIDAD NI ICA' "$chain"
+          files='apps/control-web/public/sana-v3-material-chain.js apps/control-web/public/sana-v3-dataroom-material-history.js apps/control-web/public/sana-v3-report-snapshot-sync.js'
+          ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true' $files
+          ! grep -Eiq 'approveInvestment|authorizeTreatment|certified[[:space:]]*=[[:space:]]*true|verifiedExternal[[:space:]]*=[[:space:]]*true|icaApproved[[:space:]]*=[[:space:]]*true|investmentApproved[[:space:]]*=[[:space:]]*true' $files
+          grep -q 'NO CERTIFICA GENÉTICA, SANIDAD NI ICA' apps/control-web/public/sana-v3-material-chain.js
+          grep -q 'NO_EXTERNAL_CERTIFICATION' apps/control-web/public/sana-v3-dataroom-material-history.js
