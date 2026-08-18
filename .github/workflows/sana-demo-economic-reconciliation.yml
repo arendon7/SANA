@@ -1,0 +1,95 @@
+name: SANA Demo Economic Reconciliation
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-economics-ledger.js'
+      - 'apps/control-web/public/sana-v3-cycle-economic-reconciliation.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-economic-reconciliation.mjs'
+      - '.github/workflows/sana-demo-economic-reconciliation.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-economics-ledger.js'
+      - 'apps/control-web/public/sana-v3-cycle-economic-reconciliation.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-economic-reconciliation.mjs'
+      - '.github/workflows/sana-demo-economic-reconciliation.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  economic-reconciliation-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-economics-ledger.js
+          node --check apps/control-web/public/sana-v3-cycle-economic-reconciliation.js
+          node scripts/validate-sana-economic-reconciliation.mjs
+      - name: Validate economic boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='apps/control-web/public/sana-v3-economics-ledger.js'
+          grep -q '__SANA_ECONOMIC_RECONCILIATION__' "$f"
+          grep -q 'SANA_ECONOMIC_RECONCILIATION_LEDGER_V1' "$f"
+          grep -q 'BUDGET_REFERENCE ≠ COMMITMENT' "$f"
+          grep -q 'LEGACY_AGGREGATE_COST ≠ ITEMIZED_COST ≠ COST_INCURRED' "$f"
+          grep -q 'COST_DECLARED ≠ VERIFIED_EXPENSE' "$f"
+          grep -q 'EVIDENCE_REFERENCE ≠ ACCOUNTING_VERIFICATION' "$f"
+          grep -q 'INVOICE_REFERENCE ≠ INVOICE_VERIFIED' "$f"
+          grep -q 'PAYMENT_STATUS_DECLARED ≠ PAYMENT_EXECUTED' "$f"
+          grep -q 'COMMERCIAL_SCENARIO ≠ SALE' "$f"
+          grep -q 'HARVEST_RESULT ≠ SALE_VOLUME' "$f"
+          grep -q 'SALE_DECLARATION ≠ INVOICE ≠ CASH_RECEIPT' "$f"
+          grep -q 'MARGIN_SCENARIO ≠ REALIZED_MARGIN' "$f"
+          grep -q 'CROSS_DOMAIN_COST_REF ≠ ACCOUNTING_ENTRY' "$f"
+      - name: Validate cross-domain relations do not double count
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='apps/control-web/public/sana-v3-economics-ledger.js'
+          grep -q 'CROSS_DOMAIN_COST_REFERENCE' "$f"
+          grep -q '__SANA_LABOR_LEDGER__' "$f"
+          grep -q '__SANA_INVENTORY_LEDGER__' "$f"
+          grep -q '__SANA_HARVEST_LEDGER__' "$f"
+          grep -q 'accountingEntries:0' "$f"
+          grep -q 'verifiedExpenses:0' "$f"
+          grep -q 'paymentsExecuted:0' "$f"
+          grep -q 'realizedRevenue:0' "$f"
+      - name: Validate cycle projection is read-only and non-weighted
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='apps/control-web/public/sana-v3-cycle-economic-reconciliation.js'
+          grep -q '__SANA_CYCLE_ECONOMIC_RECONCILIATION__' "$f"
+          grep -q 'ECONOMIC_PROVENANCE ≠ CYCLE_GATE' "$f"
+          ! grep -q 'completeness[[:space:]]*=' "$f"
+          ! grep -q 'readyForArchive[[:space:]]*=' "$f"
+      - name: Validate assembly and active v57 shell
+        shell: bash
+        run: |
+          set -euo pipefail
+          html='apps/control-web/public/sana-v3.html'; sw='apps/control-web/public/sana-v3-sw.js'
+          grep -q '/sana-v3-economics.js.*sana-v3-economics-ledger.js.*sana-v3-material-chain.js' "$html"
+          grep -q '/sana-v3-cycle-source-provenance.js.*sana-v3-cycle-economic-reconciliation.js.*sana-v3-cycle-labor-provenance.js' "$html"
+          grep -q "'/sana-v3-economics-ledger.js'" "$sw"
+          grep -q "'/sana-v3-cycle-economic-reconciliation.js'" "$sw"
+          grep -q "^const CACHE='sana-v3-demo-shell-v57';" "$sw"
+      - name: Assert no accounting, payment, production or canonical execution
+        shell: bash
+        run: |
+          set -euo pipefail
+          files='apps/control-web/public/sana-v3-economics-ledger.js apps/control-web/public/sana-v3-cycle-economic-reconciliation.js'
+          ! grep -Eiq 'fetch\(|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true' $files
