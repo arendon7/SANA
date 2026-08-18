@@ -191,3 +191,9 @@ self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE&&k.startsWith('sana-v3-demo-shell-')).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',event=>{if(event.request.method!=='GET')return;const url=new URL(event.request.url);if(url.origin!==self.location.origin)return;if(url.pathname.startsWith('/api/'))return;event.respondWith(caches.match(event.request).then(hit=>hit||fetch(event.request).then(response=>{if(!response||response.status!==200||response.type==='opaque')return response;const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(event.request,copy));return response}).catch(()=>caches.match('/sana-v3.html'))));});
 // v57 assembled Economic Reconciliation live + Cycle certification trigger; no accounting or payment execution authority.
+// v58 assembled Economic Reconciliation snapshot/history/DD certification trigger; snapshot-only and no accounting authority.
+// v59 assembled Commercial Offtake live + Cycle certification trigger; no contract verification, guaranteed revenue or financial execution.
+// v61 assembled Capital Governance certification trigger; document completeness is not eligibility, credit scoring or investment recommendation.
+// v62 assembled Capital Governance snapshot/history/DD; snapshot-only, documentary, data-minimized and non-decisional.
+// v63 assembled Capital Human Review trail; review and decision references remain non-executing and non-decisional for eligibility/scoring.
+// v64 assembled Capital Human Review snapshot/history/DD; reviewer-ref-only, snapshot-only and non-decisional.
