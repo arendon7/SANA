@@ -1,10 +1,12 @@
 (() => {
   'use strict';
 
-  const REVIEW_CONTEXT_INTEGRITY='CONTEXT_SUMMARY ≠ SOURCE_VERIFICATION · ACTIVE_SELECTOR ≠ REVIEW_PRIORITY · CONTEXT_ISSUE_COUNT ≠ RISK_SCORE · SUMMARY_VIEW ≠ PERSISTED_STATE · REVIEW_CONTEXT_VIEW ≠ SOURCE_LEDGER · STAGE_SWITCH ≠ REVIEW_PROGRESS · STAGE_ORDER ≠ REQUIRED_SEQUENCE · NAVIGABLE_STAGE ≠ COMPLETE_STAGE · DISABLED_STAGE ≠ REVIEW_FAILURE · URL_STAGE_CHANGE ≠ SOURCE_MUTATION · STAGE_BUTTON_STATUS ≠ REVIEW_OUTCOME · READ_ONLY · NO_SOURCE_MUTATION';
+  const REVIEW_CONTEXT_INTEGRITY='CONTEXT_SUMMARY ≠ SOURCE_VERIFICATION · ACTIVE_SELECTOR ≠ REVIEW_PRIORITY · CONTEXT_ISSUE_COUNT ≠ RISK_SCORE · SUMMARY_VIEW ≠ PERSISTED_STATE · REVIEW_CONTEXT_VIEW ≠ SOURCE_LEDGER · STAGE_SWITCH ≠ REVIEW_PROGRESS · STAGE_ORDER ≠ REQUIRED_SEQUENCE · NAVIGABLE_STAGE ≠ COMPLETE_STAGE · DISABLED_STAGE ≠ REVIEW_FAILURE · URL_STAGE_CHANGE ≠ SOURCE_MUTATION · STAGE_BUTTON_STATUS ≠ REVIEW_OUTCOME · CONTEXT_LINK ≠ SOURCE_SNAPSHOT · COPIED_LINK ≠ VERIFIED_CONTEXT · CLIPBOARD_COPY ≠ EXTERNAL_DELIVERY · SHAREABLE_URL ≠ REVIEW_APPROVAL · LINK_REOPEN ≠ CONTEXT_VERIFICATION · URL_CONTEXT ≠ PERSISTED_SOURCE_STATE · READ_ONLY · NO_SOURCE_MUTATION';
   const REVIEW_STAGE_LABELS=Object.freeze({CASE:'Expediente',HANDOFF:'Handoff',FEEDBACK:'Feedback',RESPONSE:'Respuesta',DISPOSITION:'Disposición',ROUND:'Ronda'});
   const REVIEW_STAGE_ORDER=Object.freeze(['CASE','HANDOFF','FEEDBACK','RESPONSE','DISPOSITION','ROUND']);
+  const REVIEW_CONTEXT_KEYS=Object.freeze(['rwCapital','rwLot','rwFocus','rwStage','rwEvent','rwRef']);
   const REVIEW_V102_COMPAT='DATA ROOM · REVIEW WORKSPACE V102 · Circuito de revisión, con contexto operativo visible';
+  const REVIEW_V103_COMPAT='DATA ROOM · REVIEW WORKSPACE V103 · Circuito de revisión, con contexto operativo y navegación de etapas';
 
   function currentRole(){
     if(window.__SANA_ACCESS__?.role)return window.__SANA_ACCESS__.role;
@@ -54,6 +56,18 @@
     });
     return {contextReady:!!chain,chainKey:chain?.key||'',items,integrity:'STAGE_SWITCH ≠ REVIEW_PROGRESS · STAGE_ORDER ≠ REQUIRED_SEQUENCE · NAVIGABLE_STAGE ≠ COMPLETE_STAGE · DISABLED_STAGE ≠ REVIEW_FAILURE · URL_STAGE_CHANGE ≠ SOURCE_MUTATION'};
   }
+  function reviewContextPermalink(focus){
+    try{
+      const f=focus||window.__SANA_DATAROOM_REVIEW_WORKSPACE__?.readFocus?.();
+      if(!f)return null;
+      const u=new URL(location.href);
+      [...u.searchParams.keys()].forEach(key=>u.searchParams.delete(key));
+      const values=[['rwCapital',f.capital,'ALL'],['rwLot',f.lot,'ALL'],['rwFocus',f.focus,'ALL'],['rwStage',f.stage,'ALL'],['rwEvent',f.event,''],['rwRef',f.ref,'']];
+      for(const [key,value,empty] of values)if(value&&value!==empty)u.searchParams.set(key,String(value));
+      u.hash='#dataroom';
+      return {href:u.toString(),path:`${u.pathname}${u.search}${u.hash}`,keys:[...REVIEW_CONTEXT_KEYS],integrity:'CONTEXT_LINK ≠ SOURCE_SNAPSHOT · COPIED_LINK ≠ VERIFIED_CONTEXT · SHAREABLE_URL ≠ REVIEW_APPROVAL · LINK_REOPEN ≠ CONTEXT_VERIFICATION · URL_CONTEXT ≠ PERSISTED_SOURCE_STATE'};
+    }catch{return null}
+  }
   function reviewContextSummary(){
     const api=window.__SANA_DATAROOM_REVIEW_WORKSPACE__;
     if(!api?.state||!api?.readFocus||!api?.contextIntegrity)return null;
@@ -71,6 +85,7 @@
         issueCount:context.issues?.length||0,
         visibleChains:visible.length,
         stageNavigation:reviewStageNavigation(s,focus),
+        permalink:reviewContextPermalink(focus),
         integrity:REVIEW_CONTEXT_INTEGRITY
       };
     }catch{return null}
@@ -87,9 +102,13 @@
     };
     return `<div data-review-stage-switcher style="margin-top:9px;padding-top:9px;border-top:1px solid var(--line)"><div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:6px"><strong style="font-size:8px">NAVEGACIÓN DE ETAPAS · URL ONLY</strong><small style="font-size:6px;color:var(--muted)">${nav.contextReady?'Circuito seleccionado':'Selecciona capital case + lote'}</small></div><div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:2px">${nav.items.map(button).join('')}</div><div style="margin-top:6px;font-size:6px;color:var(--muted)">STAGE_ORDER ≠ REQUIRED_SEQUENCE · NAVIGABLE_STAGE ≠ COMPLETE_STAGE · DISABLED_STAGE ≠ REVIEW_FAILURE</div></div>`;
   }
+  function reviewContextPermalinkHtml(link){
+    if(!link)return '';
+    return `<div data-review-context-link style="margin-top:9px;padding-top:9px;border-top:1px solid var(--line)"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap"><div style="display:grid;gap:3px;min-width:0;flex:1"><strong style="font-size:8px">ENLACE DE CONTEXTO · CANÓNICO</strong><code style="font-size:6px;color:var(--muted);white-space:normal;overflow-wrap:anywhere">${esc(link.href)}</code><small data-review-context-copy-status aria-live="polite" style="font-size:6px;color:var(--muted)">Solo reproduce selectores URL; no congela ni verifica fuentes.</small></div><button type="button" class="btn ghost" data-review-context-copy style="white-space:nowrap">Copiar enlace</button></div><div style="margin-top:6px;font-size:6px;color:var(--muted)">CONTEXT_LINK ≠ SOURCE_SNAPSHOT · COPIED_LINK ≠ VERIFIED_CONTEXT · CLIPBOARD_COPY ≠ EXTERNAL_DELIVERY</div></div>`;
+  }
   function reviewContextSummaryHtml(x){
     if(!x)return '';
-    return `<!-- ${REVIEW_V102_COMPAT} --><section data-review-context-summary class="review-context-summary" aria-label="Resumen de contexto de revisión" style="margin:0 0 12px;padding:11px;border:1px solid var(--line);border-radius:12px;background:${x.resolved?'#fff':'#fbfaf5'}"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:8px"><div style="display:grid;gap:2px"><p class="kicker" style="margin:0;font-size:7px;letter-spacing:.1em;color:var(--muted);font-weight:850">CONTEXTO ACTIVO · URL ONLY</p><strong style="font-size:10px">${x.resolved?'Contexto resuelto':'Contexto con selectores no resueltos'}</strong><small style="font-size:7px;color:var(--muted)">${x.visibleChains} circuito(s) visible(s) · ${x.issueCount} incidencia(s) de contexto</small></div><span class="status ${x.resolved?'teal':'warn'}">${x.resolved?'RESOLVED':'UNRESOLVED'}</span></div><div style="display:flex;flex-wrap:wrap;gap:6px">${reviewContextChip('Capital case',x.capital,x.capital!=='ALL',x.resolved)}${reviewContextChip('Lote',x.lot,x.lot!=='ALL',x.resolved)}${reviewContextChip('Foco',x.focus,x.focus!=='ALL',x.resolved)}${reviewContextChip('Etapa',x.stage==='ALL'?'Todas':`${x.stageLabel} · ${x.stage}`,x.stage!=='ALL',x.resolved)}${reviewContextChip('Evento',x.event||'Sin foco',!!x.event,x.resolved)}${reviewContextChip('Referencia',x.ref||'Sin foco',!!x.ref,x.resolved)}</div>${reviewStageSwitcherHtml(x.stageNavigation)}<div class="section-note" style="margin-top:8px">${esc(REVIEW_CONTEXT_INTEGRITY)}</div></section>`;
+    return `<!-- ${REVIEW_V102_COMPAT} --><!-- ${REVIEW_V103_COMPAT} --><section data-review-context-summary class="review-context-summary" aria-label="Resumen de contexto de revisión" style="margin:0 0 12px;padding:11px;border:1px solid var(--line);border-radius:12px;background:${x.resolved?'#fff':'#fbfaf5'}"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:8px"><div style="display:grid;gap:2px"><p class="kicker" style="margin:0;font-size:7px;letter-spacing:.1em;color:var(--muted);font-weight:850">CONTEXTO ACTIVO · URL ONLY</p><strong style="font-size:10px">${x.resolved?'Contexto resuelto':'Contexto con selectores no resueltos'}</strong><small style="font-size:7px;color:var(--muted)">${x.visibleChains} circuito(s) visible(s) · ${x.issueCount} incidencia(s) de contexto</small></div><span class="status ${x.resolved?'teal':'warn'}">${x.resolved?'RESOLVED':'UNRESOLVED'}</span></div><div style="display:flex;flex-wrap:wrap;gap:6px">${reviewContextChip('Capital case',x.capital,x.capital!=='ALL',x.resolved)}${reviewContextChip('Lote',x.lot,x.lot!=='ALL',x.resolved)}${reviewContextChip('Foco',x.focus,x.focus!=='ALL',x.resolved)}${reviewContextChip('Etapa',x.stage==='ALL'?'Todas':`${x.stageLabel} · ${x.stage}`,x.stage!=='ALL',x.resolved)}${reviewContextChip('Evento',x.event||'Sin foco',!!x.event,x.resolved)}${reviewContextChip('Referencia',x.ref||'Sin foco',!!x.ref,x.resolved)}</div>${reviewStageSwitcherHtml(x.stageNavigation)}${reviewContextPermalinkHtml(x.permalink)}<div class="section-note" style="margin-top:8px">${esc(REVIEW_CONTEXT_INTEGRITY)}</div></section>`;
   }
   function injectReviewContextSummary(html){
     if(!html||html.includes('data-review-context-summary'))return html;
@@ -101,7 +120,7 @@
     const bodyAt=html.indexOf('<div class="card-body">',workspaceAt),fallback=bodyAt>=0?bodyAt+'<div class="card-body">'.length:workspaceAt;
     const insertAt=controlsEnd>=0?controlsEnd+'</div>'.length:fallback;
     let out=`${html.slice(0,insertAt)}${section}${html.slice(insertAt)}`;
-    out=out.replace('DATA ROOM · REVIEW WORKSPACE V101','DATA ROOM · REVIEW WORKSPACE V103').replace('Circuito de revisión, con navegación bidireccional al caso fuente','Circuito de revisión, con contexto operativo y navegación de etapas');
+    out=out.replace('DATA ROOM · REVIEW WORKSPACE V101','DATA ROOM · REVIEW WORKSPACE V104').replace('Circuito de revisión, con navegación bidireccional al caso fuente','Circuito de revisión, con contexto reproducible y navegación de etapas');
     return out;
   }
   function selectReviewStage(stage){
@@ -119,6 +138,12 @@
       return true;
     }catch{return false}
   }
+  async function copyReviewContextPermalink(){
+    const link=reviewContextPermalink();
+    if(!link)return {copied:false,reason:'CONTEXT_LINK_UNAVAILABLE',href:''};
+    if(typeof navigator==='undefined'||!navigator.clipboard?.writeText)return {copied:false,reason:'CLIPBOARD_UNAVAILABLE',href:link.href};
+    try{await navigator.clipboard.writeText(link.href);return {copied:true,reason:'COPIED_LOCAL_CLIPBOARD',href:link.href}}catch{return {copied:false,reason:'CLIPBOARD_WRITE_FAILED',href:link.href}}
+  }
 
   const base=views.home;
   if(base)views.home=function homeWithDataRoomEntry(){
@@ -131,8 +156,13 @@
   const baseDataRoom=views.dataroom;
   if(baseDataRoom)views.dataroom=function dataRoomWithReviewContextSummary(){return injectReviewContextSummary(baseDataRoom())};
 
-  if(typeof document!=='undefined')document.addEventListener('click',e=>{const stage=e.target.closest?.('[data-review-context-stage]');if(stage&&!stage.disabled)selectReviewStage(stage.dataset.reviewContextStage||'')});
+  if(typeof document!=='undefined')document.addEventListener('click',e=>{
+    const copy=e.target.closest?.('[data-review-context-copy]');
+    if(copy){copyReviewContextPermalink().then(result=>{const status=document.querySelector?.('[data-review-context-copy-status]');if(status)status.textContent=result.copied?'Enlace copiado localmente':'Copia no disponible · enlace visible';});return}
+    const stage=e.target.closest?.('[data-review-context-stage]');
+    if(stage&&!stage.disabled)selectReviewStage(stage.dataset.reviewContextStage||'');
+  });
 
   window.__SANA_DATAROOM_ENTRY__=Object.freeze({role:currentRole,integrity:'ROLE_ENTRY_ONLY · DATAROOM_READ_ONLY · NO_PRIVILEGE_ESCALATION'});
-  window.__SANA_DATAROOM_REVIEW_CONTEXT_SUMMARY__=Object.freeze({summary:reviewContextSummary,inject:injectReviewContextSummary,stageNavigation:reviewStageNavigation,selectStage:selectReviewStage,integrity:REVIEW_CONTEXT_INTEGRITY});
+  window.__SANA_DATAROOM_REVIEW_CONTEXT_SUMMARY__=Object.freeze({summary:reviewContextSummary,inject:injectReviewContextSummary,stageNavigation:reviewStageNavigation,selectStage:selectReviewStage,permalink:reviewContextPermalink,copyPermalink:copyReviewContextPermalink,integrity:REVIEW_CONTEXT_INTEGRITY});
 })();
