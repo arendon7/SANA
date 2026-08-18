@@ -1,0 +1,54 @@
+name: SANA Demo Capital Human Review
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-capital-review-ledger.js'
+      - 'scripts/validate-sana-capital-review.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - '.github/workflows/sana-demo-capital-review.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-capital-review-ledger.js'
+      - 'scripts/validate-sana-capital-review.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+
+jobs:
+  capital-human-review-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contracts
+        run: |
+          node --check apps/control-web/public/sana-v3-capital-review-ledger.js
+          node scripts/validate-sana-capital-review.mjs
+      - name: Validate human review boundaries
+        run: |
+          grep -q 'REVIEW_COMPLETED ≠ APPROVAL' apps/control-web/public/sana-v3-capital-review-ledger.js
+          grep -q 'ASSESSMENT_REFERENCE ≠ CREDIT_SCORE ≠ INVESTMENT_RECOMMENDATION' apps/control-web/public/sana-v3-capital-review-ledger.js
+          grep -q 'HUMAN_DECISION_REFERENCE ≠ EXECUTION' apps/control-web/public/sana-v3-capital-review-ledger.js
+          grep -q 'SNAPSHOT_REFERENCE ≠ LIVE_STATE' apps/control-web/public/sana-v3-capital-review-ledger.js
+          grep -q 'REVIEWER_REF ≠ VERIFIED_IDENTITY' apps/control-web/public/sana-v3-capital-review-ledger.js
+          grep -q 'NO_CUSTODY' apps/control-web/public/sana-v3-capital-review-ledger.js
+          grep -q 'NO_DISBURSEMENT' apps/control-web/public/sana-v3-capital-review-ledger.js
+      - name: Validate assembly when v63 is present
+        run: |
+          html='apps/control-web/public/sana-v3.html'
+          if grep -q '/sana-v3-capital-review-ledger.js' "$html"; then
+            grep -q '/sana-v3-capital-governance.js.*sana-v3-capital-review-ledger.js.*sana-v3-integration-bridge.js' "$html"
+            grep -q "^const CACHE='sana-v3-demo-shell-v63';" apps/control-web/public/sana-v3-sw.js
+            grep -q "'/sana-v3-capital-governance.js','/sana-v3-capital-review-ledger.js','/sana-v3-integration-bridge.js'" apps/control-web/public/sana-v3-sw.js
+          else
+            echo 'v63 staged before assembly; strict shell validation deferred to assembly commit.'
+          fi
+      - name: Assert no scoring, financial or production execution authority
+        run: |
+          ! grep -Eq 'fetch\s*\(' apps/control-web/public/sana-v3-capital-review-ledger.js
+          ! grep -Eq 'productionExecutionAvailable\s*=\s*true|productionActivationAllowed\s*=\s*true|canonicalMutated\s*=\s*true' apps/control-web/public/sana-v3-capital-review-ledger.js
+          ! grep -Eq 'approvalsVerified\s*:\s*[1-9]|fundingExecuted\s*:\s*[1-9]' apps/control-web/public/sana-v3-capital-review-ledger.js
