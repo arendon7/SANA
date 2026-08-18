@@ -1,0 +1,111 @@
+name: Assemble SANA v100 Review Workspace Source Case Focus
+
+on:
+  push:
+    branches: [demo/sana-v100-review-workspace-source-case-focus]
+    paths:
+      - 'apps/control-web/public/sana-v3-dataroom-review-workspace.js'
+      - 'apps/control-web/public/sana-v3-review-workspace.css'
+      - 'apps/control-web/public/sana-v3-dataroom-review-case.js'
+      - 'apps/control-web/public/sana-v3-dataroom-review-handoff.js'
+      - 'apps/control-web/public/sana-v3-dataroom-review-feedback.js'
+      - 'apps/control-web/public/sana-v3-dataroom-review-response.js'
+      - 'apps/control-web/public/sana-v3-dataroom-review-disposition.js'
+      - 'apps/control-web/public/sana-v3-dataroom-review-round.js'
+      - 'scripts/validate-sana-dataroom-review-workspace-v100.mjs'
+      - '.github/workflows/assemble-sana-v100-review-workspace-source-case-focus.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: demo/sana-v100-review-workspace-source-case-focus}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Apply deterministic V100 source-case-focus patch
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          workspace=Path('apps/control-web/public/sana-v3-dataroom-review-workspace.js')
+          s=workspace.read_text()
+          if "const SOURCE_CASE_FOCUS_BASELINE='REVIEW WORKSPACE V100';" not in s:
+              old="const SOURCE_NAVIGATION_BASELINE='REVIEW WORKSPACE V99';"
+              assert old in s
+              s=s.replace(old,old+"\nconst SOURCE_CASE_FOCUS_BASELINE='REVIEW WORKSPACE V100';",1)
+              old="function sourcePanelTarget(stage){return SOURCE_PANEL_TARGETS[stage]||''}"
+              new="function sourcePanelTarget(stage){return SOURCE_PANEL_TARGETS[stage]||''}\nfunction sourceRowMatches(row,id,capital,lot){const d=row?.dataset||{};return d.reviewSourceCase===String(id||'')&&d.reviewSourceCapital===String(capital||'')&&d.reviewSourceLot===String(lot||'')}"
+              assert old in s
+              s=s.replace(old,new,1)
+              old='SCROLL_TARGET ≠ REVIEW_DECISION · REFERENCE_NAVIGATION ≠ ISSUE_RESOLUTION'
+              new='SCROLL_TARGET ≠ REVIEW_DECISION · SOURCE_CASE_FOCUS ≠ SOURCE_VERIFICATION · ROW_MATCH ≠ ENTITY_IDENTITY · ROW_FOCUS ≠ SOURCE_MUTATION · MULTIPLE_ROW_MATCHES ≠ ROW_SELECTION · REFERENCE_NAVIGATION ≠ ISSUE_RESOLUTION'
+              assert old in s
+              s=s.replace(old,new,1)
+              old='data-review-workspace-source-jump="${esc(sourcePanelTarget(e.stage))}" aria-controls="${esc(sourcePanelTarget(e.stage))}"'
+              new='data-review-workspace-source-jump="${esc(sourcePanelTarget(e.stage))}" data-review-workspace-source-case="${esc(e.id||\'\')}" data-review-workspace-source-capital="${esc(e.capitalCaseRef||\'\')}" data-review-workspace-source-lot="${esc(e.lot||\'\')}" aria-controls="${esc(sourcePanelTarget(e.stage))}"'
+              assert old in s
+              s=s.replace(old,new,1)
+              old="const sourceJump=e.target.closest('[data-review-workspace-source-jump]');if(sourceJump){const target=document.getElementById(sourceJump.dataset.reviewWorkspaceSourceJump||'');if(target?.scrollIntoView)target.scrollIntoView({behavior:'smooth',block:'start'});return}"
+              new="const sourceJump=e.target.closest('[data-review-workspace-source-jump]');if(sourceJump){const target=document.getElementById(sourceJump.dataset.reviewWorkspaceSourceJump||''),id=sourceJump.dataset.reviewWorkspaceSourceCase||'',capital=sourceJump.dataset.reviewWorkspaceSourceCapital||'',lot=sourceJump.dataset.reviewWorkspaceSourceLot||'',rows=target?.querySelectorAll?.('[data-review-source-case]')||[],matches=[...rows].filter(row=>sourceRowMatches(row,id,capital,lot));document.querySelectorAll?.('.review-source-case-focused').forEach(row=>row.classList.remove('review-source-case-focused'));if(matches.length===1){matches[0].classList.add('review-source-case-focused');matches[0].scrollIntoView?.({behavior:'smooth',block:'center'})}else if(target?.scrollIntoView)target.scrollIntoView({behavior:'smooth',block:'start'});return}"
+              assert old in s
+              s=s.replace(old,new,1)
+              old='contextIntegrity,sourcePanelTarget,integrity:INTEGRITY'
+              new='contextIntegrity,sourcePanelTarget,sourceRowMatches,integrity:INTEGRITY'
+              assert old in s
+              s=s.replace(old,new,1)
+              assert 'DATA ROOM · REVIEW WORKSPACE V99' in s
+              s=s.replace('DATA ROOM · REVIEW WORKSPACE V99','DATA ROOM · REVIEW WORKSPACE V100',1)
+              assert 'Circuito de revisión, navegable hasta sus paneles fuente' in s
+              s=s.replace('Circuito de revisión, navegable hasta sus paneles fuente','Circuito de revisión, navegable hasta el caso fuente exacto',1)
+              workspace.write_text(s)
+          files=['apps/control-web/public/sana-v3-dataroom-review-case.js','apps/control-web/public/sana-v3-dataroom-review-handoff.js','apps/control-web/public/sana-v3-dataroom-review-feedback.js','apps/control-web/public/sana-v3-dataroom-review-response.js','apps/control-web/public/sana-v3-dataroom-review-disposition.js','apps/control-web/public/sana-v3-dataroom-review-round.js']
+          for file in files:
+              p=Path(file); text=p.read_text()
+              if 'data-review-source-case=' in text: continue
+              head,sep,tail=text.partition('function panel(){')
+              assert sep, file
+              needle='all.map(c=>`<tr>'
+              assert needle in tail, file
+              repl='all.map(c=>`<tr data-review-source-case="${esc(c.id||\'\')}" data-review-source-capital="${esc(c.capitalCaseRef||\'\')}" data-review-source-lot="${esc(c.lot||\'\')}">'
+              tail=tail.replace(needle,repl,1)
+              p.write_text(head+sep+tail)
+          css=Path('apps/control-web/public/sana-v3-review-workspace.css')
+          c=css.read_text()
+          if '.review-source-case-focused' not in c:
+              c+='\n.review-source-case-focused>td{background:#eef7f4!important;box-shadow:inset 0 1px 0 rgba(42,123,115,.22),inset 0 -1px 0 rgba(42,123,115,.22)}\n'
+              css.write_text(c)
+          sw=Path('apps/control-web/public/sana-v3-sw.js')
+          w=sw.read_text()
+          if "const CACHE='sana-v3-demo-shell-v100';" not in w:
+              old="const CACHE='sana-v3-demo-shell-v99';"
+              assert old in w
+              w=w.replace(old,"if(false){\nconst CACHE='sana-v3-demo-shell-v99';\n}\nconst CACHE='sana-v3-demo-shell-v100';",1)
+              sw.write_text(w)
+          PY
+      - name: Validate V87–V100
+        run: |
+          node scripts/validate-sana-dataroom-review-workspace.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v88.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v89.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v90.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v91.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v92.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v93.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v94.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v95.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v96.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v97.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v98.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v99.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v100.mjs
+      - name: Commit assembled V100
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/control-web/public/sana-v3-dataroom-review-workspace.js apps/control-web/public/sana-v3-review-workspace.css apps/control-web/public/sana-v3-dataroom-review-case.js apps/control-web/public/sana-v3-dataroom-review-handoff.js apps/control-web/public/sana-v3-dataroom-review-feedback.js apps/control-web/public/sana-v3-dataroom-review-response.js apps/control-web/public/sana-v3-dataroom-review-disposition.js apps/control-web/public/sana-v3-dataroom-review-round.js apps/control-web/public/sana-v3-sw.js
+          git commit -m 'demo: assemble Data Room review source case focus v100'
+          git push origin HEAD:demo/sana-v100-review-workspace-source-case-focus
