@@ -1,0 +1,92 @@
+name: Assemble SANA v94 Review Workspace Context Integrity
+
+on:
+  push:
+    branches: [demo/sana-v94-review-workspace-context-integrity]
+    paths:
+      - 'apps/control-web/public/sana-v3-dataroom-review-workspace.js'
+      - 'apps/control-web/public/sana-v3-review-workspace.css'
+      - 'scripts/validate-sana-dataroom-review-workspace-v94.mjs'
+      - '.github/workflows/assemble-sana-v94-review-workspace-context-integrity.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: demo/sana-v94-review-workspace-context-integrity}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Apply deterministic V94 context-integrity patch
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('apps/control-web/public/sana-v3-dataroom-review-workspace.js')
+          s=p.read_text()
+          if "const CONTEXT_INTEGRITY_BASELINE='REVIEW WORKSPACE V94';" not in s:
+              old="const EVENT_FOCUS_BASELINE='REVIEW WORKSPACE V93';"
+              assert old in s
+              s=s.replace(old,old+"\nconst CONTEXT_INTEGRITY_BASELINE='REVIEW WORKSPACE V94';",1)
+              old='FOCUSED_OCCURRENCE ≠ REFERENCE_VERIFICATION · REFERENCE_NAVIGATION ≠ ISSUE_RESOLUTION'
+              new='FOCUSED_OCCURRENCE ≠ REFERENCE_VERIFICATION · URL_CONTEXT_UNRESOLVED ≠ SOURCE_MISSING ≠ REVIEW_FAILURE · CONTEXT_RESOLUTION ≠ SOURCE_VERIFICATION · CONTEXT_CLEAR ≠ SOURCE_MUTATION · REFERENCE_NAVIGATION ≠ ISSUE_RESOLUTION'
+              assert old in s
+              s=s.replace(old,new,1)
+              marker='function roleText(){'
+              assert marker in s
+              fn="""function contextIntegrity(chains,f){const issues=[],capitalSpecific=!!f.capital&&f.capital!=='ALL',lotSpecific=!!f.lot&&f.lot!=='ALL',capitalKnown=!capitalSpecific||chains.some(c=>c.capitalCaseRef===f.capital),lotKnown=!lotSpecific||chains.some(c=>c.lot===f.lot),chain=capitalSpecific&&lotSpecific?chains.find(c=>c.capitalCaseRef===f.capital&&c.lot===f.lot)||null:null,issue=(key,value,detail)=>issues.push({key,value:String(value||''),detail,semantics:'URL_CONTEXT_UNRESOLVED'});if(capitalSpecific&&!capitalKnown)issue('rwCapital',f.capital,'Capital case no resuelve en la proyección actual');if(lotSpecific&&!lotKnown)issue('rwLot',f.lot,'Lote no resuelve en la proyección actual');if(capitalSpecific&&lotSpecific&&capitalKnown&&lotKnown&&!chain)issue('rwContext',`${f.capital}|${f.lot}`,'La combinación capital case/lote no resuelve en la proyección actual');const entry=chain&&f.stage&&f.stage!=='ALL'?chain.entries.find(e=>e.stage===f.stage)||null:null;if(f.stage&&f.stage!=='ALL'&&!entry)issue('rwStage',f.stage,'Etapa del deep-link no resuelve dentro del circuito actual');if(f.event&&!(entry?.eventTimeline||[]).some(e=>e.id===f.event))issue('rwEvent',f.event,'Evento del deep-link no resuelve dentro de la etapa seleccionada');if(f.ref&&!referenceOccurrences(chains,f,f.ref).length)issue('rwRef',f.ref,'Referencia del deep-link no tiene coincidencia literal en el circuito seleccionado');const requested=capitalSpecific||lotSpecific||(f.stage&&f.stage!=='ALL')||!!f.event||!!f.ref;return {requested,resolved:issues.length===0,issues,chainKey:chain?.key||'',capitalKnown,lotKnown,integrity:'URL_CONTEXT_UNRESOLVED ≠ SOURCE_MISSING ≠ REVIEW_FAILURE · CONTEXT_RESOLUTION ≠ SOURCE_VERIFICATION · CONTEXT_CLEAR ≠ SOURCE_MUTATION'}}\nfunction contextBanner(ctx){if(!ctx.requested||ctx.resolved)return '';return `<section class=\"review-context-integrity\" aria-label=\"Integridad de contexto URL\"><div class=\"review-context-integrity-head\"><div><p class=\"kicker\">CONTEXTO URL NO RESUELTO · READ ONLY</p><h4>${ctx.issues.length} selector(es) del deep-link ya no resuelven</h4><p>El enlace puede ser antiguo o no corresponder a la proyección visible. Esto no significa pérdida de fuente, gap, falla, prioridad ni riesgo.</p></div><button type=\"button\" class=\"btn ghost\" data-review-workspace-context-clear>Limpiar contexto URL</button></div><div class=\"review-context-issues\">${ctx.issues.map(i=>`<div class=\"review-context-issue\"><code>${esc(i.key)}: ${esc(i.value||'—')}</code><span>${esc(i.detail)}</span></div>`).join('')}</div><div class=\"section-note\">URL_CONTEXT_UNRESOLVED ≠ SOURCE_MISSING ≠ REVIEW_FAILURE · CONTEXT_RESOLUTION ≠ SOURCE_VERIFICATION · CONTEXT_CLEAR ≠ SOURCE_MUTATION</div></section>`}\n"""
+              s=s.replace(marker,fn+marker,1)
+              old="function panel(){const s=state(),f=readFocus(),chains=visibleChains(s.chains,f),selected=selectedEntry(s.chains,f),focusedEvent=selectedTimelineEvent(selected,f),occurrences=referenceOccurrences(s.chains,f,f.ref),sum=s.summary;return"
+              new="function panel(){const s=state(),f=readFocus(),chains=visibleChains(s.chains,f),selected=selectedEntry(s.chains,f),focusedEvent=selectedTimelineEvent(selected,f),occurrences=referenceOccurrences(s.chains,f,f.ref),context=contextIntegrity(s.chains,f),sum=s.summary;return"
+              assert old in s
+              s=s.replace(old,new,1)
+              assert 'DATA ROOM · REVIEW WORKSPACE V93' in s
+              s=s.replace('DATA ROOM · REVIEW WORKSPACE V93','DATA ROOM · REVIEW WORKSPACE V94',1)
+              assert 'Circuito de revisión, con referencia y evento deep-linkables' in s
+              s=s.replace('Circuito de revisión, con referencia y evento deep-linkables','Circuito de revisión, con integridad de contexto deep-link',1)
+              old='${controls(s,f)}<div class="grid metrics review-workspace-metrics">'
+              new='${controls(s,f)}${contextBanner(context)}<div class="grid metrics review-workspace-metrics">'
+              assert old in s
+              s=s.replace(old,new,1)
+              old="document.addEventListener('click',e=>{const occurrence="
+              new="document.addEventListener('click',e=>{if(e.target.closest('[data-review-workspace-context-clear]')){const f=readFocus();writeFocus({capital:'ALL',lot:'ALL',focus:f.focus,stage:'ALL',ref:'',event:''});if(typeof render==='function')render();return}const occurrence="
+              assert old in s
+              s=s.replace(old,new,1)
+              old='selectedTimelineEvent,referenceOccurrences,integrity:INTEGRITY'
+              new='selectedTimelineEvent,referenceOccurrences,contextIntegrity,integrity:INTEGRITY'
+              assert old in s
+              s=s.replace(old,new,1)
+              p.write_text(s)
+          css=Path('apps/control-web/public/sana-v3-review-workspace.css')
+          c=css.read_text()
+          if '.review-context-integrity{' not in c:
+              c+='\n.review-context-integrity{margin:0 0 12px;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fbfaf5}.review-context-integrity-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.review-context-integrity-head .kicker{margin:0 0 4px;font-size:7px;letter-spacing:.1em;color:var(--muted);font-weight:850}.review-context-integrity-head h4{margin:0;font-size:11px}.review-context-integrity-head p{margin:4px 0 0;max-width:760px;font-size:8px;line-height:1.45;color:var(--muted)}.review-context-issues{display:grid;gap:6px;margin:9px 0}.review-context-issue{display:grid;grid-template-columns:minmax(150px,.7fr) minmax(0,1.3fr);gap:8px;padding:8px;border:1px dashed var(--line);border-radius:9px;background:#fff}.review-context-issue code{font-size:7px;white-space:normal;overflow-wrap:anywhere}.review-context-issue span{font-size:8px;color:var(--muted)}@media(max-width:620px){.review-context-integrity-head,.review-context-issue{display:grid;grid-template-columns:1fr}}\n'
+              css.write_text(c)
+          sw=Path('apps/control-web/public/sana-v3-sw.js')
+          w=sw.read_text()
+          if "const CACHE='sana-v3-demo-shell-v94';" not in w:
+              old="const CACHE='sana-v3-demo-shell-v93';"
+              assert old in w
+              w=w.replace(old,"if(false){\nconst CACHE='sana-v3-demo-shell-v93';\n}\nconst CACHE='sana-v3-demo-shell-v94';",1)
+              sw.write_text(w)
+          PY
+      - name: Validate V87–V94
+        run: |
+          node scripts/validate-sana-dataroom-review-workspace.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v88.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v89.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v90.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v91.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v92.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v93.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v94.mjs
+      - name: Commit assembled V94
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/control-web/public/sana-v3-dataroom-review-workspace.js apps/control-web/public/sana-v3-review-workspace.css apps/control-web/public/sana-v3-sw.js
+          git commit -m 'demo: assemble Data Room review context integrity v94'
+          git push origin HEAD:demo/sana-v94-review-workspace-context-integrity
