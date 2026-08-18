@@ -9,3 +9,5 @@
 .review-stage.is-ambiguous{background:#faf6ed;border-style:double;border-color:#d9c9a8;color:var(--ink2)}.review-stage-candidates{display:flex;flex-wrap:wrap;gap:3px;margin-top:2px}.review-stage-candidates code{font-size:7px;padding:2px 4px;border-radius:5px;background:#fff;white-space:normal;overflow-wrap:anywhere}
 
 .review-stage.is-payload-invalid{background:#faf7f4;color:var(--muted);border-style:dashed}.review-source-payload{display:block;font-size:7px;line-height:1.35;color:var(--muted);overflow-wrap:anywhere}
+
+.review-inspector-actions{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}@media(max-width:620px){.review-inspector-actions{justify-content:flex-start}}
