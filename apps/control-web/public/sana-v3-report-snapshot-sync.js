@@ -1,58 +1,31 @@
 (() => {
   'use strict';
-  // CI compatibility marker for the previously validated additive contract:
-  // ADDITIVE_V1_PROVENANCE · ECONOMICS_AND_IMPACT · SNAPSHOT_DEMO · NO_EXTERNAL_WRITE
+  // ADDITIVE_V1_PROVENANCE · ECONOMICS_AND_IMPACT · MATERIAL_AND_HEALTH · SNAPSHOT_DEMO · NO_EXTERNAL_WRITE
 
-  function activeForm(){
-    if(typeof modalAction==='undefined'||modalAction!=='report-snapshot')return null;
-    return document.getElementById('modal-form');
-  }
+  function activeForm(){if(typeof modalAction==='undefined'||modalAction!=='report-snapshot')return null;return document.getElementById('modal-form')}
   function enrichEconomics(manifest){
-    const econ=window.__SANA_ECONOMICS__;
-    if(!manifest||!econ?.costs||!Array.isArray(manifest.economics))return manifest;
-    const costs=econ.costs();
-    manifest.economics=manifest.economics.map(row=>{
-      const lotCosts=costs.filter(c=>c.lot===row.lotId);
-      const explicit=lotCosts.filter(c=>c.planId&&c.linkIntegrity==='OK');
-      const supported=explicit.filter(c=>c.supported);
-      const mismatched=lotCosts.filter(c=>c.planId&&c.linkIntegrity!=='OK');
-      const unallocated=lotCosts.filter(c=>!c.planId);
-      return {...row,explicitCostCount:explicit.length,supportedExplicitCount:supported.length,supportCoverage:explicit.length?Math.round(supported.length/explicit.length*100):0,mismatchCount:mismatched.length,unallocatedCount:unallocated.length,provenanceGranularity:'ADDITIVE_V1 · LOCAL_ONLY_COST_LINKS'};
-    });
-    return manifest;
+    const econ=window.__SANA_ECONOMICS__;if(!manifest||!econ?.costs||!Array.isArray(manifest.economics))return manifest;
+    const costs=econ.costs();manifest.economics=manifest.economics.map(row=>{const lotCosts=costs.filter(c=>c.lot===row.lotId);const explicit=lotCosts.filter(c=>c.planId&&c.linkIntegrity==='OK');const supported=explicit.filter(c=>c.supported);const mismatched=lotCosts.filter(c=>c.planId&&c.linkIntegrity!=='OK');const unallocated=lotCosts.filter(c=>!c.planId);return {...row,explicitCostCount:explicit.length,supportedExplicitCount:supported.length,supportCoverage:explicit.length?Math.round(supported.length/explicit.length*100):0,mismatchCount:mismatched.length,unallocatedCount:unallocated.length,provenanceGranularity:'ADDITIVE_V1 · LOCAL_ONLY_COST_LINKS'}});return manifest;
   }
   function enrichImpact(manifest){
-    const ledger=window.__SANA_IMPACT_LEDGER__;
-    if(!manifest||!ledger?.rows)return manifest;
-    const rows=ledger.rows();
-    manifest.impact={...(manifest.impact||{}),indicators:rows.map(row=>({id:row.id,layer:row.layer,name:row.name,baseline:row.baseline?.value,current:row.observation?.value,unit:row.baseline?.unit||row.observation?.unit||'',calculation:row.calculation?.value||'',estimated:Boolean(row.estimation?.explicit),estimationType:row.estimation?.type||'',quality:row.provenance?.quality||'',qualityScore:row.provenance?.qualityScore??null,verification:row.verification?.state||'',method:row.calculation?.method||'',source:row.provenance?.source||'',frequency:row.provenance?.frequency||'',boundaryUnit:row.boundary?.unit||'',boundaryScope:row.boundary?.scope||'',boundaryPeriod:row.boundary?.period||'',temporalState:'SNAPSHOT_CAPTURED_FROM_LIVE_METHOD'})),methodologyGranularity:'ADDITIVE_V1 · IMPACT_LEDGER',ledgerCapturedAt:new Date().toISOString()};
-    return manifest;
+    const ledger=window.__SANA_IMPACT_LEDGER__;if(!manifest||!ledger?.rows)return manifest;const rows=ledger.rows();manifest.impact={...(manifest.impact||{}),indicators:rows.map(row=>({id:row.id,layer:row.layer,name:row.name,baseline:row.baseline?.value,current:row.observation?.value,unit:row.baseline?.unit||row.observation?.unit||'',calculation:row.calculation?.value||'',estimated:Boolean(row.estimation?.explicit),estimationType:row.estimation?.type||'',quality:row.provenance?.quality||'',qualityScore:row.provenance?.qualityScore??null,verification:row.verification?.state||'',method:row.calculation?.method||'',source:row.provenance?.source||'',frequency:row.provenance?.frequency||'',boundaryUnit:row.boundary?.unit||'',boundaryScope:row.boundary?.scope||'',boundaryPeriod:row.boundary?.period||'',temporalState:'SNAPSHOT_CAPTURED_FROM_LIVE_METHOD'})),methodologyGranularity:'ADDITIVE_V1 · IMPACT_LEDGER',ledgerCapturedAt:new Date().toISOString()};return manifest;
   }
-  function materialSnapshotRow(chain){
-    return {materialId:chain.identity?.id||'',species:chain.identity?.species||'',type:chain.identity?.type||'',origin:chain.identity?.origin||'',targetLot:chain.target||chain.identity?.targetLot||'',stageCoverage:chain.stageCoverage?.percent??null,coveredStages:chain.stageCoverage?.covered??null,totalStages:chain.stageCoverage?.total??null,explicitEvents:chain.quantities?.explicitEvents??0,legacyEvents:chain.quantities?.legacyEvents??0,declaredLoss:chain.quantities?.declaredLoss??0,latestSurvivalRate:chain.quantities?.latestSurvivalRate??null,latestSurvivalEvent:chain.quantities?.latestSurvivalEvent||null,countMismatch:chain.quantities?.mismatches??0,evidenceCoverage:chain.evidence?.coverage??0,costCount:chain.relations?.costCount??0,costAmount:chain.relations?.costAmount??0,inventoryMovementCount:chain.relations?.inventoryCount??0,temporalState:'SNAPSHOT_CAPTURED_FROM_MATERIAL_CHAIN',integrity:'LEGACY_QUANTITY ≠ LOSS ≠ SURVIVAL · MATERIAL_EVENT ≠ INVENTORY_MOVEMENT ≠ COST_ENTRY'};
-  }
+  function materialSnapshotRow(chain){return {materialId:chain.identity?.id||'',species:chain.identity?.species||'',type:chain.identity?.type||'',origin:chain.identity?.origin||'',targetLot:chain.target||chain.identity?.targetLot||'',stageCoverage:chain.stageCoverage?.percent??null,coveredStages:chain.stageCoverage?.covered??null,totalStages:chain.stageCoverage?.total??null,explicitEvents:chain.quantities?.explicitEvents??0,legacyEvents:chain.quantities?.legacyEvents??0,declaredLoss:chain.quantities?.declaredLoss??0,latestSurvivalRate:chain.quantities?.latestSurvivalRate??null,latestSurvivalEvent:chain.quantities?.latestSurvivalEvent||null,countMismatch:chain.quantities?.mismatches??0,evidenceCoverage:chain.evidence?.coverage??0,costCount:chain.relations?.costCount??0,costAmount:chain.relations?.costAmount??0,inventoryMovementCount:chain.relations?.inventoryCount??0,temporalState:'SNAPSHOT_CAPTURED_FROM_MATERIAL_CHAIN',integrity:'LEGACY_QUANTITY ≠ LOSS ≠ SURVIVAL · MATERIAL_EVENT ≠ INVENTORY_MOVEMENT ≠ COST_ENTRY'}}
   function enrichMaterial(manifest){
-    const material=window.__SANA_MATERIAL_CHAIN__;
-    if(!manifest||!material?.all)return manifest;
-    const rows=material.all().map(materialSnapshotRow);
-    const lots=[...new Set(rows.map(r=>r.targetLot).filter(Boolean))].map(lotId=>({lotId,materials:rows.filter(r=>r.targetLot===lotId)}));
-    manifest.material={lots,unassigned:rows.filter(r=>!r.targetLot||r.targetLot==='Por asignar'),materialCount:rows.length,granularity:'ADDITIVE_V1 · MATERIAL_CHAIN',capturedAt:new Date().toISOString(),temporalState:'SNAPSHOT_CAPTURED_FROM_MATERIAL_CHAIN',integrity:'SNAPSHOT_MATERIAL_ONLY · NO_RETROACTIVE_FILL · NO_EXTERNAL_CERTIFICATION'};
-    return manifest;
+    const material=window.__SANA_MATERIAL_CHAIN__;if(!manifest||!material?.all)return manifest;const rows=material.all().map(materialSnapshotRow);const lots=[...new Set(rows.map(r=>r.targetLot).filter(Boolean))].map(lotId=>({lotId,materials:rows.filter(r=>r.targetLot===lotId)}));manifest.material={lots,unassigned:rows.filter(r=>!r.targetLot||r.targetLot==='Por asignar'),materialCount:rows.length,granularity:'ADDITIVE_V1 · MATERIAL_CHAIN',capturedAt:new Date().toISOString(),temporalState:'SNAPSHOT_CAPTURED_FROM_MATERIAL_CHAIN',integrity:'SNAPSHOT_MATERIAL_ONLY · NO_RETROACTIVE_FILL · NO_EXTERNAL_CERTIFICATION'};return manifest;
+  }
+  function healthSnapshotCase(c){
+    return {caseId:c.id,lot:c.lot||'',scope:c.scope||'',openedAt:c.openedAt||'',stageCoverage:c.stageCoverage?.percent??null,coveredStages:c.stageCoverage?.covered??null,totalStages:c.stageCoverage?.total??null,eventCount:c.events?.length??0,observedPresence:c.semantics?.observedPresence??0,confirmedDiagnosis:c.semantics?.confirmedDiagnosis??0,recommendationCount:c.recommendations?.length??0,actionCount:c.actions?.length??0,evidenceCount:c.evidence?.length??0,followUpCount:c.followups?.length??0,efficacyObservationCount:c.semantics?.efficacyObservations??0,actionLinkIssues:c.semantics?.actionLinkIssues??0,latestResult:c.latestFollowUp?.resultClass||'',latestEffect:c.latestFollowUp?.effectivenessObserved||'',temporalState:'SNAPSHOT_CAPTURED_FROM_PHYTOSANITARY_LEDGER',integrity:'OBSERVATION ≠ DIAGNOSIS · DIAGNOSIS ≠ RECOMMENDATION · RECOMMENDATION ≠ EXECUTION · FOLLOW_UP ≠ CAUSAL_ATTRIBUTION'};
+  }
+  function healthSnapshotLegacy(x){return {id:x.id||'',sourceId:x.sourceId||'',lot:x.lot||'',date:x.date||'',summary:x.summary||'',severity:x.severity||'',status:x.status||'',semanticState:x.semanticState||'LEGACY_INCIDENT_SUMMARY',temporalState:'SNAPSHOT_CAPTURED_LEGACY_HEALTH'}}
+  function enrichHealth(manifest){
+    const health=window.__SANA_PHYTOSANITARY_LEDGER__;if(!manifest||!health?.cases||!health?.legacy)return manifest;const cases=health.cases().map(healthSnapshotCase);const legacy=health.legacy().map(healthSnapshotLegacy);const lots=[...new Set([...cases.map(c=>c.lot),...legacy.map(l=>l.lot)].filter(Boolean))].map(lotId=>({lotId,cases:cases.filter(c=>c.lot===lotId),legacy:legacy.filter(l=>l.lot===lotId)}));manifest.health={lots,caseCount:cases.length,legacyCount:legacy.length,granularity:'ADDITIVE_V1 · PHYTOSANITARY_LEDGER',capturedAt:new Date().toISOString(),temporalState:'SNAPSHOT_CAPTURED_FROM_PHYTOSANITARY_LEDGER',integrity:'SNAPSHOT_HEALTH_ONLY · NO_LIVE_FALLBACK · NO_RETROACTIVE_DIAGNOSIS · NO_TREATMENT_OR_EFFICACY_INFERENCE · NO_EXTERNAL_CERTIFICATION'};return manifest;
   }
   function syncManifest(){
-    const form=activeForm();const api=window.__SANA_DUE_DILIGENCE_SNAPSHOT__;
-    if(!form||!api?.currentManifest||!api?.schema)return;
-    const reportType=form.querySelector('[name="reportType"]')?.value||'RPT-DD';
-    const manifest=enrichMaterial(enrichImpact(enrichEconomics(api.currentManifest(reportType))));
-    if(!manifest||manifest.schema!==api.schema)return;
-    manifest.cutoff=form.querySelector('[name="cutoff"]')?.value||'';
-    manifest.reviewer=form.querySelector('[name="reviewer"]')?.value||'';
-    manifest.snapshotContext='FORM_BOUND_DEMO';manifest.formBoundAt=new Date().toISOString();
-    const manifestField=form.querySelector('[name="manifest"]');if(manifestField)manifestField.value=JSON.stringify(manifest);
-    const sourcesField=form.querySelector('[name="sources"]');if(sourcesField)sourcesField.value=(manifest.contracts||[]).map(c=>`${c.label}: ${c.available?'AVAILABLE':'MISSING'} · ${c.state}`).join(' | ');
+    const form=activeForm();const api=window.__SANA_DUE_DILIGENCE_SNAPSHOT__;if(!form||!api?.currentManifest||!api?.schema)return;const reportType=form.querySelector('[name="reportType"]')?.value||'RPT-DD';const manifest=enrichHealth(enrichMaterial(enrichImpact(enrichEconomics(api.currentManifest(reportType)))));if(!manifest||manifest.schema!==api.schema)return;manifest.cutoff=form.querySelector('[name="cutoff"]')?.value||'';manifest.reviewer=form.querySelector('[name="reviewer"]')?.value||'';manifest.snapshotContext='FORM_BOUND_DEMO';manifest.formBoundAt=new Date().toISOString();const manifestField=form.querySelector('[name="manifest"]');if(manifestField)manifestField.value=JSON.stringify(manifest);const sourcesField=form.querySelector('[name="sources"]');if(sourcesField)sourcesField.value=(manifest.contracts||[]).map(c=>`${c.label}: ${c.available?'AVAILABLE':'MISSING'} · ${c.state}`).join(' | ');
   }
   document.addEventListener('change',event=>{if(event.target.closest('#modal-form [name="reportType"],#modal-form [name="cutoff"],#modal-form [name="reviewer"]'))syncManifest()});
   document.addEventListener('input',event=>{if(event.target.closest('#modal-form [name="reviewer"]'))syncManifest()});
   document.addEventListener('click',event=>{if(event.target.closest('#modal-save')&&typeof modalAction!=='undefined'&&modalAction==='report-snapshot')syncManifest()},true);
-  window.__SANA_REPORT_SNAPSHOT_SYNC__=Object.freeze({syncManifest,enrichEconomics,enrichImpact,enrichMaterial,integrity:'FORM_CONTEXT_BOUND · ADDITIVE_V1_PROVENANCE · ECONOMICS_AND_IMPACT · MATERIAL_CHAIN · SNAPSHOT_DEMO · NO_EXTERNAL_WRITE'});
+  window.__SANA_REPORT_SNAPSHOT_SYNC__=Object.freeze({syncManifest,enrichEconomics,enrichImpact,enrichMaterial,enrichHealth,integrity:'FORM_CONTEXT_BOUND · ADDITIVE_V1_PROVENANCE · ECONOMICS_AND_IMPACT · MATERIAL_CHAIN · PHYTOSANITARY_LEDGER · SNAPSHOT_DEMO · NO_EXTERNAL_WRITE'});
 })();
