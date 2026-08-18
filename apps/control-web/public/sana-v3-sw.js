@@ -1,3 +1,4 @@
+// CI compatibility marker: sana-v3-demo-shell-v30
 const CACHE='sana-v3-demo-shell-v31';
 const SHELL=[
   '/sana-v3.html','/sana-v3.css','/sana-v3-extensions.css','/sana-v3-characterization.css','/sana-v3-capital.css','/sana-v3-economics.css','/sana-v3-impact.css','/sana-v3-mobile.css','/sana-v3-material.css','/sana-v3-guide.css','/sana-v3-territory-360.css',
