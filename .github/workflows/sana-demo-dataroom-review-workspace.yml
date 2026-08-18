@@ -1,0 +1,23 @@
+name: SANA Demo Data Room Review Workspace
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths: ['apps/control-web/public/sana-v3-dataroom-review-workspace.js','scripts/validate-sana-dataroom-review-workspace.mjs','apps/control-web/public/sana-v3.html','apps/control-web/public/sana-v3-sw.js','.github/workflows/sana-demo-dataroom-review-workspace.yml']
+  pull_request:
+    paths: ['apps/control-web/public/sana-v3-dataroom-review-workspace.js','scripts/validate-sana-dataroom-review-workspace.mjs','apps/control-web/public/sana-v3.html','apps/control-web/public/sana-v3-sw.js']
+jobs:
+  review-workspace-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: node scripts/validate-sana-dataroom-review-workspace.mjs
+      - run: |
+          grep -q 'WORKSPACE_PROJECTION ≠ SOURCE_LEDGER' apps/control-web/public/sana-v3-dataroom-review-workspace.js
+          grep -q 'MISSING_STAGE ≠ GAP ≠ FAILURE' apps/control-web/public/sana-v3-dataroom-review-workspace.js
+          grep -q 'LIVE_REVIEW_WORKSPACE ≠ SNAPSHOT ≠ HISTORICAL_EVIDENCE' apps/control-web/public/sana-v3-dataroom-review-workspace.js
+          ! grep -Eq 'fetch\s*\(|openModal\s*\(|canonicalMutated\s*=\s*true|dueDiligenceApprovals\s*:\s*[1-9]' apps/control-web/public/sana-v3-dataroom-review-workspace.js
+      - run: |
+          grep -q '/sana-v3-dataroom-review-round.js.*sana-v3-dataroom-review-workspace.js.*sana-v3-dataroom-impact-history.js' apps/control-web/public/sana-v3.html
+          grep -Eq "^const CACHE='sana-v3-demo-shell-v(8[7-9]|9[0-9]|[1-9][0-9]{2,})';" apps/control-web/public/sana-v3-sw.js
