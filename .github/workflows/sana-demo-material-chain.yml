@@ -6,6 +6,7 @@ on:
     paths:
       - 'apps/control-web/public/sana-v3-material-lifecycle.js'
       - 'apps/control-web/public/sana-v3-material-chain.js'
+      - 'apps/control-web/public/sana-v3-cycle-material-provenance.js'
       - 'apps/control-web/public/sana-v3-inventory-operations.js'
       - 'apps/control-web/public/sana-v3-economics.js'
       - 'apps/control-web/public/sana-v3-passport-chain.js'
@@ -17,11 +18,13 @@ on:
       - 'scripts/validate-sana-material-chain.mjs'
       - 'scripts/validate-sana-material-snapshot.mjs'
       - 'scripts/validate-sana-material-gaps.mjs'
+      - 'scripts/validate-sana-cycle-material.mjs'
       - '.github/workflows/sana-demo-material-chain.yml'
   pull_request:
     paths:
       - 'apps/control-web/public/sana-v3-material-lifecycle.js'
       - 'apps/control-web/public/sana-v3-material-chain.js'
+      - 'apps/control-web/public/sana-v3-cycle-material-provenance.js'
       - 'apps/control-web/public/sana-v3-inventory-operations.js'
       - 'apps/control-web/public/sana-v3-economics.js'
       - 'apps/control-web/public/sana-v3-passport-chain.js'
@@ -33,6 +36,7 @@ on:
       - 'scripts/validate-sana-material-chain.mjs'
       - 'scripts/validate-sana-material-snapshot.mjs'
       - 'scripts/validate-sana-material-gaps.mjs'
+      - 'scripts/validate-sana-cycle-material.mjs'
       - '.github/workflows/sana-demo-material-chain.yml'
 
 permissions:
@@ -51,29 +55,36 @@ jobs:
         run: |
           set -euo pipefail
           node --check apps/control-web/public/sana-v3-material-chain.js
+          node --check apps/control-web/public/sana-v3-cycle-material-provenance.js
           node --check apps/control-web/public/sana-v3-dataroom-material-history.js
           node --check apps/control-web/public/sana-v3-due-diligence-material-gaps.js
           node --check apps/control-web/public/sana-v3-report-snapshot-sync.js
           node scripts/validate-sana-material-chain.mjs
           node scripts/validate-sana-material-snapshot.mjs
           node scripts/validate-sana-material-gaps.mjs
+          node scripts/validate-sana-cycle-material.mjs
       - name: Validate live chain contracts
         shell: bash
         run: |
           set -euo pipefail
           chain='apps/control-web/public/sana-v3-material-chain.js'
+          cycle='apps/control-web/public/sana-v3-cycle-material-provenance.js'
           grep -q '__SANA_MATERIAL_CHAIN__' "$chain"
           grep -q "schema:'SANA_MATERIAL_CHAIN_V1'" "$chain"
           grep -q 'LEGACY_SINGLE_QUANTITY' "$chain"
           grep -q 'EXPLICIT_COUNTS' "$chain"
           grep -q 'LEGACY_QUANTITY ≠ LOSS ≠ SURVIVAL' "$chain"
           grep -q 'MATERIAL_EVENT ≠ INVENTORY_MOVEMENT ≠ COST_ENTRY' "$chain"
-          grep -q 'materialEventId' "$chain"
-          grep -q 'materialId' "$chain"
           grep -q 'PASSPORT MATERIAL ≠ EXTERNAL CERTIFICATION' "$chain"
-          grep -q 'NO_CONTABILIDAD_OFICIAL' "$chain"
           ! grep -q 'storage.records.push' "$chain"
-          ! grep -Eiq 'autoCreateInventory|autoCreateCost|createInventoryMovement|createEconomicCost|certifiedGenetic|certifyGenetic|certifyPhytosanitary|icaApproved[[:space:]]*=[[:space:]]*true' "$chain"
+          grep -q '__SANA_CYCLE_MATERIAL__' "$cycle"
+          grep -q 'MATERIAL_PROVENANCE ≠ CYCLE_GATE ≠ PERFORMANCE ≠ EXTERNAL_CERTIFICATION' "$cycle"
+          grep -q 'DECLARED_LOSS ≠ FAILURE' "$cycle"
+          grep -q 'No modifica completeness ni readyForArchive' "$cycle"
+          ! grep -q 'completeness=' "$cycle"
+          ! grep -q 'readyForArchive=' "$cycle"
+          ! grep -q 'openModal(' "$cycle"
+          ! grep -q 'saveModal' "$cycle"
       - name: Validate snapshot and historical contracts
         shell: bash
         run: |
@@ -88,40 +99,33 @@ jobs:
           grep -q '__SANA_DATAROOM_MATERIAL_HISTORY__' "$history"
           grep -q 'NOT_CAPTURED_IN_SNAPSHOT' "$history"
           grep -q 'SNAPSHOT_MATERIAL_ONLY · NO_LIVE_FALLBACK · NO_RETROACTIVE_FILL · NO_EXTERNAL_CERTIFICATION' "$history"
-          grep -q 'CHANGE ≠ IMPROVEMENT ≠ SURVIVAL_CAUSALITY ≠ INVESTMENT_SIGNAL' "$history"
           ! grep -q '__SANA_MATERIAL_CHAIN__' "$history"
           ! grep -q 'currentManifest' "$history"
           ! grep -q 'storage\.' "$history"
-          ! grep -q 'openModal(' "$history"
-          ! grep -q 'saveModal' "$history"
-
           grep -q '__SANA_DD_MATERIAL_GAPS__' "$gaps"
           grep -q 'SNAPSHOT_MATERIAL_GAPS_ONLY · NO_LIVE_FALLBACK · LOSS_DECLARED ≠ GAP · NO_CREDIT_OR_CERTIFICATION_INFERENCE' "$gaps"
           grep -q 'MATERIAL GAP ≠ GENETIC QUALITY ≠ PHYTOSANITARY STATUS ≠ CREDIT RISK' "$gaps"
-          grep -q 'MATERIAL_PROVENANCE' "$gaps"
           ! grep -q '__SANA_MATERIAL_CHAIN__' "$gaps"
-          ! grep -q 'currentManifest' "$gaps"
           ! grep -q 'storage\.' "$gaps"
-          ! grep -q 'openModal(' "$gaps"
-          ! grep -q 'saveModal' "$gaps"
       - name: Validate assembly and offline shell
         shell: bash
         run: |
           set -euo pipefail
           html='apps/control-web/public/sana-v3.html'
           sw='apps/control-web/public/sana-v3-sw.js'
-          grep -q '/sana-v3-economics.js.*sana-v3-material-chain.js.*sana-v3-impact-methodology.js' "$html"
+          grep -q '/sana-v3-cycle-closure.js.*sana-v3-cycle-material-provenance.js.*sana-v3-capital-dossier.js' "$html"
           grep -q '/sana-v3-due-diligence-gaps.js.*sana-v3-due-diligence-material-gaps.js.*sana-v3-due-diligence-remediation.js' "$html"
           grep -q '/sana-v3-dataroom-impact-history.js.*sana-v3-dataroom-material-history.js.*sana-v3-dataroom-entry.js' "$html"
           grep -q "'/sana-v3-material-chain.js'" "$sw"
+          grep -q "'/sana-v3-cycle-material-provenance.js'" "$sw"
           grep -q "'/sana-v3-due-diligence-material-gaps.js'" "$sw"
           grep -q "'/sana-v3-dataroom-material-history.js'" "$sw"
-          grep -q "const CACHE='sana-v3-demo-shell-v32'" "$sw"
+          grep -q "const CACHE='sana-v3-demo-shell-v33'" "$sw"
       - name: Assert no execution or certification authority
         shell: bash
         run: |
           set -euo pipefail
-          files='apps/control-web/public/sana-v3-material-chain.js apps/control-web/public/sana-v3-dataroom-material-history.js apps/control-web/public/sana-v3-due-diligence-material-gaps.js apps/control-web/public/sana-v3-report-snapshot-sync.js'
+          files='apps/control-web/public/sana-v3-material-chain.js apps/control-web/public/sana-v3-cycle-material-provenance.js apps/control-web/public/sana-v3-dataroom-material-history.js apps/control-web/public/sana-v3-due-diligence-material-gaps.js apps/control-web/public/sana-v3-report-snapshot-sync.js'
           ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true' $files
           ! grep -Eiq 'approveInvestment|investmentRecommendation|creditApproved|eligibilityApproved|authorizeTreatment|certified[[:space:]]*=[[:space:]]*true|verifiedExternal[[:space:]]*=[[:space:]]*true|icaApproved[[:space:]]*=[[:space:]]*true|investmentApproved[[:space:]]*=[[:space:]]*true' $files
           grep -q 'NO CERTIFICA GENÉTICA, SANIDAD NI ICA' apps/control-web/public/sana-v3-material-chain.js
