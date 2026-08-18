@@ -83,3 +83,4 @@ self.addEventListener('fetch',event=>{if(event.request.method!=='GET')return;con
 // v58 assembled Economic Reconciliation snapshot/history/DD certification trigger; snapshot-only and no accounting authority.
 // v59 assembled Commercial Offtake live + Cycle certification trigger; no contract verification, guaranteed revenue or financial execution.
 // v61 assembled Capital Governance certification trigger; document completeness is not eligibility, credit scoring or investment recommendation.
+// v62 assembled Capital Governance snapshot/history/DD; snapshot-only, documentary, data-minimized and non-decisional.
