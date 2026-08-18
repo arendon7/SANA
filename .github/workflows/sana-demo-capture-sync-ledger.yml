@@ -6,7 +6,7 @@ on:
     paths:
       - 'apps/control-web/public/sana-v3-capture-sync-ledger.js'
       - 'apps/control-web/public/sana-v3-cycle-capture-sync-provenance.js'
-      - 'apps/control-web/public/sana-v3-runtime.js'
+      - 'apps/control-web/public/sana-v3-capture-sync-runtime-bridge.js'
       - 'apps/control-web/public/sana-v3.html'
       - 'apps/control-web/public/sana-v3-sw.js'
       - 'scripts/validate-sana-capture-sync-ledger.mjs'
@@ -15,7 +15,7 @@ on:
     paths:
       - 'apps/control-web/public/sana-v3-capture-sync-ledger.js'
       - 'apps/control-web/public/sana-v3-cycle-capture-sync-provenance.js'
-      - 'apps/control-web/public/sana-v3-runtime.js'
+      - 'apps/control-web/public/sana-v3-capture-sync-runtime-bridge.js'
       - 'apps/control-web/public/sana-v3.html'
       - 'apps/control-web/public/sana-v3-sw.js'
       - 'scripts/validate-sana-capture-sync-ledger.mjs'
@@ -38,6 +38,7 @@ jobs:
           set -euo pipefail
           node --check apps/control-web/public/sana-v3-capture-sync-ledger.js
           node --check apps/control-web/public/sana-v3-cycle-capture-sync-provenance.js
+          node --check apps/control-web/public/sana-v3-capture-sync-runtime-bridge.js
           node scripts/validate-sana-capture-sync-ledger.mjs
       - name: Validate record-level boundaries
         shell: bash
@@ -59,9 +60,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          runtime='apps/control-web/public/sana-v3-runtime.js'
-          grep -q 'recordId:record.id' "$runtime"
-          grep -q "state:'PENDING_SERVER'" "$runtime"
+          bridge='apps/control-web/public/sana-v3-capture-sync-runtime-bridge.js'
+          grep -q '__SANA_CAPTURE_SYNC_RUNTIME_BRIDGE__' "$bridge"
+          grep -q 'q.recordId=record.id' "$bridge"
+          grep -q "q.state=q.state||'PENDING_SERVER'" "$bridge"
+          grep -q 'LEGACY_QUEUE_UNCHANGED' "$bridge"
           grep -q 'LEGACY_QUEUE_ENTRY_UNLINKED' apps/control-web/public/sana-v3-capture-sync-ledger.js
       - name: Validate cycle projection is read-only and non-weighted
         shell: bash
@@ -72,20 +75,22 @@ jobs:
           grep -q 'CAPTURE_SYNC_PROVENANCE ≠ CYCLE_GATE' "$f"
           ! grep -q 'completeness[[:space:]]*=' "$f"
           ! grep -q 'readyForArchive[[:space:]]*=' "$f"
-      - name: Validate assembly and active v53 shell
+      - name: Validate assembly and v53 compatibility shell
         shell: bash
         run: |
           set -euo pipefail
           html='apps/control-web/public/sana-v3.html'; sw='apps/control-web/public/sana-v3-sw.js'
           grep -q '/sana-v3-data-trust.js.*sana-v3-capture-sync-ledger.js.*sana-v3-harvest-ledger.js' "$html"
           grep -q '/sana-v3-cycle-forecast-provenance.js.*sana-v3-cycle-capture-sync-provenance.js.*sana-v3-cycle-labor-provenance.js' "$html"
+          grep -q '/sana-v3-runtime.js.*sana-v3-capture-sync-runtime-bridge.js.*sana-v3-access.js' "$html"
           grep -q "'/sana-v3-capture-sync-ledger.js'" "$sw"
           grep -q "'/sana-v3-cycle-capture-sync-provenance.js'" "$sw"
+          grep -q "'/sana-v3-capture-sync-runtime-bridge.js'" "$sw"
           grep -q "^const CACHE='sana-v3-demo-shell-v53';" "$sw"
       - name: Assert no server ACK fabrication, production or canonical authority
         shell: bash
         run: |
           set -euo pipefail
-          files='apps/control-web/public/sana-v3-capture-sync-ledger.js apps/control-web/public/sana-v3-cycle-capture-sync-provenance.js'
+          files='apps/control-web/public/sana-v3-capture-sync-ledger.js apps/control-web/public/sana-v3-cycle-capture-sync-provenance.js apps/control-web/public/sana-v3-capture-sync-runtime-bridge.js'
           ! grep -Eiq 'productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true|automaticResolution[[:space:]]*:[[:space:]]*true|sourceVerified[[:space:]]*:[[:space:]]*true' $files
           ! grep -Eiq 'fetch\(' $files
