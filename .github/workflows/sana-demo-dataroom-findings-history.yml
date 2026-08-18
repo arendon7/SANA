@@ -1,0 +1,55 @@
+name: SANA Demo Data Room Human Review Findings History
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-dataroom-findings.js'
+      - 'apps/control-web/public/sana-v3-dataroom-findings-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-dataroom-findings-gaps.js'
+      - 'scripts/validate-sana-dataroom-findings-history.mjs'
+      - '.github/workflows/sana-demo-dataroom-findings-history.yml'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-dataroom-findings.js'
+      - 'apps/control-web/public/sana-v3-dataroom-findings-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-dataroom-findings-gaps.js'
+      - 'scripts/validate-sana-dataroom-findings-history.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+
+jobs:
+  dataroom-findings-history-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contracts
+        run: |
+          node --check apps/control-web/public/sana-v3-report-snapshot-dataroom-findings.js
+          node --check apps/control-web/public/sana-v3-dataroom-findings-history.js
+          node --check apps/control-web/public/sana-v3-due-diligence-dataroom-findings-gaps.js
+          node scripts/validate-sana-dataroom-findings-history.mjs
+      - name: Validate snapshot-only history
+        run: |
+          grep -q 'SNAPSHOT_DATAROOM_FINDINGS_ONLY' apps/control-web/public/sana-v3-report-snapshot-dataroom-findings.js
+          grep -q 'NO_LIVE_FALLBACK' apps/control-web/public/sana-v3-dataroom-findings-history.js
+          grep -q 'FINDING_CHANGE ≠ IMPROVEMENT' apps/control-web/public/sana-v3-dataroom-findings-history.js
+          ! grep -q '__SANA_DATAROOM_FINDINGS__' apps/control-web/public/sana-v3-dataroom-findings-history.js
+          ! grep -Eq '\bstorage\s*(\?\.|\.)' apps/control-web/public/sana-v3-dataroom-findings-history.js
+      - name: Validate documentary gaps only
+        run: |
+          grep -q 'NO_REVIEW ≠ GAP' apps/control-web/public/sana-v3-due-diligence-dataroom-findings-gaps.js
+          grep -q 'FINDING_OPEN ≠ GAP' apps/control-web/public/sana-v3-due-diligence-dataroom-findings-gaps.js
+          grep -q 'CLARIFICATION_PENDING ≠ GAP' apps/control-web/public/sana-v3-due-diligence-dataroom-findings-gaps.js
+          grep -q 'FINDING_CLOSED ≠ GAP' apps/control-web/public/sana-v3-due-diligence-dataroom-findings-gaps.js
+          grep -q 'FINDINGS_GAP ≠ DEFECT ≠ NONCOMPLIANCE ≠ INVESTMENT_RISK ≠ RISK_RATING ≠ RISK_SCORE ≠ ELIGIBILITY ≠ INVESTMENT_DECISION' apps/control-web/public/sana-v3-due-diligence-dataroom-findings-gaps.js
+          ! grep -q '__SANA_DATAROOM_FINDINGS__' apps/control-web/public/sana-v3-due-diligence-dataroom-findings-gaps.js
+      - name: Assert no scoring approval offer or execution authority
+        run: |
+          ! grep -Eq 'productionExecutionAvailable\s*=\s*true|productionActivationAllowed\s*=\s*true|canonicalMutated\s*=\s*true' apps/control-web/public/sana-v3-report-snapshot-dataroom-findings.js apps/control-web/public/sana-v3-dataroom-findings-history.js apps/control-web/public/sana-v3-due-diligence-dataroom-findings-gaps.js
+          ! grep -Eq 'fetch\s*\(' apps/control-web/public/sana-v3-report-snapshot-dataroom-findings.js apps/control-web/public/sana-v3-dataroom-findings-history.js apps/control-web/public/sana-v3-due-diligence-dataroom-findings-gaps.js
