@@ -13,3 +13,5 @@
 .review-inspector-actions{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}@media(max-width:620px){.review-inspector-actions{justify-content:flex-start}}
 
 .review-source-case-focused>td{background:#eef7f4!important;box-shadow:inset 0 1px 0 rgba(42,123,115,.22),inset 0 -1px 0 rgba(42,123,115,.22)}
+
+.review-source-actions{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}@media(max-width:620px){.review-source-actions{justify-content:flex-start}}
