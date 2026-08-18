@@ -2,7 +2,7 @@ name: Assemble SANA v89 Review Workspace Focus
 on:
   push:
     branches: [demo/sana-v89-review-workspace-focus]
-    paths: ['apps/control-web/public/sana-v3-dataroom-review-workspace.js','apps/control-web/public/sana-v3-review-workspace.css','.github/workflows/assemble-sana-v89-review-workspace-focus.yml']
+    paths: ['apps/control-web/public/sana-v3-dataroom-review-workspace.js','apps/control-web/public/sana-v3-review-workspace.css','scripts/validate-sana-dataroom-review-workspace-v89.mjs','.github/workflows/assemble-sana-v89-review-workspace-focus.yml']
 permissions: {contents: write}
 jobs:
   assemble:
