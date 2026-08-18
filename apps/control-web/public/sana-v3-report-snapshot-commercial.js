@@ -13,3 +13,4 @@
   document.addEventListener('click',event=>{if(event.target.closest('#modal-save')&&typeof modalAction!=='undefined'&&modalAction==='report-snapshot')queueMicrotask(sync)},true);
   window.__SANA_REPORT_SNAPSHOT_COMMERCIAL__=Object.freeze({enrichCommercial,sync,integrity:INTEGRITY});
 })();
+// v60 certification trigger: snapshot-only commercial history assembled; buyerRef-only, no contract/payment authority.
