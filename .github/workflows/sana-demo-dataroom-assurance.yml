@@ -41,18 +41,33 @@ jobs:
           grep -q 'DOCUMENT_ASSURANCE ≠ ELIGIBILITY ≠ INVESTMENT_SIGNAL ≠ INVESTMENT_OFFER' apps/control-web/public/sana-v3-dataroom-assurance-ledger.js
       - name: Validate assembly when v69 is present
         run: |
-          html='apps/control-web/public/sana-v3.html'; sw='apps/control-web/public/sana-v3-sw.js'
-          if grep -q '/sana-v3-dataroom-assurance-ledger.js' "$html"; then
-            grep -q '/sana-v3-dataroom-exchange-ledger.js.*sana-v3-dataroom-assurance-ledger.js.*sana-v3-dataroom-impact-history.js' "$html"
-            grep -q "^const CACHE='sana-v3-demo-shell-v69';" "$sw"
-            grep -q "'/sana-v3-dataroom-exchange-ledger.js','/sana-v3-dataroom-assurance-ledger.js','/sana-v3-dataroom-impact-history.js'" "$sw"
-          else
-            echo 'v69 staged before assembly; strict shell validation deferred.'
-          fi
+          node <<'NODE'
+          const fs = require('fs');
+          const assert = require('assert');
+          const html = fs.readFileSync('apps/control-web/public/sana-v3.html', 'utf8');
+          const sw = fs.readFileSync('apps/control-web/public/sana-v3-sw.js', 'utf8');
+          const exchange = '/sana-v3-dataroom-exchange-ledger.js';
+          const assurance = '/sana-v3-dataroom-assurance-ledger.js';
+          const impact = '/sana-v3-dataroom-impact-history.js';
+          if (!html.includes(assurance)) {
+            console.log('v69 staged before assembly; strict shell validation deferred.');
+            process.exit(0);
+          }
+          for (const file of [exchange, assurance, impact]) {
+            assert(html.includes(file), `HTML assembly missing ${file}`);
+            assert(sw.includes(`'${file}'`), `PWA shell missing ${file}`);
+          }
+          assert(html.indexOf(exchange) < html.indexOf(assurance), 'HTML must load exchange before assurance');
+          assert(html.indexOf(assurance) < html.indexOf(impact), 'HTML must load assurance before impact history');
+          assert(sw.indexOf(`'${exchange}'`) < sw.indexOf(`'${assurance}'`), 'PWA shell must cache exchange before assurance');
+          assert(sw.indexOf(`'${assurance}'`) < sw.indexOf(`'${impact}'`), 'PWA shell must cache assurance before impact history');
+          const versions = [...sw.matchAll(/const CACHE='sana-v3-demo-shell-v(\d+)'/g)].map(m => Number(m[1]));
+          assert(versions.length && Math.max(...versions) >= 69, 'Assembled PWA shell must be generation v69 or newer');
+          NODE
       - name: Assert no external verification, approval, offer or execution authority
         run: |
           ! grep -Eq 'productionExecutionAvailable\s*=\s*true|productionActivationAllowed\s*=\s*true|canonicalMutated\s*=\s*true' apps/control-web/public/sana-v3-dataroom-assurance-ledger.js
           ! grep -Eq 'verifiedDocuments\s*:\s*[1-9]|verifiedResults\s*:\s*[1-9]|dueDiligenceApprovals\s*:\s*[1-9]|investmentSignals\s*:\s*[1-9]|investmentOffers\s*:\s*[1-9]|fundingExecuted\s*:\s*[1-9]' apps/control-web/public/sana-v3-dataroom-assurance-ledger.js
           ! grep -Eq 'fetch\s*\(' apps/control-web/public/sana-v3-dataroom-assurance-ledger.js
 
-# v69 freeze certification trigger: assembled shell, no authority expansion.
+# v69 freeze certification trigger: assembled shell generation >=69, no authority expansion.
