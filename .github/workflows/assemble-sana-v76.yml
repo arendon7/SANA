@@ -1,0 +1,69 @@
+name: Assemble SANA v76 Review Case History
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-dataroom-review-case.js'
+      - 'apps/control-web/public/sana-v3-dataroom-review-case-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-dataroom-review-case-gaps.js'
+      - '.github/workflows/assemble-sana-v76.yml'
+  pull_request:
+    branches: [release/control-v022-initial-rc2]
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-dataroom-review-case.js'
+      - 'apps/control-web/public/sana-v3-dataroom-review-case-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-dataroom-review-case-gaps.js'
+      - '.github/workflows/assemble-sana-v76.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  assemble:
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: demo/sana-functional-auth-v1
+      - name: Assemble v76 HTML and PWA shell
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          html=Path('apps/control-web/public/sana-v3.html'); s=html.read_text()
+          replacements=[
+            ('<script src="/sana-v3-report-snapshot-dataroom-review-governance.js"></script><script src="/sana-v3-cycle-closure.js"></script>','<script src="/sana-v3-report-snapshot-dataroom-review-governance.js"></script><script src="/sana-v3-report-snapshot-dataroom-review-case.js"></script><script src="/sana-v3-cycle-closure.js"></script>','/sana-v3-report-snapshot-dataroom-review-case.js'),
+            ('<script src="/sana-v3-due-diligence-dataroom-review-governance-gaps.js"></script><script src="/sana-v3-due-diligence-remediation.js"></script>','<script src="/sana-v3-due-diligence-dataroom-review-governance-gaps.js"></script><script src="/sana-v3-due-diligence-dataroom-review-case-gaps.js"></script><script src="/sana-v3-due-diligence-remediation.js"></script>','/sana-v3-due-diligence-dataroom-review-case-gaps.js'),
+            ('<script src="/sana-v3-dataroom-review-governance-history.js"></script><script src="/sana-v3-dataroom-entry.js"></script>','<script src="/sana-v3-dataroom-review-governance-history.js"></script><script src="/sana-v3-dataroom-review-case-history.js"></script><script src="/sana-v3-dataroom-entry.js"></script>','/sana-v3-dataroom-review-case-history.js')]
+          for old,new,needle in replacements:
+              if needle not in s:
+                  assert old in s, f'HTML anchor missing for {needle}'
+                  s=s.replace(old,new,1)
+          html.write_text(s)
+          sw=Path('apps/control-web/public/sana-v3-sw.js'); s=sw.read_text()
+          if "const CACHE='sana-v3-demo-shell-v76';" not in s:
+              old="const CACHE='sana-v3-demo-shell-v75';"; rep="if(false){\nconst CACHE='sana-v3-demo-shell-v75';\n}\nconst CACHE='sana-v3-demo-shell-v76';"; assert old in s; s=s.replace(old,rep,1)
+          replacements=[
+            ("'/sana-v3-report-snapshot-dataroom-review-governance.js','/sana-v3-cycle-closure.js'","'/sana-v3-report-snapshot-dataroom-review-governance.js','/sana-v3-report-snapshot-dataroom-review-case.js','/sana-v3-cycle-closure.js'","'/sana-v3-report-snapshot-dataroom-review-case.js'"),
+            ("'/sana-v3-due-diligence-dataroom-review-governance-gaps.js','/sana-v3-due-diligence-remediation.js'","'/sana-v3-due-diligence-dataroom-review-governance-gaps.js','/sana-v3-due-diligence-dataroom-review-case-gaps.js','/sana-v3-due-diligence-remediation.js'","'/sana-v3-due-diligence-dataroom-review-case-gaps.js'"),
+            ("'/sana-v3-dataroom-review-governance-history.js','/sana-v3-dataroom-entry.js'","'/sana-v3-dataroom-review-governance-history.js','/sana-v3-dataroom-review-case-history.js','/sana-v3-dataroom-entry.js'","'/sana-v3-dataroom-review-case-history.js'")]
+          for old,new,needle in replacements:
+              if needle not in s:
+                  assert old in s, f'PWA anchor missing for {needle}'
+                  s=s.replace(old,new,1)
+          sw.write_text(s)
+          PY
+          node --check apps/control-web/public/sana-v3-report-snapshot-dataroom-review-case.js
+          node --check apps/control-web/public/sana-v3-dataroom-review-case-history.js
+          node --check apps/control-web/public/sana-v3-due-diligence-dataroom-review-case-gaps.js
+          node scripts/validate-sana-dataroom-review-case-history.mjs
+          grep -q "const CACHE='sana-v3-demo-shell-v76';" apps/control-web/public/sana-v3-sw.js
+      - name: Commit assembled shell
+        run: |
+          if git diff --quiet; then echo 'v76 already assembled.'; exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/control-web/public/sana-v3.html apps/control-web/public/sana-v3-sw.js
+          git commit -m 'demo: assemble Data Room review case history v76'
+          git push origin HEAD:demo/sana-functional-auth-v1
