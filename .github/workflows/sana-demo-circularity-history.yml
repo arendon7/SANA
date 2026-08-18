@@ -1,0 +1,79 @@
+name: SANA Demo Circularity History
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-circularity.js'
+      - 'apps/control-web/public/sana-v3-dataroom-circularity-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-circularity-gaps.js'
+      - 'scripts/validate-sana-circularity-snapshot.mjs'
+      - 'scripts/validate-sana-circularity-gaps.mjs'
+      - '.github/workflows/sana-demo-circularity-history.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-circularity.js'
+      - 'apps/control-web/public/sana-v3-dataroom-circularity-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-circularity-gaps.js'
+      - 'scripts/validate-sana-circularity-snapshot.mjs'
+      - 'scripts/validate-sana-circularity-gaps.mjs'
+      - '.github/workflows/sana-demo-circularity-history.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  circularity-history-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-report-snapshot-circularity.js
+          node --check apps/control-web/public/sana-v3-dataroom-circularity-history.js
+          node --check apps/control-web/public/sana-v3-due-diligence-circularity-gaps.js
+          node scripts/validate-sana-circularity-snapshot.mjs
+          node scripts/validate-sana-circularity-gaps.mjs
+      - name: Validate snapshot-only history
+        shell: bash
+        run: |
+          set -euo pipefail
+          sync='apps/control-web/public/sana-v3-report-snapshot-circularity.js'
+          history='apps/control-web/public/sana-v3-dataroom-circularity-history.js'
+          grep -q '__SANA_REPORT_SNAPSHOT_CIRCULARITY__' "$sync"
+          grep -q 'ADDITIVE_V1 · CIRCULARITY_LEDGER' "$sync"
+          grep -q 'SNAPSHOT_CAPTURED_FROM_CIRCULARITY_LEDGER' "$sync"
+          grep -q 'NO_PLAN_TO_EXECUTION_INFERENCE' "$sync"
+          grep -q 'NO_EXECUTION_TO_RECOVERY_INFERENCE' "$sync"
+          grep -q 'NO_HANDOFF_TO_VERIFIED_DISPOSITION_INFERENCE' "$sync"
+          grep -q 'NO_CIRCULARITY_RATE_INFERENCE' "$sync"
+          grep -q 'NO_ENVIRONMENTAL_IMPACT_INFERENCE' "$sync"
+          grep -q '__SANA_DATAROOM_CIRCULARITY_HISTORY__' "$history"
+          grep -q 'NOT_CAPTURED_IN_SNAPSHOT' "$history"
+          grep -q 'SNAPSHOT_CIRCULARITY_DIFF_ONLY · CHANGE ≠ IMPROVEMENT ≠ RECOVERY_CAUSALITY ≠ VERIFIED_DISPOSITION ≠ CIRCULARITY_RATE ≠ ENVIRONMENTAL_IMPACT ≠ CREDIT_RISK ≠ INVESTMENT_SIGNAL' "$history"
+          ! grep -q '__SANA_CIRCULARITY_LEDGER__' "$history"
+          ! grep -q 'storage\.' "$history"
+      - name: Validate documentary gaps only
+        shell: bash
+        run: |
+          set -euo pipefail
+          gaps='apps/control-web/public/sana-v3-due-diligence-circularity-gaps.js'
+          grep -q '__SANA_DD_CIRCULARITY_GAPS__' "$gaps"
+          grep -q 'GENERATED_OR_PENDING_DESTINATION ≠ GAP' "$gaps"
+          grep -q 'CIRCULARITY GAP ≠ CIRCULARITY RATE ≠ ENVIRONMENTAL PERFORMANCE ≠ CREDIT RISK ≠ INVESTMENT SIGNAL' "$gaps"
+          grep -q 'EXTERNAL_HANDOFF ≠ VERIFIED_DISPOSITION' "$gaps"
+          grep -q 'RECOVERY_DECLARED ≠ VERIFIED_RECOVERY' "$gaps"
+          ! grep -q '__SANA_CIRCULARITY_LEDGER__' "$gaps"
+          ! grep -q 'storage\.' "$gaps"
+      - name: Assert no external or financial authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          files='apps/control-web/public/sana-v3-report-snapshot-circularity.js apps/control-web/public/sana-v3-dataroom-circularity-history.js apps/control-web/public/sana-v3-due-diligence-circularity-gaps.js'
+          ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true' $files
+          ! grep -Eiq 'verifiedDisposition[[:space:]]*=[[:space:]]*true|certifiedRecovery[[:space:]]*=[[:space:]]*true|environmentalImpactVerified[[:space:]]*=[[:space:]]*true|creditApproved|investmentApproved' $files
