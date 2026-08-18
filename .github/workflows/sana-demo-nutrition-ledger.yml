@@ -137,7 +137,7 @@ jobs:
           grep -q "'/sana-v3-cycle-nutrition-provenance.js'" "$sw"
           grep -q "'/sana-v3-due-diligence-nutrition-gaps.js'" "$sw"
           grep -q "'/sana-v3-dataroom-nutrition-history.js'" "$sw"
-          grep -q "^const CACHE='sana-v3-demo-shell-v38';" "$sw"
+          grep -q "^const CACHE='sana-v3-demo-shell-v39';" "$sw"
       - name: Assert no production, purchase or financial authority
         shell: bash
         run: |
