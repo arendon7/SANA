@@ -1,60 +1,14 @@
 name: Assemble SANA v67 Data Room Document Exchange
 
 on:
-  push:
-    branches: [demo/sana-functional-auth-v1]
-    paths:
-      - 'apps/control-web/public/sana-v3-dataroom-exchange-ledger.js'
-      - 'scripts/validate-sana-dataroom-exchange.mjs'
-      - '.github/workflows/sana-demo-dataroom-exchange.yml'
-      - '.github/workflows/assemble-sana-v67.yml'
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  assemble-v67:
-    if: github.actor != 'github-actions[bot]'
+  assemble-v67-retired:
+    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: demo/sana-functional-auth-v1
-          fetch-depth: 0
-      - name: Assemble HTML and service worker deterministically
-        shell: bash
-        run: |
-          set -euo pipefail
-          python - <<'PY'
-          from pathlib import Path
-          hp=Path('apps/control-web/public/sana-v3.html'); sp=Path('apps/control-web/public/sana-v3-sw.js')
-          html=hp.read_text(); sw=sp.read_text()
-          old='<script src="/sana-v3-dataroom-access-ledger.js"></script><script src="/sana-v3-dataroom-impact-history.js"></script>'
-          new='<script src="/sana-v3-dataroom-access-ledger.js"></script><script src="/sana-v3-dataroom-exchange-ledger.js"></script><script src="/sana-v3-dataroom-impact-history.js"></script>'
-          if html.count(old)!=1: raise SystemExit(f'HTML anchor count {html.count(old)}')
-          html=html.replace(old,new,1)
-          old_cache="const CACHE='sana-v3-demo-shell-v66';"
-          new_cache="if(false){\nconst CACHE='sana-v3-demo-shell-v66';\n}\nconst CACHE='sana-v3-demo-shell-v67';"
-          if sw.count(old_cache)!=1: raise SystemExit(f'SW v66 anchor count {sw.count(old_cache)}')
-          sw=sw.replace(old_cache,new_cache,1)
-          old_shell="'/sana-v3-dataroom-access-ledger.js','/sana-v3-dataroom-impact-history.js'"
-          new_shell="'/sana-v3-dataroom-access-ledger.js','/sana-v3-dataroom-exchange-ledger.js','/sana-v3-dataroom-impact-history.js'"
-          if sw.count(old_shell)!=1: raise SystemExit(f'SW module anchor count {sw.count(old_shell)}')
-          sw=sw.replace(old_shell,new_shell,1)
-          hp.write_text(html); sp.write_text(sw)
-          PY
-          grep -q '/sana-v3-dataroom-access-ledger.js.*sana-v3-dataroom-exchange-ledger.js.*sana-v3-dataroom-impact-history.js' apps/control-web/public/sana-v3.html
-          grep -q "^const CACHE='sana-v3-demo-shell-v67';" apps/control-web/public/sana-v3-sw.js
-          grep -q "'/sana-v3-dataroom-access-ledger.js','/sana-v3-dataroom-exchange-ledger.js','/sana-v3-dataroom-impact-history.js'" apps/control-web/public/sana-v3-sw.js
-      - name: Commit assembled v67
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add apps/control-web/public/sana-v3.html apps/control-web/public/sana-v3-sw.js
-          git diff --cached --quiet && exit 0
-          git commit -m 'build(demo): assemble Data Room document exchange shell v67'
-          git push origin HEAD:demo/sana-functional-auth-v1
-
-# v67 deterministic assembly trigger.
+      - run: echo 'v67 assembler retired after deterministic assembly; shell is certified separately.'
