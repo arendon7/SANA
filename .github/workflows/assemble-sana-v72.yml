@@ -1,0 +1,71 @@
+name: Assemble SANA v72 Data Room Findings History
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-dataroom-findings.js'
+      - 'apps/control-web/public/sana-v3-dataroom-findings-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-dataroom-findings-gaps.js'
+      - 'scripts/validate-sana-dataroom-findings-history.mjs'
+      - '.github/workflows/sana-demo-dataroom-findings-history.yml'
+      - '.github/workflows/sana-demo-due-diligence-v72.yml'
+      - '.github/workflows/assemble-sana-v72.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  assemble-v72:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: demo/sana-functional-auth-v1
+          fetch-depth: 0
+      - name: Assemble HTML and service worker deterministically
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          hp=Path('apps/control-web/public/sana-v3.html'); sp=Path('apps/control-web/public/sana-v3-sw.js')
+          html=hp.read_text(); sw=sp.read_text()
+          repl=[
+            ('<script src="/sana-v3-report-snapshot-dataroom-assurance.js"></script><script src="/sana-v3-cycle-closure.js"></script>',
+             '<script src="/sana-v3-report-snapshot-dataroom-assurance.js"></script><script src="/sana-v3-report-snapshot-dataroom-findings.js"></script><script src="/sana-v3-cycle-closure.js"></script>'),
+            ('<script src="/sana-v3-due-diligence-dataroom-assurance-gaps.js"></script><script src="/sana-v3-due-diligence-remediation.js"></script>',
+             '<script src="/sana-v3-due-diligence-dataroom-assurance-gaps.js"></script><script src="/sana-v3-due-diligence-dataroom-findings-gaps.js"></script><script src="/sana-v3-due-diligence-remediation.js"></script>'),
+            ('<script src="/sana-v3-dataroom-assurance-history.js"></script><script src="/sana-v3-dataroom-entry.js"></script>',
+             '<script src="/sana-v3-dataroom-assurance-history.js"></script><script src="/sana-v3-dataroom-findings-history.js"></script><script src="/sana-v3-dataroom-entry.js"></script>')]
+          for old,new in repl:
+              if html.count(old)!=1: raise SystemExit(f'HTML anchor count {html.count(old)}: {old}')
+              html=html.replace(old,new,1)
+          old="const CACHE='sana-v3-demo-shell-v71';"
+          new="if(false){\nconst CACHE='sana-v3-demo-shell-v71';\n}\nconst CACHE='sana-v3-demo-shell-v72';"
+          if sw.count(old)!=1: raise SystemExit(f'SW v71 anchor count {sw.count(old)}')
+          sw=sw.replace(old,new,1)
+          srep=[
+            ("'/sana-v3-report-snapshot-dataroom-assurance.js','/sana-v3-cycle-closure.js'","'/sana-v3-report-snapshot-dataroom-assurance.js','/sana-v3-report-snapshot-dataroom-findings.js','/sana-v3-cycle-closure.js'"),
+            ("'/sana-v3-due-diligence-dataroom-assurance-gaps.js','/sana-v3-due-diligence-remediation.js'","'/sana-v3-due-diligence-dataroom-assurance-gaps.js','/sana-v3-due-diligence-dataroom-findings-gaps.js','/sana-v3-due-diligence-remediation.js'"),
+            ("'/sana-v3-dataroom-assurance-history.js','/sana-v3-dataroom-entry.js'","'/sana-v3-dataroom-assurance-history.js','/sana-v3-dataroom-findings-history.js','/sana-v3-dataroom-entry.js'")]
+          for old,new in srep:
+              if sw.count(old)!=1: raise SystemExit(f'SW anchor count {sw.count(old)}: {old}')
+              sw=sw.replace(old,new,1)
+          hp.write_text(html); sp.write_text(sw)
+          PY
+          grep -q '/sana-v3-report-snapshot-dataroom-assurance.js.*sana-v3-report-snapshot-dataroom-findings.js.*sana-v3-cycle-closure.js' apps/control-web/public/sana-v3.html
+          grep -q '/sana-v3-due-diligence-dataroom-assurance-gaps.js.*sana-v3-due-diligence-dataroom-findings-gaps.js.*sana-v3-due-diligence-remediation.js' apps/control-web/public/sana-v3.html
+          grep -q '/sana-v3-dataroom-assurance-history.js.*sana-v3-dataroom-findings-history.js.*sana-v3-dataroom-entry.js' apps/control-web/public/sana-v3.html
+          grep -q "^const CACHE='sana-v3-demo-shell-v72';" apps/control-web/public/sana-v3-sw.js
+      - name: Commit assembled v72
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/control-web/public/sana-v3.html apps/control-web/public/sana-v3-sw.js
+          git diff --cached --quiet && exit 0
+          git commit -m 'build(demo): assemble Data Room findings history shell v72'
+          git push origin HEAD:demo/sana-functional-auth-v1
