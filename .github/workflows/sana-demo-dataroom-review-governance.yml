@@ -1,0 +1,53 @@
+name: SANA Demo Data Room Reviewer Governance
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-dataroom-review-governance.js'
+      - 'scripts/validate-sana-dataroom-review-governance.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - '.github/workflows/sana-demo-dataroom-review-governance.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-dataroom-review-governance.js'
+      - 'scripts/validate-sana-dataroom-review-governance.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+
+jobs:
+  reviewer-governance-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contracts
+        run: |
+          node --check apps/control-web/public/sana-v3-dataroom-review-governance.js
+          node scripts/validate-sana-dataroom-review-governance.mjs
+      - name: Validate governance boundaries
+        run: |
+          grep -q 'REVIEWER_ASSIGNMENT_REFERENCE ≠ VERIFIED_IDENTITY ≠ VERIFIED_QUALIFICATION' apps/control-web/public/sana-v3-dataroom-review-governance.js
+          grep -q 'REVIEW_SCOPE_DECLARED ≠ AUTHORITY_GRANTED' apps/control-web/public/sana-v3-dataroom-review-governance.js
+          grep -q 'CONFLICT_DECLARATION_REFERENCE ≠ CONFLICT_FACT' apps/control-web/public/sana-v3-dataroom-review-governance.js
+          grep -q 'NO_CONFLICT_DECLARED ≠ INDEPENDENCE_VERIFIED' apps/control-web/public/sana-v3-dataroom-review-governance.js
+          grep -q 'CONFLICT_DECLARED ≠ DISQUALIFICATION ≠ INVESTMENT_RISK' apps/control-web/public/sana-v3-dataroom-review-governance.js
+          grep -q 'RECUSAL_REFERENCE ≠ FINDING_INVALIDITY' apps/control-web/public/sana-v3-dataroom-review-governance.js
+          grep -q 'GOVERNANCE ≠ ELIGIBILITY ≠ INVESTMENT_DECISION ≠ INVESTMENT_OFFER' apps/control-web/public/sana-v3-dataroom-review-governance.js
+      - name: Validate assembly when v73 is present
+        run: |
+          html='apps/control-web/public/sana-v3.html'; sw='apps/control-web/public/sana-v3-sw.js'
+          if grep -q '/sana-v3-dataroom-review-governance.js' "$html"; then
+            grep -q '/sana-v3-dataroom-findings-ledger.js.*sana-v3-dataroom-review-governance.js.*sana-v3-dataroom-impact-history.js' "$html"
+            grep -q "^const CACHE='sana-v3-demo-shell-v73';" "$sw"
+          else
+            echo 'v73 staged before assembly; strict shell validation deferred.'
+          fi
+      - name: Assert no disqualification scoring approval offer or execution authority
+        run: |
+          ! grep -Eq 'productionExecutionAvailable\s*=\s*true|productionActivationAllowed\s*=\s*true|canonicalMutated\s*=\s*true' apps/control-web/public/sana-v3-dataroom-review-governance.js
+          ! grep -Eq 'automaticDisqualifications\s*:\s*[1-9]|riskRatings\s*:\s*[1-9]|riskScores\s*:\s*[1-9]|dueDiligenceApprovals\s*:\s*[1-9]|eligibilityDecisions\s*:\s*[1-9]|investmentOffers\s*:\s*[1-9]|fundingExecuted\s*:\s*[1-9]' apps/control-web/public/sana-v3-dataroom-review-governance.js
+          ! grep -Eq 'fetch\s*\(' apps/control-web/public/sana-v3-dataroom-review-governance.js
