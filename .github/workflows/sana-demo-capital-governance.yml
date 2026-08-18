@@ -1,0 +1,56 @@
+name: SANA Demo Capital Governance
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-capital-governance.js'
+      - 'scripts/validate-sana-capital-governance.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - '.github/workflows/sana-demo-capital-governance.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-capital-governance.js'
+      - 'scripts/validate-sana-capital-governance.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+
+jobs:
+  capital-governance-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contracts
+        run: |
+          node --check apps/control-web/public/sana-v3-capital-governance.js
+          node scripts/validate-sana-capital-governance.mjs
+      - name: Validate document completeness boundary
+        run: |
+          grep -q 'DOCUMENT_COMPLETENESS ≠ ELIGIBILITY' apps/control-web/public/sana-v3-capital-governance.js
+          grep -q 'DOCUMENT_COMPLETENESS ≠ CREDIT_SCORE' apps/control-web/public/sana-v3-capital-governance.js
+          grep -q 'COUNTERPARTY_INTEREST ≠ COMMITMENT' apps/control-web/public/sana-v3-capital-governance.js
+          grep -q 'TERM_SHEET_REFERENCE ≠ SIGNED_TERM_SHEET' apps/control-web/public/sana-v3-capital-governance.js
+          grep -q 'FUNDING_STATUS_DECLARED ≠ DISBURSEMENT' apps/control-web/public/sana-v3-capital-governance.js
+      - name: Validate context is non-weighted
+        run: |
+          grep -q 'CONTEXT_ONLY · NOT_WEIGHTED' apps/control-web/public/sana-v3-capital-governance.js
+          grep -q 'COMMERCIAL ≠ GUARANTEED_REVENUE' apps/control-web/public/sana-v3-capital-governance.js
+          grep -q 'ECONOMICS ≠ REPAYMENT_CAPACITY' apps/control-web/public/sana-v3-capital-governance.js
+          grep -q 'DD_GAPS ≠ ELIGIBILITY' apps/control-web/public/sana-v3-capital-governance.js
+      - name: Validate assembly and active v61 shell
+        run: |
+          grep -q '/sana-v3-capital-dossier.js.*sana-v3-capital-governance.js.*sana-v3-integration-bridge.js' apps/control-web/public/sana-v3.html
+          grep -q "^const CACHE='sana-v3-demo-shell-v61';" apps/control-web/public/sana-v3-sw.js
+      - name: Assert no offer, scoring or financial execution authority
+        run: |
+          ! grep -Eq 'fetch\s*\(' apps/control-web/public/sana-v3-capital-governance.js
+          ! grep -Eq 'productionExecutionAvailable\s*=\s*true|productionActivationAllowed\s*=\s*true|canonicalMutated\s*=\s*true' apps/control-web/public/sana-v3-capital-governance.js
+          grep -q 'NO_OFFER' apps/control-web/public/sana-v3-capital-governance.js
+          grep -q 'NO_SOLICITATION' apps/control-web/public/sana-v3-capital-governance.js
+          grep -q 'NO_CUSTODY' apps/control-web/public/sana-v3-capital-governance.js
+          grep -q 'NO_DISBURSEMENT' apps/control-web/public/sana-v3-capital-governance.js
+          grep -q 'NO_INVESTMENT_RECOMMENDATION' apps/control-web/public/sana-v3-capital-governance.js
