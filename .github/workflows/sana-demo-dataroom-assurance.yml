@@ -1,0 +1,56 @@
+name: SANA Demo Data Room Document Assurance
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-dataroom-assurance-ledger.js'
+      - 'scripts/validate-sana-dataroom-assurance.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - '.github/workflows/sana-demo-dataroom-assurance.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-dataroom-assurance-ledger.js'
+      - 'scripts/validate-sana-dataroom-assurance.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+
+jobs:
+  dataroom-document-assurance-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contracts
+        run: |
+          node --check apps/control-web/public/sana-v3-dataroom-assurance-ledger.js
+          node scripts/validate-sana-dataroom-assurance.mjs
+      - name: Validate assurance boundaries
+        run: |
+          grep -q 'DOCUMENT_PROVIDED_REFERENCE ≠ ASSURANCE_REQUEST' apps/control-web/public/sana-v3-dataroom-assurance-ledger.js
+          grep -q 'ASSURANCE_REQUESTED ≠ VERIFIER_ASSIGNED' apps/control-web/public/sana-v3-dataroom-assurance-ledger.js
+          grep -q 'VERIFIER_REFERENCE ≠ VERIFIED_IDENTITY ≠ VERIFIED_INDEPENDENCE' apps/control-web/public/sana-v3-dataroom-assurance-ledger.js
+          grep -q 'CHECK_SCOPE_DECLARED ≠ CHECK_PERFORMED' apps/control-web/public/sana-v3-dataroom-assurance-ledger.js
+          grep -q 'RESULT_REFERENCE ≠ VERIFIED_RESULT ≠ VERIFIED_DOCUMENT' apps/control-web/public/sana-v3-dataroom-assurance-ledger.js
+          grep -q 'PASS_REFERENCE ≠ DUE_DILIGENCE_APPROVAL' apps/control-web/public/sana-v3-dataroom-assurance-ledger.js
+          grep -q 'VALIDITY_WINDOW_REFERENCE ≠ CURRENT_VALIDITY' apps/control-web/public/sana-v3-dataroom-assurance-ledger.js
+          grep -q 'ASSURANCE_SUPERSEDED ≠ DOCUMENT_INVALIDITY' apps/control-web/public/sana-v3-dataroom-assurance-ledger.js
+          grep -q 'DOCUMENT_ASSURANCE ≠ ELIGIBILITY ≠ INVESTMENT_SIGNAL ≠ INVESTMENT_OFFER' apps/control-web/public/sana-v3-dataroom-assurance-ledger.js
+      - name: Validate assembly when v69 is present
+        run: |
+          html='apps/control-web/public/sana-v3.html'; sw='apps/control-web/public/sana-v3-sw.js'
+          if grep -q '/sana-v3-dataroom-assurance-ledger.js' "$html"; then
+            grep -q '/sana-v3-dataroom-exchange-ledger.js.*sana-v3-dataroom-assurance-ledger.js.*sana-v3-dataroom-impact-history.js' "$html"
+            grep -q "^const CACHE='sana-v3-demo-shell-v69';" "$sw"
+            grep -q "'/sana-v3-dataroom-exchange-ledger.js','/sana-v3-dataroom-assurance-ledger.js','/sana-v3-dataroom-impact-history.js'" "$sw"
+          else
+            echo 'v69 staged before assembly; strict shell validation deferred.'
+          fi
+      - name: Assert no external verification, approval, offer or execution authority
+        run: |
+          ! grep -Eq 'productionExecutionAvailable\s*=\s*true|productionActivationAllowed\s*=\s*true|canonicalMutated\s*=\s*true' apps/control-web/public/sana-v3-dataroom-assurance-ledger.js
+          ! grep -Eq 'verifiedDocuments\s*:\s*[1-9]|verifiedResults\s*:\s*[1-9]|dueDiligenceApprovals\s*:\s*[1-9]|investmentSignals\s*:\s*[1-9]|investmentOffers\s*:\s*[1-9]|fundingExecuted\s*:\s*[1-9]' apps/control-web/public/sana-v3-dataroom-assurance-ledger.js
+          ! grep -Eq 'fetch\s*\(' apps/control-web/public/sana-v3-dataroom-assurance-ledger.js
