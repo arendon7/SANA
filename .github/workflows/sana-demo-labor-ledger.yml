@@ -1,0 +1,85 @@
+name: SANA Demo Labor Ledger
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-labor-ledger.js'
+      - 'apps/control-web/public/sana-v3-cycle-labor-provenance.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-labor-ledger.mjs'
+      - '.github/workflows/sana-demo-labor-ledger.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-labor-ledger.js'
+      - 'apps/control-web/public/sana-v3-cycle-labor-provenance.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-labor-ledger.mjs'
+      - '.github/workflows/sana-demo-labor-ledger.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  labor-ledger-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-labor-ledger.js
+          node --check apps/control-web/public/sana-v3-cycle-labor-provenance.js
+          node scripts/validate-sana-labor-ledger.mjs
+      - name: Validate labor boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='apps/control-web/public/sana-v3-labor-ledger.js'
+          grep -q '__SANA_LABOR_LEDGER__' "$f"
+          grep -q 'SANA_LABOR_LEDGER_V1' "$f"
+          grep -q 'ASSIGNMENT ≠ ATTENDANCE' "$f"
+          grep -q 'ATTENDANCE ≠ WORKED_TIME' "$f"
+          grep -q 'WORKED_TIME ≠ TASK_COMPLETION' "$f"
+          grep -q 'TASK_COMPLETION ≠ QUALITY' "$f"
+          grep -q 'RATE_REFERENCE ≠ LABOR_COST' "$f"
+          grep -q 'LABOR_COST ≠ PAYMENT' "$f"
+          grep -q 'PRODUCTIVITY ≠ PERFORMANCE_RATING' "$f"
+          grep -q 'NO_HR_SCORING' "$f"
+          grep -q 'NO_PAYROLL_EXECUTION' "$f"
+      - name: Validate privacy-minimized projections
+        shell: bash
+        run: |
+          set -euo pipefail
+          labor='apps/control-web/public/sana-v3-labor-ledger.js'; cycle='apps/control-web/public/sana-v3-cycle-labor-provenance.js'
+          grep -q 'PASSPORT · EQUIPO' "$labor"
+          grep -q 'PRIVACY-MINIMIZED' "$labor"
+          grep -q 'publicLotSummary' "$labor"
+          grep -q '__SANA_CYCLE_LABOR__' "$cycle"
+          grep -q 'personRefRedacted:true' "$cycle"
+          grep -q 'PRIVACY_MINIMIZED' "$cycle"
+          ! grep -q 'completeness[[:space:]]*=' "$cycle"
+          ! grep -q 'readyForArchive[[:space:]]*=' "$cycle"
+      - name: Validate assembly and active v49 shell
+        shell: bash
+        run: |
+          set -euo pipefail
+          html='apps/control-web/public/sana-v3.html'; sw='apps/control-web/public/sana-v3-sw.js'
+          grep -q '/sana-v3-inventory-ledger.js.*sana-v3-inventory-activity-bridge.js.*sana-v3-labor-ledger.js.*sana-v3-report-snapshot-circularity.js' "$html"
+          grep -q '/sana-v3-cycle-inventory-provenance.js.*sana-v3-cycle-labor-provenance.js.*sana-v3-capital-dossier.js' "$html"
+          grep -q "'/sana-v3-labor-ledger.js'" "$sw"
+          grep -q "'/sana-v3-cycle-labor-provenance.js'" "$sw"
+          grep -q "^const CACHE='sana-v3-demo-shell-v49';" "$sw"
+      - name: Assert no browser writes or production authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          files='apps/control-web/public/sana-v3-labor-ledger.js apps/control-web/public/sana-v3-cycle-labor-provenance.js'
+          ! grep -Eiq 'productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true|paymentExecuted[[:space:]]*=[[:space:]]*true' $files
+          ! grep -Eiq 'fetch\(' $files
