@@ -15,3 +15,4 @@
   document.addEventListener('click',event=>{if(event.target.closest('#modal-save')&&typeof modalAction!=='undefined'&&modalAction==='report-snapshot')queueMicrotask(sync)},true);
   window.__SANA_REPORT_SNAPSHOT_CAPITAL_GOVERNANCE__=Object.freeze({enrichCapitalGovernance,sync,integrity:INTEGRITY});
 })();
+// v62 assembly trigger: snapshot-only, counterparty-ref-only and non-decisional.
