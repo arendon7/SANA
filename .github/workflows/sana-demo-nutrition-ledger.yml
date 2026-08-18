@@ -5,22 +5,26 @@ on:
     branches: [demo/sana-functional-auth-v1]
     paths:
       - 'apps/control-web/public/sana-v3-nutrition-ledger.js'
+      - 'apps/control-web/public/sana-v3-cycle-nutrition-provenance.js'
       - 'apps/control-web/public/sana-v3-inventory-operations.js'
       - 'apps/control-web/public/sana-v3-plan-field-workflow.js'
       - 'apps/control-web/public/sana-v3-passport-chain.js'
       - 'apps/control-web/public/sana-v3.html'
       - 'apps/control-web/public/sana-v3-sw.js'
       - 'scripts/validate-sana-nutrition-ledger.mjs'
+      - 'scripts/validate-sana-cycle-nutrition.mjs'
       - '.github/workflows/sana-demo-nutrition-ledger.yml'
   pull_request:
     paths:
       - 'apps/control-web/public/sana-v3-nutrition-ledger.js'
+      - 'apps/control-web/public/sana-v3-cycle-nutrition-provenance.js'
       - 'apps/control-web/public/sana-v3-inventory-operations.js'
       - 'apps/control-web/public/sana-v3-plan-field-workflow.js'
       - 'apps/control-web/public/sana-v3-passport-chain.js'
       - 'apps/control-web/public/sana-v3.html'
       - 'apps/control-web/public/sana-v3-sw.js'
       - 'scripts/validate-sana-nutrition-ledger.mjs'
+      - 'scripts/validate-sana-cycle-nutrition.mjs'
       - '.github/workflows/sana-demo-nutrition-ledger.yml'
 
 permissions:
@@ -39,7 +43,9 @@ jobs:
         run: |
           set -euo pipefail
           node --check apps/control-web/public/sana-v3-nutrition-ledger.js
+          node --check apps/control-web/public/sana-v3-cycle-nutrition-provenance.js
           node scripts/validate-sana-nutrition-ledger.mjs
+          node scripts/validate-sana-cycle-nutrition.mjs
       - name: Validate nutrition boundaries
         shell: bash
         run: |
@@ -68,6 +74,18 @@ jobs:
           grep -q 'NO_EXPLICIT_RELATION' "$ledger"
           grep -q 'MOVEMENT_DIRECTION_REVIEW' "$ledger"
           ! grep -Eiq 'autoInventoryMovement|autoStockMutation|inventoryMutationAllowed[[:space:]]*=[[:space:]]*true|stockMutationAllowed[[:space:]]*=[[:space:]]*true' "$ledger"
+      - name: Validate cycle projection is read-only and non-weighted
+        shell: bash
+        run: |
+          set -euo pipefail
+          cycle='apps/control-web/public/sana-v3-cycle-nutrition-provenance.js'
+          grep -q '__SANA_CYCLE_NUTRITION__' "$cycle"
+          grep -q 'NUTRITION_PROVENANCE ≠ CYCLE_GATE ≠ APPLICATION_AUTHORIZATION ≠ INVENTORY_DISPATCH ≠ PERFORMANCE ≠ CAUSAL_EFFECT' "$cycle"
+          grep -q 'No modifica completeness ni readyForArchive' "$cycle"
+          ! grep -q 'completeness=' "$cycle"
+          ! grep -q 'readyForArchive=' "$cycle"
+          ! grep -q 'storage.records.push' "$cycle"
+          ! grep -q 'openModal(' "$cycle"
       - name: Validate assembly and active shell
         shell: bash
         run: |
@@ -75,12 +93,14 @@ jobs:
           html='apps/control-web/public/sana-v3.html'
           sw='apps/control-web/public/sana-v3-sw.js'
           grep -q '/sana-v3-activity-relations.js.*sana-v3-nutrition-ledger.js.*sana-v3-health-ledger.js' "$html"
+          grep -q '/sana-v3-cycle-material-provenance.js.*sana-v3-cycle-nutrition-provenance.js.*sana-v3-cycle-health-provenance.js' "$html"
           grep -q "'/sana-v3-nutrition-ledger.js'" "$sw"
-          grep -q "^const CACHE='sana-v3-demo-shell-v36';" "$sw"
+          grep -q "'/sana-v3-cycle-nutrition-provenance.js'" "$sw"
+          grep -q "^const CACHE='sana-v3-demo-shell-v37';" "$sw"
       - name: Assert no production, purchase or financial authority
         shell: bash
         run: |
           set -euo pipefail
-          ledger='apps/control-web/public/sana-v3-nutrition-ledger.js'
-          ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true' "$ledger"
-          ! grep -Eiq 'purchaseOrder|executePayment|authorizePayment|autoPurchase|autoDispatch|certified[[:space:]]*=[[:space:]]*true|verifiedExternal[[:space:]]*=[[:space:]]*true|icaApproved[[:space:]]*=[[:space:]]*true' "$ledger"
+          files='apps/control-web/public/sana-v3-nutrition-ledger.js apps/control-web/public/sana-v3-cycle-nutrition-provenance.js'
+          ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true' $files
+          ! grep -Eiq 'purchaseOrder|executePayment|authorizePayment|autoPurchase|autoDispatch|certified[[:space:]]*=[[:space:]]*true|verifiedExternal[[:space:]]*=[[:space:]]*true|icaApproved[[:space:]]*=[[:space:]]*true' $files
