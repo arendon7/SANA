@@ -1,0 +1,42 @@
+name: SANA Demo Capture Sync Bridge
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-capture-sync-runtime-bridge.js'
+      - 'scripts/validate-sana-capture-sync-runtime-bridge.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - '.github/workflows/sana-demo-capture-sync-bridge.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-capture-sync-runtime-bridge.js'
+      - 'scripts/validate-sana-capture-sync-runtime-bridge.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - '.github/workflows/sana-demo-capture-sync-bridge.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  runtime-bridge-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate runtime bridge behavior
+        run: node scripts/validate-sana-capture-sync-runtime-bridge.mjs
+      - name: Validate assembly and boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          html='apps/control-web/public/sana-v3.html'; sw='apps/control-web/public/sana-v3-sw.js'; bridge='apps/control-web/public/sana-v3-capture-sync-runtime-bridge.js'
+          grep -q '/sana-v3-runtime.js.*sana-v3-capture-sync-runtime-bridge.js.*sana-v3-access.js' "$html"
+          grep -q "'/sana-v3-capture-sync-runtime-bridge.js'" "$sw"
+          grep -q 'NEW_OFFLINE_QUEUE_LINK_EXPLICIT' "$bridge"
+          grep -q 'LEGACY_QUEUE_UNCHANGED' "$bridge"
+          ! grep -Eiq 'fetch\(|canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true' "$bridge"
