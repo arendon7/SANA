@@ -1,0 +1,52 @@
+name: Assemble SANA v77 Review Handoff
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-dataroom-review-handoff.js'
+      - '.github/workflows/assemble-sana-v77.yml'
+  pull_request:
+    branches: [release/control-v022-initial-rc2]
+    paths:
+      - 'apps/control-web/public/sana-v3-dataroom-review-handoff.js'
+      - '.github/workflows/assemble-sana-v77.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  assemble:
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: demo/sana-functional-auth-v1
+      - name: Assemble v77 HTML and PWA shell
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          html=Path('apps/control-web/public/sana-v3.html'); s=html.read_text(); new='/sana-v3-dataroom-review-handoff.js'
+          if new not in s:
+              old='<script src="/sana-v3-dataroom-review-case.js"></script><script src="/sana-v3-dataroom-impact-history.js"></script>'
+              rep='<script src="/sana-v3-dataroom-review-case.js"></script><script src="/sana-v3-dataroom-review-handoff.js"></script><script src="/sana-v3-dataroom-impact-history.js"></script>'
+              assert old in s, 'HTML v77 anchor missing'; s=s.replace(old,rep,1); html.write_text(s)
+          sw=Path('apps/control-web/public/sana-v3-sw.js'); s=sw.read_text()
+          if "const CACHE='sana-v3-demo-shell-v77';" not in s:
+              old="const CACHE='sana-v3-demo-shell-v76';"; rep="if(false){\nconst CACHE='sana-v3-demo-shell-v76';\n}\nconst CACHE='sana-v3-demo-shell-v77';"; assert old in s, 'v76 active shell marker missing'; s=s.replace(old,rep,1)
+          if "'/sana-v3-dataroom-review-handoff.js'" not in s:
+              old="'/sana-v3-dataroom-review-case.js','/sana-v3-dataroom-impact-history.js'"; rep="'/sana-v3-dataroom-review-case.js','/sana-v3-dataroom-review-handoff.js','/sana-v3-dataroom-impact-history.js'"; assert old in s, 'PWA v77 anchor missing'; s=s.replace(old,rep,1)
+          sw.write_text(s)
+          PY
+          node --check apps/control-web/public/sana-v3-dataroom-review-handoff.js
+          node scripts/validate-sana-dataroom-review-handoff.mjs
+          grep -q "const CACHE='sana-v3-demo-shell-v77';" apps/control-web/public/sana-v3-sw.js
+      - name: Commit assembled shell
+        run: |
+          if git diff --quiet; then echo 'v77 already assembled.'; exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/control-web/public/sana-v3.html apps/control-web/public/sana-v3-sw.js
+          git commit -m 'demo: assemble Data Room review handoff v77'
+          git push origin HEAD:demo/sana-functional-auth-v1
