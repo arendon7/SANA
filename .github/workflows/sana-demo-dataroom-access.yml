@@ -38,13 +38,13 @@ jobs:
           grep -q 'DOCUMENT_VIEW_REFERENCE ≠ VERIFIED_READ ≠ DUE_DILIGENCE_APPROVAL' apps/control-web/public/sana-v3-dataroom-access-ledger.js
           grep -q 'ACCESS_REVOKED ≠ INVESTMENT_REJECTION' apps/control-web/public/sana-v3-dataroom-access-ledger.js
           grep -q 'EXPIRY_DATE ≠ EXPIRED_EVENT' apps/control-web/public/sana-v3-dataroom-access-ledger.js
-      - name: Validate assembly when v65 is present
+      - name: Validate v65+ assembly
         run: |
           html='apps/control-web/public/sana-v3.html'
           sw='apps/control-web/public/sana-v3-sw.js'
           if grep -q '/sana-v3-dataroom-access-ledger.js' "$html"; then
             grep -q '/sana-v3-dataroom-360.js.*sana-v3-dataroom-access-ledger.js.*sana-v3-dataroom-impact-history.js' "$html"
-            grep -q "^const CACHE='sana-v3-demo-shell-v65';" "$sw"
+            grep -Eq "^const CACHE='sana-v3-demo-shell-v(6[5-9]|[7-9][0-9]|[1-9][0-9]{2,})';" "$sw"
             grep -q "'/sana-v3-dataroom-360.js','/sana-v3-dataroom-access-ledger.js','/sana-v3-dataroom-impact-history.js'" "$sw"
           else
             echo 'v65 staged before assembly; strict shell validation deferred to assembly commit.'
@@ -55,4 +55,4 @@ jobs:
           ! grep -Eq 'investmentOffers\s*:\s*[1-9]|dueDiligenceApprovals\s*:\s*[1-9]|fundingExecuted\s*:\s*[1-9]' apps/control-web/public/sana-v3-dataroom-access-ledger.js
           ! grep -Eq 'fetch\s*\(' apps/control-web/public/sana-v3-dataroom-access-ledger.js
 
-# v65 certification trigger: assembled shell only; no offer, approval, scoring or financial authority.
+# v65+ certification trigger: assembled shell only; no offer, approval, scoring or financial authority.
