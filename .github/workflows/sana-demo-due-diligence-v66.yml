@@ -57,3 +57,5 @@ jobs:
           grep -q 'ACCESS_REVOKED ≠ GAP' apps/control-web/public/sana-v3-due-diligence-dataroom-access-gaps.js
           grep -q 'DATAROOM_ACCESS_GAP ≠ INVESTMENT_RISK ≠ ELIGIBILITY ≠ INVESTMENT_DECISION' apps/control-web/public/sana-v3-due-diligence-dataroom-access-gaps.js
           ! grep -Eq 'productionExecutionAvailable\s*=\s*true|productionActivationAllowed\s*=\s*true|canonicalMutated\s*=\s*true' apps/control-web/public/sana-v3-report-snapshot-dataroom-access.js apps/control-web/public/sana-v3-dataroom-access-history.js apps/control-web/public/sana-v3-due-diligence-dataroom-access-gaps.js
+
+# v66 certification trigger: assembled shell only; no live fallback, approval, eligibility, offer or execution authority.
