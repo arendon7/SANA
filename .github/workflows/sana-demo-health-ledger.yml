@@ -1,0 +1,91 @@
+name: SANA Demo Health Ledger
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-health-ledger.js'
+      - 'apps/control-web/public/sana-v3-cycle-health-provenance.js'
+      - 'apps/control-web/public/sana-v3-plan-field-workflow.js'
+      - 'apps/control-web/public/sana-v3-views-2.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-health-ledger.mjs'
+      - 'scripts/validate-sana-cycle-health.mjs'
+      - '.github/workflows/sana-demo-health-ledger.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-health-ledger.js'
+      - 'apps/control-web/public/sana-v3-cycle-health-provenance.js'
+      - 'apps/control-web/public/sana-v3-plan-field-workflow.js'
+      - 'apps/control-web/public/sana-v3-views-2.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-health-ledger.mjs'
+      - 'scripts/validate-sana-cycle-health.mjs'
+      - '.github/workflows/sana-demo-health-ledger.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  phytosanitary-ledger-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-health-ledger.js
+          node --check apps/control-web/public/sana-v3-cycle-health-provenance.js
+          node scripts/validate-sana-health-ledger.mjs
+          node scripts/validate-sana-cycle-health.mjs
+      - name: Validate ledger boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          ledger='apps/control-web/public/sana-v3-health-ledger.js'
+          grep -q '__SANA_PHYTOSANITARY_LEDGER__' "$ledger"
+          grep -q "SANA_PHYTOSANITARY_LEDGER_V1" "$ledger"
+          grep -q 'LEGACY_INCIDENT_SUMMARY ≠ OBSERVED_PRESENCE ≠ DIAGNOSIS ≠ TREATMENT ≠ EFFICACY' "$ledger"
+          grep -q 'OBSERVATION ≠ DIAGNOSIS' "$ledger"
+          grep -q 'DIAGNOSIS ≠ RECOMMENDATION' "$ledger"
+          grep -q 'RECOMMENDATION ≠ EXECUTION' "$ledger"
+          grep -q 'FOLLOW_UP ≠ CAUSAL_ATTRIBUTION' "$ledger"
+          grep -q 'CONFIRMED_HUMAN_DEMO' "$ledger"
+          grep -q 'NO_EFFICACY_ASSESSMENT' "$ledger"
+          ! grep -q 'storage.records.push' "$ledger"
+      - name: Validate cycle projection is non-weighted
+        shell: bash
+        run: |
+          set -euo pipefail
+          cycle='apps/control-web/public/sana-v3-cycle-health-provenance.js'
+          grep -q '__SANA_CYCLE_HEALTH__' "$cycle"
+          grep -q 'PHYTOSANITARY_PROVENANCE ≠ CYCLE_GATE ≠ EXTERNAL_CERTIFICATION ≠ CAUSAL_EFFICACY' "$cycle"
+          grep -q 'No modifica completeness ni readyForArchive' "$cycle"
+          ! grep -q 'completeness=' "$cycle"
+          ! grep -q 'readyForArchive=' "$cycle"
+          ! grep -q 'openModal(' "$cycle"
+          ! grep -q 'storage.records.push' "$cycle"
+      - name: Validate assembly and offline shell
+        shell: bash
+        run: |
+          set -euo pipefail
+          html='apps/control-web/public/sana-v3.html'
+          sw='apps/control-web/public/sana-v3-sw.js'
+          grep -q '/sana-v3-activity-relations.js.*sana-v3-health-ledger.js.*sana-v3-cycle-closure.js' "$html"
+          grep -q '/sana-v3-cycle-material-provenance.js.*sana-v3-cycle-health-provenance.js.*sana-v3-capital-dossier.js' "$html"
+          grep -q "'/sana-v3-health-ledger.js'" "$sw"
+          grep -q "'/sana-v3-cycle-health-provenance.js'" "$sw"
+          grep -q "const CACHE='sana-v3-demo-shell-v34'" "$sw"
+      - name: Assert no production authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          files='apps/control-web/public/sana-v3-health-ledger.js apps/control-web/public/sana-v3-cycle-health-provenance.js'
+          ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true' $files
+          ! grep -Eiq 'verifiedExternal[[:space:]]*=[[:space:]]*true|certified[[:space:]]*=[[:space:]]*true|icaApproved[[:space:]]*=[[:space:]]*true' $files
