@@ -1,0 +1,52 @@
+name: SANA Demo Data Room Review Feedback
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-dataroom-review-feedback.js'
+      - 'scripts/validate-sana-dataroom-review-feedback.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - '.github/workflows/sana-demo-dataroom-review-feedback.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-dataroom-review-feedback.js'
+      - 'scripts/validate-sana-dataroom-review-feedback.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+
+jobs:
+  dataroom-review-feedback-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contracts
+        run: |
+          node --check apps/control-web/public/sana-v3-dataroom-review-feedback.js
+          node scripts/validate-sana-dataroom-review-feedback.mjs
+      - name: Validate feedback boundaries
+        run: |
+          grep -q 'CAPITAL_REVIEW_LINKED ≠ REVIEW_VERIFIED' apps/control-web/public/sana-v3-dataroom-review-feedback.js
+          grep -q 'DOCUMENT_REQUEST_REFERENCE_LINKED ≠ DOCUMENT_DEFICIENCY ≠ FINDING' apps/control-web/public/sana-v3-dataroom-review-feedback.js
+          grep -q 'ASSESSMENT_REFERENCE_LINKED ≠ RISK_SCORE ≠ INVESTMENT_RECOMMENDATION' apps/control-web/public/sana-v3-dataroom-review-feedback.js
+          grep -q 'OUTCOME_REFERENCE_LINKED ≠ ELIGIBILITY ≠ DUE_DILIGENCE_APPROVAL' apps/control-web/public/sana-v3-dataroom-review-feedback.js
+          grep -q 'FEEDBACK_RETURNED_REFERENCE ≠ VERIFIED_DELIVERY' apps/control-web/public/sana-v3-dataroom-review-feedback.js
+          grep -q 'DATAROOM_ACK_REFERENCE ≠ VERIFIED_RECEIPT' apps/control-web/public/sana-v3-dataroom-review-feedback.js
+          grep -q 'FEEDBACK_ITEM ≠ FINDING ≠ REMEDIATION_ITEM' apps/control-web/public/sana-v3-dataroom-review-feedback.js
+          grep -q 'NO_AUTOMATIC_REOPEN' apps/control-web/public/sana-v3-dataroom-review-feedback.js
+      - name: Validate assembly when v79 is present
+        run: |
+          node <<'NODE'
+          const fs=require('fs'),assert=require('assert');const html=fs.readFileSync('apps/control-web/public/sana-v3.html','utf8'),sw=fs.readFileSync('apps/control-web/public/sana-v3-sw.js','utf8');const handoff='/sana-v3-dataroom-review-handoff.js',feedback='/sana-v3-dataroom-review-feedback.js',impact='/sana-v3-dataroom-impact-history.js';if(!html.includes(feedback)){console.log('v79 staged before assembly; strict shell validation deferred.');process.exit(0)}for(const f of [handoff,feedback,impact]){assert(html.includes(f),`HTML missing ${f}`);assert(sw.includes(`'${f}'`),`PWA missing ${f}`)}assert(html.indexOf(handoff)<html.indexOf(feedback));assert(html.indexOf(feedback)<html.indexOf(impact));const versions=[...sw.matchAll(/const CACHE='sana-v3-demo-shell-v(\d+)'/g)].map(m=>Number(m[1]));assert(versions.length&&Math.max(...versions)>=79,'shell must be v79 or newer');
+          NODE
+      - name: Assert review-only runtime
+        run: |
+          ! grep -Eq 'fetch\s*\(' apps/control-web/public/sana-v3-dataroom-review-feedback.js
+          ! grep -Eq 'productionExecutionAvailable\s*=\s*true|productionActivationAllowed\s*=\s*true|canonicalMutated\s*=\s*true' apps/control-web/public/sana-v3-dataroom-review-feedback.js
+          ! grep -Eq 'automaticFindings\s*:\s*[1-9]|automaticRemediations\s*:\s*[1-9]|automaticReopens\s*:\s*[1-9]|dueDiligenceApprovals\s*:\s*[1-9]|externalActions\s*:\s*[1-9]' apps/control-web/public/sana-v3-dataroom-review-feedback.js
+
+# v79 certification trigger: capital review feedback returns to the originating Data Room case by reference only, without automatic findings, remediation, reopen or approval.
