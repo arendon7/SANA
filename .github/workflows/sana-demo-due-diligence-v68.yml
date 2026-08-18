@@ -56,3 +56,5 @@ jobs:
           grep -q 'REQUEST_CLOSED ≠ GAP' apps/control-web/public/sana-v3-due-diligence-dataroom-exchange-gaps.js
           grep -q 'DOCUMENT_EXCHANGE_GAP ≠ MISSING_DD_REQUIREMENT ≠ INVESTMENT_RISK ≠ ELIGIBILITY ≠ INVESTMENT_DECISION' apps/control-web/public/sana-v3-due-diligence-dataroom-exchange-gaps.js
           ! grep -Eq 'productionExecutionAvailable\s*=\s*true|productionActivationAllowed\s*=\s*true|canonicalMutated\s*=\s*true' apps/control-web/public/sana-v3-report-snapshot-dataroom-exchange.js apps/control-web/public/sana-v3-dataroom-exchange-history.js apps/control-web/public/sana-v3-due-diligence-dataroom-exchange-gaps.js
+
+# v68 certification trigger: assembled shell only; snapshot-only, provenance-only and non-decisional.
