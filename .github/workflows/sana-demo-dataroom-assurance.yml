@@ -54,3 +54,5 @@ jobs:
           ! grep -Eq 'productionExecutionAvailable\s*=\s*true|productionActivationAllowed\s*=\s*true|canonicalMutated\s*=\s*true' apps/control-web/public/sana-v3-dataroom-assurance-ledger.js
           ! grep -Eq 'verifiedDocuments\s*:\s*[1-9]|verifiedResults\s*:\s*[1-9]|dueDiligenceApprovals\s*:\s*[1-9]|investmentSignals\s*:\s*[1-9]|investmentOffers\s*:\s*[1-9]|fundingExecuted\s*:\s*[1-9]' apps/control-web/public/sana-v3-dataroom-assurance-ledger.js
           ! grep -Eq 'fetch\s*\(' apps/control-web/public/sana-v3-dataroom-assurance-ledger.js
+
+# v69 freeze certification trigger: assembled shell, no authority expansion.
