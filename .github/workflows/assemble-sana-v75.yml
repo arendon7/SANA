@@ -6,12 +6,18 @@ on:
     paths:
       - 'apps/control-web/public/sana-v3-dataroom-review-case.js'
       - '.github/workflows/assemble-sana-v75.yml'
+  pull_request:
+    branches: [release/control-v022-initial-rc2]
+    paths:
+      - 'apps/control-web/public/sana-v3-dataroom-review-case.js'
+      - '.github/workflows/assemble-sana-v75.yml'
 
 permissions:
   contents: write
 
 jobs:
   assemble:
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
