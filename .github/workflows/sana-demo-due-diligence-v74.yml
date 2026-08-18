@@ -56,3 +56,5 @@ jobs:
           grep -q 'RECUSAL_REFERENCE ≠ GAP ≠ FINDING_INVALIDITY' apps/control-web/public/sana-v3-due-diligence-dataroom-review-governance-gaps.js
           grep -q 'GOVERNANCE_GAP ≠ INVESTMENT_RISK ≠ RISK_RATING ≠ RISK_SCORE ≠ ELIGIBILITY ≠ INVESTMENT_DECISION' apps/control-web/public/sana-v3-due-diligence-dataroom-review-governance-gaps.js
           ! grep -Eq 'productionExecutionAvailable\s*=\s*true|productionActivationAllowed\s*=\s*true|canonicalMutated\s*=\s*true' apps/control-web/public/sana-v3-report-snapshot-dataroom-review-governance.js apps/control-web/public/sana-v3-dataroom-review-governance-history.js apps/control-web/public/sana-v3-due-diligence-dataroom-review-governance-gaps.js
+
+# v74 freeze certification trigger: assembled shell, snapshot-only reviewer governance provenance, no scoring or authority expansion.
