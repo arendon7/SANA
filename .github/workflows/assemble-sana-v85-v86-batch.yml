@@ -1,0 +1,45 @@
+name: Assemble SANA v85-v86 Batch
+on:
+  push:
+    branches: [demo/sana-v85-v86-batch]
+    paths: ['apps/control-web/public/sana-v3-dataroom-review-round.js','apps/control-web/public/sana-v3-report-snapshot-dataroom-review-round.js','apps/control-web/public/sana-v3-dataroom-review-round-history.js','apps/control-web/public/sana-v3-due-diligence-dataroom-review-round-gaps.js','.github/workflows/assemble-sana-v85-v86-batch.yml']
+permissions: {contents: write}
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: demo/sana-v85-v86-batch}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: |
+          node scripts/validate-sana-dataroom-review-round.mjs
+          node scripts/validate-sana-dataroom-review-round-history.mjs
+      - run: |
+          python - <<'PY'
+          from pathlib import Path
+          h=Path('apps/control-web/public/sana-v3.html');s=h.read_text(); reps=[
+          ('<script src="/sana-v3-report-snapshot-dataroom-review-disposition.js"></script><script src="/sana-v3-cycle-closure.js"></script>','<script src="/sana-v3-report-snapshot-dataroom-review-disposition.js"></script><script src="/sana-v3-report-snapshot-dataroom-review-round.js"></script><script src="/sana-v3-cycle-closure.js"></script>','/sana-v3-report-snapshot-dataroom-review-round.js'),
+          ('<script src="/sana-v3-due-diligence-dataroom-review-disposition-gaps.js"></script><script src="/sana-v3-due-diligence-remediation.js"></script>','<script src="/sana-v3-due-diligence-dataroom-review-disposition-gaps.js"></script><script src="/sana-v3-due-diligence-dataroom-review-round-gaps.js"></script><script src="/sana-v3-due-diligence-remediation.js"></script>','/sana-v3-due-diligence-dataroom-review-round-gaps.js'),
+          ('<script src="/sana-v3-dataroom-review-disposition.js"></script><script src="/sana-v3-dataroom-impact-history.js"></script>','<script src="/sana-v3-dataroom-review-disposition.js"></script><script src="/sana-v3-dataroom-review-round.js"></script><script src="/sana-v3-dataroom-impact-history.js"></script>','/sana-v3-dataroom-review-round.js'),
+          ('<script src="/sana-v3-dataroom-review-disposition-history.js"></script><script src="/sana-v3-dataroom-entry.js"></script>','<script src="/sana-v3-dataroom-review-disposition-history.js"></script><script src="/sana-v3-dataroom-review-round-history.js"></script><script src="/sana-v3-dataroom-entry.js"></script>','/sana-v3-dataroom-review-round-history.js')]
+          for old,new,n in reps:
+            if n not in s: assert old in s,n; s=s.replace(old,new,1)
+          h.write_text(s)
+          p=Path('apps/control-web/public/sana-v3-sw.js');s=p.read_text()
+          if "const CACHE='sana-v3-demo-shell-v86';" not in s:
+            old="const CACHE='sana-v3-demo-shell-v84';"; assert old in s; s=s.replace(old,"if(false){\nconst CACHE='sana-v3-demo-shell-v84';\n}\nconst CACHE='sana-v3-demo-shell-v86';",1)
+          reps=[("'/sana-v3-report-snapshot-dataroom-review-disposition.js','/sana-v3-cycle-closure.js'","'/sana-v3-report-snapshot-dataroom-review-disposition.js','/sana-v3-report-snapshot-dataroom-review-round.js','/sana-v3-cycle-closure.js'"),("'/sana-v3-due-diligence-dataroom-review-disposition-gaps.js','/sana-v3-due-diligence-remediation.js'","'/sana-v3-due-diligence-dataroom-review-disposition-gaps.js','/sana-v3-due-diligence-dataroom-review-round-gaps.js','/sana-v3-due-diligence-remediation.js'"),("'/sana-v3-dataroom-review-disposition.js','/sana-v3-dataroom-impact-history.js'","'/sana-v3-dataroom-review-disposition.js','/sana-v3-dataroom-review-round.js','/sana-v3-dataroom-impact-history.js'"),("'/sana-v3-dataroom-review-disposition-history.js','/sana-v3-dataroom-entry.js'","'/sana-v3-dataroom-review-disposition-history.js','/sana-v3-dataroom-review-round-history.js','/sana-v3-dataroom-entry.js'")]
+          for old,new in reps:
+            if new not in s: assert old in s; s=s.replace(old,new,1)
+          p.write_text(s)
+          PY
+          node scripts/validate-sana-dataroom-review-round.mjs
+          node scripts/validate-sana-dataroom-review-round-history.mjs
+          grep -q "const CACHE='sana-v3-demo-shell-v86';" apps/control-web/public/sana-v3-sw.js
+      - run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'; git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/control-web/public/sana-v3.html apps/control-web/public/sana-v3-sw.js
+          git commit -m 'demo: assemble Data Room review round v85-v86'
+          git push origin HEAD:demo/sana-v85-v86-batch

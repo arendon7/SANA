@@ -1,0 +1,23 @@
+name: SANA Demo Data Room Review Round
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths: ['apps/control-web/public/sana-v3-dataroom-review-round.js','scripts/validate-sana-dataroom-review-round.mjs','apps/control-web/public/sana-v3.html','apps/control-web/public/sana-v3-sw.js','.github/workflows/sana-demo-dataroom-review-round.yml']
+  pull_request:
+    paths: ['apps/control-web/public/sana-v3-dataroom-review-round.js','scripts/validate-sana-dataroom-review-round.mjs','apps/control-web/public/sana-v3.html','apps/control-web/public/sana-v3-sw.js']
+jobs:
+  review-round-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: node scripts/validate-sana-dataroom-review-round.mjs
+      - run: |
+          grep -q 'ROUND_OPENED ≠ CAPITAL_REVIEW_STARTED' apps/control-web/public/sana-v3-dataroom-review-round.js
+          grep -q 'NO_FURTHER_REQUESTS_REFERENCE_ONLY ≠ REVIEW_COMPLETED ≠ DUE_DILIGENCE_APPROVAL' apps/control-web/public/sana-v3-dataroom-review-round.js
+          grep -q 'ROUND_CLOSED ≠ CAPITAL_REVIEW_COMPLETED ≠ INVESTMENT_DECISION' apps/control-web/public/sana-v3-dataroom-review-round.js
+          ! grep -Eq 'fetch\s*\(|canonicalMutated\s*=\s*true|dueDiligenceApprovals\s*:\s*[1-9]|investmentDecisions\s*:\s*[1-9]' apps/control-web/public/sana-v3-dataroom-review-round.js
+      - run: |
+          grep -q '/sana-v3-dataroom-review-disposition.js.*sana-v3-dataroom-review-round.js.*sana-v3-dataroom-impact-history.js' apps/control-web/public/sana-v3.html
+          grep -Eq "^const CACHE='sana-v3-demo-shell-v(8[5-9]|9[0-9]|[1-9][0-9]{2,})';" apps/control-web/public/sana-v3-sw.js
