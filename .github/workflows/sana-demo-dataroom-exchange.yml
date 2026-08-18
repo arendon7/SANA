@@ -1,0 +1,56 @@
+name: SANA Demo Data Room Document Exchange
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-dataroom-exchange-ledger.js'
+      - 'scripts/validate-sana-dataroom-exchange.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - '.github/workflows/sana-demo-dataroom-exchange.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-dataroom-exchange-ledger.js'
+      - 'scripts/validate-sana-dataroom-exchange.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+
+jobs:
+  dataroom-document-exchange-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contracts
+        run: |
+          node --check apps/control-web/public/sana-v3-dataroom-exchange-ledger.js
+          node scripts/validate-sana-dataroom-exchange.mjs
+      - name: Validate document exchange boundaries
+        run: |
+          grep -q 'ACCESS_GRANTED ≠ DOCUMENT_REQUEST' apps/control-web/public/sana-v3-dataroom-exchange-ledger.js
+          grep -q 'DOCUMENT_REQUESTED ≠ DOCUMENT_PROVIDED' apps/control-web/public/sana-v3-dataroom-exchange-ledger.js
+          grep -q 'DOCUMENT_PROVIDED_REFERENCE ≠ VERIFIED_DOCUMENT' apps/control-web/public/sana-v3-dataroom-exchange-ledger.js
+          grep -q 'VERSION_DECLARED ≠ CURRENT_VALIDITY' apps/control-web/public/sana-v3-dataroom-exchange-ledger.js
+          grep -q 'ACK_REFERENCE ≠ VERIFIED_RECEIPT' apps/control-web/public/sana-v3-dataroom-exchange-ledger.js
+          grep -q 'SUPERSEDED_REFERENCE ≠ DOCUMENT_INVALIDITY' apps/control-web/public/sana-v3-dataroom-exchange-ledger.js
+          grep -q 'EXPIRY_REFERENCE ≠ EXPIRED_FACT' apps/control-web/public/sana-v3-dataroom-exchange-ledger.js
+          grep -q 'REQUEST_CLOSED ≠ ISSUE_RESOLVED ≠ DUE_DILIGENCE_APPROVAL' apps/control-web/public/sana-v3-dataroom-exchange-ledger.js
+          grep -q 'DOCUMENT_EXCHANGE ≠ INVESTMENT_OFFER' apps/control-web/public/sana-v3-dataroom-exchange-ledger.js
+      - name: Validate assembly when v67 is present
+        run: |
+          html='apps/control-web/public/sana-v3.html'; sw='apps/control-web/public/sana-v3-sw.js'
+          if grep -q '/sana-v3-dataroom-exchange-ledger.js' "$html"; then
+            grep -q '/sana-v3-dataroom-access-ledger.js.*sana-v3-dataroom-exchange-ledger.js.*sana-v3-dataroom-impact-history.js' "$html"
+            grep -q "^const CACHE='sana-v3-demo-shell-v67';" "$sw"
+            grep -q "'/sana-v3-dataroom-access-ledger.js','/sana-v3-dataroom-exchange-ledger.js','/sana-v3-dataroom-impact-history.js'" "$sw"
+          else
+            echo 'v67 staged before assembly; strict shell validation deferred.'
+          fi
+      - name: Assert no verified document, approval, offer or execution authority
+        run: |
+          ! grep -Eq 'productionExecutionAvailable\s*=\s*true|productionActivationAllowed\s*=\s*true|canonicalMutated\s*=\s*true' apps/control-web/public/sana-v3-dataroom-exchange-ledger.js
+          ! grep -Eq 'verifiedDocuments\s*:\s*[1-9]|verifiedReceipts\s*:\s*[1-9]|dueDiligenceApprovals\s*:\s*[1-9]|investmentOffers\s*:\s*[1-9]|fundingExecuted\s*:\s*[1-9]' apps/control-web/public/sana-v3-dataroom-exchange-ledger.js
+          ! grep -Eq 'fetch\s*\(' apps/control-web/public/sana-v3-dataroom-exchange-ledger.js
