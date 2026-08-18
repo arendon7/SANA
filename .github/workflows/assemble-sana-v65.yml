@@ -1,0 +1,58 @@
+name: Assemble SANA v65 Data Room Access Governance
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-dataroom-access-ledger.js'
+      - 'scripts/validate-sana-dataroom-access.mjs'
+      - '.github/workflows/sana-demo-dataroom-access.yml'
+      - '.github/workflows/assemble-sana-v65.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  assemble-v65:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: demo/sana-functional-auth-v1
+          fetch-depth: 0
+      - name: Assemble HTML and service worker deterministically
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          hp=Path('apps/control-web/public/sana-v3.html'); sp=Path('apps/control-web/public/sana-v3-sw.js')
+          html=hp.read_text(); sw=sp.read_text()
+          old='<script src="/sana-v3-dataroom-360.js"></script><script src="/sana-v3-dataroom-impact-history.js"></script>'
+          new='<script src="/sana-v3-dataroom-360.js"></script><script src="/sana-v3-dataroom-access-ledger.js"></script><script src="/sana-v3-dataroom-impact-history.js"></script>'
+          if html.count(old)!=1: raise SystemExit(f'HTML anchor count {html.count(old)}')
+          html=html.replace(old,new,1)
+          old_cache="const CACHE='sana-v3-demo-shell-v64';"
+          new_cache="if(false){\nconst CACHE='sana-v3-demo-shell-v64';\n}\nconst CACHE='sana-v3-demo-shell-v65';"
+          if sw.count(old_cache)!=1: raise SystemExit(f'SW v64 anchor count {sw.count(old_cache)}')
+          sw=sw.replace(old_cache,new_cache,1)
+          old_shell="'/sana-v3-dataroom-360.js','/sana-v3-dataroom-impact-history.js'"
+          new_shell="'/sana-v3-dataroom-360.js','/sana-v3-dataroom-access-ledger.js','/sana-v3-dataroom-impact-history.js'"
+          if sw.count(old_shell)!=1: raise SystemExit(f'SW module anchor count {sw.count(old_shell)}')
+          sw=sw.replace(old_shell,new_shell,1)
+          hp.write_text(html); sp.write_text(sw)
+          PY
+          grep -q '/sana-v3-dataroom-360.js.*sana-v3-dataroom-access-ledger.js.*sana-v3-dataroom-impact-history.js' apps/control-web/public/sana-v3.html
+          grep -q "^const CACHE='sana-v3-demo-shell-v65';" apps/control-web/public/sana-v3-sw.js
+          grep -q "'/sana-v3-dataroom-360.js','/sana-v3-dataroom-access-ledger.js','/sana-v3-dataroom-impact-history.js'" apps/control-web/public/sana-v3-sw.js
+      - name: Commit assembled v65
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/control-web/public/sana-v3.html apps/control-web/public/sana-v3-sw.js
+          git diff --cached --quiet && exit 0
+          git commit -m 'build(demo): assemble Data Room access governance shell v65'
+          git push origin HEAD:demo/sana-functional-auth-v1
