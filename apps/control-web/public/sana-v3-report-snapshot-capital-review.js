@@ -13,3 +13,4 @@
   document.addEventListener('click',event=>{if(event.target.closest('#modal-save')&&typeof modalAction!=='undefined'&&modalAction==='report-snapshot')queueMicrotask(sync)},true);
   window.__SANA_REPORT_SNAPSHOT_CAPITAL_REVIEW__=Object.freeze({enrichCapitalReview,sync,integrity:INTEGRITY});
 })();
+// v64 assembly trigger: reviewer-ref-only, snapshot-only and non-decisional.
