@@ -59,3 +59,5 @@ jobs:
           grep -q 'REVIEW_CLOSED ≠ GAP' apps/control-web/public/sana-v3-due-diligence-dataroom-findings-gaps.js
           grep -q 'FINDINGS_GAP ≠ DEFECT ≠ NONCOMPLIANCE ≠ INVESTMENT_RISK ≠ RISK_RATING ≠ RISK_SCORE ≠ ELIGIBILITY ≠ INVESTMENT_DECISION' apps/control-web/public/sana-v3-due-diligence-dataroom-findings-gaps.js
           ! grep -Eq 'productionExecutionAvailable\s*=\s*true|productionActivationAllowed\s*=\s*true|canonicalMutated\s*=\s*true' apps/control-web/public/sana-v3-report-snapshot-dataroom-findings.js apps/control-web/public/sana-v3-dataroom-findings-history.js apps/control-web/public/sana-v3-due-diligence-dataroom-findings-gaps.js
+
+# v72 freeze certification trigger: assembled shell, snapshot-only findings provenance, no scoring or authority expansion.
