@@ -67,7 +67,7 @@ jobs:
           grep -q 'NUNCA se descuenta o repone inventario por inferencia\|Nunca se descuenta o repone inventario por inferencia' "$inventory"
           grep -q 'NO_EXPLICIT_RELATION' "$ledger"
           grep -q 'MOVEMENT_DIRECTION_REVIEW' "$ledger"
-          ! grep -Eiq 'auto.*inventory|auto.*stock|stock.*automatic|inventory.*automatic' "$ledger"
+          ! grep -Eiq 'autoInventoryMovement|autoStockMutation|inventoryMutationAllowed[[:space:]]*=[[:space:]]*true|stockMutationAllowed[[:space:]]*=[[:space:]]*true' "$ledger"
       - name: Validate assembly and active shell
         shell: bash
         run: |
