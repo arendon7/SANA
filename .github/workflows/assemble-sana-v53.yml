@@ -87,3 +87,4 @@ jobs:
           git diff --cached --quiet && exit 0
           git commit -m 'build(demo): assemble capture sync shell v53'
           git push origin HEAD:demo/sana-functional-auth-v1
+# Explicit retrigger after v54 source staging; no product behavior change.
