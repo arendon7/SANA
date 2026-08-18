@@ -7,14 +7,15 @@ for(const re of [/REVIEW WORKSPACE V89/,/URL_FOCUS ≠ PERSISTED_STATE/,/FILTER_
 for(const re of [/\.review-workspace-controls/,/\.review-workspace-controls select/,/@media\(max-width:620px\)/])assert.match(css,re);
 assert.match(js,/const UX_BASELINE='REVIEW WORKSPACE V88'/);assert(sw.includes("'/sana-v3-review-workspace.css'"));assert(!/fetch\s*\(|storage\s*(\?\.|\.)|openModal\s*\(/.test(js));
 const full=(id,capital='CAP-T',lot='T',missing=[])=>({id,capitalCaseRef:capital,lot,events:[{observedAt:'2026-08-18T13:00:00-05:00'}],semantics:{missingInternalReferences:missing},closures:[]});
+const source=(schema,items)=>({schema,cases:()=>items});
 const window={
   __SANA_ACCESS__:{role:'admin'},
-  __SANA_DATAROOM_REVIEW_CASE__:{cases:()=>[full('CASE-T'),full('CASE-M','CAP-M','M',['missing:doc'])]},
-  __SANA_DATAROOM_REVIEW_HANDOFF__:{cases:()=>[full('HANDOFF-T')]},
-  __SANA_DATAROOM_REVIEW_FEEDBACK__:{cases:()=>[full('FEEDBACK-T')]},
-  __SANA_DATAROOM_REVIEW_RESPONSE__:{cases:()=>[full('RESPONSE-T')]},
-  __SANA_DATAROOM_REVIEW_DISPOSITION__:{cases:()=>[full('DISP-T')]},
-  __SANA_DATAROOM_REVIEW_ROUND__:{cases:()=>[full('ROUND-T')]}
+  __SANA_DATAROOM_REVIEW_CASE__:source('SANA_DATAROOM_REVIEW_CASE_V1',[full('CASE-T'),full('CASE-M','CAP-M','M',['missing:doc'])]),
+  __SANA_DATAROOM_REVIEW_HANDOFF__:source('SANA_DATAROOM_REVIEW_HANDOFF_V1',[full('HANDOFF-T')]),
+  __SANA_DATAROOM_REVIEW_FEEDBACK__:source('SANA_DATAROOM_REVIEW_FEEDBACK_V1',[full('FEEDBACK-T')]),
+  __SANA_DATAROOM_REVIEW_RESPONSE__:source('SANA_DATAROOM_REVIEW_RESPONSE_V1',[full('RESPONSE-T')]),
+  __SANA_DATAROOM_REVIEW_DISPOSITION__:source('SANA_DATAROOM_REVIEW_DISPOSITION_V1',[full('DISP-T')]),
+  __SANA_DATAROOM_REVIEW_ROUND__:source('SANA_DATAROOM_REVIEW_ROUND_V1',[full('ROUND-T')])
 };
 const ctx={window,views:{dataroom:()=>'<header class="page-head"></header><footer class="footer"></footer>'},metric:()=>'',esc:v=>String(v),document:{addEventListener:()=>{}},location:{search:'?rwCapital=CAP-M&rwLot=M&rwFocus=MISSING_STAGE_REFERENCE',href:'https://demo.test/sana-v3?rwCapital=CAP-M&rwLot=M&rwFocus=MISSING_STAGE_REFERENCE#dataroom'},history:{replaceState:()=>{}},URLSearchParams,URL,console};window.window=window;vm.createContext(ctx);vm.runInContext(js,ctx,{filename:path});
 const api=window.__SANA_DATAROOM_REVIEW_WORKSPACE__;assert(api);const s=api.state();assert.equal(s.chains.length,2);const t=s.chains.find(c=>c.capitalCaseRef==='CAP-T'),m=s.chains.find(c=>c.capitalCaseRef==='CAP-M');assert(t&&m);assert.equal(t.stageCount,6);assert.equal(t.stageCompletenessLabel,'6/6 PRESENT');assert.equal(m.stageCount,1);assert.equal(m.missingStages.length,5);assert.equal(m.missingInternalReferences.length,1);
