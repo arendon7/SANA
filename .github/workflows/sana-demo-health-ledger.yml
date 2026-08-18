@@ -6,23 +6,33 @@ on:
     paths:
       - 'apps/control-web/public/sana-v3-health-ledger.js'
       - 'apps/control-web/public/sana-v3-cycle-health-provenance.js'
+      - 'apps/control-web/public/sana-v3-report-snapshot-sync.js'
+      - 'apps/control-web/public/sana-v3-dataroom-health-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-health-gaps.js'
       - 'apps/control-web/public/sana-v3-plan-field-workflow.js'
       - 'apps/control-web/public/sana-v3-views-2.js'
       - 'apps/control-web/public/sana-v3.html'
       - 'apps/control-web/public/sana-v3-sw.js'
       - 'scripts/validate-sana-health-ledger.mjs'
       - 'scripts/validate-sana-cycle-health.mjs'
+      - 'scripts/validate-sana-health-snapshot.mjs'
+      - 'scripts/validate-sana-health-gaps.mjs'
       - '.github/workflows/sana-demo-health-ledger.yml'
   pull_request:
     paths:
       - 'apps/control-web/public/sana-v3-health-ledger.js'
       - 'apps/control-web/public/sana-v3-cycle-health-provenance.js'
+      - 'apps/control-web/public/sana-v3-report-snapshot-sync.js'
+      - 'apps/control-web/public/sana-v3-dataroom-health-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-health-gaps.js'
       - 'apps/control-web/public/sana-v3-plan-field-workflow.js'
       - 'apps/control-web/public/sana-v3-views-2.js'
       - 'apps/control-web/public/sana-v3.html'
       - 'apps/control-web/public/sana-v3-sw.js'
       - 'scripts/validate-sana-health-ledger.mjs'
       - 'scripts/validate-sana-cycle-health.mjs'
+      - 'scripts/validate-sana-health-snapshot.mjs'
+      - 'scripts/validate-sana-health-gaps.mjs'
       - '.github/workflows/sana-demo-health-ledger.yml'
 
 permissions:
@@ -42,23 +52,49 @@ jobs:
           set -euo pipefail
           node --check apps/control-web/public/sana-v3-health-ledger.js
           node --check apps/control-web/public/sana-v3-cycle-health-provenance.js
+          node --check apps/control-web/public/sana-v3-report-snapshot-sync.js
+          node --check apps/control-web/public/sana-v3-dataroom-health-history.js
+          node --check apps/control-web/public/sana-v3-due-diligence-health-gaps.js
           node scripts/validate-sana-health-ledger.mjs
           node scripts/validate-sana-cycle-health.mjs
+          node scripts/validate-sana-health-snapshot.mjs
+          node scripts/validate-sana-health-gaps.mjs
       - name: Validate ledger boundaries
         shell: bash
         run: |
           set -euo pipefail
           ledger='apps/control-web/public/sana-v3-health-ledger.js'
           grep -q '__SANA_PHYTOSANITARY_LEDGER__' "$ledger"
-          grep -q "SANA_PHYTOSANITARY_LEDGER_V1" "$ledger"
+          grep -q 'SANA_PHYTOSANITARY_LEDGER_V1' "$ledger"
           grep -q 'LEGACY_INCIDENT_SUMMARY ≠ OBSERVED_PRESENCE ≠ DIAGNOSIS ≠ TREATMENT ≠ EFFICACY' "$ledger"
           grep -q 'OBSERVATION ≠ DIAGNOSIS' "$ledger"
           grep -q 'DIAGNOSIS ≠ RECOMMENDATION' "$ledger"
           grep -q 'RECOMMENDATION ≠ EXECUTION' "$ledger"
           grep -q 'FOLLOW_UP ≠ CAUSAL_ATTRIBUTION' "$ledger"
           grep -q 'CONFIRMED_HUMAN_DEMO' "$ledger"
-          grep -q 'NO_EFFICACY_ASSESSMENT' "$ledger"
           ! grep -q 'storage.records.push' "$ledger"
+      - name: Validate historical snapshot boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          sync='apps/control-web/public/sana-v3-report-snapshot-sync.js'
+          history='apps/control-web/public/sana-v3-dataroom-health-history.js'
+          gaps='apps/control-web/public/sana-v3-due-diligence-health-gaps.js'
+          grep -q 'function enrichHealth' "$sync"
+          grep -q 'SNAPSHOT_CAPTURED_FROM_PHYTOSANITARY_LEDGER' "$sync"
+          grep -q 'ADDITIVE_V1 · PHYTOSANITARY_LEDGER' "$sync"
+          grep -q 'SNAPSHOT_HEALTH_ONLY · NO_LIVE_FALLBACK · NO_RETROACTIVE_DIAGNOSIS' "$sync"
+          grep -q '__SANA_DATAROOM_HEALTH_HISTORY__' "$history"
+          grep -q 'NOT_CAPTURED_IN_SNAPSHOT' "$history"
+          grep -q 'NO_RETROACTIVE_DIAGNOSIS' "$history"
+          grep -q 'CHANGE ≠ IMPROVEMENT ≠ DIAGNOSIS_CAUSALITY ≠ TREATMENT_EFFICACY' "$history"
+          ! grep -q '__SANA_PHYTOSANITARY_LEDGER__' "$history"
+          ! grep -q 'storage\.' "$history"
+          grep -q '__SANA_DD_HEALTH_GAPS__' "$gaps"
+          grep -q 'PRESENCE_OR_TREATMENT ≠ GAP' "$gaps"
+          grep -q 'HEALTH GAP ≠ DISEASE SEVERITY ≠ TREATMENT FAILURE ≠ CREDIT RISK ≠ INVESTMENT SIGNAL' "$gaps"
+          ! grep -q '__SANA_PHYTOSANITARY_LEDGER__' "$gaps"
+          ! grep -q 'storage\.' "$gaps"
       - name: Validate cycle projection is non-weighted
         shell: bash
         run: |
@@ -78,14 +114,17 @@ jobs:
           html='apps/control-web/public/sana-v3.html'
           sw='apps/control-web/public/sana-v3-sw.js'
           grep -q '/sana-v3-activity-relations.js.*sana-v3-health-ledger.js.*sana-v3-cycle-closure.js' "$html"
-          grep -q '/sana-v3-cycle-material-provenance.js.*sana-v3-cycle-health-provenance.js.*sana-v3-capital-dossier.js' "$html"
+          grep -q '/sana-v3-due-diligence-material-gaps.js.*sana-v3-due-diligence-health-gaps.js.*sana-v3-due-diligence-remediation.js' "$html"
+          grep -q '/sana-v3-dataroom-material-history.js.*sana-v3-dataroom-health-history.js.*sana-v3-dataroom-entry.js' "$html"
           grep -q "'/sana-v3-health-ledger.js'" "$sw"
           grep -q "'/sana-v3-cycle-health-provenance.js'" "$sw"
-          grep -q "const CACHE='sana-v3-demo-shell-v34'" "$sw"
+          grep -q "'/sana-v3-dataroom-health-history.js'" "$sw"
+          grep -q "'/sana-v3-due-diligence-health-gaps.js'" "$sw"
+          grep -q "const CACHE='sana-v3-demo-shell-v35'" "$sw"
       - name: Assert no production authority
         shell: bash
         run: |
           set -euo pipefail
-          files='apps/control-web/public/sana-v3-health-ledger.js apps/control-web/public/sana-v3-cycle-health-provenance.js'
+          files='apps/control-web/public/sana-v3-health-ledger.js apps/control-web/public/sana-v3-cycle-health-provenance.js apps/control-web/public/sana-v3-dataroom-health-history.js apps/control-web/public/sana-v3-due-diligence-health-gaps.js apps/control-web/public/sana-v3-report-snapshot-sync.js'
           ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true' $files
-          ! grep -Eiq 'verifiedExternal[[:space:]]*=[[:space:]]*true|certified[[:space:]]*=[[:space:]]*true|icaApproved[[:space:]]*=[[:space:]]*true' $files
+          ! grep -Eiq 'verifiedExternal[[:space:]]*=[[:space:]]*true|certified[[:space:]]*=[[:space:]]*true|icaApproved[[:space:]]*=[[:space:]]*true|creditApproved|investmentApproved' $files
