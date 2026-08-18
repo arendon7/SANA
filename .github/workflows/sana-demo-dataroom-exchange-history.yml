@@ -1,0 +1,53 @@
+name: SANA Demo Data Room Document Exchange History
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-dataroom-exchange.js'
+      - 'apps/control-web/public/sana-v3-dataroom-exchange-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-dataroom-exchange-gaps.js'
+      - 'scripts/validate-sana-dataroom-exchange-history.mjs'
+      - '.github/workflows/sana-demo-dataroom-exchange-history.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-dataroom-exchange.js'
+      - 'apps/control-web/public/sana-v3-dataroom-exchange-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-dataroom-exchange-gaps.js'
+      - 'scripts/validate-sana-dataroom-exchange-history.mjs'
+
+jobs:
+  dataroom-document-exchange-history-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contracts
+        run: |
+          node --check apps/control-web/public/sana-v3-report-snapshot-dataroom-exchange.js
+          node --check apps/control-web/public/sana-v3-dataroom-exchange-history.js
+          node --check apps/control-web/public/sana-v3-due-diligence-dataroom-exchange-gaps.js
+          node scripts/validate-sana-dataroom-exchange-history.mjs
+      - name: Validate snapshot-only and ref-only history
+        run: |
+          grep -q 'NO_LIVE_FALLBACK' apps/control-web/public/sana-v3-report-snapshot-dataroom-exchange.js
+          grep -q 'COUNTERPARTY_REF_ONLY' apps/control-web/public/sana-v3-report-snapshot-dataroom-exchange.js
+          grep -q 'PROVIDER_REF_ONLY' apps/control-web/public/sana-v3-report-snapshot-dataroom-exchange.js
+          grep -q 'DOCUMENT_REF_ONLY' apps/control-web/public/sana-v3-report-snapshot-dataroom-exchange.js
+          grep -q 'NO_FREEFORM_COPY' apps/control-web/public/sana-v3-report-snapshot-dataroom-exchange.js
+          grep -q 'CHANGE ≠ IMPROVEMENT' apps/control-web/public/sana-v3-dataroom-exchange-history.js
+          ! grep -q '__SANA_DATAROOM_EXCHANGE__' apps/control-web/public/sana-v3-dataroom-exchange-history.js
+          ! grep -Eq 'storage[[:space:]]*(\?\.|\.)' apps/control-web/public/sana-v3-dataroom-exchange-history.js apps/control-web/public/sana-v3-due-diligence-dataroom-exchange-gaps.js
+      - name: Validate documentary gaps only
+        run: |
+          grep -q 'NO_DOCUMENT_REQUEST ≠ GAP' apps/control-web/public/sana-v3-due-diligence-dataroom-exchange-gaps.js
+          grep -q 'REQUEST_OPEN ≠ GAP' apps/control-web/public/sana-v3-due-diligence-dataroom-exchange-gaps.js
+          grep -q 'DOCUMENT_PROVIDED_REFERENCE ≠ GAP' apps/control-web/public/sana-v3-due-diligence-dataroom-exchange-gaps.js
+          grep -q 'REQUEST_CLOSED ≠ GAP' apps/control-web/public/sana-v3-due-diligence-dataroom-exchange-gaps.js
+          grep -q 'DOCUMENT_EXCHANGE_GAP ≠ MISSING_DD_REQUIREMENT ≠ INVESTMENT_RISK ≠ ELIGIBILITY ≠ INVESTMENT_DECISION' apps/control-web/public/sana-v3-due-diligence-dataroom-exchange-gaps.js
+      - name: Assert no verification, approval, offer or execution authority
+        run: |
+          ! grep -Eq 'productionExecutionAvailable\s*=\s*true|productionActivationAllowed\s*=\s*true|canonicalMutated\s*=\s*true' apps/control-web/public/sana-v3-report-snapshot-dataroom-exchange.js apps/control-web/public/sana-v3-dataroom-exchange-history.js apps/control-web/public/sana-v3-due-diligence-dataroom-exchange-gaps.js
+          ! grep -Eq 'fetch\s*\(' apps/control-web/public/sana-v3-report-snapshot-dataroom-exchange.js apps/control-web/public/sana-v3-dataroom-exchange-history.js apps/control-web/public/sana-v3-due-diligence-dataroom-exchange-gaps.js
