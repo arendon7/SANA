@@ -57,3 +57,5 @@ jobs:
           grep -q 'ASSURANCE_CLOSED ≠ GAP' apps/control-web/public/sana-v3-due-diligence-dataroom-assurance-gaps.js
           grep -q 'ASSURANCE_GAP ≠ FAILED_VERIFICATION ≠ DOCUMENT_INVALIDITY ≠ INVESTMENT_RISK ≠ ELIGIBILITY ≠ INVESTMENT_DECISION' apps/control-web/public/sana-v3-due-diligence-dataroom-assurance-gaps.js
           ! grep -Eq 'productionExecutionAvailable\s*=\s*true|productionActivationAllowed\s*=\s*true|canonicalMutated\s*=\s*true' apps/control-web/public/sana-v3-report-snapshot-dataroom-assurance.js apps/control-web/public/sana-v3-dataroom-assurance-history.js apps/control-web/public/sana-v3-due-diligence-dataroom-assurance-gaps.js
+
+# v70 freeze certification trigger: assembled shell, snapshot-only provenance, no authority expansion.
