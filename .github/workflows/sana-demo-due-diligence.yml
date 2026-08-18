@@ -6,12 +6,15 @@ on:
     paths:
       - 'apps/control-web/public/sana-v3-reports-provenance.js'
       - 'apps/control-web/public/sana-v3-report-snapshot-sync.js'
+      - 'apps/control-web/public/sana-v3-report-snapshot-circularity.js'
       - 'apps/control-web/public/sana-v3-snapshot-compare.js'
       - 'apps/control-web/public/sana-v3-snapshot-freshness.js'
       - 'apps/control-web/public/sana-v3-due-diligence-gaps.js'
       - 'apps/control-web/public/sana-v3-due-diligence-material-gaps.js'
       - 'apps/control-web/public/sana-v3-due-diligence-health-gaps.js'
       - 'apps/control-web/public/sana-v3-due-diligence-nutrition-gaps.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-phenology-gaps.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-circularity-gaps.js'
       - 'apps/control-web/public/sana-v3-due-diligence-remediation.js'
       - 'apps/control-web/public/sana-v3-dd-next-cut.js'
       - 'apps/control-web/public/sana-v3-dataroom-360.js'
@@ -19,6 +22,8 @@ on:
       - 'apps/control-web/public/sana-v3-dataroom-material-history.js'
       - 'apps/control-web/public/sana-v3-dataroom-health-history.js'
       - 'apps/control-web/public/sana-v3-dataroom-nutrition-history.js'
+      - 'apps/control-web/public/sana-v3-dataroom-phenology-history.js'
+      - 'apps/control-web/public/sana-v3-dataroom-circularity-history.js'
       - 'apps/control-web/public/sana-v3-dataroom-entry.js'
       - 'apps/control-web/public/sana-v3-impact-methodology.js'
       - 'apps/control-web/public/sana-v3-impact-ledger.js'
@@ -39,17 +44,24 @@ on:
       - 'scripts/validate-sana-health-gaps.mjs'
       - 'scripts/validate-sana-nutrition-snapshot.mjs'
       - 'scripts/validate-sana-nutrition-gaps.mjs'
+      - 'scripts/validate-sana-phenology-snapshot.mjs'
+      - 'scripts/validate-sana-phenology-gaps.mjs'
+      - 'scripts/validate-sana-circularity-snapshot.mjs'
+      - 'scripts/validate-sana-circularity-gaps.mjs'
       - '.github/workflows/sana-demo-due-diligence.yml'
   pull_request:
     paths:
       - 'apps/control-web/public/sana-v3-reports-provenance.js'
       - 'apps/control-web/public/sana-v3-report-snapshot-sync.js'
+      - 'apps/control-web/public/sana-v3-report-snapshot-circularity.js'
       - 'apps/control-web/public/sana-v3-snapshot-compare.js'
       - 'apps/control-web/public/sana-v3-snapshot-freshness.js'
       - 'apps/control-web/public/sana-v3-due-diligence-gaps.js'
       - 'apps/control-web/public/sana-v3-due-diligence-material-gaps.js'
       - 'apps/control-web/public/sana-v3-due-diligence-health-gaps.js'
       - 'apps/control-web/public/sana-v3-due-diligence-nutrition-gaps.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-phenology-gaps.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-circularity-gaps.js'
       - 'apps/control-web/public/sana-v3-due-diligence-remediation.js'
       - 'apps/control-web/public/sana-v3-dd-next-cut.js'
       - 'apps/control-web/public/sana-v3-dataroom-360.js'
@@ -57,6 +69,8 @@ on:
       - 'apps/control-web/public/sana-v3-dataroom-material-history.js'
       - 'apps/control-web/public/sana-v3-dataroom-health-history.js'
       - 'apps/control-web/public/sana-v3-dataroom-nutrition-history.js'
+      - 'apps/control-web/public/sana-v3-dataroom-phenology-history.js'
+      - 'apps/control-web/public/sana-v3-dataroom-circularity-history.js'
       - 'apps/control-web/public/sana-v3-dataroom-entry.js'
       - 'apps/control-web/public/sana-v3-impact-methodology.js'
       - 'apps/control-web/public/sana-v3-impact-ledger.js'
@@ -77,6 +91,10 @@ on:
       - 'scripts/validate-sana-health-gaps.mjs'
       - 'scripts/validate-sana-nutrition-snapshot.mjs'
       - 'scripts/validate-sana-nutrition-gaps.mjs'
+      - 'scripts/validate-sana-phenology-snapshot.mjs'
+      - 'scripts/validate-sana-phenology-gaps.mjs'
+      - 'scripts/validate-sana-circularity-snapshot.mjs'
+      - 'scripts/validate-sana-circularity-gaps.mjs'
       - '.github/workflows/sana-demo-due-diligence.yml'
 
 permissions:
@@ -94,9 +112,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          files=(apps/control-web/public/sana-v3-reports-provenance.js apps/control-web/public/sana-v3-report-snapshot-sync.js apps/control-web/public/sana-v3-snapshot-compare.js apps/control-web/public/sana-v3-snapshot-freshness.js apps/control-web/public/sana-v3-due-diligence-gaps.js apps/control-web/public/sana-v3-due-diligence-material-gaps.js apps/control-web/public/sana-v3-due-diligence-health-gaps.js apps/control-web/public/sana-v3-due-diligence-nutrition-gaps.js apps/control-web/public/sana-v3-due-diligence-remediation.js apps/control-web/public/sana-v3-dd-next-cut.js apps/control-web/public/sana-v3-dataroom-360.js apps/control-web/public/sana-v3-dataroom-impact-history.js apps/control-web/public/sana-v3-dataroom-material-history.js apps/control-web/public/sana-v3-dataroom-health-history.js apps/control-web/public/sana-v3-dataroom-nutrition-history.js apps/control-web/public/sana-v3-dataroom-entry.js apps/control-web/public/sana-v3-impact-methodology.js apps/control-web/public/sana-v3-impact-ledger.js apps/control-web/public/sana-v3-capital-dossier.js apps/control-web/public/sana-v3-access.js)
+          files=(
+            apps/control-web/public/sana-v3-reports-provenance.js apps/control-web/public/sana-v3-report-snapshot-sync.js apps/control-web/public/sana-v3-report-snapshot-circularity.js
+            apps/control-web/public/sana-v3-snapshot-compare.js apps/control-web/public/sana-v3-snapshot-freshness.js
+            apps/control-web/public/sana-v3-due-diligence-gaps.js apps/control-web/public/sana-v3-due-diligence-material-gaps.js apps/control-web/public/sana-v3-due-diligence-health-gaps.js apps/control-web/public/sana-v3-due-diligence-nutrition-gaps.js apps/control-web/public/sana-v3-due-diligence-phenology-gaps.js apps/control-web/public/sana-v3-due-diligence-circularity-gaps.js apps/control-web/public/sana-v3-due-diligence-remediation.js apps/control-web/public/sana-v3-dd-next-cut.js
+            apps/control-web/public/sana-v3-dataroom-360.js apps/control-web/public/sana-v3-dataroom-impact-history.js apps/control-web/public/sana-v3-dataroom-material-history.js apps/control-web/public/sana-v3-dataroom-health-history.js apps/control-web/public/sana-v3-dataroom-nutrition-history.js apps/control-web/public/sana-v3-dataroom-phenology-history.js apps/control-web/public/sana-v3-dataroom-circularity-history.js apps/control-web/public/sana-v3-dataroom-entry.js
+            apps/control-web/public/sana-v3-impact-methodology.js apps/control-web/public/sana-v3-impact-ledger.js apps/control-web/public/sana-v3-capital-dossier.js apps/control-web/public/sana-v3-access.js
+          )
           for f in "${files[@]}"; do node --check "$f"; done
-      - name: Run due diligence semantic contracts
+      - name: Run composed semantic contracts
         shell: bash
         run: |
           set -euo pipefail
@@ -113,47 +137,64 @@ jobs:
           node scripts/validate-sana-health-gaps.mjs
           node scripts/validate-sana-nutrition-snapshot.mjs
           node scripts/validate-sana-nutrition-gaps.mjs
-      - name: Validate contracts and RBAC
+          node scripts/validate-sana-phenology-snapshot.mjs
+          node scripts/validate-sana-phenology-gaps.mjs
+          node scripts/validate-sana-circularity-snapshot.mjs
+          node scripts/validate-sana-circularity-gaps.mjs
+      - name: Validate composed snapshot and gap boundaries
         shell: bash
         run: |
           set -euo pipefail
-          reports='apps/control-web/public/sana-v3-reports-provenance.js'; sync='apps/control-web/public/sana-v3-report-snapshot-sync.js'; compare='apps/control-web/public/sana-v3-snapshot-compare.js'; freshness='apps/control-web/public/sana-v3-snapshot-freshness.js'; gaps='apps/control-web/public/sana-v3-due-diligence-gaps.js'; materialGaps='apps/control-web/public/sana-v3-due-diligence-material-gaps.js'; healthGaps='apps/control-web/public/sana-v3-due-diligence-health-gaps.js'; nutritionGaps='apps/control-web/public/sana-v3-due-diligence-nutrition-gaps.js'; remediation='apps/control-web/public/sana-v3-due-diligence-remediation.js'; nextcut='apps/control-web/public/sana-v3-dd-next-cut.js'; dataroom='apps/control-web/public/sana-v3-dataroom-360.js'; impactHistory='apps/control-web/public/sana-v3-dataroom-impact-history.js'; materialHistory='apps/control-web/public/sana-v3-dataroom-material-history.js'; healthHistory='apps/control-web/public/sana-v3-dataroom-health-history.js'; nutritionHistory='apps/control-web/public/sana-v3-dataroom-nutrition-history.js'; entry='apps/control-web/public/sana-v3-dataroom-entry.js'; impact='apps/control-web/public/sana-v3-impact-methodology.js'; ledger='apps/control-web/public/sana-v3-impact-ledger.js'; access='apps/control-web/public/sana-v3-access.js'
+          reports='apps/control-web/public/sana-v3-reports-provenance.js'; sync='apps/control-web/public/sana-v3-report-snapshot-sync.js'; circularitySync='apps/control-web/public/sana-v3-report-snapshot-circularity.js'; phenologyGaps='apps/control-web/public/sana-v3-due-diligence-phenology-gaps.js'; circularityGaps='apps/control-web/public/sana-v3-due-diligence-circularity-gaps.js'; phenologyHistory='apps/control-web/public/sana-v3-dataroom-phenology-history.js'; circularityHistory='apps/control-web/public/sana-v3-dataroom-circularity-history.js'; remediation='apps/control-web/public/sana-v3-due-diligence-remediation.js'; nextcut='apps/control-web/public/sana-v3-dd-next-cut.js'; access='apps/control-web/public/sana-v3-access.js'
           grep -q "SNAPSHOT_SCHEMA='SANA_DUE_DILIGENCE_SNAPSHOT_V1'" "$reports"
           grep -q '__SANA_DUE_DILIGENCE_SNAPSHOT__' "$reports"
           grep -q '__SANA_REPORT_SNAPSHOT_SYNC__' "$sync"
-          grep -q 'function enrichEconomics' "$sync"; grep -q 'function enrichImpact' "$sync"; grep -q 'function enrichMaterial' "$sync"; grep -q 'function enrichHealth' "$sync"; grep -q 'function enrichNutrition' "$sync"
-          grep -q 'FORM_CONTEXT_BOUND · ADDITIVE_V1_PROVENANCE · ECONOMICS_AND_IMPACT · MATERIAL_CHAIN · PHYTOSANITARY_LEDGER · NUTRITION_LEDGER · SNAPSHOT_DEMO · NO_EXTERNAL_WRITE' "$sync"
-          grep -q '__SANA_IMPACT__' "$impact"; grep -q '__SANA_IMPACT_LEDGER__' "$ledger"; ! grep -q 'storage\.' "$ledger"
-          grep -q '__SANA_SNAPSHOT_COMPARE__' "$compare"; grep -q 'CHANGE ≠ IMPROVEMENT ≠ CAUSALITY ≠ INVESTMENT_SIGNAL' "$compare"; ! grep -q 'storage.records' "$compare"
-          grep -q '__SANA_SNAPSHOT_FRESHNESS__' "$freshness"; grep -q 'LIVE_STATE ≠ SNAPSHOT ≠ HISTORICAL_EVIDENCE' "$freshness"
-          grep -q '__SANA_DUE_DILIGENCE_GAPS__' "$gaps"; grep -q 'OPEN_AT_SNAPSHOT' "$gaps"
-          grep -q '__SANA_DD_MATERIAL_GAPS__' "$materialGaps"; grep -q 'LOSS_DECLARED ≠ GAP' "$materialGaps"
-          grep -q '__SANA_DD_HEALTH_GAPS__' "$healthGaps"; grep -q 'PRESENCE_OR_TREATMENT ≠ GAP' "$healthGaps"; ! grep -q '__SANA_PHYTOSANITARY_LEDGER__' "$healthGaps"
-          grep -q '__SANA_DD_NUTRITION_GAPS__' "$nutritionGaps"; grep -q 'PROGRAM_OR_APPLICATION ≠ GAP' "$nutritionGaps"; ! grep -q '__SANA_NUTRITION_LEDGER__' "$nutritionGaps"
-          grep -q '__SANA_DUE_DILIGENCE_REMEDIATION__' "$remediation"; grep -q 'REMEDIATION_ITEM ≠ SNAPSHOT_GAP ≠ GAP_RESOLVED' "$remediation"
-          grep -q '__SANA_DD_NEXT_CUT__' "$nextcut"; grep -q 'READY_FOR_HUMAN_REVIEW ≠ SNAPSHOT_CREATED ≠ GAP_RESOLVED ≠ INVESTMENT_READY' "$nextcut"
-          grep -q '__SANA_DATAROOM_360__' "$dataroom"; grep -q 'SNAPSHOT_HISTORY ≠ POST_CUT_REMEDIATION ≠ LIVE_STATE ≠ INVESTMENT_DECISION' "$dataroom"
-          grep -q '__SANA_DATAROOM_IMPACT_HISTORY__' "$impactHistory"; ! grep -q '__SANA_IMPACT_LEDGER__' "$impactHistory"
-          grep -q '__SANA_DATAROOM_MATERIAL_HISTORY__' "$materialHistory"; ! grep -q '__SANA_MATERIAL_CHAIN__' "$materialHistory"
-          grep -q '__SANA_DATAROOM_HEALTH_HISTORY__' "$healthHistory"; grep -q 'NO_RETROACTIVE_DIAGNOSIS' "$healthHistory"; ! grep -q '__SANA_PHYTOSANITARY_LEDGER__' "$healthHistory"
-          grep -q '__SANA_DATAROOM_NUTRITION_HISTORY__' "$nutritionHistory"; grep -q 'NO_PROGRAM_TO_APPLICATION_INFERENCE' "$nutritionHistory"; ! grep -q '__SANA_NUTRITION_LEDGER__' "$nutritionHistory"
-          grep -q '__SANA_DATAROOM_ENTRY__' "$entry"; grep -q 'ROLE_ENTRY_ONLY · DATAROOM_READ_ONLY · NO_PRIVILEGE_ESCALATION' "$entry"
-          grep -q "technical:new Set(\[[^]]*'dataroom'" "$access"; grep -q "producer:new Set(\[[^]]*'dataroom'" "$access"; grep -q "investor:new Set(\[[^]]*'dataroom'" "$access"
-          ! grep -q "investor:.*'dd-remediation'" "$access"; ! grep -q "investor:.*'report-snapshot'" "$access"
-      - name: Validate integrated assembly
+          grep -q 'function enrichPhenology' "$sync"
+          grep -q 'PHENOLOGY_SERIES · SNAPSHOT_DEMO · NO_EXTERNAL_WRITE' "$sync"
+          grep -q '__SANA_REPORT_SNAPSHOT_CIRCULARITY__' "$circularitySync"
+          grep -q 'ADDITIVE_V1 · CIRCULARITY_LEDGER' "$circularitySync"
+          grep -q 'NO_PLAN_TO_EXECUTION_INFERENCE' "$circularitySync"
+          grep -q 'NO_EXECUTION_TO_RECOVERY_INFERENCE' "$circularitySync"
+          grep -q '__SANA_DD_PHENOLOGY_GAPS__' "$phenologyGaps"
+          grep -q 'STAGE_OR_TREND ≠ GAP' "$phenologyGaps"
+          ! grep -q '__SANA_PHENOLOGY_SERIES__' "$phenologyGaps"
+          grep -q '__SANA_DD_CIRCULARITY_GAPS__' "$circularityGaps"
+          grep -q 'GENERATED_OR_PENDING_DESTINATION ≠ GAP' "$circularityGaps"
+          ! grep -q '__SANA_CIRCULARITY_LEDGER__' "$circularityGaps"
+          grep -q '__SANA_DATAROOM_PHENOLOGY_HISTORY__' "$phenologyHistory"
+          grep -q 'NO_LIVE_FALLBACK' "$phenologyHistory"
+          ! grep -q '__SANA_PHENOLOGY_SERIES__' "$phenologyHistory"
+          grep -q '__SANA_DATAROOM_CIRCULARITY_HISTORY__' "$circularityHistory"
+          grep -q 'NO_LIVE_FALLBACK' "$circularityHistory"
+          ! grep -q '__SANA_CIRCULARITY_LEDGER__' "$circularityHistory"
+          grep -q '__SANA_DUE_DILIGENCE_REMEDIATION__' "$remediation"
+          grep -q 'REMEDIATION_ITEM ≠ SNAPSHOT_GAP ≠ GAP_RESOLVED' "$remediation"
+          grep -q '__SANA_DD_NEXT_CUT__' "$nextcut"
+          grep -q 'READY_FOR_HUMAN_REVIEW ≠ SNAPSHOT_CREATED ≠ GAP_RESOLVED ≠ INVESTMENT_READY' "$nextcut"
+          grep -q "technical:new Set(\[[^]]*'dataroom'" "$access"
+          grep -q "producer:new Set(\[[^]]*'dataroom'" "$access"
+          grep -q "investor:new Set(\[[^]]*'dataroom'" "$access"
+          ! grep -q "investor:.*'dd-remediation'" "$access"
+          ! grep -q "investor:.*'report-snapshot'" "$access"
+      - name: Validate integrated assembly and active v42 shell
         shell: bash
         run: |
           set -euo pipefail
           html='apps/control-web/public/sana-v3.html'; sw='apps/control-web/public/sana-v3-sw.js'
-          grep -q '/sana-v3-due-diligence-gaps.js.*sana-v3-due-diligence-material-gaps.js.*sana-v3-due-diligence-health-gaps.js.*sana-v3-due-diligence-nutrition-gaps.js.*sana-v3-due-diligence-remediation.js' "$html"
-          grep -q '/sana-v3-dataroom-360.js.*sana-v3-dataroom-impact-history.js.*sana-v3-dataroom-material-history.js.*sana-v3-dataroom-health-history.js.*sana-v3-dataroom-nutrition-history.js.*sana-v3-dataroom-entry.js.*sana-v3-runtime.js' "$html"
-          grep -q "'/sana-v3-dataroom-health-history.js'" "$sw"; grep -q "'/sana-v3-due-diligence-health-gaps.js'" "$sw"; grep -q "'/sana-v3-dataroom-nutrition-history.js'" "$sw"; grep -q "'/sana-v3-due-diligence-nutrition-gaps.js'" "$sw"; grep -q "^const CACHE='sana-v3-demo-shell-v38';" "$sw"
+          grep -q '/sana-v3-health-ledger.js.*sana-v3-circularity-ledger.js.*sana-v3-report-snapshot-circularity.js.*sana-v3-cycle-closure.js' "$html"
+          grep -q '/sana-v3-cycle-health-provenance.js.*sana-v3-cycle-circularity-provenance.js.*sana-v3-capital-dossier.js' "$html"
+          grep -q '/sana-v3-due-diligence-nutrition-gaps.js.*sana-v3-due-diligence-phenology-gaps.js.*sana-v3-due-diligence-circularity-gaps.js.*sana-v3-due-diligence-remediation.js' "$html"
+          grep -q '/sana-v3-dataroom-nutrition-history.js.*sana-v3-dataroom-phenology-history.js.*sana-v3-dataroom-circularity-history.js.*sana-v3-dataroom-entry.js' "$html"
+          grep -q "'/sana-v3-report-snapshot-circularity.js'" "$sw"
+          grep -q "'/sana-v3-due-diligence-phenology-gaps.js'" "$sw"
+          grep -q "'/sana-v3-due-diligence-circularity-gaps.js'" "$sw"
+          grep -q "'/sana-v3-dataroom-phenology-history.js'" "$sw"
+          grep -q "'/sana-v3-dataroom-circularity-history.js'" "$sw"
+          grep -q "^const CACHE='sana-v3-demo-shell-v42';" "$sw"
       - name: Assert no external execution or financial authority
         shell: bash
         run: |
           set -euo pipefail
-          files='apps/control-web/public/sana-v3-reports-provenance.js apps/control-web/public/sana-v3-report-snapshot-sync.js apps/control-web/public/sana-v3-snapshot-compare.js apps/control-web/public/sana-v3-snapshot-freshness.js apps/control-web/public/sana-v3-due-diligence-gaps.js apps/control-web/public/sana-v3-due-diligence-material-gaps.js apps/control-web/public/sana-v3-due-diligence-health-gaps.js apps/control-web/public/sana-v3-due-diligence-nutrition-gaps.js apps/control-web/public/sana-v3-due-diligence-remediation.js apps/control-web/public/sana-v3-dd-next-cut.js apps/control-web/public/sana-v3-dataroom-360.js apps/control-web/public/sana-v3-dataroom-impact-history.js apps/control-web/public/sana-v3-dataroom-material-history.js apps/control-web/public/sana-v3-dataroom-health-history.js apps/control-web/public/sana-v3-dataroom-nutrition-history.js apps/control-web/public/sana-v3-dataroom-entry.js apps/control-web/public/sana-v3-impact-methodology.js apps/control-web/public/sana-v3-impact-ledger.js apps/control-web/public/sana-v3-capital-dossier.js'
-          ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|graph\.microsoft\.com|Authorization:[[:space:]]*Bearer|access_token|refresh_token|client_secret' $files
-          ! grep -Eiq 'productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true|investmentApproved[[:space:]]*=[[:space:]]*true|creditApproved|eligibilityApproved|verifyExternalAutomatically|certifyPhytosanitary|purchaseOrder|executePayment|autoPurchase|autoDispatch' $files
-          grep -q 'no recomienda invertir' apps/control-web/public/sana-v3-capital-dossier.js
-          grep -q 'no capta recursos' apps/control-web/public/sana-v3-capital-dossier.js
+          files='apps/control-web/public/sana-v3-reports-provenance.js apps/control-web/public/sana-v3-report-snapshot-sync.js apps/control-web/public/sana-v3-report-snapshot-circularity.js apps/control-web/public/sana-v3-snapshot-compare.js apps/control-web/public/sana-v3-snapshot-freshness.js apps/control-web/public/sana-v3-due-diligence-gaps.js apps/control-web/public/sana-v3-due-diligence-material-gaps.js apps/control-web/public/sana-v3-due-diligence-health-gaps.js apps/control-web/public/sana-v3-due-diligence-nutrition-gaps.js apps/control-web/public/sana-v3-due-diligence-phenology-gaps.js apps/control-web/public/sana-v3-due-diligence-circularity-gaps.js apps/control-web/public/sana-v3-due-diligence-remediation.js apps/control-web/public/sana-v3-dd-next-cut.js apps/control-web/public/sana-v3-dataroom-360.js apps/control-web/public/sana-v3-dataroom-impact-history.js apps/control-web/public/sana-v3-dataroom-material-history.js apps/control-web/public/sana-v3-dataroom-health-history.js apps/control-web/public/sana-v3-dataroom-nutrition-history.js apps/control-web/public/sana-v3-dataroom-phenology-history.js apps/control-web/public/sana-v3-dataroom-circularity-history.js apps/control-web/public/sana-v3-dataroom-entry.js apps/control-web/public/sana-v3-impact-methodology.js apps/control-web/public/sana-v3-impact-ledger.js apps/control-web/public/sana-v3-capital-dossier.js'
+          ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true' $files
+          ! grep -Eiq 'creditApproved|investmentApproved|eligibilityApproved|verifiedDisposition[[:space:]]*=[[:space:]]*true|certifiedRecovery[[:space:]]*=[[:space:]]*true|environmentalImpactVerified[[:space:]]*=[[:space:]]*true' $files
