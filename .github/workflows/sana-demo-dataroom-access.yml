@@ -54,3 +54,5 @@ jobs:
           ! grep -Eq 'productionExecutionAvailable\s*=\s*true|productionActivationAllowed\s*=\s*true|canonicalMutated\s*=\s*true' apps/control-web/public/sana-v3-dataroom-access-ledger.js
           ! grep -Eq 'investmentOffers\s*:\s*[1-9]|dueDiligenceApprovals\s*:\s*[1-9]|fundingExecuted\s*:\s*[1-9]' apps/control-web/public/sana-v3-dataroom-access-ledger.js
           ! grep -Eq 'fetch\s*\(' apps/control-web/public/sana-v3-dataroom-access-ledger.js
+
+# v65 certification trigger: assembled shell only; no offer, approval, scoring or financial authority.
