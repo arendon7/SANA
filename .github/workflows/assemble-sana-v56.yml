@@ -69,3 +69,4 @@ jobs:
           git diff --cached --quiet && exit 0
           git commit -m 'build(demo): assemble source evidence history shell v56'
           git push origin HEAD:demo/sana-functional-auth-v1
+# Explicit retrigger after pre-assembly source-history validation; no product behavior change.
