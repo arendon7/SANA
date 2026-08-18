@@ -1,0 +1,91 @@
+name: SANA Demo Capture Sync Ledger
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-capture-sync-ledger.js'
+      - 'apps/control-web/public/sana-v3-cycle-capture-sync-provenance.js'
+      - 'apps/control-web/public/sana-v3-runtime.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-capture-sync-ledger.mjs'
+      - '.github/workflows/sana-demo-capture-sync-ledger.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-capture-sync-ledger.js'
+      - 'apps/control-web/public/sana-v3-cycle-capture-sync-provenance.js'
+      - 'apps/control-web/public/sana-v3-runtime.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-capture-sync-ledger.mjs'
+      - '.github/workflows/sana-demo-capture-sync-ledger.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  capture-sync-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-capture-sync-ledger.js
+          node --check apps/control-web/public/sana-v3-cycle-capture-sync-provenance.js
+          node scripts/validate-sana-capture-sync-ledger.mjs
+      - name: Validate record-level boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='apps/control-web/public/sana-v3-capture-sync-ledger.js'
+          grep -q '__SANA_CAPTURE_SYNC_LEDGER__' "$f"
+          grep -q 'SANA_CAPTURE_SYNC_LEDGER_V1' "$f"
+          grep -q 'LOCAL_CAPTURE ≠ QUEUED' "$f"
+          grep -q 'QUEUED ≠ SYNC_ATTEMPT' "$f"
+          grep -q 'SYNC_ATTEMPT ≠ SERVER_ACK' "$f"
+          grep -q 'SERVER_ACK ≠ SOURCE_VERIFIED' "$f"
+          grep -q 'ONLINE ≠ VERIFIED_SYNC' "$f"
+          grep -q 'QUEUE_EMPTY ≠ DATA_COMPLETE' "$f"
+          grep -q 'CONFLICT_RESOLVED ≠ SOURCE_VERIFIED' "$f"
+          grep -q 'DEVICE_ID ≠ CERTIFIED_INSTRUMENT' "$f"
+          grep -q 'NO_AUTOMATIC_CONFLICT_RESOLUTION' "$f"
+      - name: Validate new offline records have explicit queue relation
+        shell: bash
+        run: |
+          set -euo pipefail
+          runtime='apps/control-web/public/sana-v3-runtime.js'
+          grep -q 'recordId:record.id' "$runtime"
+          grep -q "state:'PENDING_SERVER'" "$runtime"
+          grep -q 'LEGACY_QUEUE_ENTRY_UNLINKED' apps/control-web/public/sana-v3-capture-sync-ledger.js
+      - name: Validate cycle projection is read-only and non-weighted
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='apps/control-web/public/sana-v3-cycle-capture-sync-provenance.js'
+          grep -q '__SANA_CYCLE_CAPTURE_SYNC__' "$f"
+          grep -q 'CAPTURE_SYNC_PROVENANCE ≠ CYCLE_GATE' "$f"
+          ! grep -q 'completeness[[:space:]]*=' "$f"
+          ! grep -q 'readyForArchive[[:space:]]*=' "$f"
+      - name: Validate assembly and active v53 shell
+        shell: bash
+        run: |
+          set -euo pipefail
+          html='apps/control-web/public/sana-v3.html'; sw='apps/control-web/public/sana-v3-sw.js'
+          grep -q '/sana-v3-data-trust.js.*sana-v3-capture-sync-ledger.js.*sana-v3-harvest-ledger.js' "$html"
+          grep -q '/sana-v3-cycle-forecast-provenance.js.*sana-v3-cycle-capture-sync-provenance.js.*sana-v3-cycle-labor-provenance.js' "$html"
+          grep -q "'/sana-v3-capture-sync-ledger.js'" "$sw"
+          grep -q "'/sana-v3-cycle-capture-sync-provenance.js'" "$sw"
+          grep -q "^const CACHE='sana-v3-demo-shell-v53';" "$sw"
+      - name: Assert no server ACK fabrication, production or canonical authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          files='apps/control-web/public/sana-v3-capture-sync-ledger.js apps/control-web/public/sana-v3-cycle-capture-sync-provenance.js'
+          ! grep -Eiq 'productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true|automaticResolution[[:space:]]*:[[:space:]]*true|sourceVerified[[:space:]]*:[[:space:]]*true' $files
+          ! grep -Eiq 'fetch\(' $files
