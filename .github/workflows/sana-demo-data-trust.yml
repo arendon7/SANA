@@ -1,0 +1,121 @@
+name: SANA Demo Data Trust
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-iot-source.js'
+      - 'apps/control-web/public/sana-v3-data-trust.js'
+      - 'apps/control-web/public/sana-v3-cloud-state.js'
+      - 'apps/control-web/public/sana-v3-offline-runtime.js'
+      - 'apps/control-web/public/sana-v3-field-mobile.js'
+      - 'apps/control-web/public/sana-v3-passport-chain.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-data-trust.mjs'
+      - '.github/workflows/sana-demo-data-trust.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-iot-source.js'
+      - 'apps/control-web/public/sana-v3-data-trust.js'
+      - 'apps/control-web/public/sana-v3-cloud-state.js'
+      - 'apps/control-web/public/sana-v3-offline-runtime.js'
+      - 'apps/control-web/public/sana-v3-field-mobile.js'
+      - 'apps/control-web/public/sana-v3-passport-chain.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-data-trust.mjs'
+      - '.github/workflows/sana-demo-data-trust.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  data-trust-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-iot-source.js
+          node --check apps/control-web/public/sana-v3-data-trust.js
+          node --check apps/control-web/public/sana-v3-cloud-state.js
+          node --check apps/control-web/public/sana-v3-offline-runtime.js
+          node scripts/validate-sana-data-trust.mjs
+      - name: Validate record-level trust boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          trust='apps/control-web/public/sana-v3-data-trust.js'
+          iot='apps/control-web/public/sana-v3-iot-source.js'
+          cloud='apps/control-web/public/sana-v3-cloud-state.js'
+          offline='apps/control-web/public/sana-v3-offline-runtime.js'
+          grep -q '__SANA_DATA_TRUST__' "$trust"
+          grep -q 'SANA_DATA_TRUST_V1' "$trust"
+          grep -q 'CAPTURED ≠ SYNCED' "$trust"
+          grep -q 'SYNC_ATTEMPT ≠ SERVER_ACK' "$trust"
+          grep -q 'SERVER_ACK ≠ HARDWARE_VERIFIED' "$trust"
+          grep -q 'SOURCE_LABEL ≠ SOURCE_AUTHENTICITY' "$trust"
+          grep -q 'READING ≠ VALIDATED_MEASUREMENT' "$trust"
+          grep -q 'VALIDATED_MEASUREMENT ≠ MANAGEMENT_DECISION' "$trust"
+          grep -q 'NETWORK_ONLINE ≠ RECORD_SYNCED' "$trust"
+          grep -q 'LOCAL_PERSISTENCE ≠ CANONICAL_WRITE' "$trust"
+          grep -q 'CONFLICT ≠ DATA_LOSS' "$trust"
+          grep -q 'SERVER_ACK_DEMO_EXPLICIT' "$trust"
+          grep -q 'HARDWARE_NOT_VERIFIED' "$trust"
+          grep -q 'CONFLICT_REVIEW_REQUIRED' "$trust"
+          grep -q 'NO_RECORD_ACK' "$trust"
+          grep -q 'accountCloudStatus' "$trust"
+          grep -q 'LOCAL_ONLY_NO_RECORD_ACK' "$iot"
+          grep -q 'ACCOUNT_SYNC_STATUS ≠ RECORD_ACK' "$iot"
+          grep -q 'HUMAN_REVIEW_REQUIRED' "$iot"
+          grep -q "setStatus('SYNCED'" "$cloud"
+          grep -q 'no se marca como ACK\|no se marca como ACK' "$cloud"
+          grep -q 'Los registros locales siguen requiriendo servidor válido para ACK' "$offline"
+          ! grep -q 'storage.records.push' "$trust"
+      - name: Validate conflict preservation and no implicit promotion
+        shell: bash
+        run: |
+          set -euo pipefail
+          trust='apps/control-web/public/sana-v3-data-trust.js'
+          grep -q "candidateId:'A'" "$trust"
+          grep -q "candidateId:'B'" "$trust"
+          grep -q 'No existe resolución automática ni last-write-wins' "$trust"
+          grep -q "ackState:'NO_RECORD_ACK'" "$trust"
+          grep -q "decisionUse:'HUMAN_CONTEXT_ONLY'" "$trust"
+          ! grep -Eiq 'lastWriteWins[[:space:]]*=[[:space:]]*true|autoResolveConflict|recordAck[[:space:]]*=[[:space:]]*cloud|accountCloudStatus.*ackState' "$trust"
+      - name: Validate IoT capture metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          iot='apps/control-web/public/sana-v3-iot-source.js'
+          grep -q 'name="observedAt"' "$iot"
+          grep -q 'name="point"' "$iot"
+          grep -q 'name="deviceRef"' "$iot"
+          grep -q 'name="method"' "$iot"
+          grep -q 'name="calibration"' "$iot"
+          grep -q 'name="quality"' "$iot"
+          grep -q 'LOCAL CAPTURE · RECORD ACK NOT INFERRED' "$iot"
+      - name: Validate Passport integration and v43 shell
+        shell: bash
+        run: |
+          set -euo pipefail
+          html='apps/control-web/public/sana-v3.html'
+          sw='apps/control-web/public/sana-v3-sw.js'
+          grep -q '/sana-v3-iot-source.js' "$html"
+          grep -q '/sana-v3-passport-chain.js.*sana-v3-data-trust.js' "$html"
+          grep -q "'/sana-v3-data-trust.js'" "$sw"
+          grep -q "^const CACHE='sana-v3-demo-shell-v43';" "$sw"
+          grep -q 'PASSPORT · DATA TRUST' apps/control-web/public/sana-v3-data-trust.js
+      - name: Assert no production, automation or external verification authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          files='apps/control-web/public/sana-v3-iot-source.js apps/control-web/public/sana-v3-data-trust.js apps/control-web/public/sana-v3-offline-runtime.js'
+          ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true' $files
+          ! grep -Eiq 'autoIrrigation|autoFertigation|automaticPhaseChange|hardwareVerified[[:space:]]*=[[:space:]]*true|validatedMeasurement[[:space:]]*=[[:space:]]*true|verifiedExternal[[:space:]]*=[[:space:]]*true|canonicalWrite[[:space:]]*:[[:space:]]*true' $files
