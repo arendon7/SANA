@@ -51,3 +51,5 @@ jobs:
           ! grep -Eq 'productionExecutionAvailable\s*=\s*true|productionActivationAllowed\s*=\s*true|canonicalMutated\s*=\s*true' apps/control-web/public/sana-v3-dataroom-review-governance.js
           ! grep -Eq 'automaticDisqualifications\s*:\s*[1-9]|riskRatings\s*:\s*[1-9]|riskScores\s*:\s*[1-9]|dueDiligenceApprovals\s*:\s*[1-9]|eligibilityDecisions\s*:\s*[1-9]|investmentOffers\s*:\s*[1-9]|fundingExecuted\s*:\s*[1-9]' apps/control-web/public/sana-v3-dataroom-review-governance.js
           ! grep -Eq 'fetch\s*\(' apps/control-web/public/sana-v3-dataroom-review-governance.js
+
+# v73 freeze certification trigger: assembled shell, reviewer governance only, no scoring or authority expansion.
