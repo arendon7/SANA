@@ -1,0 +1,90 @@
+name: SANA Demo Inventory Ledger
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-inventory-ledger.js'
+      - 'apps/control-web/public/sana-v3-inventory-activity-bridge.js'
+      - 'apps/control-web/public/sana-v3-cycle-inventory-provenance.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-inventory-ledger.mjs'
+      - '.github/workflows/sana-demo-inventory-ledger.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-inventory-ledger.js'
+      - 'apps/control-web/public/sana-v3-inventory-activity-bridge.js'
+      - 'apps/control-web/public/sana-v3-cycle-inventory-provenance.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-inventory-ledger.mjs'
+      - '.github/workflows/sana-demo-inventory-ledger.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  inventory-ledger-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-inventory-ledger.js
+          node --check apps/control-web/public/sana-v3-inventory-activity-bridge.js
+          node --check apps/control-web/public/sana-v3-cycle-inventory-provenance.js
+          node scripts/validate-sana-inventory-ledger.mjs
+      - name: Validate inventory boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='apps/control-web/public/sana-v3-inventory-ledger.js'
+          grep -q '__SANA_INVENTORY_LEDGER__' "$f"
+          grep -q 'SANA_INVENTORY_LEDGER_V1' "$f"
+          grep -q 'PHYSICAL_COUNT ≠ THEORETICAL_STOCK' "$f"
+          grep -q 'ROLL_FORWARD_BALANCE ≠ PHYSICAL_COUNT' "$f"
+          grep -q 'RESERVATION ≠ CONSUMPTION' "$f"
+          grep -q 'PURCHASE_REQUEST ≠ PURCHASE_ORDER' "$f"
+          grep -q 'PURCHASE_REQUEST ≠ RECEIPT' "$f"
+          grep -q 'RECEIPT ≠ INVOICE ≠ PAYMENT' "$f"
+          grep -q 'CONSUMPTION ≠ AGRONOMIC_APPLICATION' "$f"
+          grep -q 'COST_LINK_EXPLICIT_ONLY' "$f"
+      - name: Validate explicit cross-domain relations
+        shell: bash
+        run: |
+          set -euo pipefail
+          ledger='apps/control-web/public/sana-v3-inventory-ledger.js'; bridge='apps/control-web/public/sana-v3-inventory-activity-bridge.js'; cycle='apps/control-web/public/sana-v3-cycle-inventory-provenance.js'
+          grep -q 'nutritionEventRef' "$ledger"
+          grep -q 'activityId' "$ledger"
+          grep -q 'costRef' "$ledger"
+          grep -q 'PASSPORT · INVENTARIO' "$ledger"
+          grep -q '__SANA_INVENTORY_ACTIVITY_BRIDGE__' "$bridge"
+          grep -q 'ACTIVITY_COMPLETION ≠ INVENTORY_MOVEMENT' "$bridge"
+          grep -q '__SANA_CYCLE_INVENTORY__' "$cycle"
+          grep -q 'INVENTORY_PROVENANCE ≠ CYCLE_GATE' "$cycle"
+          ! grep -q 'completeness[[:space:]]*=' "$cycle"
+          ! grep -q 'readyForArchive[[:space:]]*=' "$cycle"
+      - name: Validate assembly and active v47 shell
+        shell: bash
+        run: |
+          set -euo pipefail
+          html='apps/control-web/public/sana-v3.html'; sw='apps/control-web/public/sana-v3-sw.js'
+          grep -q '/sana-v3-circularity-ledger.js.*sana-v3-inventory-ledger.js.*sana-v3-inventory-activity-bridge.js.*sana-v3-report-snapshot-circularity.js' "$html"
+          grep -q '/sana-v3-cycle-harvest-provenance.js.*sana-v3-cycle-inventory-provenance.js.*sana-v3-capital-dossier.js' "$html"
+          grep -q "'/sana-v3-inventory-ledger.js'" "$sw"
+          grep -q "'/sana-v3-inventory-activity-bridge.js'" "$sw"
+          grep -q "'/sana-v3-cycle-inventory-provenance.js'" "$sw"
+          grep -q "^const CACHE='sana-v3-demo-shell-v47';" "$sw"
+      - name: Assert no procurement, payment or production authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          files='apps/control-web/public/sana-v3-inventory-ledger.js apps/control-web/public/sana-v3-inventory-activity-bridge.js apps/control-web/public/sana-v3-cycle-inventory-provenance.js'
+          ! grep -Eiq 'purchaseOrderCreated[[:space:]]*=[[:space:]]*true|paymentExecuted[[:space:]]*=[[:space:]]*true|invoiceIssued[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true|autoPurchase|autoReplenish|autoConsumption' $files
+          ! grep -Eiq 'fetch\(' $files
