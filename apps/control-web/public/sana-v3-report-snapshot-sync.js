@@ -59,12 +59,52 @@
     };
     return manifest;
   }
+  function materialSnapshotRow(chain){
+    return {
+      materialId:chain.identity?.id||'',
+      species:chain.identity?.species||'',
+      type:chain.identity?.type||'',
+      origin:chain.identity?.origin||'',
+      targetLot:chain.target||chain.identity?.targetLot||'',
+      stageCoverage:chain.stageCoverage?.percent??null,
+      coveredStages:chain.stageCoverage?.covered??null,
+      totalStages:chain.stageCoverage?.total??null,
+      explicitEvents:chain.quantities?.explicitEvents??0,
+      legacyEvents:chain.quantities?.legacyEvents??0,
+      declaredLoss:chain.quantities?.declaredLoss??0,
+      latestSurvivalRate:chain.quantities?.latestSurvivalRate??null,
+      latestSurvivalEvent:chain.quantities?.latestSurvivalEvent||null,
+      countMismatch:chain.quantities?.mismatches??0,
+      evidenceCoverage:chain.evidence?.coverage??0,
+      costCount:chain.relations?.costCount??0,
+      costAmount:chain.relations?.costAmount??0,
+      inventoryMovementCount:chain.relations?.inventoryCount??0,
+      temporalState:'SNAPSHOT_CAPTURED_FROM_MATERIAL_CHAIN',
+      integrity:'LEGACY_QUANTITY ≠ LOSS ≠ SURVIVAL · MATERIAL_EVENT ≠ INVENTORY_MOVEMENT ≠ COST_ENTRY'
+    };
+  }
+  function enrichMaterial(manifest){
+    const material=window.__SANA_MATERIAL_CHAIN__;
+    if(!manifest||!material?.all)return manifest;
+    const rows=material.all().map(materialSnapshotRow);
+    const lots=[...new Set(rows.map(r=>r.targetLot).filter(Boolean))].map(lotId=>({lotId,materials:rows.filter(r=>r.targetLot===lotId)}));
+    manifest.material={
+      lots,
+      unassigned:rows.filter(r=>!r.targetLot||r.targetLot==='Por asignar'),
+      materialCount:rows.length,
+      granularity:'ADDITIVE_V1 · MATERIAL_CHAIN',
+      capturedAt:new Date().toISOString(),
+      temporalState:'SNAPSHOT_CAPTURED_FROM_MATERIAL_CHAIN',
+      integrity:'SNAPSHOT_MATERIAL_ONLY · NO_RETROACTIVE_FILL · NO_EXTERNAL_CERTIFICATION'
+    };
+    return manifest;
+  }
   function syncManifest(){
     const form=activeForm();
     const api=window.__SANA_DUE_DILIGENCE_SNAPSHOT__;
     if(!form||!api?.currentManifest||!api?.schema)return;
     const reportType=form.querySelector('[name="reportType"]')?.value||'RPT-DD';
-    const manifest=enrichImpact(enrichEconomics(api.currentManifest(reportType)));
+    const manifest=enrichMaterial(enrichImpact(enrichEconomics(api.currentManifest(reportType))));
     if(!manifest||manifest.schema!==api.schema)return;
     manifest.cutoff=form.querySelector('[name="cutoff"]')?.value||'';
     manifest.reviewer=form.querySelector('[name="reviewer"]')?.value||'';
@@ -86,5 +126,5 @@
     if(event.target.closest('#modal-save')&&typeof modalAction!=='undefined'&&modalAction==='report-snapshot')syncManifest();
   },true);
 
-  window.__SANA_REPORT_SNAPSHOT_SYNC__=Object.freeze({syncManifest,enrichEconomics,enrichImpact,integrity:'FORM_CONTEXT_BOUND · ADDITIVE_V1_PROVENANCE · ECONOMICS_AND_IMPACT · SNAPSHOT_DEMO · NO_EXTERNAL_WRITE'});
+  window.__SANA_REPORT_SNAPSHOT_SYNC__=Object.freeze({syncManifest,enrichEconomics,enrichImpact,enrichMaterial,integrity:'FORM_CONTEXT_BOUND · ADDITIVE_V1_PROVENANCE · ECONOMICS_IMPACT_MATERIAL · SNAPSHOT_DEMO · NO_EXTERNAL_WRITE'});
 })();
