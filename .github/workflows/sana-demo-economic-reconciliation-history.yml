@@ -1,0 +1,86 @@
+name: SANA Demo Economic Reconciliation History
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-economic-reconciliation.js'
+      - 'apps/control-web/public/sana-v3-dataroom-economic-reconciliation-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-economic-reconciliation-gaps.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-economic-reconciliation-history.mjs'
+      - '.github/workflows/sana-demo-economic-reconciliation-history.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-economic-reconciliation.js'
+      - 'apps/control-web/public/sana-v3-dataroom-economic-reconciliation-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-economic-reconciliation-gaps.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-economic-reconciliation-history.mjs'
+      - '.github/workflows/sana-demo-economic-reconciliation-history.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  economic-reconciliation-history-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-report-snapshot-economic-reconciliation.js
+          node --check apps/control-web/public/sana-v3-dataroom-economic-reconciliation-history.js
+          node --check apps/control-web/public/sana-v3-due-diligence-economic-reconciliation-gaps.js
+          node scripts/validate-sana-economic-reconciliation-history.mjs
+      - name: Validate snapshot-only historical boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          snap='apps/control-web/public/sana-v3-report-snapshot-economic-reconciliation.js'; hist='apps/control-web/public/sana-v3-dataroom-economic-reconciliation-history.js'
+          grep -q '__SANA_REPORT_SNAPSHOT_ECONOMIC_RECONCILIATION__' "$snap"
+          grep -q 'NO_LIVE_FALLBACK' "$snap"
+          grep -q '__SANA_DATAROOM_ECONOMIC_RECONCILIATION_HISTORY__' "$hist"
+          grep -q 'NOT_CAPTURED_IN_SNAPSHOT' "$hist"
+          grep -q 'NO_LIVE_FALLBACK' "$hist"
+          ! grep -q '__SANA_ECONOMIC_RECONCILIATION__' "$hist"
+          ! grep -q '__SANA_ECONOMICS__' "$hist"
+          ! grep -q 'storage\.' "$hist"
+      - name: Validate documentary gaps only
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='apps/control-web/public/sana-v3-due-diligence-economic-reconciliation-gaps.js'
+          grep -q '__SANA_DD_ECONOMIC_RECONCILIATION_GAPS__' "$f"
+          grep -q 'BUDGET_VARIANCE ≠ GAP' "$f"
+          grep -q 'NO_INVOICE ≠ GAP' "$f"
+          grep -q 'NO_PAYMENT ≠ GAP' "$f"
+          grep -q 'NO_SALE ≠ GAP' "$f"
+          grep -q 'NO_CASH_RECEIPT ≠ GAP' "$f"
+          grep -q 'NEGATIVE_MARGIN_SCENARIO ≠ GAP' "$f"
+          grep -q 'DOCUMENTARY_PRIORITY ≠ FINANCIAL_DISTRESS' "$f"
+      - name: Validate assembly and active v58 shell
+        shell: bash
+        run: |
+          set -euo pipefail
+          html='apps/control-web/public/sana-v3.html'; sw='apps/control-web/public/sana-v3-sw.js'
+          grep -q '/sana-v3-report-snapshot-source-evidence.js.*sana-v3-report-snapshot-economic-reconciliation.js.*sana-v3-cycle-closure.js' "$html"
+          grep -q '/sana-v3-due-diligence-source-evidence-gaps.js.*sana-v3-due-diligence-economic-reconciliation-gaps.js.*sana-v3-due-diligence-remediation.js' "$html"
+          grep -q '/sana-v3-dataroom-source-evidence-history.js.*sana-v3-dataroom-economic-reconciliation-history.js.*sana-v3-dataroom-entry.js' "$html"
+          grep -q "'/sana-v3-report-snapshot-economic-reconciliation.js'" "$sw"
+          grep -q "'/sana-v3-dataroom-economic-reconciliation-history.js'" "$sw"
+          grep -q "'/sana-v3-due-diligence-economic-reconciliation-gaps.js'" "$sw"
+          grep -q "^const CACHE='sana-v3-demo-shell-v58';" "$sw"
+      - name: Assert no accounting, payment, production or investment authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          files='apps/control-web/public/sana-v3-report-snapshot-economic-reconciliation.js apps/control-web/public/sana-v3-dataroom-economic-reconciliation-history.js apps/control-web/public/sana-v3-due-diligence-economic-reconciliation-gaps.js'
+          ! grep -Eiq 'fetch\(|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true|investmentRecommendation[[:space:]]*=[[:space:]]*true' $files
