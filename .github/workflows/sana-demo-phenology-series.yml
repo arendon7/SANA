@@ -1,0 +1,93 @@
+name: SANA Demo Phenology Series
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-phenology-series.js'
+      - 'apps/control-web/public/sana-v3-cycle-phenology-provenance.js'
+      - 'apps/control-web/public/sana-v3-iot-source.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-phenology-series.mjs'
+      - 'scripts/validate-sana-cycle-phenology.mjs'
+      - '.github/workflows/sana-demo-phenology-series.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-phenology-series.js'
+      - 'apps/control-web/public/sana-v3-cycle-phenology-provenance.js'
+      - 'apps/control-web/public/sana-v3-iot-source.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-phenology-series.mjs'
+      - 'scripts/validate-sana-cycle-phenology.mjs'
+      - '.github/workflows/sana-demo-phenology-series.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  phenology-series-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-phenology-series.js
+          node --check apps/control-web/public/sana-v3-cycle-phenology-provenance.js
+          node scripts/validate-sana-phenology-series.mjs
+          node scripts/validate-sana-cycle-phenology.mjs
+      - name: Validate phenology boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          series='apps/control-web/public/sana-v3-phenology-series.js'
+          grep -q '__SANA_PHENOLOGY_SERIES__' "$series"
+          grep -q 'SANA_PHENOLOGY_SERIES_V1' "$series"
+          grep -q 'OBSERVED_STAGE ≠ PLAN_PHASE' "$series"
+          grep -q 'MEASUREMENT ≠ INTERPRETATION' "$series"
+          grep -q 'DESCRIPTIVE_TREND_ONLY' "$series"
+          grep -q 'TREND ≠ CAUSALITY' "$series"
+          grep -q 'FLAG ≠ HUMAN_DECISION' "$series"
+          grep -q 'LEGACY_PHENOLOGY_CAPTURE' "$series"
+          grep -q 'LEGACY_SENSOR_CAPTURE' "$series"
+          grep -q 'HARDWARE_NOT_VERIFIED' "$series"
+          ! grep -q 'storage.records.push' "$series"
+          ! grep -q 'DEMO.lots.find' "$series"
+      - name: Validate cycle projection is read-only and non-weighted
+        shell: bash
+        run: |
+          set -euo pipefail
+          cycle='apps/control-web/public/sana-v3-cycle-phenology-provenance.js'
+          grep -q '__SANA_CYCLE_PHENOLOGY__' "$cycle"
+          grep -q 'PHENOLOGY_PROVENANCE ≠ PLAN_PHASE ≠ CYCLE_GATE' "$cycle"
+          grep -q 'MEASUREMENT ≠ MANAGEMENT_DECISION' "$cycle"
+          grep -q 'TREND ≠ PERFORMANCE ≠ CAUSALITY' "$cycle"
+          grep -q 'No modifica completeness ni readyForArchive' "$cycle"
+          ! grep -q 'completeness=' "$cycle"
+          ! grep -q 'readyForArchive=' "$cycle"
+          ! grep -q 'storage.records.push' "$cycle"
+          ! grep -q 'openModal(' "$cycle"
+      - name: Validate assembly and active shell
+        shell: bash
+        run: |
+          set -euo pipefail
+          html='apps/control-web/public/sana-v3.html'
+          sw='apps/control-web/public/sana-v3-sw.js'
+          grep -q '/sana-v3-activity-relations.js.*sana-v3-phenology-series.js.*sana-v3-nutrition-ledger.js' "$html"
+          grep -q '/sana-v3-cycle-material-provenance.js.*sana-v3-cycle-phenology-provenance.js.*sana-v3-cycle-nutrition-provenance.js.*sana-v3-cycle-health-provenance.js' "$html"
+          grep -q "'/sana-v3-phenology-series.js'" "$sw"
+          grep -q "'/sana-v3-cycle-phenology-provenance.js'" "$sw"
+          grep -q "^const CACHE='sana-v3-demo-shell-v39';" "$sw"
+      - name: Assert no production or external certification authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          files='apps/control-web/public/sana-v3-phenology-series.js apps/control-web/public/sana-v3-cycle-phenology-provenance.js'
+          ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true' $files
+          ! grep -Eiq 'automaticPhaseChange|autoIrrigation|autoFertigation|certified[[:space:]]*=[[:space:]]*true|verifiedExternal[[:space:]]*=[[:space:]]*true|laboratoryVerified[[:space:]]*=[[:space:]]*true' $files
