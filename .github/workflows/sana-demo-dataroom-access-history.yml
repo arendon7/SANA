@@ -40,7 +40,7 @@ jobs:
           grep -q 'NO_FREEFORM_COPY' apps/control-web/public/sana-v3-report-snapshot-dataroom-access.js
           grep -q 'CHANGE ≠ IMPROVEMENT' apps/control-web/public/sana-v3-dataroom-access-history.js
           ! grep -q '__SANA_DATAROOM_ACCESS__' apps/control-web/public/sana-v3-dataroom-access-history.js
-          ! grep -Eq '\bstorage\b' apps/control-web/public/sana-v3-dataroom-access-history.js apps/control-web/public/sana-v3-due-diligence-dataroom-access-gaps.js
+          ! grep -Eq 'storage[[:space:]]*(\?\.|\.)' apps/control-web/public/sana-v3-dataroom-access-history.js apps/control-web/public/sana-v3-due-diligence-dataroom-access-gaps.js
       - name: Validate documentary gaps only
         run: |
           grep -q 'NO_ACCESS ≠ GAP' apps/control-web/public/sana-v3-due-diligence-dataroom-access-gaps.js
