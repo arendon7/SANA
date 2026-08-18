@@ -120,7 +120,7 @@ jobs:
           grep -q "'/sana-v3-cycle-material-provenance.js'" "$sw"
           grep -q "'/sana-v3-due-diligence-material-gaps.js'" "$sw"
           grep -q "'/sana-v3-dataroom-material-history.js'" "$sw"
-          grep -q "const CACHE='sana-v3-demo-shell-v34'" "$sw"
+          grep -q "const CACHE='sana-v3-demo-shell-v35'" "$sw"
       - name: Assert no execution or certification authority
         shell: bash
         run: |
