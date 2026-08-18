@@ -54,5 +54,5 @@
   document.addEventListener('change',event=>{if(event.target.closest('#modal-form [name="reportType"],#modal-form [name="cutoff"],#modal-form [name="reviewer"]'))syncManifest()});
   document.addEventListener('input',event=>{if(event.target.closest('#modal-form [name="reviewer"]'))syncManifest()});
   document.addEventListener('click',event=>{if(event.target.closest('#modal-save')&&typeof modalAction!=='undefined'&&modalAction==='report-snapshot')syncManifest()},true);
-  window.__SANA_REPORT_SNAPSHOT_SYNC__=Object.freeze({syncManifest,enrichEconomics,enrichImpact,enrichMaterial,integrity:'FORM_CONTEXT_BOUND · ADDITIVE_V1_PROVENANCE · ECONOMICS_IMPACT_MATERIAL · SNAPSHOT_DEMO · NO_EXTERNAL_WRITE'});
+  window.__SANA_REPORT_SNAPSHOT_SYNC__=Object.freeze({syncManifest,enrichEconomics,enrichImpact,enrichMaterial,integrity:'FORM_CONTEXT_BOUND · ADDITIVE_V1_PROVENANCE · ECONOMICS_AND_IMPACT · MATERIAL_CHAIN · SNAPSHOT_DEMO · NO_EXTERNAL_WRITE'});
 })();
