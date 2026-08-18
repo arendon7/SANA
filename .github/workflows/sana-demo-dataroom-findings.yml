@@ -1,0 +1,58 @@
+name: SANA Demo Data Room Human Review Findings
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-dataroom-findings-ledger.js'
+      - 'scripts/validate-sana-dataroom-findings.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - '.github/workflows/sana-demo-dataroom-findings.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-dataroom-findings-ledger.js'
+      - 'scripts/validate-sana-dataroom-findings.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+
+jobs:
+  dataroom-findings-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contracts
+        run: |
+          node --check apps/control-web/public/sana-v3-dataroom-findings-ledger.js
+          node scripts/validate-sana-dataroom-findings.mjs
+      - name: Validate review finding boundaries
+        run: |
+          grep -q 'FINDING_RECORDED ≠ DEFECT_FACT ≠ NONCOMPLIANCE' apps/control-web/public/sana-v3-dataroom-findings-ledger.js
+          grep -q 'FINDING_CLASS ≠ RISK_RATING' apps/control-web/public/sana-v3-dataroom-findings-ledger.js
+          grep -q 'ATTENTION_CLASS ≠ RISK_SCORE' apps/control-web/public/sana-v3-dataroom-findings-ledger.js
+          grep -q 'CLARIFICATION_REQUESTED ≠ NONCOMPLIANCE' apps/control-web/public/sana-v3-dataroom-findings-ledger.js
+          grep -q 'RESPONSE_REFERENCE ≠ VERIFIED_RESPONSE' apps/control-web/public/sana-v3-dataroom-findings-ledger.js
+          grep -q 'HUMAN_ASSESSMENT ≠ OBJECTIVE_FACT ≠ INVESTMENT_DECISION' apps/control-web/public/sana-v3-dataroom-findings-ledger.js
+          grep -q 'FINDING_OPEN ≠ INVESTMENT_RISK' apps/control-web/public/sana-v3-dataroom-findings-ledger.js
+          grep -q 'FINDING_CLOSED ≠ DUE_DILIGENCE_APPROVAL' apps/control-web/public/sana-v3-dataroom-findings-ledger.js
+          grep -q 'REVIEW_CLOSED ≠ DUE_DILIGENCE_APPROVAL' apps/control-web/public/sana-v3-dataroom-findings-ledger.js
+          grep -q 'FINDING_COUNT ≠ SCORE' apps/control-web/public/sana-v3-dataroom-findings-ledger.js
+          grep -q 'NO_AUTOMATIC_SCORING' apps/control-web/public/sana-v3-dataroom-findings-ledger.js
+      - name: Validate assembly when v71 is present
+        run: |
+          html='apps/control-web/public/sana-v3.html'; sw='apps/control-web/public/sana-v3-sw.js'
+          if grep -q '/sana-v3-dataroom-findings-ledger.js' "$html"; then
+            grep -q '/sana-v3-dataroom-assurance-ledger.js.*sana-v3-dataroom-findings-ledger.js.*sana-v3-dataroom-impact-history.js' "$html"
+            grep -q "^const CACHE='sana-v3-demo-shell-v71';" "$sw"
+            grep -q "'/sana-v3-dataroom-assurance-ledger.js','/sana-v3-dataroom-findings-ledger.js','/sana-v3-dataroom-impact-history.js'" "$sw"
+          else
+            echo 'v71 staged before assembly; strict shell validation deferred.'
+          fi
+      - name: Assert no scoring approval offer or execution authority
+        run: |
+          ! grep -Eq 'productionExecutionAvailable\s*=\s*true|productionActivationAllowed\s*=\s*true|canonicalMutated\s*=\s*true' apps/control-web/public/sana-v3-dataroom-findings-ledger.js
+          ! grep -Eq 'riskRatings\s*:\s*[1-9]|riskScores\s*:\s*[1-9]|dueDiligenceApprovals\s*:\s*[1-9]|eligibilityDecisions\s*:\s*[1-9]|investmentSignals\s*:\s*[1-9]|investmentOffers\s*:\s*[1-9]|fundingExecuted\s*:\s*[1-9]' apps/control-web/public/sana-v3-dataroom-findings-ledger.js
+          ! grep -Eq 'fetch\s*\(' apps/control-web/public/sana-v3-dataroom-findings-ledger.js
