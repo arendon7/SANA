@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'apps/control-web/public/sana-v3-dataroom-review-workspace.js'
+      - 'apps/control-web/public/sana-v3-dataroom-entry.js'
       - 'apps/control-web/public/sana-v3-review-workspace.css'
       - 'apps/control-web/public/sana-v3-sw.js'
       - 'scripts/validate-sana-dataroom-review-workspace-v102.mjs'
@@ -37,9 +38,12 @@ jobs:
           node scripts/validate-sana-dataroom-review-workspace-v100.mjs
           node scripts/validate-sana-dataroom-review-workspace-v101.mjs
           node scripts/validate-sana-dataroom-review-workspace-v102.mjs
-      - name: Assert V102 shell, context semantics and read-only boundary
+      - name: Assert V102 shell, additive context semantics and read-only boundary
         run: |
           grep -q "const CACHE='sana-v3-demo-shell-v102';" apps/control-web/public/sana-v3-sw.js
-          grep -q 'CONTEXT_SUMMARY ≠ SOURCE_VERIFICATION' apps/control-web/public/sana-v3-dataroom-review-workspace.js
-          grep -q 'CONTEXT_ISSUE_COUNT ≠ RISK_SCORE' apps/control-web/public/sana-v3-dataroom-review-workspace.js
-          ! grep -Eq 'fetch\s*\(|storage\s*(\?\.|\.)|openModal\s*\(' apps/control-web/public/sana-v3-dataroom-review-workspace.js
+          grep -q "BIDIRECTIONAL_NAVIGATION_BASELINE='REVIEW WORKSPACE V101'" apps/control-web/public/sana-v3-dataroom-review-workspace.js
+          ! grep -q "CONTEXT_SUMMARY_BASELINE='REVIEW WORKSPACE V102'" apps/control-web/public/sana-v3-dataroom-review-workspace.js
+          grep -q '__SANA_DATAROOM_REVIEW_CONTEXT_SUMMARY__' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -q 'CONTEXT_SUMMARY ≠ SOURCE_VERIFICATION' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -q 'CONTEXT_ISSUE_COUNT ≠ RISK_SCORE' apps/control-web/public/sana-v3-dataroom-entry.js
+          ! grep -Eq 'localStorage\.(setItem|removeItem|clear)\s*\(|sessionStorage|fetch\s*\(|openModal\s*\(' apps/control-web/public/sana-v3-dataroom-entry.js
