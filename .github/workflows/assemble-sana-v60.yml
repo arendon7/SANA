@@ -1,71 +1,11 @@
-name: Assemble SANA v60 Commercial History
+name: Assemble SANA v60 Commercial History (retired)
 
 on:
-  push:
-    branches: [demo/sana-functional-auth-v1]
-    paths:
-      - 'apps/control-web/public/sana-v3-report-snapshot-commercial.js'
-      - 'apps/control-web/public/sana-v3-dataroom-commercial-history.js'
-      - 'apps/control-web/public/sana-v3-due-diligence-commercial-gaps.js'
-      - 'scripts/validate-sana-commercial-history.mjs'
-      - '.github/workflows/sana-demo-commercial-history.yml'
-      - '.github/workflows/sana-demo-due-diligence-v60.yml'
-      - '.github/workflows/assemble-sana-v60.yml'
-
-permissions:
-  contents: write
+  workflow_dispatch:
 
 jobs:
-  assemble-v60:
-    if: github.actor != 'github-actions[bot]'
+  retired:
+    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: demo/sana-functional-auth-v1
-          fetch-depth: 0
-      - name: Assemble HTML and service worker deterministically
-        shell: bash
-        run: |
-          set -euo pipefail
-          python - <<'PY'
-          from pathlib import Path
-          hp=Path('apps/control-web/public/sana-v3.html'); sp=Path('apps/control-web/public/sana-v3-sw.js')
-          html=hp.read_text(); sw=sp.read_text()
-          repl=[
-            ('<script src="/sana-v3-report-snapshot-economic-reconciliation.js"></script><script src="/sana-v3-cycle-closure.js"></script>',
-             '<script src="/sana-v3-report-snapshot-economic-reconciliation.js"></script><script src="/sana-v3-report-snapshot-commercial.js"></script><script src="/sana-v3-cycle-closure.js"></script>'),
-            ('<script src="/sana-v3-due-diligence-economic-reconciliation-gaps.js"></script><script src="/sana-v3-due-diligence-remediation.js"></script>',
-             '<script src="/sana-v3-due-diligence-economic-reconciliation-gaps.js"></script><script src="/sana-v3-due-diligence-commercial-gaps.js"></script><script src="/sana-v3-due-diligence-remediation.js"></script>'),
-            ('<script src="/sana-v3-dataroom-economic-reconciliation-history.js"></script><script src="/sana-v3-dataroom-entry.js"></script>',
-             '<script src="/sana-v3-dataroom-economic-reconciliation-history.js"></script><script src="/sana-v3-dataroom-commercial-history.js"></script><script src="/sana-v3-dataroom-entry.js"></script>')]
-          for old,new in repl:
-              if html.count(old)!=1: raise SystemExit(f'HTML anchor count {html.count(old)}: {old}')
-              html=html.replace(old,new,1)
-          old="const CACHE='sana-v3-demo-shell-v59';"
-          new="if(false){\nconst CACHE='sana-v3-demo-shell-v59';\n}\nconst CACHE='sana-v3-demo-shell-v60';"
-          if sw.count(old)!=1: raise SystemExit(f'SW v59 anchor count {sw.count(old)}')
-          sw=sw.replace(old,new,1)
-          srep=[
-            ("'/sana-v3-report-snapshot-economic-reconciliation.js','/sana-v3-cycle-closure.js'","'/sana-v3-report-snapshot-economic-reconciliation.js','/sana-v3-report-snapshot-commercial.js','/sana-v3-cycle-closure.js'"),
-            ("'/sana-v3-due-diligence-economic-reconciliation-gaps.js','/sana-v3-due-diligence-remediation.js'","'/sana-v3-due-diligence-economic-reconciliation-gaps.js','/sana-v3-due-diligence-commercial-gaps.js','/sana-v3-due-diligence-remediation.js'"),
-            ("'/sana-v3-dataroom-economic-reconciliation-history.js','/sana-v3-dataroom-entry.js'","'/sana-v3-dataroom-economic-reconciliation-history.js','/sana-v3-dataroom-commercial-history.js','/sana-v3-dataroom-entry.js'")]
-          for old,new in srep:
-              if sw.count(old)!=1: raise SystemExit(f'SW anchor count {sw.count(old)}: {old}')
-              sw=sw.replace(old,new,1)
-          hp.write_text(html); sp.write_text(sw)
-          PY
-          grep -q '/sana-v3-report-snapshot-economic-reconciliation.js.*sana-v3-report-snapshot-commercial.js.*sana-v3-cycle-closure.js' apps/control-web/public/sana-v3.html
-          grep -q '/sana-v3-due-diligence-economic-reconciliation-gaps.js.*sana-v3-due-diligence-commercial-gaps.js.*sana-v3-due-diligence-remediation.js' apps/control-web/public/sana-v3.html
-          grep -q '/sana-v3-dataroom-economic-reconciliation-history.js.*sana-v3-dataroom-commercial-history.js.*sana-v3-dataroom-entry.js' apps/control-web/public/sana-v3.html
-          grep -q "^const CACHE='sana-v3-demo-shell-v60';" apps/control-web/public/sana-v3-sw.js
-      - name: Commit assembled v60
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add apps/control-web/public/sana-v3.html apps/control-web/public/sana-v3-sw.js
-          git diff --cached --quiet && exit 0
-          git commit -m 'build(demo): assemble commercial history shell v60'
-          git push origin HEAD:demo/sana-functional-auth-v1
+      - run: echo 'v60 already assembled and will be certified from a human commit.'
