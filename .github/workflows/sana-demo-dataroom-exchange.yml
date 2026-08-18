@@ -41,18 +41,33 @@ jobs:
           grep -q 'DOCUMENT_EXCHANGE ≠ INVESTMENT_OFFER' apps/control-web/public/sana-v3-dataroom-exchange-ledger.js
       - name: Validate assembly when v67 is present
         run: |
-          html='apps/control-web/public/sana-v3.html'; sw='apps/control-web/public/sana-v3-sw.js'
-          if grep -q '/sana-v3-dataroom-exchange-ledger.js' "$html"; then
-            grep -q '/sana-v3-dataroom-access-ledger.js.*sana-v3-dataroom-exchange-ledger.js.*sana-v3-dataroom-impact-history.js' "$html"
-            grep -q "^const CACHE='sana-v3-demo-shell-v67';" "$sw"
-            grep -q "'/sana-v3-dataroom-access-ledger.js','/sana-v3-dataroom-exchange-ledger.js','/sana-v3-dataroom-impact-history.js'" "$sw"
-          else
-            echo 'v67 staged before assembly; strict shell validation deferred.'
-          fi
+          node <<'NODE'
+          const fs = require('fs');
+          const assert = require('assert');
+          const html = fs.readFileSync('apps/control-web/public/sana-v3.html', 'utf8');
+          const sw = fs.readFileSync('apps/control-web/public/sana-v3-sw.js', 'utf8');
+          const access = '/sana-v3-dataroom-access-ledger.js';
+          const exchange = '/sana-v3-dataroom-exchange-ledger.js';
+          const impact = '/sana-v3-dataroom-impact-history.js';
+          if (!html.includes(exchange)) {
+            console.log('v67 staged before assembly; strict shell validation deferred.');
+            process.exit(0);
+          }
+          for (const file of [access, exchange, impact]) {
+            assert(html.includes(file), `HTML assembly missing ${file}`);
+            assert(sw.includes(`'${file}'`), `PWA shell missing ${file}`);
+          }
+          assert(html.indexOf(access) < html.indexOf(exchange), 'HTML must load access before exchange');
+          assert(html.indexOf(exchange) < html.indexOf(impact), 'HTML must load exchange before impact history');
+          assert(sw.indexOf(`'${access}'`) < sw.indexOf(`'${exchange}'`), 'PWA shell must cache access before exchange');
+          assert(sw.indexOf(`'${exchange}'`) < sw.indexOf(`'${impact}'`), 'PWA shell must cache exchange before impact history');
+          const versions = [...sw.matchAll(/const CACHE='sana-v3-demo-shell-v(\d+)'/g)].map(m => Number(m[1]));
+          assert(versions.length && Math.max(...versions) >= 67, 'Assembled PWA shell must be generation v67 or newer');
+          NODE
       - name: Assert no verified document, approval, offer or execution authority
         run: |
           ! grep -Eq 'productionExecutionAvailable\s*=\s*true|productionActivationAllowed\s*=\s*true|canonicalMutated\s*=\s*true' apps/control-web/public/sana-v3-dataroom-exchange-ledger.js
           ! grep -Eq 'verifiedDocuments\s*:\s*[1-9]|verifiedReceipts\s*:\s*[1-9]|dueDiligenceApprovals\s*:\s*[1-9]|investmentOffers\s*:\s*[1-9]|fundingExecuted\s*:\s*[1-9]' apps/control-web/public/sana-v3-dataroom-exchange-ledger.js
           ! grep -Eq 'fetch\s*\(' apps/control-web/public/sana-v3-dataroom-exchange-ledger.js
 
-# v67 certification trigger: assembled shell only; request/provided/ack/closure references remain non-verifying and non-decisional.
+# v67 certification trigger: assembled shell generation >=67; request/provided/ack/closure references remain non-verifying and non-decisional.
