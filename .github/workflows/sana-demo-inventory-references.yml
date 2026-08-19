@@ -16,11 +16,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Validate V137 cross-domain references
+      - name: Validate V137 cross-domain references and assembly
         run: |
           set -euo pipefail
           f='apps/control-web/public/sana-v3-inventory-references.js'
+          bridge='apps/control-web/public/sana-v3-inventory-activity-bridge.js'
+          sw='apps/control-web/public/sana-v3-sw.js'
           node --check "$f"
+          node --check "$bridge"
+          node --check "$sw"
           node scripts/validate-sana-inventory-references.mjs
           grep -q "const VERSION='V137'" "$f"
           grep -q 'RESERVATION' "$f"
@@ -32,4 +36,14 @@ jobs:
           grep -q 'FORWARD_REFERENCE' "$f"
           grep -q 'STRING_REFERENCE ≠ VALIDATED_REFERENCE' "$f"
           grep -q 'SUPPLIER_REF/COST_REF ≠ CANONICALLY_VERIFIED' "$f"
-          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|automaticConsumption|automaticProcurement|paymentExecuted|creditApproved|investmentApproved' "$f"
+          grep -q '__SANA_INVENTORY_REFERENCES_LOADER__' "$bridge"
+          grep -q "version:'V137'" "$bridge"
+          grep -q '/sana-v3-inventory-references.js' "$bridge"
+          grep -q '__SANA_NUTRITION_LEDGER__' "$bridge"
+          grep -q '__SANA_FORECAST_LEDGER__' "$bridge"
+          grep -q '__SANA_PLAN_FIELD_WORKFLOW__' "$bridge"
+          grep -q "const CACHE='sana-v3-demo-shell-v136'" "$sw"
+          grep -q "^const CACHE='sana-v3-demo-shell-v137';" "$sw"
+          grep -q "'/sana-v3-inventory-references.js'" "$sw"
+          grep -q "'/sana-v3-due-diligence-dataroom-exchange-gaps.js'" "$sw"
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|automaticConsumption|automaticProcurement|paymentExecuted|creditApproved|investmentApproved' "$f" "$bridge"
