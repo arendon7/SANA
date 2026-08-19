@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const REVIEW_CONTEXT_INTEGRITY='CONTEXT_SUMMARY ≠ SOURCE_VERIFICATION · ACTIVE_SELECTOR ≠ REVIEW_PRIORITY · CONTEXT_ISSUE_COUNT ≠ RISK_SCORE · SUMMARY_VIEW ≠ PERSISTED_STATE · REVIEW_CONTEXT_VIEW ≠ SOURCE_LEDGER · STAGE_SWITCH ≠ REVIEW_PROGRESS · STAGE_ORDER ≠ REQUIRED_SEQUENCE · NAVIGABLE_STAGE ≠ COMPLETE_STAGE · DISABLED_STAGE ≠ REVIEW_FAILURE · URL_STAGE_CHANGE ≠ SOURCE_MUTATION · STAGE_BUTTON_STATUS ≠ REVIEW_OUTCOME · CONTEXT_LINK ≠ SOURCE_SNAPSHOT · COPIED_LINK ≠ VERIFIED_CONTEXT · CLIPBOARD_COPY ≠ EXTERNAL_DELIVERY · SHAREABLE_URL ≠ REVIEW_APPROVAL · LINK_REOPEN ≠ CONTEXT_VERIFICATION · URL_CONTEXT ≠ PERSISTED_SOURCE_STATE · ROLE_LENS ≠ ACCESS_CONTROL · ROLE_EMPHASIS ≠ FILTER ≠ REVIEW_PRIORITY · ROLE_GUIDANCE ≠ REVIEW_OUTCOME · ROLE_LENS ≠ SOURCE_MUTATION · SAME_EVIDENCE_SET_ACROSS_ROLES · REVIEW_QUESTION ≠ REQUIREMENT ≠ DECISION · QUESTION_SET ≠ SCORECARD · STAGE_GUIDANCE ≠ AUTOMATIC_FINDING · QUESTION_ORDER ≠ PRIORITY · GUIDE_VIEW ≠ SOURCE_MUTATION · READ_ONLY · NO_SOURCE_MUTATION';
+  const REVIEW_CONTEXT_INTEGRITY='CONTEXT_SUMMARY ≠ SOURCE_VERIFICATION · ACTIVE_SELECTOR ≠ REVIEW_PRIORITY · CONTEXT_ISSUE_COUNT ≠ RISK_SCORE · SUMMARY_VIEW ≠ PERSISTED_STATE · REVIEW_CONTEXT_VIEW ≠ SOURCE_LEDGER · STAGE_SWITCH ≠ REVIEW_PROGRESS · STAGE_ORDER ≠ REQUIRED_SEQUENCE · NAVIGABLE_STAGE ≠ COMPLETE_STAGE · DISABLED_STAGE ≠ REVIEW_FAILURE · URL_STAGE_CHANGE ≠ SOURCE_MUTATION · STAGE_BUTTON_STATUS ≠ REVIEW_OUTCOME · CONTEXT_LINK ≠ SOURCE_SNAPSHOT · COPIED_LINK ≠ VERIFIED_CONTEXT · CLIPBOARD_COPY ≠ EXTERNAL_DELIVERY · SHAREABLE_URL ≠ REVIEW_APPROVAL · LINK_REOPEN ≠ CONTEXT_VERIFICATION · URL_CONTEXT ≠ PERSISTED_SOURCE_STATE · ROLE_LENS ≠ ACCESS_CONTROL · ROLE_EMPHASIS ≠ FILTER ≠ REVIEW_PRIORITY · ROLE_GUIDANCE ≠ REVIEW_OUTCOME · ROLE_LENS ≠ SOURCE_MUTATION · SAME_EVIDENCE_SET_ACROSS_ROLES · REVIEW_QUESTION ≠ REQUIREMENT ≠ DECISION · QUESTION_SET ≠ SCORECARD · STAGE_GUIDANCE ≠ AUTOMATIC_FINDING · QUESTION_ORDER ≠ PRIORITY · GUIDE_VIEW ≠ SOURCE_MUTATION · GUIDED_ENTRY ≠ ACCESS_GRANT · ENTRY_ROUTE ≠ REVIEW_PRIORITY · WORKSPACE_ENTRY ≠ REVIEW_DECISION · ENTRY_SCROLL ≠ SOURCE_MUTATION · ENTRY_CONTEXT_PRESERVED ≠ CONTEXT_VERIFICATION · READ_ONLY · NO_SOURCE_MUTATION';
   const REVIEW_STAGE_LABELS=Object.freeze({CASE:'Expediente',HANDOFF:'Handoff',FEEDBACK:'Feedback',RESPONSE:'Respuesta',DISPOSITION:'Disposición',ROUND:'Ronda'});
   const REVIEW_STAGE_ORDER=Object.freeze(['CASE','HANDOFF','FEEDBACK','RESPONSE','DISPOSITION','ROUND']);
   const REVIEW_CONTEXT_KEYS=Object.freeze(['rwCapital','rwLot','rwFocus','rwStage','rwEvent','rwRef']);
@@ -9,6 +9,7 @@
   const REVIEW_V103_COMPAT='DATA ROOM · REVIEW WORKSPACE V103 · Circuito de revisión, con contexto operativo y navegación de etapas';
   const REVIEW_V104_COMPAT='DATA ROOM · REVIEW WORKSPACE V104 · Circuito de revisión, con contexto reproducible y navegación de etapas';
   const REVIEW_V105_COMPAT='DATA ROOM · REVIEW WORKSPACE V105 · Circuito de revisión, con lente por rol y contexto reproducible';
+  const REVIEW_V106_COMPAT='DATA ROOM · REVIEW WORKSPACE V106 · Circuito de revisión, con guía humana por rol y etapa';
   const REVIEW_STAGE_GUIDES=Object.freeze({
     ALL:Object.freeze(['¿Qué etapas del circuito pueden reconstruirse desde referencias únicas y cuáles siguen indeterminadas?','¿Qué señales provienen de disponibilidad, schema o payload y no deben confundirse con ausencia documental?','¿Qué contexto adicional necesitaría una persona antes de emitir cualquier juicio sobre suficiencia o resultado?']),
     CASE:Object.freeze(['¿El expediente fuente identifica claramente el caso, capital case y lote que se están revisando?','¿Las referencias internas del expediente permiten reconstruir su procedencia sin asumir identidad por coincidencia de IDs?','¿Qué información falta para comprender el alcance del caso sin convertir esa ausencia en fallo automático?']),
@@ -48,15 +49,26 @@
     };
   }
   function investorCard(){
-    const s=summary();
-    return `<section class="card" style="margin-top:14px"><div class="card-head"><div><p class="kicker">LECTURA EJECUTIVA PRIORITARIA</p><h2>Data Room 360°</h2><p>Empieza por el expediente integrado antes de abrir módulos individuales. Mantiene separados snapshot histórico, remediación posterior y evolución entre cortes.</p></div><span class="status teal">READ ONLY</span></div><div class="card-body"><div class="grid metrics">${metric('Último corte',s.cut,'SNAPSHOT_DEMO')}${metric('Brechas históricas',s.gaps,'prioridad documental')}${metric('Preparadas para re-evaluar',s.remediation,'no significa resueltas')}${metric('Evolución',s.evolution,'solo entre snapshots registrados')}</div><div class="head-actions" style="margin-top:12px"><button class="btn primary" data-view-link="dataroom">Abrir Data Room 360°</button><button class="btn secondary" data-view-link="reports">Ver detalle de Due Diligence</button></div><div class="section-note" style="margin-top:12px">READ_ONLY ≠ INVESTMENT_RECOMMENDATION ≠ ELIGIBILITY ≠ TRANSACTION. La vista organiza evidencia; no decide.</div></div></section>`;
+    const s=summary(),entry=reviewGuidedEntry('investor');
+    return `<section class="card" style="margin-top:14px"><div class="card-head"><div><p class="kicker">LECTURA EJECUTIVA PRIORITARIA</p><h2>Data Room 360°</h2><p>Empieza por el expediente integrado antes de abrir módulos individuales. Mantiene separados snapshot histórico, remediación posterior y evolución entre cortes.</p></div><span class="status teal">READ ONLY</span></div><div class="card-body"><div class="grid metrics">${metric('Último corte',s.cut,'SNAPSHOT_DEMO')}${metric('Brechas históricas',s.gaps,'prioridad documental')}${metric('Preparadas para re-evaluar',s.remediation,'no significa resueltas')}${metric('Evolución',s.evolution,'solo entre snapshots registrados')}</div><div class="head-actions" style="margin-top:12px">${entry.allowed?'<button class="btn primary" data-review-guided-entry>Abrir revisión guiada</button>':''}<button class="btn secondary" data-view-link="dataroom">Abrir Data Room 360°</button><button class="btn secondary" data-view-link="reports">Ver detalle de Due Diligence</button></div><div class="section-note" style="margin-top:12px">GUIDED_ENTRY ≠ ACCESS_GRANT · ENTRY_ROUTE ≠ REVIEW_PRIORITY · conserva el contexto URL actual si existe. READ_ONLY ≠ INVESTMENT_RECOMMENDATION ≠ ELIGIBILITY ≠ TRANSACTION.</div></div></section>`;
   }
   function operatorCard(role){
-    const s=summary();
+    const s=summary(),entry=reviewGuidedEntry(role);
     const title=role==='admin'?'Expediente ejecutivo':role==='technical'?'Síntesis técnica del expediente':'Síntesis documental del predio';
-    return `<section class="card" style="margin-top:14px"><div class="card-head"><div><p class="kicker">DATA ROOM 360°</p><h2>${esc(title)}</h2><p>Corte ${esc(s.cut)} · ${esc(s.gaps)} brecha(s) históricas · ${esc(s.remediation)} preparadas para re-evaluación.</p></div><button class="btn secondary" data-view-link="dataroom">Abrir 360°</button></div><div class="card-body"><div class="section-note">La síntesis ejecutiva es read-only. Para modificar actividades, evidencia, costos o remediación debes volver al módulo fuente correspondiente.</div></div></section>`;
+    return `<section class="card" style="margin-top:14px"><div class="card-head"><div><p class="kicker">DATA ROOM 360°</p><h2>${esc(title)}</h2><p>Corte ${esc(s.cut)} · ${esc(s.gaps)} brecha(s) históricas · ${esc(s.remediation)} preparadas para re-evaluación.</p></div><div class="head-actions">${entry.allowed?'<button class="btn primary" data-review-guided-entry>Revisión guiada</button>':''}<button class="btn secondary" data-view-link="dataroom">Abrir 360°</button></div></div><div class="card-body"><div class="section-note">GUIDED_ENTRY ≠ ACCESS_GRANT · conserva el contexto URL actual. La síntesis ejecutiva es read-only; para modificar actividades, evidencia, costos o remediación debes volver al módulo fuente correspondiente.</div></div></section>`;
   }
 
+  function reviewGuidedEntry(role=currentRole()){
+    const access=window.__SANA_ACCESS__,allowed=Boolean(access&&typeof access.canView==='function'&&access.canView('dataroom'));
+    return {role,allowed,view:'dataroom',target:'review-workspace',preservesContext:true,accessEffect:'NONE',filterEffect:'NONE',priorityEffect:'NONE',integrity:'GUIDED_ENTRY ≠ ACCESS_GRANT · ENTRY_ROUTE ≠ REVIEW_PRIORITY · WORKSPACE_ENTRY ≠ REVIEW_DECISION · ENTRY_SCROLL ≠ SOURCE_MUTATION · ENTRY_CONTEXT_PRESERVED ≠ CONTEXT_VERIFICATION'};
+  }
+  function openGuidedReview(){
+    const entry=reviewGuidedEntry();
+    if(!entry.allowed||typeof window.go!=='function')return false;
+    window.go(entry.view);
+    if(typeof document!=='undefined')document.getElementById?.(entry.target)?.scrollIntoView?.({behavior:'smooth',block:'start'});
+    return true;
+  }
   function reviewRoleLens(role=currentRole()){
     const key=Object.prototype.hasOwnProperty.call(REVIEW_ROLE_LENSES,role)?role:'new_user',cfg=REVIEW_ROLE_LENSES[key];
     return {role:key,label:cfg.label,headline:cfg.headline,summary:cfg.summary,cues:[...cfg.cues],evidenceScope:'UNCHANGED',permissionEffect:'NONE',filterEffect:'NONE',integrity:'ROLE_LENS ≠ ACCESS_CONTROL · ROLE_EMPHASIS ≠ FILTER ≠ REVIEW_PRIORITY · ROLE_GUIDANCE ≠ REVIEW_OUTCOME · ROLE_LENS ≠ SOURCE_MUTATION · SAME_EVIDENCE_SET_ACROSS_ROLES'};
@@ -146,7 +158,7 @@
   }
   function reviewContextSummaryHtml(x){
     if(!x)return '';
-    return `<!-- ${REVIEW_V102_COMPAT} --><!-- ${REVIEW_V103_COMPAT} --><!-- ${REVIEW_V104_COMPAT} --><!-- ${REVIEW_V105_COMPAT} --><section data-review-context-summary class="review-context-summary" aria-label="Resumen de contexto de revisión" style="margin:0 0 12px;padding:11px;border:1px solid var(--line);border-radius:12px;background:${x.resolved?'#fff':'#fbfaf5'}"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:8px"><div style="display:grid;gap:2px"><p class="kicker" style="margin:0;font-size:7px;letter-spacing:.1em;color:var(--muted);font-weight:850">CONTEXTO ACTIVO · URL ONLY</p><strong style="font-size:10px">${x.resolved?'Contexto resuelto':'Contexto con selectores no resueltos'}</strong><small style="font-size:7px;color:var(--muted)">${x.visibleChains} circuito(s) visible(s) · ${x.issueCount} incidencia(s) de contexto</small></div><span class="status ${x.resolved?'teal':'warn'}">${x.resolved?'RESOLVED':'UNRESOLVED'}</span></div><div style="display:flex;flex-wrap:wrap;gap:6px">${reviewContextChip('Capital case',x.capital,x.capital!=='ALL',x.resolved)}${reviewContextChip('Lote',x.lot,x.lot!=='ALL',x.resolved)}${reviewContextChip('Foco',x.focus,x.focus!=='ALL',x.resolved)}${reviewContextChip('Etapa',x.stage==='ALL'?'Todas':`${x.stageLabel} · ${x.stage}`,x.stage!=='ALL',x.resolved)}${reviewContextChip('Evento',x.event||'Sin foco',!!x.event,x.resolved)}${reviewContextChip('Referencia',x.ref||'Sin foco',!!x.ref,x.resolved)}</div>${reviewRoleLensHtml(x.roleLens)}${reviewHumanGuideHtml(x.humanGuide)}${reviewStageSwitcherHtml(x.stageNavigation)}${reviewContextPermalinkHtml(x.permalink)}<div class="section-note" style="margin-top:8px">${esc(REVIEW_CONTEXT_INTEGRITY)}</div></section>`;
+    return `<!-- ${REVIEW_V102_COMPAT} --><!-- ${REVIEW_V103_COMPAT} --><!-- ${REVIEW_V104_COMPAT} --><!-- ${REVIEW_V105_COMPAT} --><!-- ${REVIEW_V106_COMPAT} --><section data-review-context-summary class="review-context-summary" aria-label="Resumen de contexto de revisión" style="margin:0 0 12px;padding:11px;border:1px solid var(--line);border-radius:12px;background:${x.resolved?'#fff':'#fbfaf5'}"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:8px"><div style="display:grid;gap:2px"><p class="kicker" style="margin:0;font-size:7px;letter-spacing:.1em;color:var(--muted);font-weight:850">CONTEXTO ACTIVO · URL ONLY</p><strong style="font-size:10px">${x.resolved?'Contexto resuelto':'Contexto con selectores no resueltos'}</strong><small style="font-size:7px;color:var(--muted)">${x.visibleChains} circuito(s) visible(s) · ${x.issueCount} incidencia(s) de contexto</small></div><span class="status ${x.resolved?'teal':'warn'}">${x.resolved?'RESOLVED':'UNRESOLVED'}</span></div><div style="display:flex;flex-wrap:wrap;gap:6px">${reviewContextChip('Capital case',x.capital,x.capital!=='ALL',x.resolved)}${reviewContextChip('Lote',x.lot,x.lot!=='ALL',x.resolved)}${reviewContextChip('Foco',x.focus,x.focus!=='ALL',x.resolved)}${reviewContextChip('Etapa',x.stage==='ALL'?'Todas':`${x.stageLabel} · ${x.stage}`,x.stage!=='ALL',x.resolved)}${reviewContextChip('Evento',x.event||'Sin foco',!!x.event,x.resolved)}${reviewContextChip('Referencia',x.ref||'Sin foco',!!x.ref,x.resolved)}</div>${reviewRoleLensHtml(x.roleLens)}${reviewHumanGuideHtml(x.humanGuide)}${reviewStageSwitcherHtml(x.stageNavigation)}${reviewContextPermalinkHtml(x.permalink)}<div class="section-note" style="margin-top:8px">${esc(REVIEW_CONTEXT_INTEGRITY)}</div></section>`;
   }
   function injectReviewContextSummary(html){
     if(!html||html.includes('data-review-context-summary'))return html;
@@ -158,7 +170,7 @@
     const bodyAt=html.indexOf('<div class="card-body">',workspaceAt),fallback=bodyAt>=0?bodyAt+'<div class="card-body">'.length:workspaceAt;
     const insertAt=controlsEnd>=0?controlsEnd+'</div>'.length:fallback;
     let out=`${html.slice(0,insertAt)}${section}${html.slice(insertAt)}`;
-    out=out.replace('DATA ROOM · REVIEW WORKSPACE V101','DATA ROOM · REVIEW WORKSPACE V106').replace('Circuito de revisión, con navegación bidireccional al caso fuente','Circuito de revisión, con guía humana por rol y etapa');
+    out=out.replace('DATA ROOM · REVIEW WORKSPACE V101','DATA ROOM · REVIEW WORKSPACE V107').replace('Circuito de revisión, con navegación bidireccional al caso fuente','Circuito de revisión, con entrada guiada y contexto humano');
     return out;
   }
   function selectReviewStage(stage){
@@ -195,6 +207,8 @@
   if(baseDataRoom)views.dataroom=function dataRoomWithReviewContextSummary(){return injectReviewContextSummary(baseDataRoom())};
 
   if(typeof document!=='undefined')document.addEventListener('click',e=>{
+    const guided=e.target.closest?.('[data-review-guided-entry]');
+    if(guided){openGuidedReview();return}
     const copy=e.target.closest?.('[data-review-context-copy]');
     if(copy){copyReviewContextPermalink().then(result=>{const status=document.querySelector?.('[data-review-context-copy-status]');if(status)status.textContent=result.copied?'Enlace copiado localmente':'Copia no disponible · enlace visible';});return}
     const stage=e.target.closest?.('[data-review-context-stage]');
@@ -202,5 +216,5 @@
   });
 
   window.__SANA_DATAROOM_ENTRY__=Object.freeze({role:currentRole,integrity:'ROLE_ENTRY_ONLY · DATAROOM_READ_ONLY · NO_PRIVILEGE_ESCALATION'});
-  window.__SANA_DATAROOM_REVIEW_CONTEXT_SUMMARY__=Object.freeze({summary:reviewContextSummary,inject:injectReviewContextSummary,stageNavigation:reviewStageNavigation,selectStage:selectReviewStage,permalink:reviewContextPermalink,copyPermalink:copyReviewContextPermalink,roleLens:reviewRoleLens,stageGuide:reviewRoleStageGuide,integrity:REVIEW_CONTEXT_INTEGRITY});
+  window.__SANA_DATAROOM_REVIEW_CONTEXT_SUMMARY__=Object.freeze({summary:reviewContextSummary,inject:injectReviewContextSummary,stageNavigation:reviewStageNavigation,selectStage:selectReviewStage,permalink:reviewContextPermalink,copyPermalink:copyReviewContextPermalink,roleLens:reviewRoleLens,stageGuide:reviewRoleStageGuide,guidedEntry:reviewGuidedEntry,openGuidedReview,integrity:REVIEW_CONTEXT_INTEGRITY});
 })();
