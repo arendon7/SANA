@@ -1,0 +1,65 @@
+name: Assemble SANA v110 Review Workspace Context Recovery
+
+on:
+  push:
+    branches:
+      - 'demo/sana-v110-review-workspace-context-recovery'
+    paths:
+      - 'scripts/apply-v110-review-context-recovery.py'
+      - 'scripts/validate-sana-dataroom-review-workspace-v110.mjs'
+      - '.github/workflows/sana-demo-dataroom-review-workspace-v110.yml'
+      - '.github/workflows/assemble-sana-v110-review-workspace-context-recovery.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  assemble:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: demo/sana-v110-review-workspace-context-recovery
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Apply, assemble and validate V110
+        id: gate
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          {
+            python scripts/apply-v110-review-context-recovery.py
+            python - <<'PY'
+          from pathlib import Path
+          p=Path('apps/control-web/public/sana-v3-sw.js')
+          s=p.read_text()
+          old="const CACHE='sana-v3-demo-shell-v109';"
+          if old not in s: raise SystemExit('active shell v109 not found')
+          s=s.replace(old,"if(false){\nconst CACHE='sana-v3-demo-shell-v109';\n}\nconst CACHE='sana-v3-demo-shell-v110';",1)
+          p.write_text(s)
+          PY
+            node scripts/validate-sana-dataroom-review-workspace.mjs
+            for v in $(seq 88 110); do node scripts/validate-sana-dataroom-review-workspace-v${v}.mjs; done
+          } 2>&1 | tee /tmp/v110-gate.log
+      - name: Publish V110 failure diagnostics
+        if: steps.gate.outcome == 'failure'
+        run: |
+          cp /tmp/v110-gate.log v110-assembler-status.txt
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add v110-assembler-status.txt
+          git commit -m 'ci: record v110 assembler diagnostics'
+          git push origin HEAD:demo/sana-v110-review-workspace-context-recovery
+          exit 1
+      - name: Commit assembled V110
+        if: steps.gate.outcome == 'success'
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add apps/control-web/public/sana-v3-dataroom-entry.js apps/control-web/public/sana-v3-review-workspace.css apps/control-web/public/sana-v3-sw.js
+          git diff --cached --quiet && exit 0
+          git commit -m 'demo: assemble review workspace context recovery v110'
+          git push origin HEAD:demo/sana-v110-review-workspace-context-recovery
