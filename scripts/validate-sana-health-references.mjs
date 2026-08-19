@@ -52,7 +52,13 @@ globalThis.openModal=()=>{};
 vm.runInThisContext(source,{filename:'sana-v3-health-ledger.js'});
 const api=window.__SANA_PHYTOSANITARY_LEDGER__;
 assert.ok(api);
-assert.deepEqual(api.predecessorKinds,{FINDING:'OBSERVATION',RECOMMENDATION:'FINDING',ACTIVITY_LINK:'RECOMMENDATION',ACTION:'ACTIVITY_LINK',EVIDENCE:'ACTION',FOLLOW_UP:'EVIDENCE',RESULT:'FOLLOW_UP'});
+assert.equal(api.predecessorKinds.FINDING,'OBSERVATION');
+assert.equal(api.predecessorKinds.RECOMMENDATION,'FINDING');
+assert.equal(api.predecessorKinds.ACTIVITY_LINK,'RECOMMENDATION');
+assert.equal(api.predecessorKinds.ACTION,'ACTIVITY_LINK');
+assert.equal(api.predecessorKinds.EVIDENCE,'ACTION');
+assert.equal(api.predecessorKinds.FOLLOW_UP,'EVIDENCE');
+assert.equal(api.predecessorKinds.RESULT,'FOLLOW_UP');
 
 const linked=api.forCase('SAN-REF-1');
 assert.equal(linked.chainCoverage.percent,100);
