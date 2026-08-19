@@ -1,0 +1,60 @@
+name: Assemble CONTROL Alpha3 Auth-Aware Browser QA
+
+on:
+  push:
+    branches:
+      - 'demo/sana-control-alpha3-auth-aware-qa'
+    paths:
+      - 'scripts/apply-control-alpha3-auth-aware-qa.py'
+      - '.github/workflows/assemble-control-alpha3-auth-aware-qa.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  alpha3-browser-auth:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: demo/sana-control-alpha3-auth-aware-qa
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Apply alpha3 auth-aware patch
+        run: python scripts/apply-control-alpha3-auth-aware-qa.py
+      - name: Syntax-check alpha3 + shared auth helper
+        run: python -m py_compile scripts/control_browser_demo_auth.py scripts/control-exception-http-browser-qa.py
+      - name: Install pinned Playwright Chromium
+        run: |
+          python -m pip install --disable-pip-version-check playwright==1.57.0
+          python -m playwright install --with-deps chromium
+      - name: Run alpha3 Browser QA through real DEMO auth
+        id: browser
+        continue-on-error: true
+        run: python scripts/control-exception-http-browser-qa.py > /tmp/alpha3-auth-aware.log 2>&1
+      - name: Publish alpha3 diagnostics
+        if: steps.browser.outcome == 'failure'
+        run: |
+          cp /tmp/alpha3-auth-aware.log alpha3-auth-aware-status.txt
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add alpha3-auth-aware-status.txt
+          git commit -m 'ci: record alpha3 auth-aware Browser QA diagnostics'
+          git push origin HEAD:demo/sana-control-alpha3-auth-aware-qa
+          exit 1
+      - name: Commit validated alpha3 Browser QA
+        if: steps.browser.outcome == 'success'
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add scripts/control-exception-http-browser-qa.py
+          git diff --cached --quiet && exit 0
+          git commit -m 'test: authenticate alpha3 Browser QA via DEMO sandbox'
+          git push origin HEAD:demo/sana-control-alpha3-auth-aware-qa
