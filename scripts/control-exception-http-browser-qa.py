@@ -2,6 +2,7 @@
 from pathlib import Path
 import json, subprocess, time, urllib.request, os
 from playwright.sync_api import sync_playwright
+from control_browser_demo_auth import authenticate_demo_admin
 root=Path(__file__).resolve().parents[1];ev=root/'docs/product/evidence/exception-resolution';ev.mkdir(parents=True,exist_ok=True)
 server=subprocess.Popen(['node','apps/control-web/server.mjs'],cwd=root,env={**os.environ,'PORT':'4273'},stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True)
 for _ in range(60):
@@ -19,6 +20,7 @@ try:
     for label,w,h in [('desktop',1440,900),('mobile',390,844)]:
       page=b.new_page(viewport={'width':w,'height':h},locale='es-CO');page.set_default_timeout(5000);errs=[];pageerrs=[]
       page.on('console',lambda m:errs.append(m.text) if m.type=='error' else None);page.on('pageerror',lambda e:pageerrs.append(str(e)))
+      authenticate_demo_admin(page,'http://127.0.0.1:4273/control/exceptions')
       response=page.goto('http://127.0.0.1:4273/control/exceptions',wait_until='networkidle');ck(f'{label}:http-200',response and response.status==200,response.status if response else None)
       ck(f'{label}:secure-context',page.evaluate('window.isSecureContext'))
       ck(f'{label}:five-cases',page.locator('.ex-card').count()==5,page.locator('.ex-card').count())
