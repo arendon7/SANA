@@ -6,6 +6,7 @@ on:
       - 'demo/sana-v111-review-workspace-recovery-preview'
     paths:
       - 'scripts/apply-v111-review-recovery-preview.py'
+      - 'scripts/fix-v111-preview-no-location.py'
       - 'scripts/validate-sana-dataroom-review-workspace-v111.mjs'
       - '.github/workflows/sana-demo-dataroom-review-workspace-v111.yml'
       - '.github/workflows/assemble-sana-v111-review-workspace-recovery-preview.yml'
@@ -32,6 +33,7 @@ jobs:
           set -o pipefail
           {
             python scripts/apply-v111-review-recovery-preview.py
+            python scripts/fix-v111-preview-no-location.py
             python - <<'PY'
           from pathlib import Path
           p=Path('apps/control-web/public/sana-v3-sw.js')
