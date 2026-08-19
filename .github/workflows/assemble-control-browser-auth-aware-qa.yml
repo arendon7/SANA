@@ -16,7 +16,7 @@ jobs:
   browser-auth-regression:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
         with:
@@ -34,6 +34,7 @@ jobs:
         run: |
           python -m py_compile \
             scripts/control_browser_demo_auth.py \
+            scripts/control-evidence-http-browser-qa.py \
             scripts/control-approvals-http-browser-qa.py \
             scripts/control-handoff-http-browser-qa.py \
             scripts/control-unified-flow-http-browser-qa.py \
@@ -45,7 +46,7 @@ jobs:
         run: |
           python -m pip install --disable-pip-version-check playwright==1.57.0
           python -m playwright install --with-deps chromium
-      - name: Run alpha5–alpha11 Browser QA through real DEMO auth
+      - name: Run alpha4–alpha11 Browser QA through real DEMO auth
         id: browser
         continue-on-error: true
         shell: bash
@@ -53,6 +54,7 @@ jobs:
           set -o pipefail
           {
             for script in \
+              scripts/control-evidence-http-browser-qa.py \
               scripts/control-approvals-http-browser-qa.py \
               scripts/control-handoff-http-browser-qa.py \
               scripts/control-unified-flow-http-browser-qa.py \
@@ -80,6 +82,7 @@ jobs:
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add \
+            scripts/control-evidence-http-browser-qa.py \
             scripts/control-approvals-http-browser-qa.py \
             scripts/control-handoff-http-browser-qa.py \
             scripts/control-unified-flow-http-browser-qa.py \
