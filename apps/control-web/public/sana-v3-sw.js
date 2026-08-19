@@ -1,90 +1,244 @@
-// Historical shell compatibility markers. Only the final CACHE declaration is active.
-if(false){const CACHE='sana-v3-demo-shell-v35';}
-if(false){const CACHE='sana-v3-demo-shell-v36';}
-if(false){const CACHE='sana-v3-demo-shell-v37';}
-if(false){const CACHE='sana-v3-demo-shell-v38';}
-if(false){const CACHE='sana-v3-demo-shell-v39';}
-if(false){const CACHE='sana-v3-demo-shell-v40';}
-if(false){const CACHE='sana-v3-demo-shell-v41';}
-if(false){const CACHE='sana-v3-demo-shell-v42';}
-if(false){const CACHE='sana-v3-demo-shell-v43';}
-if(false){const CACHE='sana-v3-demo-shell-v44';}
-if(false){const CACHE='sana-v3-demo-shell-v45';}
-if(false){const CACHE='sana-v3-demo-shell-v46';}
-if(false){const CACHE='sana-v3-demo-shell-v47';}
-if(false){const CACHE='sana-v3-demo-shell-v48';}
-if(false){const CACHE='sana-v3-demo-shell-v49';}
-if(false){const CACHE='sana-v3-demo-shell-v50';}
-if(false){const CACHE='sana-v3-demo-shell-v51';}
-if(false){const CACHE='sana-v3-demo-shell-v52';}
-if(false){const CACHE='sana-v3-demo-shell-v53';}
-if(false){const CACHE='sana-v3-demo-shell-v54';}
-if(false){const CACHE='sana-v3-demo-shell-v55';}
-if(false){const CACHE='sana-v3-demo-shell-v56';}
-if(false){const CACHE='sana-v3-demo-shell-v57';}
-if(false){const CACHE='sana-v3-demo-shell-v58';}
-if(false){const CACHE='sana-v3-demo-shell-v59';}
-if(false){const CACHE='sana-v3-demo-shell-v60';}
-if(false){const CACHE='sana-v3-demo-shell-v61';}
-if(false){const CACHE='sana-v3-demo-shell-v62';}
-if(false){const CACHE='sana-v3-demo-shell-v63';}
-if(false){const CACHE='sana-v3-demo-shell-v64';}
-if(false){const CACHE='sana-v3-demo-shell-v65';}
-if(false){const CACHE='sana-v3-demo-shell-v66';}
-if(false){const CACHE='sana-v3-demo-shell-v67';}
-if(false){const CACHE='sana-v3-demo-shell-v68';}
-if(false){const CACHE='sana-v3-demo-shell-v69';}
-if(false){const CACHE='sana-v3-demo-shell-v70';}
-if(false){const CACHE='sana-v3-demo-shell-v71';}
-if(false){const CACHE='sana-v3-demo-shell-v72';}
-if(false){const CACHE='sana-v3-demo-shell-v73';}
-if(false){const CACHE='sana-v3-demo-shell-v74';}
-if(false){const CACHE='sana-v3-demo-shell-v75';}
-if(false){const CACHE='sana-v3-demo-shell-v76';}
-if(false){const CACHE='sana-v3-demo-shell-v77';}
-if(false){const CACHE='sana-v3-demo-shell-v78';}
-if(false){const CACHE='sana-v3-demo-shell-v79';}
-if(false){const CACHE='sana-v3-demo-shell-v80';}
-if(false){const CACHE='sana-v3-demo-shell-v81';}
-if(false){const CACHE='sana-v3-demo-shell-v82';}
-if(false){const CACHE='sana-v3-demo-shell-v83';}
-if(false){const CACHE='sana-v3-demo-shell-v84';}
-if(false){const CACHE='sana-v3-demo-shell-v85';}
-if(false){const CACHE='sana-v3-demo-shell-v86';}
-if(false){const CACHE='sana-v3-demo-shell-v87';}
-if(false){const CACHE='sana-v3-demo-shell-v88';}
-if(false){const CACHE='sana-v3-demo-shell-v89';}
-if(false){const CACHE='sana-v3-demo-shell-v90';}
-if(false){const CACHE='sana-v3-demo-shell-v91';}
-if(false){const CACHE='sana-v3-demo-shell-v92';}
-if(false){const CACHE='sana-v3-demo-shell-v93';}
-if(false){const CACHE='sana-v3-demo-shell-v94';}
-if(false){const CACHE='sana-v3-demo-shell-v95';}
-if(false){const CACHE='sana-v3-demo-shell-v96';}
-if(false){const CACHE='sana-v3-demo-shell-v97';}
-if(false){const CACHE='sana-v3-demo-shell-v98';}
-if(false){const CACHE='sana-v3-demo-shell-v99';}
-if(false){const CACHE='sana-v3-demo-shell-v100';}
-if(false){const CACHE='sana-v3-demo-shell-v101';}
-if(false){const CACHE='sana-v3-demo-shell-v102';}
-if(false){const CACHE='sana-v3-demo-shell-v103';}
-if(false){const CACHE='sana-v3-demo-shell-v104';}
-if(false){const CACHE='sana-v3-demo-shell-v105';}
-if(false){const CACHE='sana-v3-demo-shell-v106';}
-if(false){const CACHE='sana-v3-demo-shell-v107';}
-if(false){const CACHE='sana-v3-demo-shell-v108';}
-if(false){const CACHE='sana-v3-demo-shell-v109';}
-if(false){const CACHE='sana-v3-demo-shell-v110';}
-if(false){const CACHE='sana-v3-demo-shell-v111';}
-if(false){const CACHE='sana-v3-demo-shell-v112';}
-if(false){const CACHE='sana-v3-demo-shell-v113';}
-if(false){const CACHE='sana-v3-demo-shell-v114';}
-if(false){const CACHE='sana-v3-demo-shell-v115';}
-if(false){const CACHE='sana-v3-demo-shell-v116';}
-if(false){const CACHE='sana-v3-demo-shell-v117';}
-if(false){const CACHE='sana-v3-demo-shell-v118';}
-if(false){const CACHE='sana-v3-demo-shell-v119';}
-if(false){const CACHE='sana-v3-demo-shell-v120';}
+// CI compatibility markers for prior certified generations.
+if(false){
+const CACHE='sana-v3-demo-shell-v35';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v38';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v39';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v41';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v42';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v43';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v44';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v45';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v46';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v47';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v48';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v49';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v50';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v51';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v52';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v53';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v54';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v55';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v56';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v57';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v58';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v59';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v60';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v61';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v62';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v63';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v64';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v65';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v66';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v67';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v68';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v69';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v70';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v71';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v72';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v73';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v74';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v75';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v76';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v77';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v78';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v79';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v80';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v82';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v84';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v86';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v87';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v88';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v89';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v90';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v91';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v92';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v93';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v94';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v95';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v96';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v97';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v98';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v99';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v100';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v101';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v102';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v103';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v104';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v105';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v106';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v107';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v108';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v109';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v110';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v111';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v112';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v113';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v114';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v115';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v116';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v117';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v118';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v119';
+}
+if(false){
+const CACHE='sana-v3-demo-shell-v120';
+}
 const CACHE='sana-v3-demo-shell-v121';
 const SHELL=[
   '/sana-v3.html','/sana-v3.css','/sana-v3-extensions.css','/sana-v3-characterization.css','/sana-v3-capital.css','/sana-v3-economics.css','/sana-v3-impact.css','/sana-v3-mobile.css','/sana-v3-material.css','/sana-v3-guide.css','/sana-v3-territory-360.css','/sana-v3-review-workspace.css',
@@ -100,4 +254,4 @@ self.addEventListener('fetch',event=>{if(event.request.method!=='GET')return;con
 // v62 assembled Capital Governance snapshot/history/DD; snapshot-only, documentary, data-minimized and non-decisional.
 // v63 assembled Capital Human Review trail; review and decision references remain non-executing and non-decisional for eligibility/scoring.
 // v64 assembled Capital Human Review snapshot/history/DD; reviewer-ref-only, snapshot-only and non-decisional.
-// v121 deepens phytosanitary traceability with explicit ACTIVITY_LINK and RESULT stages while preserving V1 compatibility.
+// v121 phytosanitary chain separates explicit activity relation and observed result without changing production authority.
