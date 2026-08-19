@@ -47,3 +47,7 @@
 
 /* V116 · Reviewer assistance disclosure */
 .review-assistance{margin-top:9px;border:1px solid var(--line);border-radius:10px;background:#fbfcfa;overflow:hidden}.review-assistance>summary{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px;cursor:pointer;list-style-position:inside}.review-assistance>summary span:first-child{display:grid;gap:2px}.review-assistance>summary strong{font-size:8px}.review-assistance>summary small{font-size:6px;color:var(--muted)}.review-assistance>summary:focus-visible{outline:3px solid rgba(42,123,115,.22);outline-offset:-3px}.review-assistance[open]>summary{border-bottom:1px solid var(--line);background:#fff}.review-assistance-body{padding:0 10px 10px}.review-assistance-body>[data-review-role-lens],.review-assistance-body>[data-review-human-guide]{margin-top:10px}
+
+
+/* V117 · Technical state glossary */
+.review-technical-glossary{margin:9px 0;border:1px solid var(--line);border-radius:9px;background:#fff}.review-technical-glossary>summary{cursor:pointer;padding:8px 9px;font-size:7px;font-weight:800}.review-technical-glossary-body{display:grid;gap:8px;padding:0 9px 9px}.review-technical-glossary-group{display:grid;gap:5px}.review-technical-glossary-group>strong{font-size:7px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}.review-technical-glossary-item{display:grid;grid-template-columns:minmax(74px,auto) 1fr;gap:8px;align-items:start;font-size:7px;line-height:1.4}.review-technical-glossary-item code{font-size:6px;overflow-wrap:anywhere}
