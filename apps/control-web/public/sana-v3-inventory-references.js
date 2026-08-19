@@ -82,3 +82,13 @@
 
   window.__SANA_INVENTORY_LEDGER__=Object.freeze({...base,referenceVersion:VERSION,referenceRules:RULES,cases,forItem,forLot,summary,forCase:caseFor,reference,referenceCoverage,integrity:`${base.integrity} · STRING_REFERENCE ≠ VALIDATED_REFERENCE · ACTIVITY_LINK ≠ CONSUMPTION · CONSUMPTION ≠ AGRONOMIC_APPLICATION · FORECAST_REFERENCE ≠ PROCUREMENT_AUTHORITY · EVIDENCE_REFERENCE ≠ EXTERNAL_VERIFICATION · SUPPLIER_REF/COST_REF ≠ CANONICALLY_VERIFIED · LEGACY_REFERENCE_NOT_CAPTURED ≠ INVALID`});
 })();
+
+(() => {
+  'use strict';
+  const assets=['/sana-v3-report-snapshot-inventory-references.js','/sana-v3-cycle-inventory-references.js','/sana-v3-due-diligence-inventory-reference-gaps.js','/sana-v3-dataroom-inventory-references.js'];
+  const state={version:'V138',status:'PENDING',loaded:[],failed:''};
+  function loadAt(i){if(i>=assets.length){state.status='READY';return}const src=assets[i],s=document.createElement('script');s.src=src;s.async=false;s.onload=()=>{state.loaded.push(src);loadAt(i+1)};s.onerror=()=>{state.status='FAILED';state.failed=src};document.head.appendChild(s)}
+  function start(){if(typeof document==='undefined'||!document.createElement)return;loadAt(0)}
+  if(typeof document!=='undefined'&&document.readyState==='complete')start();else if(typeof window?.addEventListener==='function')window.addEventListener('load',start,{once:true});
+  if(typeof window!=='undefined')window.__SANA_INVENTORY_REFERENCE_HISTORY_LOADER__=Object.freeze({version:'V138',assets:Object.freeze([...assets]),state});
+})();
