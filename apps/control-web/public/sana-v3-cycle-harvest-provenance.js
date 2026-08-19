@@ -14,3 +14,17 @@
   const base=views.cycle;if(base)views.cycle=()=>insert(base(),panel());
   window.__SANA_CYCLE_HARVEST__=Object.freeze({forPlan,selected,integrity:'HARVEST_PROVENANCE ≠ CYCLE_GATE · HARVEST ≠ SALE · HANDOFF ≠ SALE · SALE_DECLARATION ≠ PAYMENT · QUALITY_CLASSIFICATION ≠ CERTIFICATION · YIELD ≠ PROFITABILITY · RESULT ≠ CAUSALITY'});
 })();
+
+(() => {
+  'use strict';
+  const state={version:'V135',status:'PENDING',loaded:false,failed:false};
+  function load(){
+    if(state.loaded||state.failed||typeof document==='undefined'||!document.createElement)return;
+    const script=document.createElement('script');script.src='/sana-v3-harvest-references.js';script.async=false;
+    script.onload=()=>{state.loaded=true;state.status='READY'};
+    script.onerror=()=>{state.failed=true;state.status='FAILED'};
+    document.head.appendChild(script);
+  }
+  if(typeof document!=='undefined'&&document.readyState==='loading'&&typeof window?.addEventListener==='function')window.addEventListener('DOMContentLoaded',load,{once:true});else load();
+  if(typeof window!=='undefined')window.__SANA_HARVEST_REFERENCES_LOADER__=Object.freeze({version:'V135',asset:'/sana-v3-harvest-references.js',state});
+})();
