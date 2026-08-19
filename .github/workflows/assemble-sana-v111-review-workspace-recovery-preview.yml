@@ -32,16 +32,25 @@ jobs:
         run: |
           set -o pipefail
           {
-            python scripts/apply-v111-review-recovery-preview.py
+            if grep -q "const REVIEW_V111_COMPAT=" apps/control-web/public/sana-v3-dataroom-entry.js; then
+              echo 'V111 product patch already present; validating current product.'
+            else
+              python scripts/apply-v111-review-recovery-preview.py
+            fi
             python scripts/fix-v111-preview-no-location.py
             python - <<'PY'
           from pathlib import Path
           p=Path('apps/control-web/public/sana-v3-sw.js')
           s=p.read_text()
-          old="const CACHE='sana-v3-demo-shell-v110';"
-          if old not in s: raise SystemExit('active shell v110 not found')
-          s=s.replace(old,"if(false){\nconst CACHE='sana-v3-demo-shell-v110';\n}\nconst CACHE='sana-v3-demo-shell-v111';",1)
-          p.write_text(s)
+          active111="const CACHE='sana-v3-demo-shell-v111';"
+          active110="const CACHE='sana-v3-demo-shell-v110';"
+          if active111 in s:
+              print('shell v111 already active')
+          elif active110 in s:
+              s=s.replace(active110,"if(false){\nconst CACHE='sana-v3-demo-shell-v110';\n}\nconst CACHE='sana-v3-demo-shell-v111';",1)
+              p.write_text(s)
+          else:
+              raise SystemExit('active shell v110/v111 not found')
           PY
             node scripts/validate-sana-dataroom-review-workspace.mjs
             for v in $(seq 88 111); do node scripts/validate-sana-dataroom-review-workspace-v${v}.mjs; done
@@ -53,15 +62,17 @@ jobs:
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add v111-assembler-status.txt
-          git commit -m 'ci: record v111 assembler diagnostics'
+          git diff --cached --quiet || git commit -m 'ci: record v111 assembler diagnostics'
           git push origin HEAD:demo/sana-v111-review-workspace-recovery-preview
           exit 1
-      - name: Commit assembled V111
+      - name: Commit validated V111
         if: steps.gate.outcome == 'success'
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          rm -f v111-assembler-status.txt
           git add apps/control-web/public/sana-v3-dataroom-entry.js apps/control-web/public/sana-v3-review-workspace.css apps/control-web/public/sana-v3-sw.js
+          git add -A v111-assembler-status.txt
           git diff --cached --quiet && exit 0
-          git commit -m 'demo: assemble review workspace recovery preview v111'
+          git commit -m 'demo: validate review workspace recovery preview v111'
           git push origin HEAD:demo/sana-v111-review-workspace-recovery-preview
