@@ -81,9 +81,9 @@ assert.equal(statuses.get('CROSS'),'CROSS_CASE_REFERENCE');
 assert.equal(statuses.get('FWD'),'FORWARD_REFERENCE');
 const legacy=api.events().find(e=>e.id==='LEGACY');
 assert.equal(api.eventReference(legacy,api.forCase('C1').events).status,'LEGACY_REFERENCE_NOT_CAPTURED');
-assert.equal(c.referenceCoverage.total,11);
+assert.equal(c.referenceCoverage.total,12);
 assert.equal(c.referenceCoverage.linked,7,'PF-FUT also has a valid PROGRAM predecessor');
-assert.equal(c.referenceIssues,4,'CROSS, FWD, KIND, MISS, TARGET minus valid PF-FUT gives five issues');
+assert.equal(c.referenceIssues,5,'MISS, TARGET, KIND, CROSS and FWD must remain documentary reference issues');
 
 assert.doesNotMatch(source,/fetch\(|XMLHttpRequest|WebSocket/);
 assert.doesNotMatch(source,/productionExecutionAvailable\s*=\s*true|canonicalMutated\s*=\s*true/i);
