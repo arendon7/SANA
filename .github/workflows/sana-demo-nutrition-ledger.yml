@@ -2,7 +2,7 @@ name: SANA Demo Nutrition Ledger
 
 on:
   push:
-    branches: [demo/sana-functional-auth-v1]
+    branches: [demo/sana-functional-auth-v1, demo/sana-nutrition-v2-v128]
     paths:
       - 'apps/control-web/public/sana-v3-nutrition-ledger.js'
       - 'apps/control-web/public/sana-v3-cycle-nutrition-provenance.js'
@@ -15,6 +15,7 @@ on:
       - 'apps/control-web/public/sana-v3.html'
       - 'apps/control-web/public/sana-v3-sw.js'
       - 'scripts/validate-sana-nutrition-ledger.mjs'
+      - 'scripts/validate-sana-nutrition-chain-v2.mjs'
       - 'scripts/validate-sana-cycle-nutrition.mjs'
       - 'scripts/validate-sana-nutrition-snapshot.mjs'
       - 'scripts/validate-sana-nutrition-gaps.mjs'
@@ -32,6 +33,7 @@ on:
       - 'apps/control-web/public/sana-v3.html'
       - 'apps/control-web/public/sana-v3-sw.js'
       - 'scripts/validate-sana-nutrition-ledger.mjs'
+      - 'scripts/validate-sana-nutrition-chain-v2.mjs'
       - 'scripts/validate-sana-cycle-nutrition.mjs'
       - 'scripts/validate-sana-nutrition-snapshot.mjs'
       - 'scripts/validate-sana-nutrition-gaps.mjs'
@@ -58,10 +60,11 @@ jobs:
           node --check apps/control-web/public/sana-v3-dataroom-nutrition-history.js
           node --check apps/control-web/public/sana-v3-due-diligence-nutrition-gaps.js
           node scripts/validate-sana-nutrition-ledger.mjs
+          node scripts/validate-sana-nutrition-chain-v2.mjs
           node scripts/validate-sana-cycle-nutrition.mjs
           node scripts/validate-sana-nutrition-snapshot.mjs
           node scripts/validate-sana-nutrition-gaps.mjs
-      - name: Validate nutrition boundaries
+      - name: Validate nutrition V1 boundaries
         shell: bash
         run: |
           set -euo pipefail
@@ -77,6 +80,20 @@ jobs:
           grep -q 'NO_CAUSAL_ATTRIBUTION' "$ledger"
           grep -q 'MOVEMENT_NOT_CAPTURED' "$ledger"
           ! grep -q 'storage.records.push' "$ledger"
+      - name: Validate V128 explicit Activity link chain
+        shell: bash
+        run: |
+          set -euo pipefail
+          ledger='apps/control-web/public/sana-v3-nutrition-ledger.js'
+          grep -q 'SANA_NUTRITION_CHAIN_V2' "$ledger"
+          grep -q "\['ACTIVITY_LINK','Actividad vinculada'\]" "$ledger"
+          grep -q 'chainCoverage' "$ledger"
+          grep -q 'legacyStages:base.stages' "$ledger"
+          grep -q 'ACTIVITY_LINK_EVENT ≠ APPLICATION' "$ledger"
+          grep -q 'EMBEDDED_V1_RELATION ≠ V2_STAGE' "$ledger"
+          grep -q 'APPLICATION.activityId ≠ ACTIVITY_LINK_STAGE' "$ledger"
+          grep -q 'DECISION ≠ ACTIVITY_LINK ≠ APPLICATION' "$ledger"
+          grep -q 'ACTIVITY_RELATION_DEMO' "$ledger"
       - name: Validate inventory relation is explicit-only
         shell: bash
         run: |
@@ -89,7 +106,7 @@ jobs:
           grep -q 'NO_EXPLICIT_RELATION' "$ledger"
           grep -q 'MOVEMENT_DIRECTION_REVIEW' "$ledger"
           ! grep -Eiq 'autoInventoryMovement|autoStockMutation|inventoryMutationAllowed[[:space:]]*=[[:space:]]*true|stockMutationAllowed[[:space:]]*=[[:space:]]*true' "$ledger"
-      - name: Validate snapshot history and gaps
+      - name: Validate snapshot history and gaps remain V1 compatible
         shell: bash
         run: |
           set -euo pipefail
@@ -131,13 +148,13 @@ jobs:
           sw='apps/control-web/public/sana-v3-sw.js'
           grep -q '/sana-v3-activity-relations.js.*sana-v3-nutrition-ledger.js.*sana-v3-health-ledger.js' "$html"
           grep -q '/sana-v3-cycle-material-provenance.js.*sana-v3-cycle-nutrition-provenance.js.*sana-v3-cycle-health-provenance.js' "$html"
-          grep -q '/sana-v3-due-diligence-health-gaps.js.*sana-v3-due-diligence-nutrition-gaps.js.*sana-v3-due-diligence-remediation.js' "$html"
-          grep -q '/sana-v3-dataroom-health-history.js.*sana-v3-dataroom-nutrition-history.js.*sana-v3-dataroom-entry.js' "$html"
+          grep -q '/sana-v3-due-diligence-health-lifecycle-gaps.js.*sana-v3-due-diligence-nutrition-gaps.js.*sana-v3-due-diligence-remediation.js' "$html"
+          grep -q '/sana-v3-dataroom-health-lifecycle.js.*sana-v3-dataroom-nutrition-history.js.*sana-v3-dataroom-entry.js' "$html"
           grep -q "'/sana-v3-nutrition-ledger.js'" "$sw"
           grep -q "'/sana-v3-cycle-nutrition-provenance.js'" "$sw"
           grep -q "'/sana-v3-due-diligence-nutrition-gaps.js'" "$sw"
           grep -q "'/sana-v3-dataroom-nutrition-history.js'" "$sw"
-          grep -q "^const CACHE='sana-v3-demo-shell-v39';" "$sw"
+          grep -q "^const CACHE='sana-v3-demo-shell-v128';" "$sw"
       - name: Assert no production, purchase or financial authority
         shell: bash
         run: |
