@@ -52,10 +52,11 @@ assert.equal(legacy.length,2);
 assert.ok(legacy.every(x=>x.semanticState.includes('DIAGNOSIS_NOT_INFERRED')));
 assert.ok(legacy.every(x=>x.semanticState.includes('EFFICACY_NOT_INFERRED')));
 assert.match(api.integrity,/LEGACY_INCIDENT_SUMMARY ≠ OBSERVED_PRESENCE ≠ DIAGNOSIS ≠ TREATMENT ≠ EFFICACY/);
-assert.match(api.integrity,/FOLLOW_UP ≠ CAUSAL_ATTRIBUTION/);
+assert.match(api.integrity,/FOLLOW_UP ≠ RESULT/);
+assert.match(api.integrity,/RESULT ≠ CAUSAL_ATTRIBUTION/);
 assert.equal(source.includes('storage.records.push'),false,'ledger read model must not directly mutate storage');
 assert.equal(source.includes('fetch('),false,'ledger must not perform external I/O');
 assert.equal(source.includes('canonicalMutated=true'),false);
 assert.equal(source.includes('productionExecutionAvailable=true'),false);
 
-console.log('phytosanitary ledger contract OK · observation, diagnosis, recommendation, action and observed follow-up remain distinct');
+console.log('phytosanitary ledger contract OK · V1 compatibility preserved while V2 separates follow-up from observed result');
