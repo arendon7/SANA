@@ -1,0 +1,28 @@
+name: SANA Demo Harvest Reference History
+
+on:
+  push:
+    branches: [demo/sana-harvest-v136]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  harvest-reference-history:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate V136 reference provenance
+        run: |
+          set -euo pipefail
+          for f in \
+            apps/control-web/public/sana-v3-report-snapshot-harvest-references.js \
+            apps/control-web/public/sana-v3-dataroom-harvest-references.js \
+            apps/control-web/public/sana-v3-cycle-harvest-references.js \
+            apps/control-web/public/sana-v3-due-diligence-harvest-reference-gaps.js; do node --check "$f"; done
+          node scripts/validate-sana-harvest-reference-provenance.mjs
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|paymentExecuted|invoiceIssued|ownershipTransferred|creditApproved|investmentApproved' apps/control-web/public/sana-v3-*harvest-reference*.js
