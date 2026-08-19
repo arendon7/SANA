@@ -105,3 +105,22 @@
   window.addEventListener('load',()=>loadAt(0),{once:true});
   window.__SANA_NUTRITION_V2_HISTORY_LOADER__=Object.freeze({version:'V130',assets:Object.freeze([...assets]),state});
 })();
+
+(() => {
+  'use strict';
+  const state={version:'V131',status:'PENDING',loaded:false,failed:false};
+  function load(){
+    if(state.loaded||state.failed)return;
+    const script=document.createElement('script');script.src='/sana-v3-nutrition-lifecycle.js';script.async=false;
+    script.onload=()=>{state.loaded=true;state.status='READY'};
+    script.onerror=()=>{state.failed=true;state.status='FAILED'};
+    document.head.appendChild(script);
+  }
+  function start(){
+    const prior=window.__SANA_NUTRITION_V2_HISTORY_LOADER__?.state?.status;
+    if(prior==='READY'||prior==='FAILED'){load();return}
+    setTimeout(start,25);
+  }
+  if(document.readyState==='complete')start();else window.addEventListener('load',start,{once:true});
+  window.__SANA_NUTRITION_LIFECYCLE_LOADER__=Object.freeze({version:'V131',asset:'/sana-v3-nutrition-lifecycle.js',state});
+})();
