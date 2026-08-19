@@ -16,13 +16,27 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Validate V136 reference provenance
+      - name: Validate V136 reference provenance and assembly
         run: |
           set -euo pipefail
+          ref='apps/control-web/public/sana-v3-harvest-references.js'
+          sw='apps/control-web/public/sana-v3-sw.js'
           for f in \
+            "$ref" \
             apps/control-web/public/sana-v3-report-snapshot-harvest-references.js \
             apps/control-web/public/sana-v3-dataroom-harvest-references.js \
             apps/control-web/public/sana-v3-cycle-harvest-references.js \
-            apps/control-web/public/sana-v3-due-diligence-harvest-reference-gaps.js; do node --check "$f"; done
+            apps/control-web/public/sana-v3-due-diligence-harvest-reference-gaps.js \
+            "$sw"; do node --check "$f"; done
           node scripts/validate-sana-harvest-reference-provenance.mjs
-          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|paymentExecuted|invoiceIssued|ownershipTransferred|creditApproved|investmentApproved' apps/control-web/public/sana-v3-*harvest-reference*.js
+          grep -q '__SANA_HARVEST_REFERENCE_HISTORY_LOADER__' "$ref"
+          grep -q "version:'V136'" "$ref"
+          for a in \
+            '/sana-v3-report-snapshot-harvest-references.js' \
+            '/sana-v3-cycle-harvest-references.js' \
+            '/sana-v3-due-diligence-harvest-reference-gaps.js' \
+            '/sana-v3-dataroom-harvest-references.js'; do grep -q "$a" "$ref"; grep -q "'$a'" "$sw"; done
+          grep -q "const CACHE='sana-v3-demo-shell-v135'" "$sw"
+          grep -q "^const CACHE='sana-v3-demo-shell-v136';" "$sw"
+          grep -q "'/sana-v3-due-diligence-dataroom-exchange-gaps.js'" "$sw"
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|paymentExecuted|invoiceIssued|ownershipTransferred|creditApproved|investmentApproved' apps/control-web/public/sana-v3-*harvest-reference*.js "$ref"
