@@ -16,3 +16,4 @@ for old,new in replacements:
     text=text.replace(old,new,1)
 path.write_text(text)
 print('V111 preview made safe for non-browser validators')
+# trigger: revalidate accumulated V87-V111 after no-location guard
