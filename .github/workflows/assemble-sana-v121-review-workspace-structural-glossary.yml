@@ -26,8 +26,10 @@ jobs:
         with: {node-version: '22'}
       - name: Apply, assemble and validate V121
         run: |
-          python scripts/apply-v121-structural-issue-glossary.py
-          python - <<'PY'
+          set +e
+          {
+            python scripts/apply-v121-structural-issue-glossary.py
+            python - <<'PY'
           from pathlib import Path
           p=Path('apps/control-web/public/sana-v3-sw.js')
           s=p.read_text()
@@ -38,13 +40,27 @@ jobs:
               s=s.replace(old,"if(false){\nconst CACHE='sana-v3-demo-shell-v120';\n}\nconst CACHE='sana-v3-demo-shell-v121';",1)
               p.write_text(s)
           PY
-          node scripts/validate-sana-dataroom-review-workspace.mjs
-          for v in $(seq 88 121); do node scripts/validate-sana-dataroom-review-workspace-v${v}.mjs; done
+            node scripts/validate-sana-dataroom-review-workspace.mjs
+            for v in $(seq 88 121); do node scripts/validate-sana-dataroom-review-workspace-v${v}.mjs || exit $?; done
+          } > /tmp/v121-assembly.log 2>&1
+          status=$?
+          cat /tmp/v121-assembly.log
+          if [ "$status" -ne 0 ]; then
+            cp /tmp/v121-assembly.log .v121-assembly-diagnostic
+            git config user.name github-actions[bot]
+            git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+            git add .v121-assembly-diagnostic
+            git commit -m 'chore: capture v121 assembly diagnostic' || true
+            git push origin HEAD:demo/sana-v121-review-workspace-structural-glossary
+            exit "$status"
+          fi
       - name: Commit assembled V121
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          rm -f .v121-assembly-diagnostic
           git add apps/control-web/public/sana-v3-dataroom-entry.js apps/control-web/public/sana-v3-review-workspace.css apps/control-web/public/sana-v3-sw.js
+          git add -u .v121-assembly-diagnostic 2>/dev/null || true
           git diff --cached --quiet && exit 0
           git commit -m 'demo: assemble review workspace structural glossary v121'
           git push origin HEAD:demo/sana-v121-review-workspace-structural-glossary
