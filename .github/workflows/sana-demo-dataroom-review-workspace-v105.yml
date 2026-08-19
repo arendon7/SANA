@@ -1,0 +1,51 @@
+name: SANA Demo Data Room Review Workspace V105
+
+on:
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-dataroom-review-workspace.js'
+      - 'apps/control-web/public/sana-v3-dataroom-entry.js'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-dataroom-review-workspace-v105.mjs'
+      - '.github/workflows/sana-demo-dataroom-review-workspace-v105.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  review-workspace-v105-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Preserve V87–V105 workspace contracts
+        run: |
+          node scripts/validate-sana-dataroom-review-workspace.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v88.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v89.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v90.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v91.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v92.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v93.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v94.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v95.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v96.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v97.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v98.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v99.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v100.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v101.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v102.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v103.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v104.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v105.mjs
+      - name: Assert V105 shell, role-lens semantics and read-only boundary
+        run: |
+          grep -q "const CACHE='sana-v3-demo-shell-v105';" apps/control-web/public/sana-v3-sw.js
+          grep -q 'ROLE_LENS ≠ ACCESS_CONTROL' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -q 'ROLE_EMPHASIS ≠ FILTER ≠ REVIEW_PRIORITY' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -q 'SAME_EVIDENCE_SET_ACROSS_ROLES' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -q 'data-review-role-lens' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -q 'REVIEW_V104_COMPAT' apps/control-web/public/sana-v3-dataroom-entry.js
+          ! grep -Eq 'localStorage\.(setItem|removeItem|clear)\s*\(|sessionStorage|fetch\s*\(|openModal\s*\(' apps/control-web/public/sana-v3-dataroom-entry.js
