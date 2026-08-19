@@ -1,6 +1,10 @@
 from pathlib import Path
 
 FILES = {
+    'scripts/control-evidence-http-browser-qa.py': [
+        ("from playwright.sync_api import sync_playwright\n", "from playwright.sync_api import sync_playwright\nfrom control_browser_demo_auth import authenticate_demo_admin\n"),
+        ("      response=page.goto('http://127.0.0.1:4273/control/evidence',wait_until='networkidle');", "      authenticate_demo_admin(page,'http://127.0.0.1:4273/control/evidence')\n      response=page.goto('http://127.0.0.1:4273/control/evidence',wait_until='networkidle');"),
+    ],
     'scripts/control-approvals-http-browser-qa.py': [
         ("from playwright.sync_api import sync_playwright\n", "from playwright.sync_api import sync_playwright\nfrom control_browser_demo_auth import authenticate_demo_admin\n"),
         ("      response=page.goto('http://127.0.0.1:4273/control/approvals',wait_until='networkidle');", "      authenticate_demo_admin(page,'http://127.0.0.1:4273/control/approvals')\n      response=page.goto('http://127.0.0.1:4273/control/approvals',wait_until='networkidle');"),
