@@ -1,0 +1,34 @@
+name: SANA Demo Data Room Review Workspace V110
+
+on:
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-dataroom-entry.js'
+      - 'apps/control-web/public/sana-v3-review-workspace.css'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-dataroom-review-workspace-v110.mjs'
+      - '.github/workflows/sana-demo-dataroom-review-workspace-v110.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  review-workspace-v110-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Preserve V87–V110 workspace contracts
+        run: |
+          node scripts/validate-sana-dataroom-review-workspace.mjs
+          for v in $(seq 88 110); do node scripts/validate-sana-dataroom-review-workspace-v${v}.mjs; done
+      - name: Assert V110 shell, granular URL recovery and read-only boundary
+        run: |
+          grep -q "const CACHE='sana-v3-demo-shell-v110';" apps/control-web/public/sana-v3-sw.js
+          grep -q 'CONTEXT_RECOVERY ≠ DATA_REMEDIATION' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -q 'URL_SELECTOR_CLEAR ≠ SOURCE_MUTATION' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -q 'REVIEW_RECOVERY_RULES' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -q 'data-review-context-recover' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -q 'V110 · Context recovery' apps/control-web/public/sana-v3-review-workspace.css
+          ! grep -Eq 'rwRecovery|rwRecover|localStorage\.(setItem|removeItem|clear)\s*\(|sessionStorage|fetch\s*\(|openModal\s*\(' apps/control-web/public/sana-v3-dataroom-entry.js
