@@ -59,3 +59,7 @@
 
 /* V119 · Structural case diagnostics */
 .review-structural-diagnostics{margin-top:6px;border:1px dashed var(--line);border-radius:8px;background:#fff}.review-structural-diagnostics>summary{cursor:pointer;padding:7px 8px;font-size:6px;font-weight:800}.review-structural-diagnostics-body{display:grid;gap:6px;padding:0 8px 8px}.review-structural-diagnostic-case{display:grid;gap:5px;padding:7px;border:1px solid var(--line);border-radius:7px;background:#fbfcfa}.review-structural-diagnostic-case>div:first-child{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}.review-structural-diagnostic-case strong{font-size:7px}.review-structural-diagnostic-case small{font-size:6px;color:var(--muted)}.review-structural-issue-list{display:flex;gap:4px;flex-wrap:wrap}.review-structural-issue-list code{padding:3px 5px;border:1px solid var(--line);border-radius:5px;font-size:6px;background:#fff}
+
+
+/* V120 · Structural diagnostics index */
+.review-structural-index{display:grid;gap:7px;margin:9px 0;padding:9px;border:1px solid var(--line);border-radius:10px;background:#fbfcfa}.review-structural-index>div:first-child{display:grid;gap:2px}.review-structural-index small{font-size:6px;color:var(--muted)}.review-structural-index-actions{display:flex;gap:6px;flex-wrap:wrap}
