@@ -24,11 +24,15 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with: {node-version: '22'}
-      - name: Apply V109 product patch
-        run: python scripts/apply-v109-review-focus-continuity.py
-      - name: Advance demo shell to v109
+      - name: Apply, assemble and validate V109
+        id: gate
+        continue-on-error: true
+        shell: bash
         run: |
-          python - <<'PY'
+          set -o pipefail
+          {
+            python scripts/apply-v109-review-focus-continuity.py
+            python - <<'PY'
           from pathlib import Path
           p=Path('apps/control-web/public/sana-v3-sw.js')
           s=p.read_text()
@@ -37,11 +41,21 @@ jobs:
           s=s.replace(old,"if(false){\nconst CACHE='sana-v3-demo-shell-v108';\n}\nconst CACHE='sana-v3-demo-shell-v109';",1)
           p.write_text(s)
           PY
-      - name: Validate V87–V109 contracts
+            node scripts/validate-sana-dataroom-review-workspace.mjs
+            for v in $(seq 88 109); do node scripts/validate-sana-dataroom-review-workspace-v${v}.mjs; done
+          } 2>&1 | tee /tmp/v109-gate.log
+      - name: Publish V109 failure diagnostics
+        if: steps.gate.outcome == 'failure'
         run: |
-          node scripts/validate-sana-dataroom-review-workspace.mjs
-          for v in $(seq 88 109); do node scripts/validate-sana-dataroom-review-workspace-v${v}.mjs; done
+          cp /tmp/v109-gate.log v109-assembler-status.txt
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add v109-assembler-status.txt
+          git commit -m 'ci: record v109 assembler diagnostics'
+          git push origin HEAD:demo/sana-v109-review-workspace-focus-continuity
+          exit 1
       - name: Commit assembled V109
+        if: steps.gate.outcome == 'success'
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
