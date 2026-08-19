@@ -76,3 +76,13 @@
 
   window.__SANA_HARVEST_LEDGER__=Object.freeze({...base,referenceVersion:VERSION,referenceRules:RULES,events,cases,forLot,summary,forCase:caseFor,reference,referenceCoverage,integrity:`${base.integrity} · QUANTITY_MATCH ≠ EVENT_REFERENCE · REFERENCE ≠ SALE_VALIDITY ≠ PAYMENT ≠ OWNERSHIP_TRANSFER ≠ PROFITABILITY ≠ CAUSALITY · LEGACY_REFERENCE_NOT_CAPTURED ≠ INVALID`});
 })();
+
+(() => {
+  'use strict';
+  const assets=['/sana-v3-report-snapshot-harvest-references.js','/sana-v3-cycle-harvest-references.js','/sana-v3-due-diligence-harvest-reference-gaps.js','/sana-v3-dataroom-harvest-references.js'];
+  const state={version:'V136',status:'PENDING',loaded:[],failed:''};
+  function loadAt(i){if(i>=assets.length){state.status='READY';return}const src=assets[i],s=document.createElement('script');s.src=src;s.async=false;s.onload=()=>{state.loaded.push(src);loadAt(i+1)};s.onerror=()=>{state.status='FAILED';state.failed=src};document.head.appendChild(s)}
+  function start(){if(typeof document==='undefined'||!document.createElement)return;loadAt(0)}
+  if(typeof document!=='undefined'&&document.readyState==='complete')start();else if(typeof window?.addEventListener==='function')window.addEventListener('load',start,{once:true});
+  if(typeof window!=='undefined')window.__SANA_HARVEST_REFERENCE_HISTORY_LOADER__=Object.freeze({version:'V136',assets:Object.freeze([...assets]),state});
+})();
