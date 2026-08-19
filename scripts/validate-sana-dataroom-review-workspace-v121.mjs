@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
 
+// V121 retrigger: structural issue glossary contract remains unchanged.
 const entryPath='apps/control-web/public/sana-v3-dataroom-entry.js';
 const cssPath='apps/control-web/public/sana-v3-review-workspace.css';
 const swPath='apps/control-web/public/sana-v3-sw.js';
