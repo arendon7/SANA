@@ -1,0 +1,72 @@
+name: Assemble SANA v107 Review Workspace Guided Entry
+
+on:
+  push:
+    branches:
+      - demo/sana-v107-review-workspace-guided-entry
+    paths:
+      - 'scripts/apply-v107-guided-review-entry.py'
+      - 'scripts/validate-sana-dataroom-review-workspace-v107.mjs'
+      - '.github/workflows/sana-demo-dataroom-review-workspace-v107.yml'
+      - '.github/workflows/assemble-sana-v107-review-workspace-guided-entry.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: demo/sana-v107-review-workspace-guided-entry
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Apply access-preserving guided review entry
+        run: python scripts/apply-v107-guided-review-entry.py
+      - name: Advance PWA shell to v107
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('apps/control-web/public/sana-v3-sw.js')
+          s=p.read_text()
+          old="const CACHE='sana-v3-demo-shell-v106';"
+          if s.count(old)!=1:
+              raise SystemExit(f'expected one active v106 shell, found {s.count(old)}')
+          s=s.replace(old,"if(false){\nconst CACHE='sana-v3-demo-shell-v106';\n}\nconst CACHE='sana-v3-demo-shell-v107';",1)
+          p.write_text(s)
+          PY
+      - name: Preserve V87–V107 workspace contracts
+        run: |
+          node scripts/validate-sana-dataroom-review-workspace.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v88.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v89.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v90.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v91.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v92.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v93.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v94.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v95.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v96.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v97.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v98.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v99.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v100.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v101.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v102.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v103.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v104.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v105.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v106.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v107.mjs
+      - name: Commit assembled V107 product shell
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/control-web/public/sana-v3-dataroom-entry.js apps/control-web/public/sana-v3-sw.js
+          if git diff --cached --quiet; then
+            echo 'No assembly changes to commit'
+            exit 0
+          fi
+          git commit -m 'demo: assemble review workspace guided entry v107'
+          git push origin HEAD:demo/sana-v107-review-workspace-guided-entry
