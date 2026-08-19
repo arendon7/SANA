@@ -1,0 +1,33 @@
+name: SANA Demo Nutrition Lifecycle Assembly
+
+on:
+  push:
+    branches: [demo/sana-nutrition-v2-v131]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  nutrition-lifecycle-assembly:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate V131 assembly
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-nutrition-references.js
+          node --check apps/control-web/public/sana-v3-nutrition-lifecycle.js
+          node --check apps/control-web/public/sana-v3-sw.js
+          l='apps/control-web/public/sana-v3-nutrition-references.js'
+          sw='apps/control-web/public/sana-v3-sw.js'
+          grep -q '__SANA_NUTRITION_LIFECYCLE_LOADER__' "$l"
+          grep -q "prior==='READY'||prior==='FAILED'" "$l"
+          grep -q '/sana-v3-nutrition-lifecycle.js' "$l"
+          grep -q "const CACHE='sana-v3-demo-shell-v130'" "$sw"
+          grep -q "^const CACHE='sana-v3-demo-shell-v131';" "$sw"
+          grep -q "'/sana-v3-nutrition-lifecycle.js'" "$sw"
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|creditApproved|investmentApproved' "$l" apps/control-web/public/sana-v3-nutrition-lifecycle.js
