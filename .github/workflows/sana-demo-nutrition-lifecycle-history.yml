@@ -1,0 +1,23 @@
+name: SANA Demo Nutrition Lifecycle History
+
+on:
+  push:
+    branches: [demo/sana-nutrition-v2-v132]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  nutrition-lifecycle-history:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate V132 provenance
+        run: |
+          set -euo pipefail
+          for f in apps/control-web/public/sana-v3-report-snapshot-nutrition-lifecycle.js apps/control-web/public/sana-v3-dataroom-nutrition-lifecycle.js apps/control-web/public/sana-v3-cycle-nutrition-lifecycle.js apps/control-web/public/sana-v3-due-diligence-nutrition-lifecycle-gaps.js; do node --check "$f"; done
+          node scripts/validate-sana-nutrition-lifecycle-provenance.mjs
