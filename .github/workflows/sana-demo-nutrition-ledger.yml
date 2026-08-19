@@ -168,7 +168,7 @@ jobs:
           ! grep -q 'readyForArchive=' "$cycle"
           ! grep -q 'storage.records.push' "$cycle"
           ! grep -q 'openModal(' "$cycle"
-      - name: Validate V129 assembly with V128 shell
+      - name: Validate V129 assembly and offline shell
         shell: bash
         run: |
           set -euo pipefail
@@ -179,7 +179,8 @@ jobs:
           grep -q '/sana-v3-due-diligence-health-lifecycle-gaps.js.*sana-v3-due-diligence-nutrition-gaps.js.*sana-v3-due-diligence-remediation.js' "$html"
           grep -q '/sana-v3-dataroom-health-lifecycle.js.*sana-v3-dataroom-nutrition-history.js.*sana-v3-dataroom-entry.js' "$html"
           grep -q "'/sana-v3-nutrition-ledger.js'" "$sw"
-          grep -q "^const CACHE='sana-v3-demo-shell-v128';" "$sw"
+          grep -q "'/sana-v3-nutrition-references.js'" "$sw"
+          grep -q "^const CACHE='sana-v3-demo-shell-v129';" "$sw"
       - name: Assert no production, purchase or financial authority
         shell: bash
         run: |
