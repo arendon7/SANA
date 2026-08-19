@@ -1,6 +1,7 @@
 from pathlib import Path
 import json, os, subprocess, time
 from playwright.sync_api import sync_playwright
+from control_browser_demo_auth import authenticate_demo_admin
 
 ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/'docs/product/evidence/reintegrated-control'
@@ -15,6 +16,7 @@ def run_view(browser,label,viewport):
     page=ctx.new_page(); console=[]; page_errors=[]
     page.on('console',lambda m: console.append(m.text) if m.type=='error' else None)
     page.on('pageerror',lambda e: page_errors.append(str(e)))
+    authenticate_demo_admin(page,BASE+'/control')
     page.goto(BASE+'/control',wait_until='networkidle')
     check(f'{label}:home-route',page.url.rstrip('/')==BASE+'/control')
     check(f'{label}:home-title',page.locator('h1').first.text_content().strip()=='Qué requiere decisión humana ahora')

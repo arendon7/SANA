@@ -1,5 +1,6 @@
 import json, os, pathlib, subprocess, time, urllib.request
 from playwright.sync_api import sync_playwright
+from control_browser_demo_auth import authenticate_demo_admin
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 OUT=ROOT/'docs/product/evidence/canonical-write-adapter';OUT.mkdir(parents=True,exist_ok=True)
 PORT=4279;BASE=f'http://127.0.0.1:{PORT}';results=[]
@@ -20,7 +21,7 @@ try:
         for label,viewport in [('desktop',{'width':1440,'height':1000}),('mobile',{'width':390,'height':844})]:
             ctx=browser.new_context(viewport=viewport);page=ctx.new_page();console=[];errors=[]
             page.on('console',lambda m,arr=console: arr.append(m.text) if m.type=='error' else None);page.on('pageerror',lambda e,arr=errors: arr.append(str(e)))
-            response=page.goto(BASE+'/control/write-adapter',wait_until='networkidle');check(f'{label}:route',response is not None and response.status==200,page.url)
+            authenticate_demo_admin(page,BASE+'/control/write-adapter');response=page.goto(BASE+'/control/write-adapter',wait_until='networkidle');check(f'{label}:route',response is not None and response.status==200,page.url)
             body=page.locator('body').inner_text()
             for token in ['Canonical Write Adapter','AUTHORIZED_FOR_ADAPTER','DECLARE_CAPITAL_REQUIREMENT','CapitalRequirementDeclared','REVIEW_ONLY','PASS_REVIEW','PRODUCTION_POSTGRES_CONFIGURATION_PENDING','ADVISORY_ONLY','D10=PENDING']:check(f'{label}:token:{token}',token in body)
             state=page.evaluate('globalThis.__AGROWAY_CONTROL_ALPHA12_WRITE__')
@@ -30,7 +31,7 @@ try:
             check(f'{label}:api-get-forbidden',api['status']==404 and api['body'].get('error')=='CANONICAL_WRITE_BROWSER_ENDPOINT_FORBIDDEN' and api['body'].get('postgresTransactionAdapterImplemented') is True and api['body'].get('productionDatabaseConfigured') is False,json.dumps(api))
             post=page.evaluate("async()=>{const r=await fetch('/api/control/write',{method:'POST',headers:{'content-type':'application/json'},body:'{}'});return {status:r.status,text:await r.text()}}")
             check(f'{label}:api-post-forbidden',post['status']==405,json.dumps(post));page.screenshot(path=str(OUT/f'alpha12-write-{label}.png'),full_page=True);ctx.close()
-        ctx=browser.new_context(viewport={'width':1280,'height':900});page=ctx.new_page();page.goto(BASE+'/control',wait_until='networkidle');check('home:write-entry',page.locator('a[href="/control/write-adapter"]').count()>0);page.locator('a[href="/control/write-adapter"]').first.click();page.wait_for_url('**/control/write-adapter');check('home:write-navigation',page.url.endswith('/control/write-adapter'));page.wait_for_timeout(500)
+        ctx=browser.new_context(viewport={'width':1280,'height':900});page=ctx.new_page();authenticate_demo_admin(page,BASE+'/control');page.goto(BASE+'/control',wait_until='networkidle');check('home:write-entry',page.locator('a[href="/control/write-adapter"]').count()>0);page.locator('a[href="/control/write-adapter"]').first.click();page.wait_for_url('**/control/write-adapter');check('home:write-navigation',page.url.endswith('/control/write-adapter'));page.wait_for_timeout(500)
         regs=page.evaluate("async()=> (await navigator.serviceWorker.getRegistrations()).map(r=>r.active?.scriptURL||r.installing?.scriptURL||r.waiting?.scriptURL||'')");check('pwa:single-registration',len(regs)<=1,json.dumps(regs));check('pwa:unified-service-worker',not regs or all(x.endswith('/service-worker.js') for x in regs),json.dumps(regs));check('pwa:historical-project-sw-not-active',all('service-worker-project.js' not in x for x in regs),json.dumps(regs));ctx.close();browser.close()
 finally:
     proc.terminate()

@@ -2,6 +2,7 @@
 from pathlib import Path
 import json, os, re, subprocess, time, urllib.request
 from playwright.sync_api import sync_playwright
+from control_browser_demo_auth import authenticate_demo_admin
 root=Path(__file__).resolve().parents[1];ev=root/'docs/product/evidence/human-approvals';ev.mkdir(parents=True,exist_ok=True)
 server=subprocess.Popen(['node','apps/control-web/server.mjs'],cwd=root,env={**os.environ,'PORT':'4273'},stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True)
 for _ in range(60):
@@ -18,6 +19,7 @@ try:
     for label,w,h in [('desktop',1440,900),('mobile',390,844)]:
       page=b.new_page(viewport={'width':w,'height':h},locale='es-CO');page.set_default_timeout(6000);errs=[];pageerrs=[]
       page.on('console',lambda m:errs.append(m.text) if m.type=='error' else None);page.on('pageerror',lambda e:pageerrs.append(str(e)))
+      authenticate_demo_admin(page,'http://127.0.0.1:4273/control/approvals')
       response=page.goto('http://127.0.0.1:4273/control/approvals',wait_until='networkidle');ck(f'{label}:http-200',response and response.status==200,response.status if response else None);ck(f'{label}:nosniff',response.headers.get('x-content-type-options')=='nosniff');ck(f'{label}:frame-deny',response.headers.get('x-frame-options')=='DENY');ck(f'{label}:secure-context',page.evaluate('window.isSecureContext'))
       ck(f'{label}:four-proposals',page.locator('.proposal-card').count()==4,page.locator('.proposal-card').count());ck(f'{label}:high-critical-count',page.locator('#criticalCount').inner_text()=='3');ck(f'{label}:approved-zero',page.locator('#approvedCount').inner_text()=='0')
       page.locator('[data-id="ap-impact-yar"]').click();ck(f'{label}:blocked-impact',page.locator('#approveBtn').is_disabled());ck(f'{label}:blocked-precheck','Deterministic precheck: FAIL' in page.locator('.approval-detail').inner_text())
