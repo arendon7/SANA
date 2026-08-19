@@ -1,0 +1,54 @@
+name: SANA Demo Nutrition Chain V2
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1, demo/sana-nutrition-v2-v126]
+    paths:
+      - 'apps/control-web/public/sana-v3-nutrition-chain-v2.js'
+      - 'scripts/validate-sana-nutrition-chain-v2.mjs'
+      - '.github/workflows/sana-demo-nutrition-chain-v2.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-nutrition-chain-v2.js'
+      - 'scripts/validate-sana-nutrition-chain-v2.mjs'
+      - '.github/workflows/sana-demo-nutrition-chain-v2.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  nutrition-chain-v2-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and reference contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-nutrition-chain-v2.js
+          node scripts/validate-sana-nutrition-chain-v2.mjs
+      - name: Validate semantic boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          file='apps/control-web/public/sana-v3-nutrition-chain-v2.js'
+          grep -q 'SANA_NUTRITION_CHAIN_V2' "$file"
+          grep -q "PREFLIGHT:'PROGRAM'" "$file"
+          grep -q "DECISION:'PREFLIGHT'" "$file"
+          grep -q "APPLICATION:'DECISION'" "$file"
+          grep -q "EVIDENCE:'APPLICATION'" "$file"
+          grep -q "RESPONSE:'EVIDENCE'" "$file"
+          grep -q 'CASE_MEMBERSHIP ≠ PREDECESSOR_REFERENCE' "$file"
+          grep -q 'REFERENCE ≠ AUTHORIZATION' "$file"
+          grep -q 'RESPONSE ≠ CAUSAL_EFFECT' "$file"
+          grep -q 'LEGACY_NOT_CAPTURED' "$file"
+      - name: Assert no production authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          file='apps/control-web/public/sana-v3-nutrition-chain-v2.js'
+          ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|storage\.records\.push|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true' "$file"
+          ! grep -Eiq 'creditApproved|investmentApproved|automaticAuthorization[[:space:]]*=[[:space:]]*true' "$file"
