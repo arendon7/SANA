@@ -1,0 +1,51 @@
+name: Assemble SANA v109 Review Workspace Focus Continuity
+
+on:
+  push:
+    branches:
+      - 'demo/sana-v109-review-workspace-focus-continuity'
+    paths:
+      - 'scripts/apply-v109-review-focus-continuity.py'
+      - 'scripts/validate-sana-dataroom-review-workspace-v109.mjs'
+      - '.github/workflows/sana-demo-dataroom-review-workspace-v109.yml'
+      - '.github/workflows/assemble-sana-v109-review-workspace-focus-continuity.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  assemble:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: demo/sana-v109-review-workspace-focus-continuity
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Apply V109 product patch
+        run: python scripts/apply-v109-review-focus-continuity.py
+      - name: Advance demo shell to v109
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('apps/control-web/public/sana-v3-sw.js')
+          s=p.read_text()
+          old="const CACHE='sana-v3-demo-shell-v108';"
+          if old not in s: raise SystemExit('active shell v108 not found')
+          s=s.replace(old,"if(false){\nconst CACHE='sana-v3-demo-shell-v108';\n}\nconst CACHE='sana-v3-demo-shell-v109';",1)
+          p.write_text(s)
+          PY
+      - name: Validate V87–V109 contracts
+        run: |
+          node scripts/validate-sana-dataroom-review-workspace.mjs
+          for v in $(seq 88 109); do node scripts/validate-sana-dataroom-review-workspace-v${v}.mjs; done
+      - name: Commit assembled V109
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add apps/control-web/public/sana-v3-dataroom-entry.js apps/control-web/public/sana-v3-review-workspace.css apps/control-web/public/sana-v3-sw.js
+          git diff --cached --quiet && exit 0
+          git commit -m 'demo: assemble review workspace focus continuity v109'
+          git push origin HEAD:demo/sana-v109-review-workspace-focus-continuity
