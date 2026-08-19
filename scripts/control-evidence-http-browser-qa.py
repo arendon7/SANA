@@ -2,6 +2,7 @@
 from pathlib import Path
 import json, subprocess, time, urllib.request, os, re
 from playwright.sync_api import sync_playwright
+from control_browser_demo_auth import authenticate_demo_admin
 root=Path(__file__).resolve().parents[1];ev=root/'docs/product/evidence/evidence-ledger';ev.mkdir(parents=True,exist_ok=True)
 server=subprocess.Popen(['node','apps/control-web/server.mjs'],cwd=root,env={**os.environ,'PORT':'4273'},stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True)
 for _ in range(60):
@@ -18,6 +19,7 @@ try:
     for label,w,h in [('desktop',1440,900),('mobile',390,844)]:
       page=b.new_page(viewport={'width':w,'height':h},locale='es-CO');page.set_default_timeout(6000);errs=[];pageerrs=[]
       page.on('console',lambda m:errs.append(m.text) if m.type=='error' else None);page.on('pageerror',lambda e:pageerrs.append(str(e)))
+      authenticate_demo_admin(page,'http://127.0.0.1:4273/control/evidence')
       response=page.goto('http://127.0.0.1:4273/control/evidence',wait_until='networkidle');ck(f'{label}:http-200',response and response.status==200,response.status if response else None)
       ck(f'{label}:nosniff',response.headers.get('x-content-type-options')=='nosniff');ck(f'{label}:frame-deny',response.headers.get('x-frame-options')=='DENY');ck(f'{label}:secure-context',page.evaluate('window.isSecureContext'))
       ck(f'{label}:six-evidence',page.locator('.evidence-row').count()==6,page.locator('.evidence-row').count());ck(f'{label}:accepted-count',page.locator('#acceptedCount').inner_text()=='2');ck(f'{label}:stale-unknown-count',page.locator('#staleCount').inner_text()=='3')
