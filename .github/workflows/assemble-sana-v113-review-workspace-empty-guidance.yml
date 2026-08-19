@@ -1,0 +1,50 @@
+name: Assemble SANA v113 Review Workspace Empty Guidance
+
+on:
+  push:
+    branches:
+      - 'demo/sana-v113-review-workspace-empty-guidance'
+    paths:
+      - 'scripts/apply-v113-review-empty-guidance.py'
+      - 'scripts/validate-sana-dataroom-review-workspace-v113.mjs'
+      - '.github/workflows/sana-demo-dataroom-review-workspace-v113.yml'
+      - '.github/workflows/assemble-sana-v113-review-workspace-empty-guidance.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  assemble:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: demo/sana-v113-review-workspace-empty-guidance
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Apply, assemble and validate V113
+        run: |
+          python scripts/apply-v113-review-empty-guidance.py
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('apps/control-web/public/sana-v3-sw.js')
+          s=p.read_text()
+          active="const CACHE='sana-v3-demo-shell-v113';"
+          if active not in s:
+              old="const CACHE='sana-v3-demo-shell-v112';"
+              if old not in s: raise SystemExit('active shell v112 not found')
+              s=s.replace(old,"if(false){\nconst CACHE='sana-v3-demo-shell-v112';\n}\nconst CACHE='sana-v3-demo-shell-v113';",1)
+              p.write_text(s)
+          PY
+          node scripts/validate-sana-dataroom-review-workspace.mjs
+          for v in $(seq 88 113); do node scripts/validate-sana-dataroom-review-workspace-v${v}.mjs; done
+      - name: Commit assembled V113
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add apps/control-web/public/sana-v3-dataroom-entry.js apps/control-web/public/sana-v3-review-workspace.css apps/control-web/public/sana-v3-sw.js
+          git diff --cached --quiet && exit 0
+          git commit -m 'demo: assemble review workspace empty guidance v113'
+          git push origin HEAD:demo/sana-v113-review-workspace-empty-guidance
