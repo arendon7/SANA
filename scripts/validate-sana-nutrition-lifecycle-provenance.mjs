@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const paths={snapshot:'apps/control-web/public/sana-v3-report-snapshot-nutrition-lifecycle.js',history:'apps/control-web/public/sana-v3-dataroom-nutrition-lifecycle.js',cycle:'apps/control-web/public/sana-v3-cycle-nutrition-lifecycle.js',gaps:'apps/control-web/public/sana-v3-due-diligence-nutrition-lifecycle-gaps.js'};
+const s=Object.fromEntries(Object.entries(paths).map(([k,p])=>[k,fs.readFileSync(p,'utf8')]));
+for(const t of Object.values(s))assert.doesNotMatch(t,/productionExecutionAvailable\s*=\s*true|canonicalMutated\s*=\s*true|creditApproved|investmentApproved/i);
+for(const x of ['lifecycleState','closureClass','closureBasisEventId','closureEventId','closureIssueCount','NO_RETROACTIVE_CLOSURE_FILL'])assert.ok(s.snapshot.includes(x),x);
+assert.ok(s.history.includes('NO_LIVE_FALLBACK'));assert.doesNotMatch(s.history,/__SANA_NUTRITION_LEDGER__|storage\./);
+assert.ok(s.cycle.includes('NUTRITION_LIFECYCLE ≠ CYCLE_GATE'));assert.ok(s.cycle.includes('No modifica completeness ni readyForArchive'));assert.doesNotMatch(s.cycle,/completeness\s*=|readyForArchive\s*=/);
+assert.ok(s.gaps.includes('OPEN_CASE ≠ GAP'));assert.ok(s.gaps.includes('closure-integrity'));assert.ok(s.gaps.includes('closure-metadata'));assert.doesNotMatch(s.gaps,/__SANA_NUTRITION_LEDGER__|storage\./);
+for(const t of Object.values(s))assert.ok(t.includes('CLOSED_HUMAN')||t.includes('CASE_CLOSED_HUMAN'));
+console.log('SANA nutrition lifecycle provenance V132 contract: OK');
