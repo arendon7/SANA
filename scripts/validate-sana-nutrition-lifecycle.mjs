@@ -14,10 +14,10 @@ const E=[
 {id:'CL3',caseId:'C3',eventKind:'CASE_CLOSE',lot:'L3',observedAt:'2026-08-04'}];
 const meta={CL1:{lifecycleVersion:'V131',closureClass:'COMPLETED_REVIEWED',basisEventId:'R1'},CL2:{lifecycleVersion:'V131',closureClass:'CLOSED_NOT_EXECUTED',basisEventId:'D2'},CL3:{lifecycleVersion:'V131',closureClass:'CLOSED_NOT_EXECUTED',basisEventId:'D3'}};
 globalThis.storage={records:Object.entries(meta).map(([id,v])=>({id,type:'nutrition-ledger-event',values:{nutritionSchema:'SANA_NUTRITION_LEDGER_V1',...v}}))};
-globalThis.identity={displayName:'QA'};globalThis.views={nutrition:()=>'<footer class="footer"></footer>'};globalThis.document={addEventListener:()=>{}};globalThis.esc=v=>String(v??'');globalThis.metric=()=>'';globalThis.openModal=()=>{};
+globalThis.identity={displayName:'QA'};globalThis.views={nutrition:()=>'<footer class="footer"></footer>'};globalThis.document={readyState:'loading',addEventListener:()=>{}};globalThis.esc=v=>String(v??'');globalThis.metric=()=>'';globalThis.openModal=()=>{};
 const ids=['C1','C2','C3'];
 const row=id=>({id,lot:`L${id.slice(1)}`,objective:'QA',events:E.filter(e=>e.caseId===id),stageCoverage:{percent:100},chainCoverage:{percent:100},referenceCoverage:{percent:100},responses:E.filter(e=>e.caseId===id&&e.eventKind==='RESPONSE'),decisions:E.filter(e=>e.caseId===id&&e.eventKind==='DECISION'),semantics:{},integrity:'BASE'});
-globalThis.window={__SANA_NUTRITION_LEDGER__:Object.freeze({schema:'SANA_NUTRITION_LEDGER_V1',projection:'SANA_NUTRITION_CHAIN_V2',integrity:'BASE',events:()=>E,cases:()=>ids.map(row),forCase:row,forLot:lot=>ids.map(row).filter(c=>c.lot===lot)})};
+globalThis.window={addEventListener:()=>{},__SANA_NUTRITION_LEDGER__:Object.freeze({schema:'SANA_NUTRITION_LEDGER_V1',projection:'SANA_NUTRITION_CHAIN_V2',integrity:'BASE',events:()=>E,cases:()=>ids.map(row),forCase:row,forLot:lot=>ids.map(row).filter(c=>c.lot===lot)})};
 vm.runInThisContext(src);
 const api=window.__SANA_NUTRITION_LEDGER__;
 assert.equal(api.forCase('C1').lifecycle.state,'CLOSED_HUMAN');
