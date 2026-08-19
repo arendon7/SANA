@@ -44,7 +44,7 @@ if anchor not in entry: raise SystemExit('V120 diagnostics html anchor missing')
 entry=entry.replace(anchor,insert+anchor,1)
 
 old_details='return `<details data-review-structural-diagnostics="${esc(diagnostic.stage)}" class="review-structural-diagnostics">'
-new_details='return `<details id="review-structural-diagnostics-${esc(String(diagnostic.stage||\'\').toLowerCase())}" data-review-structural-diagnostics="${esc(diagnostic.stage)}" class="review-structural-diagnostics">'
+new_details='return `<details data-review-structural-diagnostics="${esc(diagnostic.stage)}" id="review-structural-diagnostics-${esc(String(diagnostic.stage||\'\').toLowerCase())}" class="review-structural-diagnostics">'
 if old_details not in entry: raise SystemExit('V120 details anchor missing')
 entry=entry.replace(old_details,new_details,1)
 
