@@ -14,6 +14,7 @@ on:
       - 'apps/control-web/public/sana-v3.html'
       - 'apps/control-web/public/sana-v3-sw.js'
       - 'scripts/validate-sana-health-ledger.mjs'
+      - 'scripts/validate-sana-health-ledger-v2.mjs'
       - 'scripts/validate-sana-cycle-health.mjs'
       - 'scripts/validate-sana-health-snapshot.mjs'
       - 'scripts/validate-sana-health-gaps.mjs'
@@ -30,6 +31,7 @@ on:
       - 'apps/control-web/public/sana-v3.html'
       - 'apps/control-web/public/sana-v3-sw.js'
       - 'scripts/validate-sana-health-ledger.mjs'
+      - 'scripts/validate-sana-health-ledger-v2.mjs'
       - 'scripts/validate-sana-cycle-health.mjs'
       - 'scripts/validate-sana-health-snapshot.mjs'
       - 'scripts/validate-sana-health-gaps.mjs'
@@ -56,6 +58,7 @@ jobs:
           node --check apps/control-web/public/sana-v3-dataroom-health-history.js
           node --check apps/control-web/public/sana-v3-due-diligence-health-gaps.js
           node scripts/validate-sana-health-ledger.mjs
+          node scripts/validate-sana-health-ledger-v2.mjs
           node scripts/validate-sana-cycle-health.mjs
           node scripts/validate-sana-health-snapshot.mjs
           node scripts/validate-sana-health-gaps.mjs
@@ -66,11 +69,15 @@ jobs:
           ledger='apps/control-web/public/sana-v3-health-ledger.js'
           grep -q '__SANA_PHYTOSANITARY_LEDGER__' "$ledger"
           grep -q 'SANA_PHYTOSANITARY_LEDGER_V1' "$ledger"
+          grep -q 'SANA_PHYTOSANITARY_CHAIN_V2' "$ledger"
           grep -q 'LEGACY_INCIDENT_SUMMARY ≠ OBSERVED_PRESENCE ≠ DIAGNOSIS ≠ TREATMENT ≠ EFFICACY' "$ledger"
           grep -q 'OBSERVATION ≠ DIAGNOSIS' "$ledger"
           grep -q 'DIAGNOSIS ≠ RECOMMENDATION' "$ledger"
           grep -q 'RECOMMENDATION ≠ EXECUTION' "$ledger"
-          grep -q 'FOLLOW_UP ≠ CAUSAL_ATTRIBUTION' "$ledger"
+          grep -q 'ACTIVITY_LINK_EVENT ≠ ACTION' "$ledger"
+          grep -q 'FOLLOW_UP ≠ RESULT' "$ledger"
+          grep -q 'RESULT ≠ CAUSAL_ATTRIBUTION' "$ledger"
+          grep -q 'EMBEDDED_V1_RELATION ≠ V2_STAGE' "$ledger"
           grep -q 'CONFIRMED_HUMAN_DEMO' "$ledger"
           ! grep -q 'storage.records.push' "$ledger"
       - name: Validate historical snapshot boundary
@@ -121,6 +128,8 @@ jobs:
           grep -q "'/sana-v3-dataroom-health-history.js'" "$sw"
           grep -q "'/sana-v3-due-diligence-health-gaps.js'" "$sw"
           grep -q "const CACHE='sana-v3-demo-shell-v35'" "$sw"
+          grep -q "const CACHE='sana-v3-demo-shell-v120'" "$sw"
+          grep -q "const CACHE='sana-v3-demo-shell-v121'" "$sw"
       - name: Assert no production authority
         shell: bash
         run: |
