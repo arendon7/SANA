@@ -1,0 +1,51 @@
+name: Assemble SANA v108 Review Workspace Accessibility Focus
+
+on:
+  push:
+    branches:
+      - 'demo/sana-v108-review-workspace-accessibility-focus'
+    paths:
+      - 'scripts/apply-v108-review-accessibility-focus.py'
+      - 'scripts/validate-sana-dataroom-review-workspace-v108.mjs'
+      - '.github/workflows/sana-demo-dataroom-review-workspace-v108.yml'
+      - '.github/workflows/assemble-sana-v108-review-workspace-accessibility-focus.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  assemble:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: demo/sana-v108-review-workspace-accessibility-focus
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Apply V108 product patch
+        run: python scripts/apply-v108-review-accessibility-focus.py
+      - name: Advance demo shell to v108
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('apps/control-web/public/sana-v3-sw.js')
+          s=p.read_text()
+          old="const CACHE='sana-v3-demo-shell-v107';"
+          if old not in s: raise SystemExit('active shell v107 not found')
+          s=s.replace(old,"if(false){\nconst CACHE='sana-v3-demo-shell-v107';\n}\nconst CACHE='sana-v3-demo-shell-v108';",1)
+          p.write_text(s)
+          PY
+      - name: Validate V87–V108 contracts
+        run: |
+          node scripts/validate-sana-dataroom-review-workspace.mjs
+          for v in $(seq 88 108); do node scripts/validate-sana-dataroom-review-workspace-v${v}.mjs; done
+      - name: Commit assembled V108
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add apps/control-web/public/sana-v3-dataroom-entry.js apps/control-web/public/sana-v3-review-workspace.css apps/control-web/public/sana-v3-sw.js
+          git diff --cached --quiet && exit 0
+          git commit -m 'demo: assemble review workspace accessibility focus v108'
+          git push origin HEAD:demo/sana-v108-review-workspace-accessibility-focus
