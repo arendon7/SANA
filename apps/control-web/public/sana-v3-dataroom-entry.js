@@ -1,13 +1,23 @@
 (() => {
   'use strict';
 
-  const REVIEW_CONTEXT_INTEGRITY='CONTEXT_SUMMARY ≠ SOURCE_VERIFICATION · ACTIVE_SELECTOR ≠ REVIEW_PRIORITY · CONTEXT_ISSUE_COUNT ≠ RISK_SCORE · SUMMARY_VIEW ≠ PERSISTED_STATE · REVIEW_CONTEXT_VIEW ≠ SOURCE_LEDGER · STAGE_SWITCH ≠ REVIEW_PROGRESS · STAGE_ORDER ≠ REQUIRED_SEQUENCE · NAVIGABLE_STAGE ≠ COMPLETE_STAGE · DISABLED_STAGE ≠ REVIEW_FAILURE · URL_STAGE_CHANGE ≠ SOURCE_MUTATION · STAGE_BUTTON_STATUS ≠ REVIEW_OUTCOME · CONTEXT_LINK ≠ SOURCE_SNAPSHOT · COPIED_LINK ≠ VERIFIED_CONTEXT · CLIPBOARD_COPY ≠ EXTERNAL_DELIVERY · SHAREABLE_URL ≠ REVIEW_APPROVAL · LINK_REOPEN ≠ CONTEXT_VERIFICATION · URL_CONTEXT ≠ PERSISTED_SOURCE_STATE · ROLE_LENS ≠ ACCESS_CONTROL · ROLE_EMPHASIS ≠ FILTER ≠ REVIEW_PRIORITY · ROLE_GUIDANCE ≠ REVIEW_OUTCOME · ROLE_LENS ≠ SOURCE_MUTATION · SAME_EVIDENCE_SET_ACROSS_ROLES · READ_ONLY · NO_SOURCE_MUTATION';
+  const REVIEW_CONTEXT_INTEGRITY='CONTEXT_SUMMARY ≠ SOURCE_VERIFICATION · ACTIVE_SELECTOR ≠ REVIEW_PRIORITY · CONTEXT_ISSUE_COUNT ≠ RISK_SCORE · SUMMARY_VIEW ≠ PERSISTED_STATE · REVIEW_CONTEXT_VIEW ≠ SOURCE_LEDGER · STAGE_SWITCH ≠ REVIEW_PROGRESS · STAGE_ORDER ≠ REQUIRED_SEQUENCE · NAVIGABLE_STAGE ≠ COMPLETE_STAGE · DISABLED_STAGE ≠ REVIEW_FAILURE · URL_STAGE_CHANGE ≠ SOURCE_MUTATION · STAGE_BUTTON_STATUS ≠ REVIEW_OUTCOME · CONTEXT_LINK ≠ SOURCE_SNAPSHOT · COPIED_LINK ≠ VERIFIED_CONTEXT · CLIPBOARD_COPY ≠ EXTERNAL_DELIVERY · SHAREABLE_URL ≠ REVIEW_APPROVAL · LINK_REOPEN ≠ CONTEXT_VERIFICATION · URL_CONTEXT ≠ PERSISTED_SOURCE_STATE · ROLE_LENS ≠ ACCESS_CONTROL · ROLE_EMPHASIS ≠ FILTER ≠ REVIEW_PRIORITY · ROLE_GUIDANCE ≠ REVIEW_OUTCOME · ROLE_LENS ≠ SOURCE_MUTATION · SAME_EVIDENCE_SET_ACROSS_ROLES · REVIEW_QUESTION ≠ REQUIREMENT ≠ DECISION · QUESTION_SET ≠ SCORECARD · STAGE_GUIDANCE ≠ AUTOMATIC_FINDING · QUESTION_ORDER ≠ PRIORITY · GUIDE_VIEW ≠ SOURCE_MUTATION · READ_ONLY · NO_SOURCE_MUTATION';
   const REVIEW_STAGE_LABELS=Object.freeze({CASE:'Expediente',HANDOFF:'Handoff',FEEDBACK:'Feedback',RESPONSE:'Respuesta',DISPOSITION:'Disposición',ROUND:'Ronda'});
   const REVIEW_STAGE_ORDER=Object.freeze(['CASE','HANDOFF','FEEDBACK','RESPONSE','DISPOSITION','ROUND']);
   const REVIEW_CONTEXT_KEYS=Object.freeze(['rwCapital','rwLot','rwFocus','rwStage','rwEvent','rwRef']);
   const REVIEW_V102_COMPAT='DATA ROOM · REVIEW WORKSPACE V102 · Circuito de revisión, con contexto operativo visible';
   const REVIEW_V103_COMPAT='DATA ROOM · REVIEW WORKSPACE V103 · Circuito de revisión, con contexto operativo y navegación de etapas';
   const REVIEW_V104_COMPAT='DATA ROOM · REVIEW WORKSPACE V104 · Circuito de revisión, con contexto reproducible y navegación de etapas';
+  const REVIEW_V105_COMPAT='DATA ROOM · REVIEW WORKSPACE V105 · Circuito de revisión, con lente por rol y contexto reproducible';
+  const REVIEW_STAGE_GUIDES=Object.freeze({
+    ALL:Object.freeze(['¿Qué etapas del circuito pueden reconstruirse desde referencias únicas y cuáles siguen indeterminadas?','¿Qué señales provienen de disponibilidad, schema o payload y no deben confundirse con ausencia documental?','¿Qué contexto adicional necesitaría una persona antes de emitir cualquier juicio sobre suficiencia o resultado?']),
+    CASE:Object.freeze(['¿El expediente fuente identifica claramente el caso, capital case y lote que se están revisando?','¿Las referencias internas del expediente permiten reconstruir su procedencia sin asumir identidad por coincidencia de IDs?','¿Qué información falta para comprender el alcance del caso sin convertir esa ausencia en fallo automático?']),
+    HANDOFF:Object.freeze(['¿La entrega documenta qué fue transferido para revisión y desde qué caso fuente?','¿El handoff conserva referencias suficientes para entender el alcance sin inferir aceptación o completitud?','¿Hay alguna ambigüedad de procedencia que deba resolverse antes de interpretar la entrega?']),
+    FEEDBACK:Object.freeze(['¿El feedback puede vincularse con una referencia o evento concreto del caso revisado?','¿Se distingue una observación humana de una conclusión, prioridad o decisión automática?','¿Qué evidencia adicional sería necesaria para interpretar el comentario con su contexto original?']),
+    RESPONSE:Object.freeze(['¿La respuesta se vincula explícitamente con el feedback o referencia a la que pretende responder?','¿La respuesta aporta evidencia o explicación sin asumir que ello resuelve automáticamente el asunto?','¿Qué aspectos necesitan revisión humana adicional antes de considerar suficiente la respuesta?']),
+    DISPOSITION:Object.freeze(['¿La disposición registrada puede trazarse a las referencias y eventos que la sustentan?','¿El estado de disposición se mantiene separado de aprobación DD, elegibilidad o decisión financiera?','¿Qué condiciones o límites deberían quedar explícitos para que una persona interprete correctamente la disposición?']),
+    ROUND:Object.freeze(['¿La ronda permite reconstruir qué cambió entre iteraciones sin asumir mejora, causalidad o cierre?','¿El estado de la ronda se mantiene separado del resultado del capital case y de cualquier aprobación?','¿Qué elementos requieren comparación humana antes de describir la evolución del proceso de revisión?'])
+  });
   const REVIEW_ROLE_LENSES=Object.freeze({
     admin:Object.freeze({label:'Gobernanza',headline:'Integridad y consistencia del circuito',summary:'Lee disponibilidad de fuentes, schema, referencias, ambigüedad y contexto sin convertir señales documentales en fallas automáticas.',cues:Object.freeze(['Revisar procedencia y estado técnico de las fuentes','Localizar referencias ambiguas o no resueltas','Mantener separadas gobernanza, suficiencia y decisión'])}),
     technical:Object.freeze({label:'Técnica',headline:'Trazabilidad y procedencia para revisión humana',summary:'Prioriza eventos, referencias y vínculo con el caso fuente. La proyección ayuda a revisar; no diagnostica ni reemplaza criterio técnico.',cues:Object.freeze(['Contrastar secuencia observada con el ledger fuente','Revisar referencias internas antes de interpretar hallazgos','Mantener causalidad y eficacia fuera de inferencias automáticas'])}),
@@ -50,6 +60,11 @@
   function reviewRoleLens(role=currentRole()){
     const key=Object.prototype.hasOwnProperty.call(REVIEW_ROLE_LENSES,role)?role:'new_user',cfg=REVIEW_ROLE_LENSES[key];
     return {role:key,label:cfg.label,headline:cfg.headline,summary:cfg.summary,cues:[...cfg.cues],evidenceScope:'UNCHANGED',permissionEffect:'NONE',filterEffect:'NONE',integrity:'ROLE_LENS ≠ ACCESS_CONTROL · ROLE_EMPHASIS ≠ FILTER ≠ REVIEW_PRIORITY · ROLE_GUIDANCE ≠ REVIEW_OUTCOME · ROLE_LENS ≠ SOURCE_MUTATION · SAME_EVIDENCE_SET_ACROSS_ROLES'};
+  }
+  function reviewRoleStageGuide(role=currentRole(),stage='ALL'){
+    const lens=reviewRoleLens(role),key=Object.prototype.hasOwnProperty.call(REVIEW_STAGE_GUIDES,stage)?stage:'ALL',base=REVIEW_STAGE_GUIDES[key];
+    const rolePrompt={admin:'¿Qué control de integridad o gobernanza merece atención humana aquí?',technical:'¿Qué procedencia o evidencia técnica conviene contrastar directamente con la fuente?',investor:'¿Qué límite de lectura debe preservarse para no convertir evidencia en recomendación o elegibilidad?',producer:'¿Qué parte de esta revisión conviene explicar desde el registro fuente y el acompañamiento humano?',visitor:'¿Qué puede comprenderse de esta etapa sin asumir permiso, aprobación o resultado?',new_user:'¿Qué concepto de esta etapa debe entenderse antes de atribuirle significado operativo?'}[lens.role]||'¿Qué debe revisar una persona antes de interpretar esta etapa?';
+    return {role:lens.role,stage:key,stageLabel:key==='ALL'?'Todas':REVIEW_STAGE_LABELS[key]||key,questions:[rolePrompt,...base.slice(0,2)],answerMode:'HUMAN_ONLY',required:false,scoreEffect:'NONE',priorityEffect:'NONE',findingEffect:'NONE',permissionEffect:'NONE',integrity:'REVIEW_QUESTION ≠ REQUIREMENT ≠ DECISION · QUESTION_SET ≠ SCORECARD · STAGE_GUIDANCE ≠ AUTOMATIC_FINDING · QUESTION_ORDER ≠ PRIORITY · GUIDE_VIEW ≠ SOURCE_MUTATION'};
   }
   function reviewStageNavigation(s,focus){
     const ready=focus?.capital&&focus.capital!=='ALL'&&focus?.lot&&focus.lot!=='ALL';
@@ -100,6 +115,7 @@
         stageNavigation:reviewStageNavigation(s,focus),
         permalink:reviewContextPermalink(focus),
         roleLens:reviewRoleLens(),
+        humanGuide:reviewRoleStageGuide(currentRole(),focus.stage||'ALL'),
         integrity:REVIEW_CONTEXT_INTEGRITY
       };
     }catch{return null}
@@ -107,6 +123,10 @@
   function reviewContextChip(label,value,active,resolved){
     const border=active?(resolved?'#cfe0dd':'#dfd2b7'):'var(--line)',background=active?(resolved?'#f4faf8':'#fffdf8'):'#fafbf9';
     return `<div data-review-context-field="${esc(label)}" style="display:grid;gap:2px;flex:1 1 118px;min-width:0;padding:7px 9px;border:1px solid ${border};border-radius:9px;background:${background}"><span style="font-size:6px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">${esc(label)}</span><strong style="font-size:8px;overflow-wrap:anywhere">${esc(value||'—')}</strong></div>`;
+  }
+  function reviewHumanGuideHtml(guide){
+    if(!guide)return '';
+    return `<div data-review-human-guide data-review-guide-role="${esc(guide.role)}" data-review-guide-stage="${esc(guide.stage)}" style="margin-top:9px;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap"><div style="display:grid;gap:3px;min-width:0;flex:1"><span style="font-size:6px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">GUÍA DE REVISIÓN HUMANA · ${esc(guide.stageLabel)}</span><strong style="font-size:9px">Preguntas para orientar la lectura, no para puntuarla</strong><small style="font-size:7px;color:var(--muted)">No son requisitos, checklist de cierre ni hallazgos automáticos.</small></div><span class="status">HUMAN ONLY</span></div><ol style="margin:8px 0 0;padding-left:18px;display:grid;gap:5px">${guide.questions.map(q=>`<li style="font-size:7px;line-height:1.45;color:var(--ink2)">${esc(q)}</li>`).join('')}</ol><div style="margin-top:7px;font-size:6px;color:var(--muted)">REVIEW_QUESTION ≠ REQUIREMENT ≠ DECISION · QUESTION_SET ≠ SCORECARD · STAGE_GUIDANCE ≠ AUTOMATIC_FINDING · QUESTION_ORDER ≠ PRIORITY</div></div>`;
   }
   function reviewStageSwitcherHtml(nav){
     if(!nav)return '';
@@ -126,7 +146,7 @@
   }
   function reviewContextSummaryHtml(x){
     if(!x)return '';
-    return `<!-- ${REVIEW_V102_COMPAT} --><!-- ${REVIEW_V103_COMPAT} --><!-- ${REVIEW_V104_COMPAT} --><section data-review-context-summary class="review-context-summary" aria-label="Resumen de contexto de revisión" style="margin:0 0 12px;padding:11px;border:1px solid var(--line);border-radius:12px;background:${x.resolved?'#fff':'#fbfaf5'}"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:8px"><div style="display:grid;gap:2px"><p class="kicker" style="margin:0;font-size:7px;letter-spacing:.1em;color:var(--muted);font-weight:850">CONTEXTO ACTIVO · URL ONLY</p><strong style="font-size:10px">${x.resolved?'Contexto resuelto':'Contexto con selectores no resueltos'}</strong><small style="font-size:7px;color:var(--muted)">${x.visibleChains} circuito(s) visible(s) · ${x.issueCount} incidencia(s) de contexto</small></div><span class="status ${x.resolved?'teal':'warn'}">${x.resolved?'RESOLVED':'UNRESOLVED'}</span></div><div style="display:flex;flex-wrap:wrap;gap:6px">${reviewContextChip('Capital case',x.capital,x.capital!=='ALL',x.resolved)}${reviewContextChip('Lote',x.lot,x.lot!=='ALL',x.resolved)}${reviewContextChip('Foco',x.focus,x.focus!=='ALL',x.resolved)}${reviewContextChip('Etapa',x.stage==='ALL'?'Todas':`${x.stageLabel} · ${x.stage}`,x.stage!=='ALL',x.resolved)}${reviewContextChip('Evento',x.event||'Sin foco',!!x.event,x.resolved)}${reviewContextChip('Referencia',x.ref||'Sin foco',!!x.ref,x.resolved)}</div>${reviewRoleLensHtml(x.roleLens)}${reviewStageSwitcherHtml(x.stageNavigation)}${reviewContextPermalinkHtml(x.permalink)}<div class="section-note" style="margin-top:8px">${esc(REVIEW_CONTEXT_INTEGRITY)}</div></section>`;
+    return `<!-- ${REVIEW_V102_COMPAT} --><!-- ${REVIEW_V103_COMPAT} --><!-- ${REVIEW_V104_COMPAT} --><!-- ${REVIEW_V105_COMPAT} --><section data-review-context-summary class="review-context-summary" aria-label="Resumen de contexto de revisión" style="margin:0 0 12px;padding:11px;border:1px solid var(--line);border-radius:12px;background:${x.resolved?'#fff':'#fbfaf5'}"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:8px"><div style="display:grid;gap:2px"><p class="kicker" style="margin:0;font-size:7px;letter-spacing:.1em;color:var(--muted);font-weight:850">CONTEXTO ACTIVO · URL ONLY</p><strong style="font-size:10px">${x.resolved?'Contexto resuelto':'Contexto con selectores no resueltos'}</strong><small style="font-size:7px;color:var(--muted)">${x.visibleChains} circuito(s) visible(s) · ${x.issueCount} incidencia(s) de contexto</small></div><span class="status ${x.resolved?'teal':'warn'}">${x.resolved?'RESOLVED':'UNRESOLVED'}</span></div><div style="display:flex;flex-wrap:wrap;gap:6px">${reviewContextChip('Capital case',x.capital,x.capital!=='ALL',x.resolved)}${reviewContextChip('Lote',x.lot,x.lot!=='ALL',x.resolved)}${reviewContextChip('Foco',x.focus,x.focus!=='ALL',x.resolved)}${reviewContextChip('Etapa',x.stage==='ALL'?'Todas':`${x.stageLabel} · ${x.stage}`,x.stage!=='ALL',x.resolved)}${reviewContextChip('Evento',x.event||'Sin foco',!!x.event,x.resolved)}${reviewContextChip('Referencia',x.ref||'Sin foco',!!x.ref,x.resolved)}</div>${reviewRoleLensHtml(x.roleLens)}${reviewHumanGuideHtml(x.humanGuide)}${reviewStageSwitcherHtml(x.stageNavigation)}${reviewContextPermalinkHtml(x.permalink)}<div class="section-note" style="margin-top:8px">${esc(REVIEW_CONTEXT_INTEGRITY)}</div></section>`;
   }
   function injectReviewContextSummary(html){
     if(!html||html.includes('data-review-context-summary'))return html;
@@ -138,7 +158,7 @@
     const bodyAt=html.indexOf('<div class="card-body">',workspaceAt),fallback=bodyAt>=0?bodyAt+'<div class="card-body">'.length:workspaceAt;
     const insertAt=controlsEnd>=0?controlsEnd+'</div>'.length:fallback;
     let out=`${html.slice(0,insertAt)}${section}${html.slice(insertAt)}`;
-    out=out.replace('DATA ROOM · REVIEW WORKSPACE V101','DATA ROOM · REVIEW WORKSPACE V105').replace('Circuito de revisión, con navegación bidireccional al caso fuente','Circuito de revisión, con lente por rol y contexto reproducible');
+    out=out.replace('DATA ROOM · REVIEW WORKSPACE V101','DATA ROOM · REVIEW WORKSPACE V106').replace('Circuito de revisión, con navegación bidireccional al caso fuente','Circuito de revisión, con guía humana por rol y etapa');
     return out;
   }
   function selectReviewStage(stage){
@@ -182,5 +202,5 @@
   });
 
   window.__SANA_DATAROOM_ENTRY__=Object.freeze({role:currentRole,integrity:'ROLE_ENTRY_ONLY · DATAROOM_READ_ONLY · NO_PRIVILEGE_ESCALATION'});
-  window.__SANA_DATAROOM_REVIEW_CONTEXT_SUMMARY__=Object.freeze({summary:reviewContextSummary,inject:injectReviewContextSummary,stageNavigation:reviewStageNavigation,selectStage:selectReviewStage,permalink:reviewContextPermalink,copyPermalink:copyReviewContextPermalink,roleLens:reviewRoleLens,integrity:REVIEW_CONTEXT_INTEGRITY});
+  window.__SANA_DATAROOM_REVIEW_CONTEXT_SUMMARY__=Object.freeze({summary:reviewContextSummary,inject:injectReviewContextSummary,stageNavigation:reviewStageNavigation,selectStage:selectReviewStage,permalink:reviewContextPermalink,copyPermalink:copyReviewContextPermalink,roleLens:reviewRoleLens,stageGuide:reviewRoleStageGuide,integrity:REVIEW_CONTEXT_INTEGRITY});
 })();
