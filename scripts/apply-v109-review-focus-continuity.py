@@ -43,8 +43,8 @@ new="""        humanGuide:reviewRoleStageGuide(currentRole(),focus.stage||'ALL')
 if old not in entry: raise SystemExit('summary anchor missing')
 entry=entry.replace(old,new,1)
 
-old_html="""<!-- ${REVIEW_V102_COMPAT} --><!-- ${REVIEW_V103_COMPAT} --><!-- ${REVIEW_V104_COMPAT} --><!-- ${REVIEW_V105_COMPAT} --><!-- ${REVIEW_V106_COMPAT} --><!-- ${REVIEW_V107_COMPAT} --><!-- ${REVIEW_V108_COMPAT} --><section data-review-context-summary class=\"review-context-summary\" aria-label=\"Resumen de contexto de revisión\""" 
-new_html="""<!-- ${REVIEW_V102_COMPAT} --><!-- ${REVIEW_V103_COMPAT} --><!-- ${REVIEW_V104_COMPAT} --><!-- ${REVIEW_V105_COMPAT} --><!-- ${REVIEW_V106_COMPAT} --><!-- ${REVIEW_V107_COMPAT} --><!-- ${REVIEW_V108_COMPAT} --><!-- ${REVIEW_V109_COMPAT} --><section data-review-context-summary class=\"review-context-summary\" aria-label=\"Resumen de contexto de revisión\""" 
+old_html='<!-- ${REVIEW_V102_COMPAT} --><!-- ${REVIEW_V103_COMPAT} --><!-- ${REVIEW_V104_COMPAT} --><!-- ${REVIEW_V105_COMPAT} --><!-- ${REVIEW_V106_COMPAT} --><!-- ${REVIEW_V107_COMPAT} --><!-- ${REVIEW_V108_COMPAT} --><section data-review-context-summary class="review-context-summary" aria-label="Resumen de contexto de revisión"'
+new_html='<!-- ${REVIEW_V102_COMPAT} --><!-- ${REVIEW_V103_COMPAT} --><!-- ${REVIEW_V104_COMPAT} --><!-- ${REVIEW_V105_COMPAT} --><!-- ${REVIEW_V106_COMPAT} --><!-- ${REVIEW_V107_COMPAT} --><!-- ${REVIEW_V108_COMPAT} --><!-- ${REVIEW_V109_COMPAT} --><section data-review-context-summary class="review-context-summary" aria-label="Resumen de contexto de revisión"'
 if old_html not in entry: raise SystemExit('compat html anchor missing')
 entry=entry.replace(old_html,new_html,1)
 
