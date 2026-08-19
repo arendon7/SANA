@@ -2,7 +2,7 @@ name: SANA Demo Health Ledger V2
 
 on:
   push:
-    branches: [demo/sana-functional-auth-v1, demo/sana-health-v2-v121, demo/sana-health-v2-v122, demo/sana-health-v2-v123, demo/sana-health-v2-v124]
+    branches: [demo/sana-functional-auth-v1, demo/sana-health-v2-v121, demo/sana-health-v2-v122, demo/sana-health-v2-v123, demo/sana-health-v2-v124, demo/sana-health-v2-v125]
     paths:
       - 'apps/control-web/public/sana-v3-health-ledger.js'
       - 'apps/control-web/public/sana-v3-report-snapshot-sync.js'
@@ -15,6 +15,7 @@ on:
       - 'scripts/validate-sana-health-v2-provenance.mjs'
       - 'scripts/validate-sana-health-gaps.mjs'
       - 'scripts/validate-sana-health-references.mjs'
+      - 'scripts/validate-sana-health-reference-provenance.mjs'
       - '.github/workflows/sana-demo-health-ledger-v2.yml'
   pull_request:
     paths:
@@ -29,6 +30,7 @@ on:
       - 'scripts/validate-sana-health-v2-provenance.mjs'
       - 'scripts/validate-sana-health-gaps.mjs'
       - 'scripts/validate-sana-health-references.mjs'
+      - 'scripts/validate-sana-health-reference-provenance.mjs'
       - '.github/workflows/sana-demo-health-ledger-v2.yml'
 
 permissions:
@@ -88,12 +90,21 @@ jobs:
         run: |
           set -euo pipefail
           node scripts/validate-sana-health-v2-provenance.mjs
+          node scripts/validate-sana-health-reference-provenance.mjs
           sync='apps/control-web/public/sana-v3-report-snapshot-sync.js'
           history='apps/control-web/public/sana-v3-dataroom-health-history.js'
           cycle='apps/control-web/public/sana-v3-cycle-health-provenance.js'
           gaps='apps/control-web/public/sana-v3-due-diligence-health-gaps.js'
           grep -q 'ADDITIVE_V2 · PHYTOSANITARY_CHAIN' "$sync"
-          grep -q 'NO_V1_TO_V2_STAGE_PROMOTION' "$sync"
+          grep -q 'ADDITIVE_V2 · EXPLICIT_PREDECESSOR_REFERENCES' "$sync"
+          grep -q 'NO_RETROACTIVE_REFERENCE_FILL' "$sync"
+          grep -q 'referenceCoverage' "$history"
+          grep -q 'REFERENCE ≠ CAUSALITY' "$history"
+          grep -q 'referenceCoverage' "$cycle"
+          grep -q 'REFERENCE ≠ CAUSALITY' "$cycle"
+          grep -q 'referenceState' "$gaps"
+          grep -q 'predecessor-reference' "$gaps"
+          grep -q 'REFERENCE ≠ CAUSALITY' "$gaps"
           grep -q 'V1_EMBEDDED ≠ V2_STAGE' "$history"
           grep -q 'ACTIVITY_LINK ≠ EXECUTION' "$cycle"
           grep -q 'FOLLOW_UP ≠ RESULT' "$cycle"
@@ -116,6 +127,7 @@ jobs:
           grep -q "const CACHE='sana-v3-demo-shell-v122'" "$sw"
           grep -q "const CACHE='sana-v3-demo-shell-v123'" "$sw"
           grep -q "const CACHE='sana-v3-demo-shell-v124'" "$sw"
+          grep -q "const CACHE='sana-v3-demo-shell-v125'" "$sw"
           grep -q "'/sana-v3-health-ledger.js'" "$sw"
           grep -q "'/sana-v3-report-snapshot-sync.js'" "$sw"
           grep -q "'/sana-v3-dataroom-health-history.js'" "$sw"
