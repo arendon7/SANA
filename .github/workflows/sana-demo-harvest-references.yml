@@ -1,0 +1,34 @@
+name: SANA Demo Harvest References
+
+on:
+  push:
+    branches: [demo/sana-harvest-v135]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  harvest-references-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate V135 semantic references
+        run: |
+          set -euo pipefail
+          f='apps/control-web/public/sana-v3-harvest-references.js'
+          node --check "$f"
+          node scripts/validate-sana-harvest-references.mjs
+          grep -q "const VERSION='V135'" "$f"
+          grep -q 'CROSS_CASE_REFERENCE' "$f"
+          grep -q 'CROSS_LOT_REFERENCE' "$f"
+          grep -q 'FORWARD_REFERENCE' "$f"
+          grep -q 'QUANTITY_MATCH ≠ EVENT_REFERENCE' "$f"
+          grep -q 'REFERENCE ≠ SALE_VALIDITY' "$f"
+          grep -q 'REFERENCE ≠ PAYMENT' "$f"
+          grep -q 'REFERENCE ≠ PROFITABILITY' "$f"
+          grep -q 'REFERENCE ≠ CAUSALITY' "$f"
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|paymentExecuted|invoiceIssued|ownershipTransferred|creditApproved|investmentApproved' "$f"
