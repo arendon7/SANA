@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const REVIEW_CONTEXT_INTEGRITY='CONTEXT_SUMMARY ≠ SOURCE_VERIFICATION · ACTIVE_SELECTOR ≠ REVIEW_PRIORITY · CONTEXT_ISSUE_COUNT ≠ RISK_SCORE · SUMMARY_VIEW ≠ PERSISTED_STATE · REVIEW_CONTEXT_VIEW ≠ SOURCE_LEDGER · STAGE_SWITCH ≠ REVIEW_PROGRESS · STAGE_ORDER ≠ REQUIRED_SEQUENCE · NAVIGABLE_STAGE ≠ COMPLETE_STAGE · DISABLED_STAGE ≠ REVIEW_FAILURE · URL_STAGE_CHANGE ≠ SOURCE_MUTATION · STAGE_BUTTON_STATUS ≠ REVIEW_OUTCOME · CONTEXT_LINK ≠ SOURCE_SNAPSHOT · COPIED_LINK ≠ VERIFIED_CONTEXT · CLIPBOARD_COPY ≠ EXTERNAL_DELIVERY · SHAREABLE_URL ≠ REVIEW_APPROVAL · LINK_REOPEN ≠ CONTEXT_VERIFICATION · URL_CONTEXT ≠ PERSISTED_SOURCE_STATE · ROLE_LENS ≠ ACCESS_CONTROL · ROLE_EMPHASIS ≠ FILTER ≠ REVIEW_PRIORITY · ROLE_GUIDANCE ≠ REVIEW_OUTCOME · ROLE_LENS ≠ SOURCE_MUTATION · SAME_EVIDENCE_SET_ACROSS_ROLES · REVIEW_QUESTION ≠ REQUIREMENT ≠ DECISION · QUESTION_SET ≠ SCORECARD · STAGE_GUIDANCE ≠ AUTOMATIC_FINDING · QUESTION_ORDER ≠ PRIORITY · GUIDE_VIEW ≠ SOURCE_MUTATION · GUIDED_ENTRY ≠ ACCESS_GRANT · ENTRY_ROUTE ≠ REVIEW_PRIORITY · WORKSPACE_ENTRY ≠ REVIEW_DECISION · ENTRY_SCROLL ≠ SOURCE_MUTATION · ENTRY_CONTEXT_PRESERVED ≠ CONTEXT_VERIFICATION · FOCUS_TARGET ≠ REVIEW_PRIORITY · KEYBOARD_NAVIGATION ≠ REVIEW_PROGRESS · ARIA_STATE ≠ REVIEW_OUTCOME · FOCUS_RETURN ≠ SOURCE_MUTATION · ACCESSIBILITY_LAYER ≠ ACCESS_CONTROL · FOCUS_CONTINUITY ≠ REVIEW_PROGRESS · LIVE_ANNOUNCEMENT ≠ REVIEW_OUTCOME · RESTORED_FOCUS ≠ SOURCE_MUTATION · ANNOUNCED_CONTEXT ≠ CONTEXT_VERIFICATION · KEYBOARD_FOCUS ≠ REVIEW_PRIORITY · CONTEXT_RECOVERY ≠ DATA_REMEDIATION · URL_ISSUE_CLEAR ≠ SOURCE_ISSUE_RESOLUTION · URL_SELECTOR_CLEAR ≠ SOURCE_MUTATION · RECOVERY_CHOICE ≠ REVIEW_DECISION · COMPOSITE_CONTEXT_RESET ≠ SOURCE_LOSS · RECOVERY_PREVIEW ≠ RECOVERY_EXECUTION · PREVIEW_PATH ≠ SOURCE_STATE · SELECTOR_IMPACT ≠ DATA_IMPACT · DETAILS_OPEN ≠ REVIEW_DECISION · PRESERVED_SELECTOR ≠ VERIFIED_CONTEXT · EMPTY_VIEW ≠ EMPTY_EVIDENCE · FILTER_EMPTY ≠ REVIEW_GAP · CONTEXT_EMPTY ≠ SOURCE_MISSING · SOURCE_INDETERMINATE ≠ SOURCE_ABSENT · FILTER_RECOVERY ≠ SOURCE_MUTATION · EMPTY_STATE ≠ REVIEW_OUTCOME · READ_ONLY · NO_SOURCE_MUTATION';
+  const REVIEW_CONTEXT_INTEGRITY='CONTEXT_SUMMARY ≠ SOURCE_VERIFICATION · ACTIVE_SELECTOR ≠ REVIEW_PRIORITY · CONTEXT_ISSUE_COUNT ≠ RISK_SCORE · SUMMARY_VIEW ≠ PERSISTED_STATE · REVIEW_CONTEXT_VIEW ≠ SOURCE_LEDGER · STAGE_SWITCH ≠ REVIEW_PROGRESS · STAGE_ORDER ≠ REQUIRED_SEQUENCE · NAVIGABLE_STAGE ≠ COMPLETE_STAGE · DISABLED_STAGE ≠ REVIEW_FAILURE · URL_STAGE_CHANGE ≠ SOURCE_MUTATION · STAGE_BUTTON_STATUS ≠ REVIEW_OUTCOME · CONTEXT_LINK ≠ SOURCE_SNAPSHOT · COPIED_LINK ≠ VERIFIED_CONTEXT · CLIPBOARD_COPY ≠ EXTERNAL_DELIVERY · SHAREABLE_URL ≠ REVIEW_APPROVAL · LINK_REOPEN ≠ CONTEXT_VERIFICATION · URL_CONTEXT ≠ PERSISTED_SOURCE_STATE · ROLE_LENS ≠ ACCESS_CONTROL · ROLE_EMPHASIS ≠ FILTER ≠ REVIEW_PRIORITY · ROLE_GUIDANCE ≠ REVIEW_OUTCOME · ROLE_LENS ≠ SOURCE_MUTATION · SAME_EVIDENCE_SET_ACROSS_ROLES · REVIEW_QUESTION ≠ REQUIREMENT ≠ DECISION · QUESTION_SET ≠ SCORECARD · STAGE_GUIDANCE ≠ AUTOMATIC_FINDING · QUESTION_ORDER ≠ PRIORITY · GUIDE_VIEW ≠ SOURCE_MUTATION · GUIDED_ENTRY ≠ ACCESS_GRANT · ENTRY_ROUTE ≠ REVIEW_PRIORITY · WORKSPACE_ENTRY ≠ REVIEW_DECISION · ENTRY_SCROLL ≠ SOURCE_MUTATION · ENTRY_CONTEXT_PRESERVED ≠ CONTEXT_VERIFICATION · FOCUS_TARGET ≠ REVIEW_PRIORITY · KEYBOARD_NAVIGATION ≠ REVIEW_PROGRESS · ARIA_STATE ≠ REVIEW_OUTCOME · FOCUS_RETURN ≠ SOURCE_MUTATION · ACCESSIBILITY_LAYER ≠ ACCESS_CONTROL · FOCUS_CONTINUITY ≠ REVIEW_PROGRESS · LIVE_ANNOUNCEMENT ≠ REVIEW_OUTCOME · RESTORED_FOCUS ≠ SOURCE_MUTATION · ANNOUNCED_CONTEXT ≠ CONTEXT_VERIFICATION · KEYBOARD_FOCUS ≠ REVIEW_PRIORITY · CONTEXT_RECOVERY ≠ DATA_REMEDIATION · URL_ISSUE_CLEAR ≠ SOURCE_ISSUE_RESOLUTION · URL_SELECTOR_CLEAR ≠ SOURCE_MUTATION · RECOVERY_CHOICE ≠ REVIEW_DECISION · COMPOSITE_CONTEXT_RESET ≠ SOURCE_LOSS · RECOVERY_PREVIEW ≠ RECOVERY_EXECUTION · PREVIEW_PATH ≠ SOURCE_STATE · SELECTOR_IMPACT ≠ DATA_IMPACT · DETAILS_OPEN ≠ REVIEW_DECISION · PRESERVED_SELECTOR ≠ VERIFIED_CONTEXT · EMPTY_VIEW ≠ EMPTY_EVIDENCE · FILTER_EMPTY ≠ REVIEW_GAP · CONTEXT_EMPTY ≠ SOURCE_MISSING · SOURCE_INDETERMINATE ≠ SOURCE_ABSENT · FILTER_RECOVERY ≠ SOURCE_MUTATION · EMPTY_STATE ≠ REVIEW_OUTCOME · SOURCE_GUIDANCE ≠ SOURCE_REMEDIATION · GUIDANCE_LINK ≠ SOURCE_VERIFICATION · PROJECTION_PREREQUISITE ≠ REVIEW_REQUIREMENT · SOURCE_NAVIGATION ≠ REVIEW_PRIORITY · READ_ONLY · NO_SOURCE_MUTATION';
   const REVIEW_STAGE_LABELS=Object.freeze({CASE:'Expediente',HANDOFF:'Handoff',FEEDBACK:'Feedback',RESPONSE:'Respuesta',DISPOSITION:'Disposición',ROUND:'Ronda'});
   const REVIEW_STAGE_ORDER=Object.freeze(['CASE','HANDOFF','FEEDBACK','RESPONSE','DISPOSITION','ROUND']);
   const REVIEW_CONTEXT_KEYS=Object.freeze(['rwCapital','rwLot','rwFocus','rwStage','rwEvent','rwRef']);
@@ -16,6 +16,7 @@
   const REVIEW_V110_COMPAT='DATA ROOM · REVIEW WORKSPACE V110 · Circuito de revisión, con recuperación granular de contexto URL';
   const REVIEW_V111_COMPAT='DATA ROOM · REVIEW WORKSPACE V111 · Circuito de revisión, con vista previa del impacto URL';
   const REVIEW_V112_COMPAT='DATA ROOM · REVIEW WORKSPACE V112 · Circuito de revisión, con estados vacíos explícitos y recuperación de filtros';
+  const REVIEW_V113_COMPAT='DATA ROOM · REVIEW WORKSPACE V113 · Circuito de revisión, con guía de estados vacíos y navegación técnica';
   const REVIEW_RECOVERY_RULES=Object.freeze({rwCapital:Object.freeze({label:'Quitar capital case',keys:Object.freeze(['rwCapital'])}),rwLot:Object.freeze({label:'Quitar lote',keys:Object.freeze(['rwLot'])}),rwContext:Object.freeze({label:'Restablecer combinación',keys:Object.freeze(['rwCapital','rwLot','rwStage','rwEvent','rwRef'])}),rwStage:Object.freeze({label:'Quitar etapa',keys:Object.freeze(['rwStage','rwEvent'])}),rwEvent:Object.freeze({label:'Quitar evento',keys:Object.freeze(['rwEvent'])}),rwRef:Object.freeze({label:'Quitar referencia',keys:Object.freeze(['rwRef'])})});
   const REVIEW_STAGE_GUIDES=Object.freeze({
     ALL:Object.freeze(['¿Qué etapas del circuito pueden reconstruirse desde referencias únicas y cuáles siguen indeterminadas?','¿Qué señales provienen de disponibilidad, schema o payload y no deben confundirse con ausencia documental?','¿Qué contexto adicional necesitaría una persona antes de emitir cualquier juicio sobre suficiencia o resultado?']),
@@ -140,6 +141,39 @@
     if(technicalSignals>0)return {kind:'SOURCE_INDETERMINATE',visible:false,canRecover:false,clears:[],headline:'La proyección no es determinable desde las fuentes actuales',detail:'Existen señales técnicas de disponibilidad, schema, multiplicidad o payload. No se convierten en ausencia documental ni se corrigen desde esta vista.',technicalSignals,integrity:'SOURCE_INDETERMINATE ≠ SOURCE_ABSENT ≠ REVIEW_FAILURE'};
     return {kind:'WORKSPACE_EMPTY',visible:false,canRecover:false,clears:[],headline:'No hay circuitos proyectados en esta vista',detail:'El workspace no tiene circuitos proyectados. Este estado no afirma que no exista evidencia ni constituye resultado de revisión.',integrity:'WORKSPACE_EMPTY ≠ EMPTY_EVIDENCE ≠ REVIEW_OUTCOME'};
   }
+  function reviewSourceIntegrity(s){
+    const sources=Array.isArray(s?.sources)?s.sources:[];
+    return {
+      sources:sources.map(source=>({stage:source.stage||'',label:source.label||source.stage||'',state:source.state||'UNAVAILABLE',schemaState:source.schemaState||'UNKNOWN',payloadState:source.payloadState||'UNKNOWN',invalidCaseCount:Number(source.invalidCaseCount||0),caseCount:Number(source.caseCount||0),validCaseCount:Number(source.validCaseCount||0)})),
+      integrity:'SOURCE_STATUS ≠ SOURCE_VERIFICATION · TECHNICAL_STATE ≠ REVIEW_OUTCOME · SOURCE_INTEGRITY_VIEW ≠ SOURCE_REMEDIATION'
+    };
+  }
+  function reviewEmptyGuidance(empty,s){
+    if(!empty||empty.kind==='NONE'||empty.kind==='FILTER_EMPTY'||empty.kind==='CONTEXT_EMPTY')return {kind:empty?.kind||'NONE',items:[],sourceIntegrity:null,navigable:false,integrity:'SOURCE_GUIDANCE ≠ SOURCE_REMEDIATION'};
+    if(empty.kind==='SOURCE_INDETERMINATE'){
+      const summary=s?.summary||{},items=[];
+      if(Number(summary.unavailableSources||0)>0||Number(summary.sourceReadErrors||0)>0)items.push('Revisar disponibilidad y lectura de las APIs fuente del circuito.');
+      if(Number(summary.schemaMismatches||0)>0||Number(summary.missingSourceSchemas||0)>0)items.push('Contrastar el schema expuesto por la fuente con el contrato canónico de su etapa.');
+      if(Number(summary.ambiguousStageReferences||0)>0)items.push('Revisar multiplicidad de casos fuente para la misma etapa, capital case y lote.');
+      if(Number(summary.invalidSourceCases||0)>0||Number(summary.sourcesWithInvalidPayload||0)>0)items.push('Revisar forma mínima del payload antes de proyectarlo en el workspace.');
+      if(!items.length)items.push('Revisar señales técnicas de integridad de fuente sin atribuir ausencia documental.');
+      return {kind:empty.kind,items,sourceIntegrity:reviewSourceIntegrity(s),navigable:true,integrity:'SOURCE_GUIDANCE ≠ SOURCE_REMEDIATION · GUIDANCE_LINK ≠ SOURCE_VERIFICATION · SOURCE_NAVIGATION ≠ REVIEW_PRIORITY'};
+    }
+    return {kind:empty.kind,items:[
+      'Debe existir al menos una fuente disponible con schema compatible antes de proyectar una etapa.',
+      'Los casos fuente deben conservar capital case, lote, id y events[] con forma mínima válida.',
+      'Una etapa con múltiples casos para el mismo circuito se mantiene ambigua y no se elige automáticamente.',
+      'La ausencia de circuitos proyectados no prueba ausencia de evidencia, incumplimiento ni riesgo.'
+    ],sourceIntegrity:null,navigable:false,integrity:'PROJECTION_PREREQUISITE ≠ REVIEW_REQUIREMENT · WORKSPACE_EMPTY ≠ EMPTY_EVIDENCE · GUIDANCE_VIEW ≠ REVIEW_OUTCOME'};
+  }
+  function focusReviewSourceIntegrity(){
+    if(typeof document==='undefined')return false;
+    const target=document.querySelector?.('[data-review-source-integrity]');
+    if(!target)return false;
+    target.scrollIntoView?.({block:'start',behavior:'smooth'});
+    target.focus?.({preventScroll:true});
+    return true;
+  }
   function applyReviewFilterRecovery(mode='CLEAR_FOCUS'){
     if(mode!=='CLEAR_FOCUS')return {applied:false,cleared:[]};
     try{
@@ -207,6 +241,7 @@
         issueCount:context.issues?.length||0,
         visibleChains:visible.length,
         emptyState:reviewEmptyState(s,focus,context,visible),
+        emptyGuidance:reviewEmptyGuidance(reviewEmptyState(s,focus,context,visible),s),
         stageNavigation:reviewStageNavigation(s,focus),
         permalink:reviewContextPermalink(focus),
         roleLens:reviewRoleLens(),
@@ -251,6 +286,15 @@
     const allHtml=allPreview?.valid?`<details data-review-context-recovery-preview="ALL" class="review-context-recovery-preview"><summary>Restablecer contexto</summary>${reviewRecoveryPreviewHtml(allPreview,'Restablecer contexto URL')}</details>`:'';
     return `<div data-review-context-recovery style="margin-top:9px;padding:9px;border:1px solid #e3d7b6;border-radius:10px;background:#fffdf7"><div><strong style="font-size:8px">RECUPERACIÓN DE CONTEXTO · URL ONLY</strong><div style="font-size:6px;color:var(--muted);margin-top:2px">Abre una opción para previsualizar exactamente qué cambia antes de limpiar selectores URL. No modifica fuentes ni corrige datos.</div></div><div class="review-context-recovery-actions" style="display:grid;gap:6px;margin-top:7px">${actionHtml}${allHtml}</div><div style="margin-top:6px;font-size:6px;color:var(--muted)">DETAILS_OPEN ≠ REVIEW_DECISION · CONTEXT_RECOVERY ≠ DATA_REMEDIATION · URL_SELECTOR_CLEAR ≠ SOURCE_MUTATION</div></div>`;
   }
+  function reviewSourceIntegrityHtml(integrity){
+    if(!integrity?.sources?.length)return '';
+    return `<section data-review-source-integrity tabindex="-1" class="review-source-integrity" aria-label="Integridad técnica de fuentes"><div class="review-source-integrity-head"><div><p class="kicker">INTEGRIDAD DE FUENTES · READ ONLY</p><h4>Estado técnico usado para decidir si una etapa puede proyectarse</h4><p>Disponibilidad, schema y payload se muestran como señales técnicas; no verifican documentos ni califican la revisión.</p></div><span class="status">TECHNICAL ONLY</span></div><div class="review-source-integrity-grid">${integrity.sources.map(source=>`<div class="review-source-integrity-item" data-review-source-stage="${esc(source.stage)}"><strong>${esc(source.label||source.stage)}</strong><span>API · ${esc(source.state)}</span><span>Schema · ${esc(source.schemaState)}</span><span>Payload · ${esc(source.payloadState)}</span><span>Casos · ${source.validCaseCount}/${source.caseCount} válidos · ${source.invalidCaseCount} inválidos</span></div>`).join('')}</div><div class="section-note">${esc(integrity.integrity)}</div></section>`;
+  }
+  function reviewEmptyGuidanceHtml(guidance){
+    if(!guidance?.items?.length)return '';
+    const action=guidance.navigable?'<button type="button" class="btn ghost" data-review-empty-source-nav>Ir a integridad de fuentes</button>':'';
+    return `<div data-review-empty-guidance="${esc(guidance.kind)}" class="review-empty-guidance"><div><strong>GUÍA HUMANA · READ ONLY</strong><p>Orientación para comprender por qué no hay una proyección visible. No corrige fuentes ni crea requisitos de revisión.</p></div><ul>${guidance.items.map(item=>`<li>${esc(item)}</li>`).join('')}</ul>${action}<div class="section-note">${esc(guidance.integrity)}</div>${reviewSourceIntegrityHtml(guidance.sourceIntegrity)}</div>`;
+  }
   function reviewEmptyStateHtml(empty){
     if(!empty||empty.kind==='NONE')return '';
     const action=empty.canRecover?'<button type="button" class="btn ghost" data-review-empty-recover="CLEAR_FOCUS">Mostrar todos los circuitos</button>':'';
@@ -262,7 +306,7 @@
   }
   function reviewContextSummaryHtml(x){
     if(!x)return '';
-    return `<!-- ${REVIEW_V102_COMPAT} --><!-- ${REVIEW_V103_COMPAT} --><!-- ${REVIEW_V104_COMPAT} --><!-- ${REVIEW_V105_COMPAT} --><!-- ${REVIEW_V106_COMPAT} --><!-- ${REVIEW_V107_COMPAT} --><!-- ${REVIEW_V108_COMPAT} --><!-- ${REVIEW_V109_COMPAT} --><!-- ${REVIEW_V110_COMPAT} --><!-- ${REVIEW_V111_COMPAT} --><!-- ${REVIEW_V112_COMPAT} --><section data-review-context-summary class="review-context-summary" aria-label="Resumen de contexto de revisión" style="margin:0 0 12px;padding:11px;border:1px solid var(--line);border-radius:12px;background:${x.resolved?'#fff':'#fbfaf5'}"><div data-review-context-live class="review-context-live" role="status" aria-live="polite" aria-atomic="true">${esc(x.liveText||'')}</div><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:8px"><div style="display:grid;gap:2px"><p class="kicker" style="margin:0;font-size:7px;letter-spacing:.1em;color:var(--muted);font-weight:850">CONTEXTO ACTIVO · URL ONLY</p><strong style="font-size:10px">${x.resolved?'Contexto resuelto':'Contexto con selectores no resueltos'}</strong><small style="font-size:7px;color:var(--muted)">${x.visibleChains} circuito(s) visible(s) · ${x.issueCount} incidencia(s) de contexto</small></div><span class="status ${x.resolved?'teal':'warn'}">${x.resolved?'RESOLVED':'UNRESOLVED'}</span></div><div style="display:flex;flex-wrap:wrap;gap:6px">${reviewContextChip('Capital case',x.capital,x.capital!=='ALL',x.resolved)}${reviewContextChip('Lote',x.lot,x.lot!=='ALL',x.resolved)}${reviewContextChip('Foco',x.focus,x.focus!=='ALL',x.resolved)}${reviewContextChip('Etapa',x.stage==='ALL'?'Todas':`${x.stageLabel} · ${x.stage}`,x.stage!=='ALL',x.resolved)}${reviewContextChip('Evento',x.event||'Sin foco',!!x.event,x.resolved)}${reviewContextChip('Referencia',x.ref||'Sin foco',!!x.ref,x.resolved)}</div>${reviewContextRecoveryHtml(x.recovery,x.recoveryAll)}${reviewEmptyStateHtml(x.emptyState)}${reviewRoleLensHtml(x.roleLens)}${reviewHumanGuideHtml(x.humanGuide)}${reviewStageSwitcherHtml(x.stageNavigation)}${reviewContextPermalinkHtml(x.permalink)}<div class="section-note" style="margin-top:8px">${esc(REVIEW_CONTEXT_INTEGRITY)}</div></section>`;
+    return `<!-- ${REVIEW_V102_COMPAT} --><!-- ${REVIEW_V103_COMPAT} --><!-- ${REVIEW_V104_COMPAT} --><!-- ${REVIEW_V105_COMPAT} --><!-- ${REVIEW_V106_COMPAT} --><!-- ${REVIEW_V107_COMPAT} --><!-- ${REVIEW_V108_COMPAT} --><!-- ${REVIEW_V109_COMPAT} --><!-- ${REVIEW_V110_COMPAT} --><!-- ${REVIEW_V111_COMPAT} --><!-- ${REVIEW_V112_COMPAT} --><!-- ${REVIEW_V113_COMPAT} --><section data-review-context-summary class="review-context-summary" aria-label="Resumen de contexto de revisión" style="margin:0 0 12px;padding:11px;border:1px solid var(--line);border-radius:12px;background:${x.resolved?'#fff':'#fbfaf5'}"><div data-review-context-live class="review-context-live" role="status" aria-live="polite" aria-atomic="true">${esc(x.liveText||'')}</div><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:8px"><div style="display:grid;gap:2px"><p class="kicker" style="margin:0;font-size:7px;letter-spacing:.1em;color:var(--muted);font-weight:850">CONTEXTO ACTIVO · URL ONLY</p><strong style="font-size:10px">${x.resolved?'Contexto resuelto':'Contexto con selectores no resueltos'}</strong><small style="font-size:7px;color:var(--muted)">${x.visibleChains} circuito(s) visible(s) · ${x.issueCount} incidencia(s) de contexto</small></div><span class="status ${x.resolved?'teal':'warn'}">${x.resolved?'RESOLVED':'UNRESOLVED'}</span></div><div style="display:flex;flex-wrap:wrap;gap:6px">${reviewContextChip('Capital case',x.capital,x.capital!=='ALL',x.resolved)}${reviewContextChip('Lote',x.lot,x.lot!=='ALL',x.resolved)}${reviewContextChip('Foco',x.focus,x.focus!=='ALL',x.resolved)}${reviewContextChip('Etapa',x.stage==='ALL'?'Todas':`${x.stageLabel} · ${x.stage}`,x.stage!=='ALL',x.resolved)}${reviewContextChip('Evento',x.event||'Sin foco',!!x.event,x.resolved)}${reviewContextChip('Referencia',x.ref||'Sin foco',!!x.ref,x.resolved)}</div>${reviewContextRecoveryHtml(x.recovery,x.recoveryAll)}${reviewEmptyStateHtml(x.emptyState)}${reviewEmptyGuidanceHtml(x.emptyGuidance)}${reviewRoleLensHtml(x.roleLens)}${reviewHumanGuideHtml(x.humanGuide)}${reviewStageSwitcherHtml(x.stageNavigation)}${reviewContextPermalinkHtml(x.permalink)}<div class="section-note" style="margin-top:8px">${esc(REVIEW_CONTEXT_INTEGRITY)}</div></section>`;
   }
   function injectReviewContextSummary(html){
     if(!html||html.includes('data-review-context-summary'))return html;
@@ -274,8 +318,8 @@
     const bodyAt=html.indexOf('<div class="card-body">',workspaceAt),fallback=bodyAt>=0?bodyAt+'<div class="card-body">'.length:workspaceAt;
     const insertAt=controlsEnd>=0?controlsEnd+'</div>'.length:fallback;
     let out=`${html.slice(0,insertAt)}${section}${html.slice(insertAt)}`;
-    out=out.replace('DATA ROOM · REVIEW WORKSPACE V101','DATA ROOM · REVIEW WORKSPACE V112').replace('Circuito de revisión, con navegación bidireccional al caso fuente','Circuito de revisión, con estados vacíos explícitos y recuperación de filtros');
-    out=out.replace('<section id="review-workspace" class="card review-workspace">','<section id="review-workspace" class="card review-workspace" tabindex="-1" aria-labelledby="review-workspace-title">').replace('<h2>Circuito de revisión, con estados vacíos explícitos y recuperación de filtros</h2>','<h2 id="review-workspace-title">Circuito de revisión, con estados vacíos explícitos y recuperación de filtros</h2>');
+    out=out.replace('DATA ROOM · REVIEW WORKSPACE V101','DATA ROOM · REVIEW WORKSPACE V113').replace('Circuito de revisión, con navegación bidireccional al caso fuente','Circuito de revisión, con guía de estados vacíos y navegación técnica');
+    out=out.replace('<section id="review-workspace" class="card review-workspace">','<section id="review-workspace" class="card review-workspace" tabindex="-1" aria-labelledby="review-workspace-title">').replace('<h2>Circuito de revisión, con guía de estados vacíos y navegación técnica</h2>','<h2 id="review-workspace-title">Circuito de revisión, con guía de estados vacíos y navegación técnica</h2>');
     return out;
   }
   function selectReviewStage(stage){
@@ -322,6 +366,8 @@
       if(railStage){const stage=railStage.dataset.reviewWorkspaceStage||'';queueMicrotask(()=>focusReviewStage(stage));return}
       const inspectorClose=e.target.closest?.('[data-review-workspace-inspector-close]');
       if(inspectorClose){queueMicrotask(()=>focusReviewWorkspace({scroll:false}));return}
+      const emptySource=e.target.closest?.('[data-review-empty-source-nav]');
+      if(emptySource){focusReviewSourceIntegrity();return}
       const emptyRecovery=e.target.closest?.('[data-review-empty-recover]');
       if(emptyRecovery){applyReviewFilterRecovery(emptyRecovery.dataset.reviewEmptyRecover||'CLEAR_FOCUS');return}
       const recovery=e.target.closest?.('[data-review-context-recover]');
@@ -346,5 +392,5 @@
   }
 
   window.__SANA_DATAROOM_ENTRY__=Object.freeze({role:currentRole,integrity:'ROLE_ENTRY_ONLY · DATAROOM_READ_ONLY · NO_PRIVILEGE_ESCALATION'});
-  window.__SANA_DATAROOM_REVIEW_CONTEXT_SUMMARY__=Object.freeze({summary:reviewContextSummary,inject:injectReviewContextSummary,stageNavigation:reviewStageNavigation,selectStage:selectReviewStage,permalink:reviewContextPermalink,copyPermalink:copyReviewContextPermalink,roleLens:reviewRoleLens,stageGuide:reviewRoleStageGuide,guidedEntry:reviewGuidedEntry,openGuidedReview,focusWorkspace:focusReviewWorkspace,focusStage:focusReviewStage,liveContext:reviewLiveContext,recoveryPreview:reviewRecoveryPreview,recoveryPlan:reviewRecoveryPlan,recoverContext:applyReviewRecovery,emptyState:reviewEmptyState,recoverEmptyFilter:applyReviewFilterRecovery,integrity:REVIEW_CONTEXT_INTEGRITY});
+  window.__SANA_DATAROOM_REVIEW_CONTEXT_SUMMARY__=Object.freeze({summary:reviewContextSummary,inject:injectReviewContextSummary,stageNavigation:reviewStageNavigation,selectStage:selectReviewStage,permalink:reviewContextPermalink,copyPermalink:copyReviewContextPermalink,roleLens:reviewRoleLens,stageGuide:reviewRoleStageGuide,guidedEntry:reviewGuidedEntry,openGuidedReview,focusWorkspace:focusReviewWorkspace,focusStage:focusReviewStage,liveContext:reviewLiveContext,recoveryPreview:reviewRecoveryPreview,recoveryPlan:reviewRecoveryPlan,recoverContext:applyReviewRecovery,emptyState:reviewEmptyState,emptyGuidance:reviewEmptyGuidance,sourceIntegrity:reviewSourceIntegrity,recoverEmptyFilter:applyReviewFilterRecovery,focusSourceIntegrity:focusReviewSourceIntegrity,integrity:REVIEW_CONTEXT_INTEGRITY});
 })();
