@@ -1,0 +1,36 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+
+const entryPath='apps/control-web/public/sana-v3-dataroom-entry.js';
+const cssPath='apps/control-web/public/sana-v3-review-workspace.css';
+const swPath='apps/control-web/public/sana-v3-sw.js';
+const entry=fs.readFileSync(entryPath,'utf8'),css=fs.readFileSync(cssPath,'utf8'),sw=fs.readFileSync(swPath,'utf8');
+for(const marker of ['ASSISTANCE_DISCLOSURE ≠ REVIEW_PROGRESS','COLLAPSED_GUIDANCE ≠ HIDDEN_EVIDENCE','DISCLOSURE_STATE ≠ PERSISTED_STATE','GUIDANCE_VISIBILITY ≠ REVIEW_OUTCOME','REVIEW_V116_COMPAT','reviewAssistanceHtml','data-review-assistance','review-assistance-body'])assert(entry.includes(marker),`missing V116 marker: ${marker}`);
+assert(css.includes('V116 · Reviewer assistance disclosure'));
+assert(sw.includes("const CACHE='sana-v3-demo-shell-v116';"));assert(sw.includes("const CACHE='sana-v3-demo-shell-v115';"));
+assert(!/rwAssistance|rwGuidanceOpen|data-review-assistance-state|localStorage\.(?:setItem|removeItem|clear)\s*\(|sessionStorage\s*(?:\.|\[)/.test(entry));
+
+const zeroAuthority={riskScores:0,dueDiligenceApprovals:0,investmentDecisions:0,externalActions:0};
+const state={chains:[{key:'CAP-1|LOT-1',capitalCaseRef:'CAP-1',lot:'LOT-1',stages:[]}],sources:[],summary:{...zeroAuthority,unavailableSources:0,sourceReadErrors:0,schemaMismatches:0,missingSourceSchemas:0,ambiguousStageReferences:0,invalidSourceCases:0,sourcesWithInvalidPayload:0}};
+const focus={capital:'ALL',lot:'ALL',focus:'ALL',stage:'ALL',event:'',ref:''};
+const context={requested:false,resolved:true,issues:[],chainKey:'',capitalKnown:true,lotKnown:true};
+const workspaceApi={state:()=>state,readFocus:()=>({...focus}),contextIntegrity:()=>({...context}),visibleChains:()=>state.chains,sourcePanelTarget:()=>''};
+const views={home:()=>'<header class="page-head"></header><main>HOME</main><footer class="footer"></footer>',dataroom:()=>'<header class="page-head"></header><section id="review-workspace" class="card review-workspace"><div class="card-head"><div><p class="kicker">DATA ROOM · REVIEW WORKSPACE V101</p><h2>Circuito de revisión, con navegación bidireccional al caso fuente</h2></div></div><div class="card-body"><div class="review-workspace-controls">FILTROS</div></div></section><footer class="footer"></footer>'};
+const calls={history:0,render:0};
+const document={addEventListener:()=>{},getElementById:()=>null,querySelector:()=>null};
+const location={href:'https://demo.test/sana-v3?foo=keep#dataroom',search:'?foo=keep'};
+const window={__SANA_DATAROOM_REVIEW_WORKSPACE__:workspaceApi,__SANA_ACCESS__:{role:'technical',canView:view=>view==='dataroom'}};window.window=window;
+const ctx={window,views,metric:(a,b,c)=>`<i>${a}:${b}:${c}</i>`,esc:v=>String(v),localStorage:{getItem:()=>null},URL,navigator:{clipboard:{writeText:async()=>{}}},location,history:{replaceState:()=>calls.history++},render:()=>calls.render++,document,queueMicrotask:fn=>fn(),console};
+vm.createContext(ctx);vm.runInContext(entry,ctx,{filename:entryPath});
+const api=window.__SANA_DATAROOM_REVIEW_CONTEXT_SUMMARY__;assert(api?.assistanceHtml);
+const before=JSON.stringify(state);
+const rendered=views.dataroom();
+assert(rendered.includes('DATA ROOM · REVIEW WORKSPACE V116'));assert(rendered.includes('DATA ROOM · REVIEW WORKSPACE V115'));
+const start=rendered.indexOf('<details data-review-assistance');assert(start>=0);const close=rendered.indexOf('</details>',start);assert(close>start);
+const openTag=rendered.slice(start,rendered.indexOf('>',start)+1);assert(!/\sopen(?:\s|=|>)/.test(openTag));
+const lens=rendered.indexOf('data-review-role-lens',start),guide=rendered.indexOf('data-review-human-guide',start);assert(lens>start&&lens<close);assert(guide>lens&&guide<close);
+const stage=rendered.indexOf('data-review-stage-switcher'),link=rendered.indexOf('data-review-context-link');assert(stage>close);assert(link>stage);
+assert(rendered.includes('LENTE DE LECTURA · Técnica'));assert(rendered.includes('GUÍA DE REVISIÓN HUMANA · Todas'));assert(rendered.includes('GUIDANCE ONLY'));
+assert.equal(calls.history,0);assert.equal(calls.render,0);assert.equal(JSON.stringify(state),before);for(const k of Object.keys(zeroAuthority))assert.equal(state.summary[k],0);
+console.log('SANA Data Room review workspace v116 reviewer assistance disclosure validation: OK');
