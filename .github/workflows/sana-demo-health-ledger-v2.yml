@@ -2,7 +2,7 @@ name: SANA Demo Health Ledger V2
 
 on:
   push:
-    branches: [demo/sana-functional-auth-v1, demo/sana-health-v2-v121, demo/sana-health-v2-v122, demo/sana-health-v2-v123]
+    branches: [demo/sana-functional-auth-v1, demo/sana-health-v2-v121, demo/sana-health-v2-v122, demo/sana-health-v2-v123, demo/sana-health-v2-v124]
     paths:
       - 'apps/control-web/public/sana-v3-health-ledger.js'
       - 'apps/control-web/public/sana-v3-report-snapshot-sync.js'
@@ -14,6 +14,7 @@ on:
       - 'scripts/validate-sana-health-ledger-v2.mjs'
       - 'scripts/validate-sana-health-v2-provenance.mjs'
       - 'scripts/validate-sana-health-gaps.mjs'
+      - 'scripts/validate-sana-health-references.mjs'
       - '.github/workflows/sana-demo-health-ledger-v2.yml'
   pull_request:
     paths:
@@ -27,6 +28,7 @@ on:
       - 'scripts/validate-sana-health-ledger-v2.mjs'
       - 'scripts/validate-sana-health-v2-provenance.mjs'
       - 'scripts/validate-sana-health-gaps.mjs'
+      - 'scripts/validate-sana-health-references.mjs'
       - '.github/workflows/sana-demo-health-ledger-v2.yml'
 
 permissions:
@@ -67,6 +69,20 @@ jobs:
           grep -q "EMBEDDED_V1_RELATION ≠ V2_STAGE" "$ledger"
           grep -q "chainCoverage" "$ledger"
           ! grep -q 'storage.records.push' "$ledger"
+      - name: Validate V2 predecessor references
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/validate-sana-health-references.mjs
+          ledger='apps/control-web/public/sana-v3-health-ledger.js'
+          grep -q 'PREDECESSOR_KIND' "$ledger"
+          grep -q 'CASE_MEMBERSHIP ≠ PREDECESSOR_REFERENCE' "$ledger"
+          grep -q 'REFERENCE ≠ CAUSALITY' "$ledger"
+          grep -q 'MISSING_REFERENCE' "$ledger"
+          grep -q 'KIND_MISMATCH' "$ledger"
+          grep -q 'CROSS_CASE_REFERENCE' "$ledger"
+          grep -q 'FORWARD_REFERENCE' "$ledger"
+          grep -q 'LEGACY_NOT_CAPTURED' "$ledger"
       - name: Validate V2 snapshot history cycle and DD provenance
         shell: bash
         run: |
@@ -99,6 +115,7 @@ jobs:
           grep -q "const CACHE='sana-v3-demo-shell-v121'" "$sw"
           grep -q "const CACHE='sana-v3-demo-shell-v122'" "$sw"
           grep -q "const CACHE='sana-v3-demo-shell-v123'" "$sw"
+          grep -q "const CACHE='sana-v3-demo-shell-v124'" "$sw"
           grep -q "'/sana-v3-health-ledger.js'" "$sw"
           grep -q "'/sana-v3-report-snapshot-sync.js'" "$sw"
           grep -q "'/sana-v3-dataroom-health-history.js'" "$sw"
