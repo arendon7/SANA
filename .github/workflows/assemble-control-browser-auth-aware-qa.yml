@@ -1,0 +1,92 @@
+name: Assemble CONTROL Browser QA Auth Awareness
+
+on:
+  push:
+    branches:
+      - 'demo/sana-control-browser-auth-aware-qa'
+    paths:
+      - 'scripts/control_browser_demo_auth.py'
+      - 'scripts/apply-control-browser-auth-aware-qa.py'
+      - '.github/workflows/assemble-control-browser-auth-aware-qa.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  browser-auth-regression:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: demo/sana-control-browser-auth-aware-qa
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Apply auth-aware Browser QA patch
+        run: python scripts/apply-control-browser-auth-aware-qa.py
+      - name: Syntax-check helper and Browser QA
+        run: |
+          python -m py_compile \
+            scripts/control_browser_demo_auth.py \
+            scripts/control-approvals-http-browser-qa.py \
+            scripts/control-handoff-http-browser-qa.py \
+            scripts/control-unified-flow-http-browser-qa.py \
+            scripts/control-reintegration-http-browser-qa.py \
+            scripts/control-production-authorization-browser-qa.py \
+            scripts/control-canonical-write-browser-qa.py \
+            scripts/control-oidc-session-browser-qa.py
+      - name: Install pinned Playwright Chromium
+        run: |
+          python -m pip install --disable-pip-version-check playwright==1.57.0
+          python -m playwright install --with-deps chromium
+      - name: Run alpha5–alpha11 Browser QA through real DEMO auth
+        id: browser
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          {
+            for script in \
+              scripts/control-approvals-http-browser-qa.py \
+              scripts/control-handoff-http-browser-qa.py \
+              scripts/control-unified-flow-http-browser-qa.py \
+              scripts/control-reintegration-http-browser-qa.py \
+              scripts/control-production-authorization-browser-qa.py \
+              scripts/control-canonical-write-browser-qa.py \
+              scripts/control-oidc-session-browser-qa.py; do
+                echo "=== $script ==="
+                python "$script"
+            done
+          } 2>&1 | tee /tmp/control-browser-auth-aware.log
+      - name: Publish Browser QA diagnostics
+        if: steps.browser.outcome == 'failure'
+        run: |
+          cp /tmp/control-browser-auth-aware.log control-browser-auth-aware-status.txt
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add control-browser-auth-aware-status.txt
+          git commit -m 'ci: record auth-aware CONTROL browser diagnostics'
+          git push origin HEAD:demo/sana-control-browser-auth-aware-qa
+          exit 1
+      - name: Commit validated Browser QA harness
+        if: steps.browser.outcome == 'success'
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add \
+            scripts/control-approvals-http-browser-qa.py \
+            scripts/control-handoff-http-browser-qa.py \
+            scripts/control-unified-flow-http-browser-qa.py \
+            scripts/control-reintegration-http-browser-qa.py \
+            scripts/control-production-authorization-browser-qa.py \
+            scripts/control-canonical-write-browser-qa.py \
+            scripts/control-oidc-session-browser-qa.py
+          git diff --cached --quiet && exit 0
+          git commit -m 'test: authenticate historical CONTROL Browser QA via DEMO sandbox'
+          git push origin HEAD:demo/sana-control-browser-auth-aware-qa
