@@ -1,0 +1,50 @@
+name: Assemble SANA v121 Review Workspace Structural Glossary
+
+on:
+  push:
+    branches:
+      - 'demo/sana-v121-review-workspace-structural-glossary'
+    paths:
+      - 'scripts/apply-v121-structural-issue-glossary.py'
+      - 'scripts/validate-sana-dataroom-review-workspace-v121.mjs'
+      - '.github/workflows/sana-demo-dataroom-review-workspace-v121.yml'
+      - '.github/workflows/assemble-sana-v121-review-workspace-structural-glossary.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  assemble:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: demo/sana-v121-review-workspace-structural-glossary
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Apply, assemble and validate V121
+        run: |
+          python scripts/apply-v121-structural-issue-glossary.py
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('apps/control-web/public/sana-v3-sw.js')
+          s=p.read_text()
+          active="const CACHE='sana-v3-demo-shell-v121';"
+          if active not in s:
+              old="const CACHE='sana-v3-demo-shell-v120';"
+              if old not in s: raise SystemExit('active shell v120 not found')
+              s=s.replace(old,"if(false){\nconst CACHE='sana-v3-demo-shell-v120';\n}\nconst CACHE='sana-v3-demo-shell-v121';",1)
+              p.write_text(s)
+          PY
+          node scripts/validate-sana-dataroom-review-workspace.mjs
+          for v in $(seq 88 121); do node scripts/validate-sana-dataroom-review-workspace-v${v}.mjs; done
+      - name: Commit assembled V121
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add apps/control-web/public/sana-v3-dataroom-entry.js apps/control-web/public/sana-v3-review-workspace.css apps/control-web/public/sana-v3-sw.js
+          git diff --cached --quiet && exit 0
+          git commit -m 'demo: assemble review workspace structural glossary v121'
+          git push origin HEAD:demo/sana-v121-review-workspace-structural-glossary
