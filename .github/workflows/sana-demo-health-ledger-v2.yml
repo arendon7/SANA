@@ -1,0 +1,65 @@
+name: SANA Demo Health Ledger V2
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1, demo/sana-health-v2-v121]
+    paths:
+      - 'apps/control-web/public/sana-v3-health-ledger.js'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-health-ledger.mjs'
+      - 'scripts/validate-sana-health-ledger-v2.mjs'
+      - '.github/workflows/sana-demo-health-ledger-v2.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-health-ledger.js'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-health-ledger.mjs'
+      - 'scripts/validate-sana-health-ledger-v2.mjs'
+      - '.github/workflows/sana-demo-health-ledger-v2.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  phytosanitary-chain-v2-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and V1 compatibility
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-health-ledger.js
+          node --check apps/control-web/public/sana-v3-sw.js
+          node scripts/validate-sana-health-ledger.mjs
+      - name: Validate V2 semantic chain
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/validate-sana-health-ledger-v2.mjs
+          ledger='apps/control-web/public/sana-v3-health-ledger.js'
+          grep -q "SANA_PHYTOSANITARY_CHAIN_V2" "$ledger"
+          grep -q "ACTIVITY_LINK_EVENT ≠ ACTION" "$ledger"
+          grep -q "FOLLOW_UP ≠ RESULT" "$ledger"
+          grep -q "RESULT ≠ CAUSAL_ATTRIBUTION" "$ledger"
+          grep -q "EMBEDDED_V1_RELATION ≠ V2_STAGE" "$ledger"
+          grep -q "chainCoverage" "$ledger"
+          ! grep -q 'storage.records.push' "$ledger"
+      - name: Validate offline shell update
+        shell: bash
+        run: |
+          set -euo pipefail
+          sw='apps/control-web/public/sana-v3-sw.js'
+          grep -q "const CACHE='sana-v3-demo-shell-v120'" "$sw"
+          grep -q "const CACHE='sana-v3-demo-shell-v121'" "$sw"
+          grep -q "'/sana-v3-health-ledger.js'" "$sw"
+      - name: Assert no production authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          ledger='apps/control-web/public/sana-v3-health-ledger.js'
+          ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true' "$ledger"
+          ! grep -Eiq 'verifiedExternal[[:space:]]*=[[:space:]]*true|certified[[:space:]]*=[[:space:]]*true|icaApproved[[:space:]]*=[[:space:]]*true|creditApproved|investmentApproved' "$ledger"
