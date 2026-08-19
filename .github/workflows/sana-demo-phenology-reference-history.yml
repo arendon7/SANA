@@ -1,0 +1,28 @@
+name: SANA Demo Phenology Reference History
+
+on:
+  push:
+    branches: [demo/sana-phenology-v134]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  phenology-reference-history:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate V134 reference provenance
+        run: |
+          set -euo pipefail
+          for f in \
+            apps/control-web/public/sana-v3-report-snapshot-phenology-references.js \
+            apps/control-web/public/sana-v3-dataroom-phenology-references.js \
+            apps/control-web/public/sana-v3-cycle-phenology-references.js \
+            apps/control-web/public/sana-v3-due-diligence-phenology-reference-gaps.js; do node --check "$f"; done
+          node scripts/validate-sana-phenology-reference-provenance.mjs
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|creditApproved|investmentApproved|automaticPhaseChange|autoIrrigation|autoFertigation' apps/control-web/public/sana-v3-*phenology-reference*.js
