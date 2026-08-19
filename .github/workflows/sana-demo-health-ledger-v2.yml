@@ -85,7 +85,11 @@ jobs:
           sw='apps/control-web/public/sana-v3-sw.js'
           grep -q "const CACHE='sana-v3-demo-shell-v120'" "$sw"
           grep -q "const CACHE='sana-v3-demo-shell-v121'" "$sw"
+          grep -q "const CACHE='sana-v3-demo-shell-v122'" "$sw"
           grep -q "'/sana-v3-health-ledger.js'" "$sw"
+          grep -q "'/sana-v3-report-snapshot-sync.js'" "$sw"
+          grep -q "'/sana-v3-dataroom-health-history.js'" "$sw"
+          grep -q "'/sana-v3-cycle-health-provenance.js'" "$sw"
       - name: Assert no production authority
         shell: bash
         run: |
