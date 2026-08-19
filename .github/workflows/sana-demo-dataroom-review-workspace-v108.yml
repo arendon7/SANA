@@ -1,0 +1,36 @@
+name: SANA Demo Data Room Review Workspace V108
+
+on:
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-dataroom-entry.js'
+      - 'apps/control-web/public/sana-v3-review-workspace.css'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-dataroom-review-workspace-v108.mjs'
+      - '.github/workflows/sana-demo-dataroom-review-workspace-v108.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  review-workspace-v108-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Preserve V87–V108 workspace contracts
+        run: |
+          node scripts/validate-sana-dataroom-review-workspace.mjs
+          for v in $(seq 88 108); do node scripts/validate-sana-dataroom-review-workspace-v${v}.mjs; done
+      - name: Assert V108 shell, keyboard focus semantics and read-only boundary
+        run: |
+          grep -q "const CACHE='sana-v3-demo-shell-v108';" apps/control-web/public/sana-v3-sw.js
+          grep -q 'FOCUS_TARGET ≠ REVIEW_PRIORITY' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -q 'KEYBOARD_NAVIGATION ≠ REVIEW_PROGRESS' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -q 'ACCESSIBILITY_LAYER ≠ ACCESS_CONTROL' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -q 'role="toolbar"' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -q 'aria-current' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -q 'focusReviewWorkspace' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -q 'V108 · Review accessibility & focus' apps/control-web/public/sana-v3-review-workspace.css
+          ! grep -Eq 'rwA11y|rwFocusTarget|localStorage\.(setItem|removeItem|clear)\s*\(|sessionStorage|fetch\s*\(|openModal\s*\(' apps/control-web/public/sana-v3-dataroom-entry.js
