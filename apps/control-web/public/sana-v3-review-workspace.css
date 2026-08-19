@@ -27,3 +27,7 @@
 
 /* V110 · Context recovery */
 .review-context-recovery-actions .btn{max-width:100%;overflow-wrap:anywhere}.review-context-recovery-actions .btn:focus-visible{outline:3px solid rgba(42,123,115,.24);outline-offset:2px}
+
+
+/* V111 · Recovery preview */
+.review-context-recovery-preview{border:1px solid var(--line);border-radius:9px;background:#fff;overflow:hidden}.review-context-recovery-preview summary{cursor:pointer;padding:8px 9px;font-size:7px;font-weight:700;list-style-position:inside}.review-context-recovery-preview summary:focus-visible{outline:3px solid rgba(42,123,115,.24);outline-offset:-3px}.review-context-recovery-preview[open] summary{background:#fbfcfa}.review-context-recovery-preview code{font-size:6px}
