@@ -1,4 +1,0 @@
-  File "/home/runner/work/SANA/SANA/scripts/apply-v109-review-focus-continuity.py", line 47
-    new_html="""<!-- ${REVIEW_V102_COMPAT} --><!-- ${REVIEW_V103_COMPAT} --><!-- ${REVIEW_V104_COMPAT} --><!-- ${REVIEW_V105_COMPAT} --><!-- ${REVIEW_V106_COMPAT} --><!-- ${REVIEW_V107_COMPAT} --><!-- ${REVIEW_V108_COMPAT} --><!-- ${REVIEW_V109_COMPAT} --><section data-review-context-summary class=\"review-context-summary\" aria-label=\"Resumen de contexto de revisión\""" 
-                 ^
-SyntaxError: invalid syntax
