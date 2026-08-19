@@ -23,6 +23,9 @@ vm.runInThisContext(source,{filename:'sana-v3-due-diligence-health-gaps.js'});
 const api=window.__SANA_DD_HEALTH_GAPS__;
 assert.ok(api);
 assert.equal(api.coverageOf({stageCoverage:100}).version,'V1');
+assert.equal(api.coverageOf({stageCoverage:100,chainCoverage:null}).version,'V1','null V2 coverage must not coerce to 0% V2');
+assert.equal(api.coverageOf({stageCoverage:100,chainCoverage:''}).version,'V1','blank V2 coverage must not coerce to 0% V2');
+assert.equal(api.coverageOf({stageCoverage:null,chainCoverage:null}).value,null,'absent coverage must stay absent');
 assert.equal(api.coverageOf({stageCoverage:100,chainCoverage:75}).version,'V2');
 assert.equal(api.coverageOf({stageCoverage:100,chainCoverage:75}).value,75);
 
@@ -68,4 +71,4 @@ assert.ok(merged.gaps.some(g=>g.domain==='Sanidad vegetal'));
 assert.match(merged.integrity,/AGRONOMIC_SEVERITY ≠ CREDIT_RISK/);
 assert.match(merged.integrity,/V1_EMBEDDED ≠ V2_STAGE/);
 
-console.log('health gaps v2 contract OK · snapshot-only documentary provenance · V1 embedded relations never complete V2 stages');
+console.log('health gaps v2 contract OK · null/blank V2 coverage remains absent · snapshot-only documentary provenance');
