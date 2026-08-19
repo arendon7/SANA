@@ -2,7 +2,7 @@ name: SANA Demo Health Ledger V2
 
 on:
   push:
-    branches: [demo/sana-functional-auth-v1, demo/sana-health-v2-v121, demo/sana-health-v2-v122, demo/sana-health-v2-v123, demo/sana-health-v2-v124, demo/sana-health-v2-v125]
+    branches: [demo/sana-functional-auth-v1, demo/sana-health-v2-v121, demo/sana-health-v2-v122, demo/sana-health-v2-v123, demo/sana-health-v2-v124, demo/sana-health-v2-v125, demo/sana-health-v2-v126]
     paths:
       - 'apps/control-web/public/sana-v3-health-ledger.js'
       - 'apps/control-web/public/sana-v3-report-snapshot-sync.js'
@@ -16,6 +16,7 @@ on:
       - 'scripts/validate-sana-health-gaps.mjs'
       - 'scripts/validate-sana-health-references.mjs'
       - 'scripts/validate-sana-health-reference-provenance.mjs'
+      - 'scripts/validate-sana-health-case-lifecycle.mjs'
       - '.github/workflows/sana-demo-health-ledger-v2.yml'
   pull_request:
     paths:
@@ -31,6 +32,7 @@ on:
       - 'scripts/validate-sana-health-gaps.mjs'
       - 'scripts/validate-sana-health-references.mjs'
       - 'scripts/validate-sana-health-reference-provenance.mjs'
+      - 'scripts/validate-sana-health-case-lifecycle.mjs'
       - '.github/workflows/sana-demo-health-ledger-v2.yml'
 
 permissions:
@@ -85,6 +87,17 @@ jobs:
           grep -q 'CROSS_CASE_REFERENCE' "$ledger"
           grep -q 'FORWARD_REFERENCE' "$ledger"
           grep -q 'LEGACY_NOT_CAPTURED' "$ledger"
+      - name: Validate V2 human case lifecycle
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/validate-sana-health-case-lifecycle.mjs
+          ledger='apps/control-web/public/sana-v3-health-ledger.js'
+          grep -q "CASE_CLOSE:'RESULT'" "$ledger"
+          grep -q 'RESULT ≠ CASE_CLOSURE' "$ledger"
+          grep -q 'CASE_CLOSED_HUMAN ≠ CONDITION_RESOLVED' "$ledger"
+          grep -q 'CASE_CLOSURE ≠ TREATMENT_EFFICACY' "$ledger"
+          grep -q 'CLOSED_HUMAN' "$ledger"
       - name: Validate V2 snapshot history cycle and DD provenance
         shell: bash
         run: |
@@ -128,6 +141,7 @@ jobs:
           grep -q "const CACHE='sana-v3-demo-shell-v123'" "$sw"
           grep -q "const CACHE='sana-v3-demo-shell-v124'" "$sw"
           grep -q "const CACHE='sana-v3-demo-shell-v125'" "$sw"
+          grep -q "const CACHE='sana-v3-demo-shell-v126'" "$sw"
           grep -q "'/sana-v3-health-ledger.js'" "$sw"
           grep -q "'/sana-v3-report-snapshot-sync.js'" "$sw"
           grep -q "'/sana-v3-dataroom-health-history.js'" "$sw"
