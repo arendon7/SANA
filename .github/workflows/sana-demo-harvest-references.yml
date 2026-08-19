@@ -16,11 +16,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Validate V135 semantic references
+      - name: Validate V135 semantic references and assembly
         run: |
           set -euo pipefail
           f='apps/control-web/public/sana-v3-harvest-references.js'
+          cycle='apps/control-web/public/sana-v3-cycle-harvest-provenance.js'
+          sw='apps/control-web/public/sana-v3-sw.js'
           node --check "$f"
+          node --check "$cycle"
+          node --check "$sw"
           node scripts/validate-sana-harvest-references.mjs
           grep -q "const VERSION='V135'" "$f"
           grep -q 'CROSS_CASE_REFERENCE' "$f"
@@ -31,4 +35,10 @@ jobs:
           grep -q 'REFERENCE ≠ PAYMENT' "$f"
           grep -q 'REFERENCE ≠ PROFITABILITY' "$f"
           grep -q 'REFERENCE ≠ CAUSALITY' "$f"
-          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|paymentExecuted|invoiceIssued|ownershipTransferred|creditApproved|investmentApproved' "$f"
+          grep -q '__SANA_HARVEST_REFERENCES_LOADER__' "$cycle"
+          grep -q '/sana-v3-harvest-references.js' "$cycle"
+          grep -q "const CACHE='sana-v3-demo-shell-v134'" "$sw"
+          grep -q "^const CACHE='sana-v3-demo-shell-v135';" "$sw"
+          grep -q "'/sana-v3-harvest-references.js'" "$sw"
+          grep -q "'/sana-v3-due-diligence-dataroom-exchange-gaps.js'" "$sw"
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|paymentExecuted|invoiceIssued|ownershipTransferred|creditApproved|investmentApproved' "$f" "$cycle"
