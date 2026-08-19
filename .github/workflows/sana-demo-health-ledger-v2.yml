@@ -2,19 +2,27 @@ name: SANA Demo Health Ledger V2
 
 on:
   push:
-    branches: [demo/sana-functional-auth-v1, demo/sana-health-v2-v121]
+    branches: [demo/sana-functional-auth-v1, demo/sana-health-v2-v121, demo/sana-health-v2-v122]
     paths:
       - 'apps/control-web/public/sana-v3-health-ledger.js'
+      - 'apps/control-web/public/sana-v3-report-snapshot-sync.js'
+      - 'apps/control-web/public/sana-v3-dataroom-health-history.js'
+      - 'apps/control-web/public/sana-v3-cycle-health-provenance.js'
       - 'apps/control-web/public/sana-v3-sw.js'
       - 'scripts/validate-sana-health-ledger.mjs'
       - 'scripts/validate-sana-health-ledger-v2.mjs'
+      - 'scripts/validate-sana-health-v2-provenance.mjs'
       - '.github/workflows/sana-demo-health-ledger-v2.yml'
   pull_request:
     paths:
       - 'apps/control-web/public/sana-v3-health-ledger.js'
+      - 'apps/control-web/public/sana-v3-report-snapshot-sync.js'
+      - 'apps/control-web/public/sana-v3-dataroom-health-history.js'
+      - 'apps/control-web/public/sana-v3-cycle-health-provenance.js'
       - 'apps/control-web/public/sana-v3-sw.js'
       - 'scripts/validate-sana-health-ledger.mjs'
       - 'scripts/validate-sana-health-ledger-v2.mjs'
+      - 'scripts/validate-sana-health-v2-provenance.mjs'
       - '.github/workflows/sana-demo-health-ledger-v2.yml'
 
 permissions:
@@ -33,8 +41,13 @@ jobs:
         run: |
           set -euo pipefail
           node --check apps/control-web/public/sana-v3-health-ledger.js
+          node --check apps/control-web/public/sana-v3-report-snapshot-sync.js
+          node --check apps/control-web/public/sana-v3-dataroom-health-history.js
+          node --check apps/control-web/public/sana-v3-cycle-health-provenance.js
           node --check apps/control-web/public/sana-v3-sw.js
           node scripts/validate-sana-health-ledger.mjs
+          node scripts/validate-sana-health-snapshot.mjs
+          node scripts/validate-sana-cycle-health.mjs
       - name: Validate V2 semantic chain
         shell: bash
         run: |
@@ -48,6 +61,23 @@ jobs:
           grep -q "EMBEDDED_V1_RELATION ≠ V2_STAGE" "$ledger"
           grep -q "chainCoverage" "$ledger"
           ! grep -q 'storage.records.push' "$ledger"
+      - name: Validate V2 snapshot history and cycle provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/validate-sana-health-v2-provenance.mjs
+          sync='apps/control-web/public/sana-v3-report-snapshot-sync.js'
+          history='apps/control-web/public/sana-v3-dataroom-health-history.js'
+          cycle='apps/control-web/public/sana-v3-cycle-health-provenance.js'
+          grep -q 'ADDITIVE_V2 · PHYTOSANITARY_CHAIN' "$sync"
+          grep -q 'NO_V1_TO_V2_STAGE_PROMOTION' "$sync"
+          grep -q 'V1_EMBEDDED ≠ V2_STAGE' "$history"
+          grep -q 'ACTIVITY_LINK ≠ EXECUTION' "$cycle"
+          grep -q 'FOLLOW_UP ≠ RESULT' "$cycle"
+          ! grep -q '__SANA_PHYTOSANITARY_LEDGER__' "$history"
+          ! grep -q 'storage\.' "$history"
+          ! grep -q 'completeness=' "$cycle"
+          ! grep -q 'readyForArchive=' "$cycle"
       - name: Validate offline shell update
         shell: bash
         run: |
@@ -60,6 +90,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ledger='apps/control-web/public/sana-v3-health-ledger.js'
-          ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true' "$ledger"
-          ! grep -Eiq 'verifiedExternal[[:space:]]*=[[:space:]]*true|certified[[:space:]]*=[[:space:]]*true|icaApproved[[:space:]]*=[[:space:]]*true|creditApproved|investmentApproved' "$ledger"
+          files='apps/control-web/public/sana-v3-health-ledger.js apps/control-web/public/sana-v3-report-snapshot-sync.js apps/control-web/public/sana-v3-dataroom-health-history.js apps/control-web/public/sana-v3-cycle-health-provenance.js'
+          ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true' $files
+          ! grep -Eiq 'verifiedExternal[[:space:]]*=[[:space:]]*true|certified[[:space:]]*=[[:space:]]*true|icaApproved[[:space:]]*=[[:space:]]*true|creditApproved|investmentApproved' $files
