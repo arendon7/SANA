@@ -31,3 +31,7 @@
 
 /* V111 · Recovery preview */
 .review-context-recovery-preview{border:1px solid var(--line);border-radius:9px;background:#fff;overflow:hidden}.review-context-recovery-preview summary{cursor:pointer;padding:8px 9px;font-size:7px;font-weight:700;list-style-position:inside}.review-context-recovery-preview summary:focus-visible{outline:3px solid rgba(42,123,115,.24);outline-offset:-3px}.review-context-recovery-preview[open] summary{background:#fbfcfa}.review-context-recovery-preview code{font-size:6px}
+
+
+/* V112 · Empty state and filter recovery */
+.review-empty-state{margin-top:9px;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fbfcfa}.review-empty-state-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}.review-empty-state h4{margin:2px 0 3px;font-size:10px}.review-empty-state p{margin:0;font-size:7px;line-height:1.45;color:var(--muted)}.review-empty-state>.btn{margin-top:8px}
