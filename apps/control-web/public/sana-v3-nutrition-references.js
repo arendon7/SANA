@@ -85,3 +85,23 @@
 
   window.__SANA_NUTRITION_LEDGER__=Object.freeze({...base,referenceVersion:REFERENCE_VERSION,predecessorKinds:PREDECESSOR_KIND,events:enrichedEvents,cases,forCase:caseFor,forLot,eventReference,integrity:`${base.integrity} · CASE_MEMBERSHIP ≠ PREDECESSOR_REFERENCE · REFERENCE ≠ APPLICATION_AUTHORITY · REFERENCE ≠ INVENTORY_MOVEMENT · REFERENCE ≠ CAUSALITY · LEGACY_REFERENCE_NOT_CAPTURED ≠ INVALID`});
 })();
+
+(() => {
+  'use strict';
+  const assets=[
+    '/sana-v3-report-snapshot-nutrition-v2.js',
+    '/sana-v3-cycle-nutrition-v2-provenance.js',
+    '/sana-v3-due-diligence-nutrition-v2-gaps.js',
+    '/sana-v3-dataroom-nutrition-v2-history.js'
+  ];
+  const state={version:'V130',status:'PENDING',loaded:[],failed:''};
+  function loadAt(index){
+    if(index>=assets.length){state.status='READY';return}
+    const src=assets[index];const script=document.createElement('script');script.src=src;script.async=false;
+    script.onload=()=>{state.loaded.push(src);loadAt(index+1)};
+    script.onerror=()=>{state.status='FAILED';state.failed=src};
+    document.head.appendChild(script);
+  }
+  window.addEventListener('load',()=>loadAt(0),{once:true});
+  window.__SANA_NUTRITION_V2_HISTORY_LOADER__=Object.freeze({version:'V130',assets:Object.freeze([...assets]),state});
+})();
