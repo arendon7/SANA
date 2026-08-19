@@ -1,0 +1,33 @@
+name: SANA Demo Data Room Review Workspace V119
+
+on:
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-dataroom-entry.js'
+      - 'apps/control-web/public/sana-v3-review-workspace.css'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-dataroom-review-workspace*.mjs'
+      - '.github/workflows/sana-demo-dataroom-review-workspace-v119.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  review-workspace-v119-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Preserve V87–V119 workspace contracts
+        run: |
+          node scripts/validate-sana-dataroom-review-workspace.mjs
+          for v in $(seq 88 119); do node scripts/validate-sana-dataroom-review-workspace-v${v}.mjs; done
+      - name: Assert V119 shell, structural diagnostics and read-only boundary
+        run: |
+          grep -F "const CACHE='sana-v3-demo-shell-v119';" apps/control-web/public/sana-v3-sw.js
+          grep -F 'STRUCTURAL_DIAGNOSTIC ≠ DOCUMENT_FINDING' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -F 'DIAGNOSTIC_PROJECTION ≠ RAW_PAYLOAD' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -F 'INVALID_CASE ≠ INVALID_EVIDENCE' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -F 'data-review-structural-diagnostics' apps/control-web/public/sana-v3-dataroom-entry.js
+          ! grep -Eq 'rwStructuralDiagnostic|rwDiagnostic|data-review-structural-diagnostics-state|localStorage\.(setItem|removeItem|clear)|sessionStorage' apps/control-web/public/sana-v3-dataroom-entry.js
