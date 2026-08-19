@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const REVIEW_CONTEXT_INTEGRITY='CONTEXT_SUMMARY ≠ SOURCE_VERIFICATION · ACTIVE_SELECTOR ≠ REVIEW_PRIORITY · CONTEXT_ISSUE_COUNT ≠ RISK_SCORE · SUMMARY_VIEW ≠ PERSISTED_STATE · REVIEW_CONTEXT_VIEW ≠ SOURCE_LEDGER · STAGE_SWITCH ≠ REVIEW_PROGRESS · STAGE_ORDER ≠ REQUIRED_SEQUENCE · NAVIGABLE_STAGE ≠ COMPLETE_STAGE · DISABLED_STAGE ≠ REVIEW_FAILURE · URL_STAGE_CHANGE ≠ SOURCE_MUTATION · STAGE_BUTTON_STATUS ≠ REVIEW_OUTCOME · CONTEXT_LINK ≠ SOURCE_SNAPSHOT · COPIED_LINK ≠ VERIFIED_CONTEXT · CLIPBOARD_COPY ≠ EXTERNAL_DELIVERY · SHAREABLE_URL ≠ REVIEW_APPROVAL · LINK_REOPEN ≠ CONTEXT_VERIFICATION · URL_CONTEXT ≠ PERSISTED_SOURCE_STATE · ROLE_LENS ≠ ACCESS_CONTROL · ROLE_EMPHASIS ≠ FILTER ≠ REVIEW_PRIORITY · ROLE_GUIDANCE ≠ REVIEW_OUTCOME · ROLE_LENS ≠ SOURCE_MUTATION · SAME_EVIDENCE_SET_ACROSS_ROLES · REVIEW_QUESTION ≠ REQUIREMENT ≠ DECISION · QUESTION_SET ≠ SCORECARD · STAGE_GUIDANCE ≠ AUTOMATIC_FINDING · QUESTION_ORDER ≠ PRIORITY · GUIDE_VIEW ≠ SOURCE_MUTATION · GUIDED_ENTRY ≠ ACCESS_GRANT · ENTRY_ROUTE ≠ REVIEW_PRIORITY · WORKSPACE_ENTRY ≠ REVIEW_DECISION · ENTRY_SCROLL ≠ SOURCE_MUTATION · ENTRY_CONTEXT_PRESERVED ≠ CONTEXT_VERIFICATION · READ_ONLY · NO_SOURCE_MUTATION';
+  const REVIEW_CONTEXT_INTEGRITY='CONTEXT_SUMMARY ≠ SOURCE_VERIFICATION · ACTIVE_SELECTOR ≠ REVIEW_PRIORITY · CONTEXT_ISSUE_COUNT ≠ RISK_SCORE · SUMMARY_VIEW ≠ PERSISTED_STATE · REVIEW_CONTEXT_VIEW ≠ SOURCE_LEDGER · STAGE_SWITCH ≠ REVIEW_PROGRESS · STAGE_ORDER ≠ REQUIRED_SEQUENCE · NAVIGABLE_STAGE ≠ COMPLETE_STAGE · DISABLED_STAGE ≠ REVIEW_FAILURE · URL_STAGE_CHANGE ≠ SOURCE_MUTATION · STAGE_BUTTON_STATUS ≠ REVIEW_OUTCOME · CONTEXT_LINK ≠ SOURCE_SNAPSHOT · COPIED_LINK ≠ VERIFIED_CONTEXT · CLIPBOARD_COPY ≠ EXTERNAL_DELIVERY · SHAREABLE_URL ≠ REVIEW_APPROVAL · LINK_REOPEN ≠ CONTEXT_VERIFICATION · URL_CONTEXT ≠ PERSISTED_SOURCE_STATE · ROLE_LENS ≠ ACCESS_CONTROL · ROLE_EMPHASIS ≠ FILTER ≠ REVIEW_PRIORITY · ROLE_GUIDANCE ≠ REVIEW_OUTCOME · ROLE_LENS ≠ SOURCE_MUTATION · SAME_EVIDENCE_SET_ACROSS_ROLES · REVIEW_QUESTION ≠ REQUIREMENT ≠ DECISION · QUESTION_SET ≠ SCORECARD · STAGE_GUIDANCE ≠ AUTOMATIC_FINDING · QUESTION_ORDER ≠ PRIORITY · GUIDE_VIEW ≠ SOURCE_MUTATION · GUIDED_ENTRY ≠ ACCESS_GRANT · ENTRY_ROUTE ≠ REVIEW_PRIORITY · WORKSPACE_ENTRY ≠ REVIEW_DECISION · ENTRY_SCROLL ≠ SOURCE_MUTATION · ENTRY_CONTEXT_PRESERVED ≠ CONTEXT_VERIFICATION · FOCUS_TARGET ≠ REVIEW_PRIORITY · KEYBOARD_NAVIGATION ≠ REVIEW_PROGRESS · ARIA_STATE ≠ REVIEW_OUTCOME · FOCUS_RETURN ≠ SOURCE_MUTATION · ACCESSIBILITY_LAYER ≠ ACCESS_CONTROL · READ_ONLY · NO_SOURCE_MUTATION';
   const REVIEW_STAGE_LABELS=Object.freeze({CASE:'Expediente',HANDOFF:'Handoff',FEEDBACK:'Feedback',RESPONSE:'Respuesta',DISPOSITION:'Disposición',ROUND:'Ronda'});
   const REVIEW_STAGE_ORDER=Object.freeze(['CASE','HANDOFF','FEEDBACK','RESPONSE','DISPOSITION','ROUND']);
   const REVIEW_CONTEXT_KEYS=Object.freeze(['rwCapital','rwLot','rwFocus','rwStage','rwEvent','rwRef']);
@@ -10,6 +10,8 @@
   const REVIEW_V104_COMPAT='DATA ROOM · REVIEW WORKSPACE V104 · Circuito de revisión, con contexto reproducible y navegación de etapas';
   const REVIEW_V105_COMPAT='DATA ROOM · REVIEW WORKSPACE V105 · Circuito de revisión, con lente por rol y contexto reproducible';
   const REVIEW_V106_COMPAT='DATA ROOM · REVIEW WORKSPACE V106 · Circuito de revisión, con guía humana por rol y etapa';
+  const REVIEW_V107_COMPAT='DATA ROOM · REVIEW WORKSPACE V107 · Circuito de revisión, con entrada guiada y contexto humano';
+  const REVIEW_V108_COMPAT='DATA ROOM · REVIEW WORKSPACE V108 · Circuito de revisión, con foco accesible y navegación por teclado';
   const REVIEW_STAGE_GUIDES=Object.freeze({
     ALL:Object.freeze(['¿Qué etapas del circuito pueden reconstruirse desde referencias únicas y cuáles siguen indeterminadas?','¿Qué señales provienen de disponibilidad, schema o payload y no deben confundirse con ausencia documental?','¿Qué contexto adicional necesitaría una persona antes de emitir cualquier juicio sobre suficiencia o resultado?']),
     CASE:Object.freeze(['¿El expediente fuente identifica claramente el caso, capital case y lote que se están revisando?','¿Las referencias internas del expediente permiten reconstruir su procedencia sin asumir identidad por coincidencia de IDs?','¿Qué información falta para comprender el alcance del caso sin convertir esa ausencia en fallo automático?']),
@@ -62,11 +64,19 @@
     const access=window.__SANA_ACCESS__,allowed=Boolean(access&&typeof access.canView==='function'&&access.canView('dataroom'));
     return {role,allowed,view:'dataroom',target:'review-workspace',preservesContext:true,accessEffect:'NONE',filterEffect:'NONE',priorityEffect:'NONE',integrity:'GUIDED_ENTRY ≠ ACCESS_GRANT · ENTRY_ROUTE ≠ REVIEW_PRIORITY · WORKSPACE_ENTRY ≠ REVIEW_DECISION · ENTRY_SCROLL ≠ SOURCE_MUTATION · ENTRY_CONTEXT_PRESERVED ≠ CONTEXT_VERIFICATION'};
   }
+  function focusReviewWorkspace({scroll=true}={}){
+    if(typeof document==='undefined')return false;
+    const target=document.getElementById?.('review-workspace');
+    if(!target)return false;
+    if(scroll)target.scrollIntoView?.({behavior:'smooth',block:'start'});
+    target.focus?.({preventScroll:true});
+    return true;
+  }
   function openGuidedReview(){
     const entry=reviewGuidedEntry();
     if(!entry.allowed||typeof window.go!=='function')return false;
     window.go(entry.view);
-    if(typeof document!=='undefined')document.getElementById?.(entry.target)?.scrollIntoView?.({behavior:'smooth',block:'start'});
+    focusReviewWorkspace({scroll:true});
     return true;
   }
   function reviewRoleLens(role=currentRole()){
@@ -142,11 +152,12 @@
   }
   function reviewStageSwitcherHtml(nav){
     if(!nav)return '';
-    const button=item=>{
-      const disabled=!item.navigable||item.active,border=item.active?'var(--teal)':item.navigable?'#cfe0dd':'var(--line)',background=item.active?'#e9f4f1':item.navigable?'#f7fbfa':'#f7f8f5',color=item.active?'var(--teal)':item.navigable?'var(--ink2)':'var(--muted)';
-      return `<button type="button" data-review-context-stage="${esc(item.stage)}" ${disabled?'disabled':''} aria-pressed="${item.active?'true':'false'}" title="${esc(item.state)}" style="display:grid;gap:2px;min-width:104px;padding:7px 8px;border:1px solid ${border};border-radius:9px;background:${background};color:${color};font:inherit;text-align:left;cursor:${disabled?'default':'pointer'};opacity:${disabled&&!item.active?'.72':'1'}"><strong style="font-size:8px">${esc(item.label)}</strong><small style="font-size:6px;color:inherit">${esc(item.active?'ACTIVA':item.state)}</small></button>`;
+    const firstNavigable=nav.items.findIndex(item=>item.navigable),hasActive=nav.items.some(item=>item.active&&item.navigable);
+    const button=(item,index)=>{
+      const disabled=!item.navigable,border=item.active?'var(--teal)':item.navigable?'#cfe0dd':'var(--line)',background=item.active?'#e9f4f1':item.navigable?'#f7fbfa':'#f7f8f5',color=item.active?'var(--teal)':item.navigable?'var(--ink2)':'var(--muted)',tabIndex=item.navigable&&(item.active||(!hasActive&&index===firstNavigable))?0:-1;
+      return `<button type="button" data-review-context-stage="${esc(item.stage)}" ${disabled?'disabled aria-disabled="true"':'aria-disabled="false"'} aria-pressed="${item.active?'true':'false'}" aria-current="${item.active?'step':'false'}" aria-label="${esc(item.label)} · ${esc(item.active?'ACTIVA':item.state)}" tabindex="${tabIndex}" title="${esc(item.state)}" style="display:grid;gap:2px;min-width:104px;padding:7px 8px;border:1px solid ${border};border-radius:9px;background:${background};color:${color};font:inherit;text-align:left;cursor:${disabled?'default':'pointer'};opacity:${disabled?'.72':'1'}"><strong style="font-size:8px">${esc(item.label)}</strong><small style="font-size:6px;color:inherit">${esc(item.active?'ACTIVA':item.state)}</small></button>`;
     };
-    return `<div data-review-stage-switcher style="margin-top:9px;padding-top:9px;border-top:1px solid var(--line)"><div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:6px"><strong style="font-size:8px">NAVEGACIÓN DE ETAPAS · URL ONLY</strong><small style="font-size:6px;color:var(--muted)">${nav.contextReady?'Circuito seleccionado':'Selecciona capital case + lote'}</small></div><div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:2px">${nav.items.map(button).join('')}</div><div style="margin-top:6px;font-size:6px;color:var(--muted)">STAGE_ORDER ≠ REQUIRED_SEQUENCE · NAVIGABLE_STAGE ≠ COMPLETE_STAGE · DISABLED_STAGE ≠ REVIEW_FAILURE</div></div>`;
+    return `<div data-review-stage-switcher role="toolbar" aria-label="Navegación de etapas del circuito de revisión" aria-orientation="horizontal" style="margin-top:9px;padding-top:9px;border-top:1px solid var(--line)"><div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:6px"><strong style="font-size:8px">NAVEGACIÓN DE ETAPAS · URL ONLY</strong><small style="font-size:6px;color:var(--muted)">${nav.contextReady?'Circuito seleccionado · flechas/Home/End para mover foco':'Selecciona capital case + lote'}</small></div><div data-review-stage-roving style="display:flex;gap:6px;overflow-x:auto;padding-bottom:2px">${nav.items.map(button).join('')}</div><div style="margin-top:6px;font-size:6px;color:var(--muted)">STAGE_ORDER ≠ REQUIRED_SEQUENCE · NAVIGABLE_STAGE ≠ COMPLETE_STAGE · KEYBOARD_NAVIGATION ≠ REVIEW_PROGRESS</div></div>`;
   }
   function reviewContextPermalinkHtml(link){
     if(!link)return '';
@@ -158,7 +169,7 @@
   }
   function reviewContextSummaryHtml(x){
     if(!x)return '';
-    return `<!-- ${REVIEW_V102_COMPAT} --><!-- ${REVIEW_V103_COMPAT} --><!-- ${REVIEW_V104_COMPAT} --><!-- ${REVIEW_V105_COMPAT} --><!-- ${REVIEW_V106_COMPAT} --><section data-review-context-summary class="review-context-summary" aria-label="Resumen de contexto de revisión" style="margin:0 0 12px;padding:11px;border:1px solid var(--line);border-radius:12px;background:${x.resolved?'#fff':'#fbfaf5'}"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:8px"><div style="display:grid;gap:2px"><p class="kicker" style="margin:0;font-size:7px;letter-spacing:.1em;color:var(--muted);font-weight:850">CONTEXTO ACTIVO · URL ONLY</p><strong style="font-size:10px">${x.resolved?'Contexto resuelto':'Contexto con selectores no resueltos'}</strong><small style="font-size:7px;color:var(--muted)">${x.visibleChains} circuito(s) visible(s) · ${x.issueCount} incidencia(s) de contexto</small></div><span class="status ${x.resolved?'teal':'warn'}">${x.resolved?'RESOLVED':'UNRESOLVED'}</span></div><div style="display:flex;flex-wrap:wrap;gap:6px">${reviewContextChip('Capital case',x.capital,x.capital!=='ALL',x.resolved)}${reviewContextChip('Lote',x.lot,x.lot!=='ALL',x.resolved)}${reviewContextChip('Foco',x.focus,x.focus!=='ALL',x.resolved)}${reviewContextChip('Etapa',x.stage==='ALL'?'Todas':`${x.stageLabel} · ${x.stage}`,x.stage!=='ALL',x.resolved)}${reviewContextChip('Evento',x.event||'Sin foco',!!x.event,x.resolved)}${reviewContextChip('Referencia',x.ref||'Sin foco',!!x.ref,x.resolved)}</div>${reviewRoleLensHtml(x.roleLens)}${reviewHumanGuideHtml(x.humanGuide)}${reviewStageSwitcherHtml(x.stageNavigation)}${reviewContextPermalinkHtml(x.permalink)}<div class="section-note" style="margin-top:8px">${esc(REVIEW_CONTEXT_INTEGRITY)}</div></section>`;
+    return `<!-- ${REVIEW_V102_COMPAT} --><!-- ${REVIEW_V103_COMPAT} --><!-- ${REVIEW_V104_COMPAT} --><!-- ${REVIEW_V105_COMPAT} --><!-- ${REVIEW_V106_COMPAT} --><!-- ${REVIEW_V107_COMPAT} --><!-- ${REVIEW_V108_COMPAT} --><section data-review-context-summary class="review-context-summary" aria-label="Resumen de contexto de revisión" style="margin:0 0 12px;padding:11px;border:1px solid var(--line);border-radius:12px;background:${x.resolved?'#fff':'#fbfaf5'}"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:8px"><div style="display:grid;gap:2px"><p class="kicker" style="margin:0;font-size:7px;letter-spacing:.1em;color:var(--muted);font-weight:850">CONTEXTO ACTIVO · URL ONLY</p><strong style="font-size:10px">${x.resolved?'Contexto resuelto':'Contexto con selectores no resueltos'}</strong><small style="font-size:7px;color:var(--muted)">${x.visibleChains} circuito(s) visible(s) · ${x.issueCount} incidencia(s) de contexto</small></div><span class="status ${x.resolved?'teal':'warn'}">${x.resolved?'RESOLVED':'UNRESOLVED'}</span></div><div style="display:flex;flex-wrap:wrap;gap:6px">${reviewContextChip('Capital case',x.capital,x.capital!=='ALL',x.resolved)}${reviewContextChip('Lote',x.lot,x.lot!=='ALL',x.resolved)}${reviewContextChip('Foco',x.focus,x.focus!=='ALL',x.resolved)}${reviewContextChip('Etapa',x.stage==='ALL'?'Todas':`${x.stageLabel} · ${x.stage}`,x.stage!=='ALL',x.resolved)}${reviewContextChip('Evento',x.event||'Sin foco',!!x.event,x.resolved)}${reviewContextChip('Referencia',x.ref||'Sin foco',!!x.ref,x.resolved)}</div>${reviewRoleLensHtml(x.roleLens)}${reviewHumanGuideHtml(x.humanGuide)}${reviewStageSwitcherHtml(x.stageNavigation)}${reviewContextPermalinkHtml(x.permalink)}<div class="section-note" style="margin-top:8px">${esc(REVIEW_CONTEXT_INTEGRITY)}</div></section>`;
   }
   function injectReviewContextSummary(html){
     if(!html||html.includes('data-review-context-summary'))return html;
@@ -170,7 +181,8 @@
     const bodyAt=html.indexOf('<div class="card-body">',workspaceAt),fallback=bodyAt>=0?bodyAt+'<div class="card-body">'.length:workspaceAt;
     const insertAt=controlsEnd>=0?controlsEnd+'</div>'.length:fallback;
     let out=`${html.slice(0,insertAt)}${section}${html.slice(insertAt)}`;
-    out=out.replace('DATA ROOM · REVIEW WORKSPACE V101','DATA ROOM · REVIEW WORKSPACE V107').replace('Circuito de revisión, con navegación bidireccional al caso fuente','Circuito de revisión, con entrada guiada y contexto humano');
+    out=out.replace('DATA ROOM · REVIEW WORKSPACE V101','DATA ROOM · REVIEW WORKSPACE V108').replace('Circuito de revisión, con navegación bidireccional al caso fuente','Circuito de revisión, con foco accesible, entrada guiada y contexto humano');
+    out=out.replace('<section id="review-workspace" class="card review-workspace">','<section id="review-workspace" class="card review-workspace" tabindex="-1" aria-labelledby="review-workspace-title">').replace('<h2>Circuito de revisión, con foco accesible, entrada guiada y contexto humano</h2>','<h2 id="review-workspace-title">Circuito de revisión, con foco accesible, entrada guiada y contexto humano</h2>');
     return out;
   }
   function selectReviewStage(stage){
@@ -206,15 +218,31 @@
   const baseDataRoom=views.dataroom;
   if(baseDataRoom)views.dataroom=function dataRoomWithReviewContextSummary(){return injectReviewContextSummary(baseDataRoom())};
 
-  if(typeof document!=='undefined')document.addEventListener('click',e=>{
-    const guided=e.target.closest?.('[data-review-guided-entry]');
-    if(guided){openGuidedReview();return}
-    const copy=e.target.closest?.('[data-review-context-copy]');
-    if(copy){copyReviewContextPermalink().then(result=>{const status=document.querySelector?.('[data-review-context-copy-status]');if(status)status.textContent=result.copied?'Enlace copiado localmente':'Copia no disponible · enlace visible';});return}
-    const stage=e.target.closest?.('[data-review-context-stage]');
-    if(stage&&!stage.disabled)selectReviewStage(stage.dataset.reviewContextStage||'');
-  });
+  if(typeof document!=='undefined'){
+    document.addEventListener('click',e=>{
+      const guided=e.target.closest?.('[data-review-guided-entry]');
+      if(guided){openGuidedReview();return}
+      const sourceReturn=e.target.closest?.('[data-review-source-return]');
+      if(sourceReturn){queueMicrotask(()=>focusReviewWorkspace({scroll:false}));return}
+      const copy=e.target.closest?.('[data-review-context-copy]');
+      if(copy){copyReviewContextPermalink().then(result=>{const status=document.querySelector?.('[data-review-context-copy-status]');if(status)status.textContent=result.copied?'Enlace copiado localmente':'Copia no disponible · enlace visible';});return}
+      const stage=e.target.closest?.('[data-review-context-stage]');
+      if(stage&&!stage.disabled)selectReviewStage(stage.dataset.reviewContextStage||'');
+    });
+    document.addEventListener('keydown',e=>{
+      const current=e.target.closest?.('[data-review-context-stage]'),toolbar=current?.closest?.('[data-review-stage-switcher]');
+      if(!current||!toolbar||!['ArrowRight','ArrowLeft','Home','End'].includes(e.key))return;
+      const buttons=[...toolbar.querySelectorAll('button[data-review-context-stage]:not([disabled])')];
+      if(!buttons.length)return;
+      const index=Math.max(0,buttons.indexOf(current));let next=index;
+      if(e.key==='ArrowRight')next=(index+1)%buttons.length;
+      else if(e.key==='ArrowLeft')next=(index-1+buttons.length)%buttons.length;
+      else if(e.key==='Home')next=0;
+      else if(e.key==='End')next=buttons.length-1;
+      e.preventDefault();buttons.forEach((button,i)=>button.tabIndex=i===next?0:-1);buttons[next]?.focus?.();
+    });
+  }
 
   window.__SANA_DATAROOM_ENTRY__=Object.freeze({role:currentRole,integrity:'ROLE_ENTRY_ONLY · DATAROOM_READ_ONLY · NO_PRIVILEGE_ESCALATION'});
-  window.__SANA_DATAROOM_REVIEW_CONTEXT_SUMMARY__=Object.freeze({summary:reviewContextSummary,inject:injectReviewContextSummary,stageNavigation:reviewStageNavigation,selectStage:selectReviewStage,permalink:reviewContextPermalink,copyPermalink:copyReviewContextPermalink,roleLens:reviewRoleLens,stageGuide:reviewRoleStageGuide,guidedEntry:reviewGuidedEntry,openGuidedReview,integrity:REVIEW_CONTEXT_INTEGRITY});
+  window.__SANA_DATAROOM_REVIEW_CONTEXT_SUMMARY__=Object.freeze({summary:reviewContextSummary,inject:injectReviewContextSummary,stageNavigation:reviewStageNavigation,selectStage:selectReviewStage,permalink:reviewContextPermalink,copyPermalink:copyReviewContextPermalink,roleLens:reviewRoleLens,stageGuide:reviewRoleStageGuide,guidedEntry:reviewGuidedEntry,openGuidedReview,focusWorkspace:focusReviewWorkspace,integrity:REVIEW_CONTEXT_INTEGRITY});
 })();
