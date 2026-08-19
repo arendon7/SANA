@@ -1,12 +1,21 @@
 (() => {
   'use strict';
 
-  const REVIEW_CONTEXT_INTEGRITY='CONTEXT_SUMMARY ≠ SOURCE_VERIFICATION · ACTIVE_SELECTOR ≠ REVIEW_PRIORITY · CONTEXT_ISSUE_COUNT ≠ RISK_SCORE · SUMMARY_VIEW ≠ PERSISTED_STATE · REVIEW_CONTEXT_VIEW ≠ SOURCE_LEDGER · STAGE_SWITCH ≠ REVIEW_PROGRESS · STAGE_ORDER ≠ REQUIRED_SEQUENCE · NAVIGABLE_STAGE ≠ COMPLETE_STAGE · DISABLED_STAGE ≠ REVIEW_FAILURE · URL_STAGE_CHANGE ≠ SOURCE_MUTATION · STAGE_BUTTON_STATUS ≠ REVIEW_OUTCOME · CONTEXT_LINK ≠ SOURCE_SNAPSHOT · COPIED_LINK ≠ VERIFIED_CONTEXT · CLIPBOARD_COPY ≠ EXTERNAL_DELIVERY · SHAREABLE_URL ≠ REVIEW_APPROVAL · LINK_REOPEN ≠ CONTEXT_VERIFICATION · URL_CONTEXT ≠ PERSISTED_SOURCE_STATE · READ_ONLY · NO_SOURCE_MUTATION';
+  const REVIEW_CONTEXT_INTEGRITY='CONTEXT_SUMMARY ≠ SOURCE_VERIFICATION · ACTIVE_SELECTOR ≠ REVIEW_PRIORITY · CONTEXT_ISSUE_COUNT ≠ RISK_SCORE · SUMMARY_VIEW ≠ PERSISTED_STATE · REVIEW_CONTEXT_VIEW ≠ SOURCE_LEDGER · STAGE_SWITCH ≠ REVIEW_PROGRESS · STAGE_ORDER ≠ REQUIRED_SEQUENCE · NAVIGABLE_STAGE ≠ COMPLETE_STAGE · DISABLED_STAGE ≠ REVIEW_FAILURE · URL_STAGE_CHANGE ≠ SOURCE_MUTATION · STAGE_BUTTON_STATUS ≠ REVIEW_OUTCOME · CONTEXT_LINK ≠ SOURCE_SNAPSHOT · COPIED_LINK ≠ VERIFIED_CONTEXT · CLIPBOARD_COPY ≠ EXTERNAL_DELIVERY · SHAREABLE_URL ≠ REVIEW_APPROVAL · LINK_REOPEN ≠ CONTEXT_VERIFICATION · URL_CONTEXT ≠ PERSISTED_SOURCE_STATE · ROLE_LENS ≠ ACCESS_CONTROL · ROLE_EMPHASIS ≠ FILTER ≠ REVIEW_PRIORITY · ROLE_GUIDANCE ≠ REVIEW_OUTCOME · ROLE_LENS ≠ SOURCE_MUTATION · SAME_EVIDENCE_SET_ACROSS_ROLES · READ_ONLY · NO_SOURCE_MUTATION';
   const REVIEW_STAGE_LABELS=Object.freeze({CASE:'Expediente',HANDOFF:'Handoff',FEEDBACK:'Feedback',RESPONSE:'Respuesta',DISPOSITION:'Disposición',ROUND:'Ronda'});
   const REVIEW_STAGE_ORDER=Object.freeze(['CASE','HANDOFF','FEEDBACK','RESPONSE','DISPOSITION','ROUND']);
   const REVIEW_CONTEXT_KEYS=Object.freeze(['rwCapital','rwLot','rwFocus','rwStage','rwEvent','rwRef']);
   const REVIEW_V102_COMPAT='DATA ROOM · REVIEW WORKSPACE V102 · Circuito de revisión, con contexto operativo visible';
   const REVIEW_V103_COMPAT='DATA ROOM · REVIEW WORKSPACE V103 · Circuito de revisión, con contexto operativo y navegación de etapas';
+  const REVIEW_V104_COMPAT='DATA ROOM · REVIEW WORKSPACE V104 · Circuito de revisión, con contexto reproducible y navegación de etapas';
+  const REVIEW_ROLE_LENSES=Object.freeze({
+    admin:Object.freeze({label:'Gobernanza',headline:'Integridad y consistencia del circuito',summary:'Lee disponibilidad de fuentes, schema, referencias, ambigüedad y contexto sin convertir señales documentales en fallas automáticas.',cues:Object.freeze(['Revisar procedencia y estado técnico de las fuentes','Localizar referencias ambiguas o no resueltas','Mantener separadas gobernanza, suficiencia y decisión'])}),
+    technical:Object.freeze({label:'Técnica',headline:'Trazabilidad y procedencia para revisión humana',summary:'Prioriza eventos, referencias y vínculo con el caso fuente. La proyección ayuda a revisar; no diagnostica ni reemplaza criterio técnico.',cues:Object.freeze(['Contrastar secuencia observada con el ledger fuente','Revisar referencias internas antes de interpretar hallazgos','Mantener causalidad y eficacia fuera de inferencias automáticas'])}),
+    investor:Object.freeze({label:'Contraparte',headline:'Evidencia, alcance y límites de lectura',summary:'Orienta la lectura hacia procedencia, disponibilidad y brechas documentales sin transformar el expediente en score, elegibilidad o recomendación.',cues:Object.freeze(['Distinguir evidencia presente de suficiencia o verificación','Leer contexto no resuelto como incertidumbre documental','Separar trazabilidad de decisión, oferta o ejecución financiera'])}),
+    producer:Object.freeze({label:'Productor',headline:'Memoria documental del proceso de revisión',summary:'Explica qué referencias del expediente pueden reconstruirse y dónde está su fuente, sin cambiar actividades ni sustituir acompañamiento humano.',cues:Object.freeze(['Ubicar qué etapa está documentada','Reconocer cuándo una fuente no está disponible','Volver al registro fuente para comprender el contexto'])}),
+    visitor:Object.freeze({label:'Visitante',headline:'Recorrido explicativo de la evidencia',summary:'Presenta el circuito como una lectura demostrativa y no operativa. Ninguna etapa visible concede permisos ni implica aprobación.',cues:Object.freeze(['Seguir procedencia sin editar','Distinguir presencia de completitud','Entender las fronteras read-only del Data Room'])}),
+    new_user:Object.freeze({label:'Onboarding',headline:'Lectura inicial sin privilegios adicionales',summary:'Introduce el circuito y sus fuentes sin convertir una cuenta nueva en rol operativo ni ampliar acceso.',cues:Object.freeze(['Comprender las seis etapas de referencia','Reconocer límites de acceso y contexto','Usar el expediente solo como lectura'])})
+  });
 
   function currentRole(){
     if(window.__SANA_ACCESS__?.role)return window.__SANA_ACCESS__.role;
@@ -38,6 +47,10 @@
     return `<section class="card" style="margin-top:14px"><div class="card-head"><div><p class="kicker">DATA ROOM 360°</p><h2>${esc(title)}</h2><p>Corte ${esc(s.cut)} · ${esc(s.gaps)} brecha(s) históricas · ${esc(s.remediation)} preparadas para re-evaluación.</p></div><button class="btn secondary" data-view-link="dataroom">Abrir 360°</button></div><div class="card-body"><div class="section-note">La síntesis ejecutiva es read-only. Para modificar actividades, evidencia, costos o remediación debes volver al módulo fuente correspondiente.</div></div></section>`;
   }
 
+  function reviewRoleLens(role=currentRole()){
+    const key=Object.prototype.hasOwnProperty.call(REVIEW_ROLE_LENSES,role)?role:'new_user',cfg=REVIEW_ROLE_LENSES[key];
+    return {role:key,label:cfg.label,headline:cfg.headline,summary:cfg.summary,cues:[...cfg.cues],evidenceScope:'UNCHANGED',permissionEffect:'NONE',filterEffect:'NONE',integrity:'ROLE_LENS ≠ ACCESS_CONTROL · ROLE_EMPHASIS ≠ FILTER ≠ REVIEW_PRIORITY · ROLE_GUIDANCE ≠ REVIEW_OUTCOME · ROLE_LENS ≠ SOURCE_MUTATION · SAME_EVIDENCE_SET_ACROSS_ROLES'};
+  }
   function reviewStageNavigation(s,focus){
     const ready=focus?.capital&&focus.capital!=='ALL'&&focus?.lot&&focus.lot!=='ALL';
     const chain=ready?(s?.chains||[]).find(c=>c.capitalCaseRef===focus.capital&&c.lot===focus.lot)||null:null;
@@ -86,6 +99,7 @@
         visibleChains:visible.length,
         stageNavigation:reviewStageNavigation(s,focus),
         permalink:reviewContextPermalink(focus),
+        roleLens:reviewRoleLens(),
         integrity:REVIEW_CONTEXT_INTEGRITY
       };
     }catch{return null}
@@ -106,9 +120,13 @@
     if(!link)return '';
     return `<div data-review-context-link style="margin-top:9px;padding-top:9px;border-top:1px solid var(--line)"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap"><div style="display:grid;gap:3px;min-width:0;flex:1"><strong style="font-size:8px">ENLACE DE CONTEXTO · CANÓNICO</strong><code style="font-size:6px;color:var(--muted);white-space:normal;overflow-wrap:anywhere">${esc(link.href)}</code><small data-review-context-copy-status aria-live="polite" style="font-size:6px;color:var(--muted)">Solo reproduce selectores URL; no congela ni verifica fuentes.</small></div><button type="button" class="btn ghost" data-review-context-copy style="white-space:nowrap">Copiar enlace</button></div><div style="margin-top:6px;font-size:6px;color:var(--muted)">CONTEXT_LINK ≠ SOURCE_SNAPSHOT · COPIED_LINK ≠ VERIFIED_CONTEXT · CLIPBOARD_COPY ≠ EXTERNAL_DELIVERY</div></div>`;
   }
+  function reviewRoleLensHtml(lens){
+    if(!lens)return '';
+    return `<div data-review-role-lens data-review-role="${esc(lens.role)}" style="margin-top:9px;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fbfcfa"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap"><div style="display:grid;gap:3px;min-width:0;flex:1"><span style="font-size:6px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">LENTE DE LECTURA · ${esc(lens.label)}</span><strong style="font-size:9px">${esc(lens.headline)}</strong><small style="font-size:7px;line-height:1.45;color:var(--muted)">${esc(lens.summary)}</small></div><span class="status">EMPHASIS ONLY</span></div><div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:8px">${lens.cues.map(c=>`<div style="padding:7px 8px;border:1px dashed var(--line);border-radius:8px;background:#fff;font-size:7px;line-height:1.4;color:var(--ink2)">${esc(c)}</div>`).join('')}</div><div style="margin-top:7px;font-size:6px;color:var(--muted)">ROLE_LENS ≠ ACCESS_CONTROL · ROLE_EMPHASIS ≠ FILTER ≠ REVIEW_PRIORITY · ROLE_GUIDANCE ≠ REVIEW_OUTCOME · SAME_EVIDENCE_SET_ACROSS_ROLES</div></div>`;
+  }
   function reviewContextSummaryHtml(x){
     if(!x)return '';
-    return `<!-- ${REVIEW_V102_COMPAT} --><!-- ${REVIEW_V103_COMPAT} --><section data-review-context-summary class="review-context-summary" aria-label="Resumen de contexto de revisión" style="margin:0 0 12px;padding:11px;border:1px solid var(--line);border-radius:12px;background:${x.resolved?'#fff':'#fbfaf5'}"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:8px"><div style="display:grid;gap:2px"><p class="kicker" style="margin:0;font-size:7px;letter-spacing:.1em;color:var(--muted);font-weight:850">CONTEXTO ACTIVO · URL ONLY</p><strong style="font-size:10px">${x.resolved?'Contexto resuelto':'Contexto con selectores no resueltos'}</strong><small style="font-size:7px;color:var(--muted)">${x.visibleChains} circuito(s) visible(s) · ${x.issueCount} incidencia(s) de contexto</small></div><span class="status ${x.resolved?'teal':'warn'}">${x.resolved?'RESOLVED':'UNRESOLVED'}</span></div><div style="display:flex;flex-wrap:wrap;gap:6px">${reviewContextChip('Capital case',x.capital,x.capital!=='ALL',x.resolved)}${reviewContextChip('Lote',x.lot,x.lot!=='ALL',x.resolved)}${reviewContextChip('Foco',x.focus,x.focus!=='ALL',x.resolved)}${reviewContextChip('Etapa',x.stage==='ALL'?'Todas':`${x.stageLabel} · ${x.stage}`,x.stage!=='ALL',x.resolved)}${reviewContextChip('Evento',x.event||'Sin foco',!!x.event,x.resolved)}${reviewContextChip('Referencia',x.ref||'Sin foco',!!x.ref,x.resolved)}</div>${reviewStageSwitcherHtml(x.stageNavigation)}${reviewContextPermalinkHtml(x.permalink)}<div class="section-note" style="margin-top:8px">${esc(REVIEW_CONTEXT_INTEGRITY)}</div></section>`;
+    return `<!-- ${REVIEW_V102_COMPAT} --><!-- ${REVIEW_V103_COMPAT} --><!-- ${REVIEW_V104_COMPAT} --><section data-review-context-summary class="review-context-summary" aria-label="Resumen de contexto de revisión" style="margin:0 0 12px;padding:11px;border:1px solid var(--line);border-radius:12px;background:${x.resolved?'#fff':'#fbfaf5'}"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:8px"><div style="display:grid;gap:2px"><p class="kicker" style="margin:0;font-size:7px;letter-spacing:.1em;color:var(--muted);font-weight:850">CONTEXTO ACTIVO · URL ONLY</p><strong style="font-size:10px">${x.resolved?'Contexto resuelto':'Contexto con selectores no resueltos'}</strong><small style="font-size:7px;color:var(--muted)">${x.visibleChains} circuito(s) visible(s) · ${x.issueCount} incidencia(s) de contexto</small></div><span class="status ${x.resolved?'teal':'warn'}">${x.resolved?'RESOLVED':'UNRESOLVED'}</span></div><div style="display:flex;flex-wrap:wrap;gap:6px">${reviewContextChip('Capital case',x.capital,x.capital!=='ALL',x.resolved)}${reviewContextChip('Lote',x.lot,x.lot!=='ALL',x.resolved)}${reviewContextChip('Foco',x.focus,x.focus!=='ALL',x.resolved)}${reviewContextChip('Etapa',x.stage==='ALL'?'Todas':`${x.stageLabel} · ${x.stage}`,x.stage!=='ALL',x.resolved)}${reviewContextChip('Evento',x.event||'Sin foco',!!x.event,x.resolved)}${reviewContextChip('Referencia',x.ref||'Sin foco',!!x.ref,x.resolved)}</div>${reviewRoleLensHtml(x.roleLens)}${reviewStageSwitcherHtml(x.stageNavigation)}${reviewContextPermalinkHtml(x.permalink)}<div class="section-note" style="margin-top:8px">${esc(REVIEW_CONTEXT_INTEGRITY)}</div></section>`;
   }
   function injectReviewContextSummary(html){
     if(!html||html.includes('data-review-context-summary'))return html;
@@ -120,7 +138,7 @@
     const bodyAt=html.indexOf('<div class="card-body">',workspaceAt),fallback=bodyAt>=0?bodyAt+'<div class="card-body">'.length:workspaceAt;
     const insertAt=controlsEnd>=0?controlsEnd+'</div>'.length:fallback;
     let out=`${html.slice(0,insertAt)}${section}${html.slice(insertAt)}`;
-    out=out.replace('DATA ROOM · REVIEW WORKSPACE V101','DATA ROOM · REVIEW WORKSPACE V104').replace('Circuito de revisión, con navegación bidireccional al caso fuente','Circuito de revisión, con contexto reproducible y navegación de etapas');
+    out=out.replace('DATA ROOM · REVIEW WORKSPACE V101','DATA ROOM · REVIEW WORKSPACE V105').replace('Circuito de revisión, con navegación bidireccional al caso fuente','Circuito de revisión, con lente por rol y contexto reproducible');
     return out;
   }
   function selectReviewStage(stage){
@@ -164,5 +182,5 @@
   });
 
   window.__SANA_DATAROOM_ENTRY__=Object.freeze({role:currentRole,integrity:'ROLE_ENTRY_ONLY · DATAROOM_READ_ONLY · NO_PRIVILEGE_ESCALATION'});
-  window.__SANA_DATAROOM_REVIEW_CONTEXT_SUMMARY__=Object.freeze({summary:reviewContextSummary,inject:injectReviewContextSummary,stageNavigation:reviewStageNavigation,selectStage:selectReviewStage,permalink:reviewContextPermalink,copyPermalink:copyReviewContextPermalink,integrity:REVIEW_CONTEXT_INTEGRITY});
+  window.__SANA_DATAROOM_REVIEW_CONTEXT_SUMMARY__=Object.freeze({summary:reviewContextSummary,inject:injectReviewContextSummary,stageNavigation:reviewStageNavigation,selectStage:selectReviewStage,permalink:reviewContextPermalink,copyPermalink:copyReviewContextPermalink,roleLens:reviewRoleLens,integrity:REVIEW_CONTEXT_INTEGRITY});
 })();
