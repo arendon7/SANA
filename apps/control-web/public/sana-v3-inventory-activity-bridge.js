@@ -7,3 +7,23 @@
   const base=views.field;if(base)views.field=()=>insert(base(),panel());
   window.__SANA_INVENTORY_ACTIVITY_BRIDGE__=Object.freeze({linked,integrity:'EXPLICIT_ACTIVITY_LINK_ONLY · ACTIVITY_COMPLETION ≠ INVENTORY_MOVEMENT · NO_AUTOMATIC_CONSUMPTION'});
 })();
+
+(() => {
+  'use strict';
+  const state={version:'V137',status:'PENDING',loaded:false,failed:false};
+  function load(){
+    if(state.loaded||state.failed||typeof document==='undefined'||!document.createElement)return;
+    const script=document.createElement('script');script.src='/sana-v3-inventory-references.js';script.async=false;
+    script.onload=()=>{state.loaded=true;state.status='READY'};
+    script.onerror=()=>{state.failed=true;state.status='FAILED'};
+    document.head.appendChild(script);
+  }
+  function start(){
+    if(typeof window==='undefined')return;
+    const nutrition=window.__SANA_NUTRITION_LEDGER__,forecast=window.__SANA_FORECAST_LEDGER__,activity=window.__SANA_PLAN_FIELD_WORKFLOW__;
+    if(nutrition?.events&&forecast?.cases&&activity?.findActivity){load();return}
+    setTimeout(start,25);
+  }
+  if(typeof document!=='undefined'&&document.readyState==='complete')start();else if(typeof window?.addEventListener==='function')window.addEventListener('load',start,{once:true});
+  if(typeof window!=='undefined')window.__SANA_INVENTORY_REFERENCES_LOADER__=Object.freeze({version:'V137',asset:'/sana-v3-inventory-references.js',state});
+})();
