@@ -1,0 +1,35 @@
+name: SANA Demo Inventory References
+
+on:
+  push:
+    branches: [demo/sana-inventory-v137]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  inventory-references-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate V137 cross-domain references
+        run: |
+          set -euo pipefail
+          f='apps/control-web/public/sana-v3-inventory-references.js'
+          node --check "$f"
+          node scripts/validate-sana-inventory-references.mjs
+          grep -q "const VERSION='V137'" "$f"
+          grep -q 'RESERVATION' "$f"
+          grep -q 'NUTRITION_APPLICATION' "$f"
+          grep -q 'FORECAST' "$f"
+          grep -q 'CROSS_CASE_REFERENCE' "$f"
+          grep -q 'CROSS_LOT_REFERENCE' "$f"
+          grep -q 'ITEM_MISMATCH' "$f"
+          grep -q 'FORWARD_REFERENCE' "$f"
+          grep -q 'STRING_REFERENCE ≠ VALIDATED_REFERENCE' "$f"
+          grep -q 'SUPPLIER_REF/COST_REF ≠ CANONICALLY_VERIFIED' "$f"
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|automaticConsumption|automaticProcurement|paymentExecuted|creditApproved|investmentApproved' "$f"
