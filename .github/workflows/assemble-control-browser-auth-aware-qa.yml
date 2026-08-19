@@ -76,12 +76,20 @@ jobs:
           git commit -m 'ci: record auth-aware CONTROL browser diagnostics'
           git push origin HEAD:demo/sana-control-browser-auth-aware-qa
           exit 1
-      - name: Commit validated Browser QA harness
+      - name: Commit validated Browser QA harness and PASS marker
         if: steps.browser.outcome == 'success'
         run: |
+          printf '%s\n' \
+            'PASS_CONTROL_BROWSER_QA_AUTH_AWARE_ALPHA4_ALPHA11' \
+            'DEMO_AUTH_UI=PROFILE_ADMIN' \
+            'PRODUCTION_EXECUTION_AVAILABLE=false' \
+            'PRODUCTION_ACTIVATION_ALLOWED=false' \
+            'CANONICAL_MUTATED=false' \
+            'D10=PENDING' > control-browser-auth-aware-pass.txt
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add \
+            control-browser-auth-aware-pass.txt \
             scripts/control-evidence-http-browser-qa.py \
             scripts/control-approvals-http-browser-qa.py \
             scripts/control-handoff-http-browser-qa.py \
@@ -90,6 +98,5 @@ jobs:
             scripts/control-production-authorization-browser-qa.py \
             scripts/control-canonical-write-browser-qa.py \
             scripts/control-oidc-session-browser-qa.py
-          git diff --cached --quiet && exit 0
-          git commit -m 'test: authenticate historical CONTROL Browser QA via DEMO sandbox'
+          git commit -m 'test: certify auth-aware historical CONTROL Browser QA'
           git push origin HEAD:demo/sana-control-browser-auth-aware-qa
