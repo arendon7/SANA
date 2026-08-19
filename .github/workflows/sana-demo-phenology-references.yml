@@ -1,0 +1,32 @@
+name: SANA Demo Phenology References
+
+on:
+  push:
+    branches: [demo/sana-phenology-v133]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  phenology-references-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate V133 semantic references
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-phenology-references.js
+          node scripts/validate-sana-phenology-references.mjs
+          f='apps/control-web/public/sana-v3-phenology-references.js'
+          grep -q "const VERSION='V133'" "$f"
+          grep -q 'LEGACY_REFERENCE_NOT_CAPTURED' "$f"
+          grep -q 'CROSS_LOT_REFERENCE' "$f"
+          grep -q 'FORWARD_REFERENCE' "$f"
+          grep -q 'REFERENCE ≠ PLAN_PHASE' "$f"
+          grep -q 'REFERENCE ≠ MANAGEMENT_DECISION' "$f"
+          grep -q 'REFERENCE ≠ CAUSALITY' "$f"
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|creditApproved|investmentApproved' "$f"
