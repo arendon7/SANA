@@ -50,6 +50,7 @@ globalThis.esc=v=>String(v??'');
 globalThis.metric=()=>'';
 globalThis.openModal=()=>{};
 globalThis.window={
+  addEventListener:()=>{},
   __SANA_PLAN_FIELD_WORKFLOW__:{forLot:()=>[]},
   __SANA_NUTRITION_LEDGER__:Object.freeze({
     schema:'SANA_NUTRITION_LEDGER_V1',
