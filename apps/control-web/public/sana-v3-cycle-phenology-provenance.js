@@ -75,3 +75,17 @@
     integrity:'PHENOLOGY_PROVENANCE ≠ PLAN_PHASE ≠ CYCLE_GATE · MEASUREMENT ≠ MANAGEMENT_DECISION · TREND ≠ PERFORMANCE ≠ CAUSALITY'
   });
 })();
+
+(() => {
+  'use strict';
+  const state={version:'V133',status:'PENDING',loaded:false,failed:false};
+  function load(){
+    if(state.loaded||state.failed||typeof document==='undefined'||!document.createElement){return}
+    const script=document.createElement('script');script.src='/sana-v3-phenology-references.js';script.async=false;
+    script.onload=()=>{state.loaded=true;state.status='READY'};
+    script.onerror=()=>{state.failed=true;state.status='FAILED'};
+    document.head.appendChild(script);
+  }
+  if(typeof document!=='undefined'&&document.readyState==='loading'&&typeof window?.addEventListener==='function')window.addEventListener('DOMContentLoaded',load,{once:true});else load();
+  if(typeof window!=='undefined')window.__SANA_PHENOLOGY_REFERENCES_LOADER__=Object.freeze({version:'V133',asset:'/sana-v3-phenology-references.js',state});
+})();
