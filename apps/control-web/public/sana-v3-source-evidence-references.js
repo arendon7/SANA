@@ -46,3 +46,25 @@
   document.addEventListener('click',e=>{const b=e.target.closest('[data-source-ref]');if(b)openReference(b.dataset.sourceRef)});
   window.__SANA_SOURCE_EVIDENCE_LEDGER__=Object.freeze({...base,referenceVersion:VERSION,cases,forScope,forTarget,forCase:caseFor,summary,integrity:`${base.integrity} · ${INTEGRITY}`});
 })();
+
+// V144 loader: historical reference provenance remains additive, snapshot-only and non-weighted.
+(() => {
+  'use strict';
+  if(typeof window==='undefined'||typeof document==='undefined'||typeof document.createElement!=='function')return;
+  const VERSION='V144';
+  const ASSETS=['/sana-v3-report-snapshot-source-evidence-references.js','/sana-v3-cycle-source-evidence-references.js','/sana-v3-due-diligence-source-evidence-reference-gaps.js','/sana-v3-dataroom-source-evidence-references.js'];
+  const state={version:VERSION,status:'WAITING',loaded:[],integrity:'REFERENCE_HISTORY ≠ SOURCE_VALIDITY · SNAPSHOT_ONLY · NO_LIVE_FALLBACK · NON_WEIGHTED · NO_PROCUREMENT/CREDIT/INVESTMENT_AUTHORITY'};
+  function expose(){window.__SANA_SOURCE_EVIDENCE_REFERENCE_HISTORY_LOADER__=Object.freeze({...state,loaded:[...state.loaded]})}
+  function loadOne(i){
+    if(i>=ASSETS.length){state.status='READY';expose();return}
+    const src=ASSETS[i];
+    if(document.querySelector?.(`script[data-sana-source-evidence-history-v144="${i}"]`)){state.loaded.push(src);expose();loadOne(i+1);return}
+    const s=document.createElement('script');s.src=src;s.defer=true;s.dataset.sanaSourceEvidenceHistoryV144=String(i);
+    s.onload=()=>{state.loaded.push(src);expose();loadOne(i+1)};
+    s.onerror=()=>{state.status='FAILED';state.failedAsset=src;expose()};
+    document.head.appendChild(s);
+  }
+  function start(){if(window.__SANA_SOURCE_EVIDENCE_LEDGER__?.referenceVersion!=='V143'){state.status='BLOCKED_V143_NOT_READY';expose();return}state.status='LOADING';expose();loadOne(0)}
+  expose();
+  if(document.readyState==='complete')queueMicrotask(start);else window.addEventListener('load',start,{once:true});
+})();
