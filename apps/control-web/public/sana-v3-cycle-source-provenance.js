@@ -11,3 +11,15 @@
   const baseCycle=views.cycle;if(baseCycle)views.cycle=()=>insert(baseCycle(),panel());
   window.__SANA_CYCLE_SOURCE_EVIDENCE__=Object.freeze({forPlan,selected,integrity:INTEGRITY});
 })();
+
+// V143 loader: activate Source Evidence semantic reference integrity after source + forecast APIs exist.
+(() => {
+  if(typeof window==='undefined'||typeof document==='undefined'||!document.createElement)return;
+  function load(){
+    if(window.__SANA_SOURCE_EVIDENCE_LEDGER__?.referenceVersion==='V143')return;
+    if(!window.__SANA_SOURCE_EVIDENCE_LEDGER__||!window.__SANA_INPUT_FORECAST__)return;
+    if(document.querySelector?.('script[data-sana-source-evidence-references-v143]'))return;
+    const s=document.createElement('script');s.src='/sana-v3-source-evidence-references.js';s.defer=true;s.dataset.sanaSourceEvidenceReferencesV143='1';document.head.appendChild(s);
+  }
+  if(document.readyState==='complete')queueMicrotask(load);else window.addEventListener('load',load,{once:true});
+})();
