@@ -11,14 +11,21 @@
   window.__SANA_CYCLE_FORECAST__=Object.freeze({forPlan,selected,integrity:INTEGRITY});
 })();
 
-// V139 loader: activate Forecast reference integrity only after dependent APIs exist.
+// V139/V140 loader: activate Forecast reference integrity, then historical provenance.
 (() => {
   if(typeof window==='undefined'||typeof document==='undefined'||!document.createElement)return;
+  const HISTORY=['/sana-v3-report-snapshot-forecast-references.js','/sana-v3-cycle-forecast-references.js','/sana-v3-due-diligence-forecast-reference-gaps.js','/sana-v3-dataroom-forecast-references.js'];
+  function loadHistory(i=0){
+    if(i>=HISTORY.length)return;
+    const src=HISTORY[i];
+    if(document.querySelector?.(`script[src="${src}"]`)){loadHistory(i+1);return}
+    const s=document.createElement('script');s.src=src;s.defer=true;s.dataset.sanaForecastReferenceHistoryV140=String(i+1);s.onload=()=>loadHistory(i+1);document.head.appendChild(s);
+  }
   function load(){
-    if(window.__SANA_FORECAST_LEDGER__?.referenceVersion==='V139')return;
     if(!window.__SANA_FORECAST_LEDGER__||!window.__SANA_NUTRITION_LEDGER__||!window.__SANA_PLAN_FIELD_WORKFLOW__)return;
+    if(window.__SANA_FORECAST_LEDGER__?.referenceVersion==='V139'){loadHistory();return}
     if(document.querySelector?.('script[data-sana-forecast-references-v139]'))return;
-    const s=document.createElement('script');s.src='/sana-v3-forecast-references.js';s.defer=true;s.dataset.sanaForecastReferencesV139='1';document.head.appendChild(s);
+    const s=document.createElement('script');s.src='/sana-v3-forecast-references.js';s.defer=true;s.dataset.sanaForecastReferencesV139='1';s.onload=()=>loadHistory();document.head.appendChild(s);
   }
   if(document.readyState==='complete')queueMicrotask(load);else window.addEventListener('load',load,{once:true});
 })();
