@@ -9,3 +9,15 @@
   const base=views.cycle;if(base)views.cycle=()=>insert(base(),panel());
   window.__SANA_CYCLE_LABOR__=Object.freeze({forPlan,selected,integrity:'LABOR_PROVENANCE ≠ CYCLE_GATE · ASSIGNMENT ≠ ATTENDANCE · ATTENDANCE ≠ WORKED_TIME · WORKED_TIME ≠ TASK_COMPLETION · TASK_COMPLETION ≠ QUALITY · RATE_REFERENCE ≠ LABOR_COST · LABOR_COST ≠ PAYMENT · NO_HR_SCORING · PRIVACY_MINIMIZED'});
 })();
+
+// V141 loader: activate Labor reference integrity after the base labor/workflow APIs exist.
+(() => {
+  if(typeof window==='undefined'||typeof document==='undefined'||!document.createElement)return;
+  function load(){
+    if(window.__SANA_LABOR_LEDGER__?.referenceVersion==='V141')return;
+    if(!window.__SANA_LABOR_LEDGER__||!window.__SANA_PLAN_FIELD_WORKFLOW__)return;
+    if(document.querySelector?.('script[data-sana-labor-references-v141]'))return;
+    const s=document.createElement('script');s.src='/sana-v3-labor-references.js';s.defer=true;s.dataset.sanaLaborReferencesV141='1';document.head.appendChild(s);
+  }
+  if(document.readyState==='complete')queueMicrotask(load);else window.addEventListener('load',load,{once:true});
+})();
