@@ -36,9 +36,7 @@ jobs:
           const fs=require('fs');
           const sw=fs.readFileSync('apps/control-web/public/sana-v3-sw.js','utf8');
           const loader=fs.readFileSync('apps/control-web/public/sana-v3-cycle-labor-provenance.js','utf8');
-          const marker="if(false){\nconst CACHE='sana-v3-demo-shell-v141';\n}\nconst CACHE='sana-v3-demo-shell-v142';";
-          if(!sw.includes(marker))throw new Error('v141 historical / v142 active marker missing');
-          if((sw.match(/const CACHE='sana-v3-demo-shell-v142';/g)||[]).length!==1)throw new Error('v142 cache marker count invalid');
+          if((sw.match(/const CACHE='sana-v3-demo-shell-v142';/g)||[]).length!==1)throw new Error('v142 cache marker must remain exactly once');
           const assets=[
             '/sana-v3-report-snapshot-labor-references.js',
             '/sana-v3-cycle-labor-references.js',
@@ -52,5 +50,8 @@ jobs:
           if(!loader.includes('s.onload=()=>loadHistory()'))throw new Error('V141→V142 loader chain missing');
           if(!loader.includes('data-sana-labor-history-v142')&&!loader.includes('sanaLaborHistoryV142'))throw new Error('V142 loader marker missing');
           if(!sw.includes('// v142 propagates Labor reference integrity'))throw new Error('v142 provenance marker missing');
+          const v142Active=sw.includes("if(false){\nconst CACHE='sana-v3-demo-shell-v141';\n}\nconst CACHE='sana-v3-demo-shell-v142';");
+          const v142Historical=sw.includes("if(false){\nconst CACHE='sana-v3-demo-shell-v142';\n}");
+          if(!v142Active&&!v142Historical)throw new Error('v142 must be active or preserved as a historical cache marker');
           NODE
           ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|payrollExecuted|paymentExecuted|performanceScoreCreated|creditApproved|investmentApproved' apps/control-web/public/sana-v3-*labor-reference*.js apps/control-web/public/sana-v3-cycle-labor-provenance.js
