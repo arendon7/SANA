@@ -4,21 +4,21 @@ import assert from 'node:assert/strict';
 
 const src=fs.readFileSync('apps/control-web/public/sana-v3-forecast-references.js','utf8');
 const rows=[
-  {id:'F1',lot:'L1',planId:'P1',item:'Input 1',itemId:'I1',basisRefs:['P1','N1'],activityRefs:['A1'],humanReview:{evidenceRef:'E1'},integrity:'BASE'},
-  {id:'F2',lot:'L1',planId:'P2',item:'Input 2',itemId:'I2',basisRefs:['P2'],activityRefs:[],humanReview:null,integrity:'BASE'},
-  {id:'F3',lot:'L1',planId:'P1',item:'Input 3',itemId:'I3',basisRefs:['UNKNOWN-1'],activityRefs:[],humanReview:null,integrity:'BASE'},
-  {id:'F4',lot:'L1',planId:'P1',item:'Input 4',itemId:'I4',basisRefs:['P1'],activityRefs:['NOPE'],humanReview:null,integrity:'BASE'},
-  {id:'F5',lot:'L1',planId:'P1',item:'Legacy',itemId:'I5',basisRefs:['P1'],activityRefs:[],humanReview:null,integrity:'BASE'}
+  {id:'F1',lot:'L1',planId:'PL-1',item:'Input 1',itemId:'I1',basisRefs:['PL-1','NUT-1'],activityRefs:['A1'],humanReview:{evidenceRef:'E1'},integrity:'BASE'},
+  {id:'F2',lot:'L1',planId:'PL-2',item:'Input 2',itemId:'I2',basisRefs:['PL-2'],activityRefs:[],humanReview:null,integrity:'BASE'},
+  {id:'F3',lot:'L1',planId:'PL-1',item:'Input 3',itemId:'I3',basisRefs:['UNKNOWN-1'],activityRefs:[],humanReview:null,integrity:'BASE'},
+  {id:'F4',lot:'L1',planId:'PL-1',item:'Input 4',itemId:'I4',basisRefs:['PL-1'],activityRefs:['NOPE'],humanReview:null,integrity:'BASE'},
+  {id:'F5',lot:'L1',planId:'PL-1',item:'Legacy',itemId:'I5',basisRefs:['PL-1'],activityRefs:[],humanReview:null,integrity:'BASE'}
 ];
 const meta=['F1','F2','F3','F4'].map((id,i)=>({id:`M${i}`,type:'forecast-reference-meta',values:{forecastSchema:'SANA_INPUT_FORECAST_LEDGER_V1',forecastId:id,referenceVersion:'V139'}}));
 const base={schema:'SANA_INPUT_FORECAST_LEDGER_V1',cases:()=>rows.map(x=>({...x})),forLot:l=>rows.filter(x=>x.lot===l),forItem:i=>rows.filter(x=>x.itemId===i),forActivity:a=>rows.filter(x=>x.activityRefs.includes(a)),summary:()=>({schema:'SANA_INPUT_FORECAST_LEDGER_V1',cases:rows.length,integrity:'BASE'}),integrity:'BASE'};
 const sandbox={
   window:{
     __SANA_FORECAST_LEDGER__:base,
-    __SANA_NUTRITION_LEDGER__:{events:()=>[{id:'N1',lot:'L1',eventKind:'APPLICATION'}]},
+    __SANA_NUTRITION_LEDGER__:{events:()=>[{id:'NUT-1',lot:'L1',eventKind:'APPLICATION'}]},
     __SANA_PLAN_FIELD_WORKFLOW__:{findActivity:id=>id==='A1'?{id:'A1',lot:'L1'}:null}
   },
-  DEMO:{plans:[{id:'P1',lot:'L1'},{id:'P2',lot:'L2'}],evidence:[{id:'E1',lot:'L1'}]},
+  DEMO:{plans:[{id:'PL-1',lot:'L1'},{id:'PL-2',lot:'L2'}],evidence:[{id:'E1',lot:'L1'}]},
   storage:{records:meta},views:{forecast:()=>''},document:{addEventListener:()=>{}},identity:{displayName:'QA'},
   esc:v=>String(v??''),metric:()=>'',openModal:()=>{},console
 };
