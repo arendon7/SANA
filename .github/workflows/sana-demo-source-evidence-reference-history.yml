@@ -1,0 +1,33 @@
+name: SANA Demo Source Evidence Reference History
+
+on:
+  push:
+    branches: [demo/sana-source-evidence-v144]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  source-evidence-reference-history:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Source Evidence Reference History V144
+        run: |
+          set -euo pipefail
+          for f in \
+            apps/control-web/public/sana-v3-report-snapshot-source-evidence-references.js \
+            apps/control-web/public/sana-v3-dataroom-source-evidence-references.js \
+            apps/control-web/public/sana-v3-cycle-source-evidence-references.js \
+            apps/control-web/public/sana-v3-due-diligence-source-evidence-reference-gaps.js; do node --check "$f"; done
+          node scripts/validate-sana-source-evidence-reference-provenance.mjs
+          grep -Fq 'CONTENT_MINIMIZED' apps/control-web/public/sana-v3-report-snapshot-source-evidence-references.js
+          grep -Fq 'NO_LIVE_FALLBACK' apps/control-web/public/sana-v3-dataroom-source-evidence-references.js
+          grep -Fq 'NON_WEIGHTED' apps/control-web/public/sana-v3-cycle-source-evidence-references.js
+          grep -Fq 'NOT_CAPTURED_OR_LEGACY ≠ GAP' apps/control-web/public/sana-v3-due-diligence-source-evidence-reference-gaps.js
+          ! grep -Eq '__SANA_SOURCE_EVIDENCE_LEDGER__|storage\?\.records|localStorage' apps/control-web/public/sana-v3-dataroom-source-evidence-references.js apps/control-web/public/sana-v3-cycle-source-evidence-references.js apps/control-web/public/sana-v3-due-diligence-source-evidence-reference-gaps.js
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|sourceVerified[[:space:]]*=[[:space:]]*true|hashVerified[[:space:]]*=[[:space:]]*true|contentIngested[[:space:]]*=[[:space:]]*true|accessPermissionVerified[[:space:]]*=[[:space:]]*true|creditApproved|investmentApproved|procurementApproved' apps/control-web/public/sana-v3-*source-evidence-reference*.js
