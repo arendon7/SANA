@@ -29,3 +29,22 @@
   }
   expose();if(document.readyState==='complete')queueMicrotask(start);else window.addEventListener('load',start,{once:true});
 })();
+
+// V146 loader: snapshot-only economic reference history; no accounting or financial authority.
+(() => {
+  'use strict';
+  if(typeof window==='undefined'||typeof document==='undefined'||typeof document.createElement!=='function'||typeof window.addEventListener!=='function')return;
+  const VERSION='V146';
+  const ASSETS=['/sana-v3-report-snapshot-economic-references.js','/sana-v3-cycle-economic-references.js','/sana-v3-due-diligence-economic-reference-gaps.js','/sana-v3-dataroom-economic-references.js'];
+  const state={version:VERSION,status:'WAITING',index:0,attempts:0,integrity:'SNAPSHOT_ONLY · CONTENT_MINIMIZED · NON_WEIGHTED · NO_ACCOUNTING/PAYMENT/SALE/CREDIT/INVESTMENT_AUTHORITY'};
+  function expose(){window.__SANA_ECONOMIC_REFERENCE_HISTORY_LOADER__=Object.freeze({...state})}
+  function v145Ready(){return window.__SANA_ECONOMIC_RECONCILIATION__?.referenceVersion==='V145'&&window.__SANA_ECONOMIC_REFERENCES_LOADER__?.status==='READY'}
+  function loadNext(){
+    if(state.index>=ASSETS.length){state.status='READY';expose();return}
+    const src=ASSETS[state.index];
+    if(document.querySelector?.(`script[src="${src}"]`)){state.index++;expose();queueMicrotask(loadNext);return}
+    state.status='LOADING';expose();const s=document.createElement('script');s.src=src;s.defer=true;s.dataset.sanaEconomicReferenceHistoryV146=String(state.index+1);s.onload=()=>{state.index++;expose();loadNext()};s.onerror=()=>{state.status='FAILED';expose()};document.head.appendChild(s);
+  }
+  function start(){state.attempts++;expose();if(!v145Ready()){if(state.attempts<25){state.status='WAITING_V145';expose();setTimeout(start,40);return}state.status='BLOCKED_V145';expose();return}loadNext()}
+  expose();if(document.readyState==='complete')queueMicrotask(start);else window.addEventListener('load',start,{once:true});
+})();
