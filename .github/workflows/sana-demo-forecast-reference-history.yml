@@ -23,9 +23,30 @@ jobs:
             apps/control-web/public/sana-v3-report-snapshot-forecast-references.js \
             apps/control-web/public/sana-v3-dataroom-forecast-references.js \
             apps/control-web/public/sana-v3-cycle-forecast-references.js \
-            apps/control-web/public/sana-v3-due-diligence-forecast-reference-gaps.js; do node --check "$f"; done
+            apps/control-web/public/sana-v3-due-diligence-forecast-reference-gaps.js \
+            apps/control-web/public/sana-v3-cycle-forecast-provenance.js \
+            apps/control-web/public/sana-v3-sw.js; do node --check "$f"; done
           node scripts/validate-sana-forecast-reference-provenance.mjs
           grep -Fq 'NO_LIVE_FALLBACK' apps/control-web/public/sana-v3-dataroom-forecast-references.js
           grep -Fq 'NON_WEIGHTED' apps/control-web/public/sana-v3-cycle-forecast-references.js
           grep -Fq 'NOT_CAPTURED_OR_LEGACY ≠ GAP' apps/control-web/public/sana-v3-due-diligence-forecast-reference-gaps.js
+          node - <<'NODE'
+          const fs=require('fs');
+          const sw=fs.readFileSync('apps/control-web/public/sana-v3-sw.js','utf8');
+          const loader=fs.readFileSync('apps/control-web/public/sana-v3-cycle-forecast-provenance.js','utf8');
+          const marker="if(false){\nconst CACHE='sana-v3-demo-shell-v139';\n}\nconst CACHE='sana-v3-demo-shell-v140';";
+          if(!sw.includes(marker))throw new Error('v139 historical / v140 active marker missing');
+          if((sw.match(/const CACHE='sana-v3-demo-shell-v140';/g)||[]).length!==1)throw new Error('v140 cache marker count invalid');
+          const assets=[
+            '/sana-v3-report-snapshot-forecast-references.js',
+            '/sana-v3-cycle-forecast-references.js',
+            '/sana-v3-due-diligence-forecast-reference-gaps.js',
+            '/sana-v3-dataroom-forecast-references.js'];
+          for(const a of assets){
+            if((sw.split(a).length-1)!==1)throw new Error(`SW asset count invalid: ${a}`);
+            if(!loader.includes(a))throw new Error(`loader missing: ${a}`);
+          }
+          if(!loader.includes('s.onload=()=>loadHistory()'))throw new Error('V139→V140 loader chain missing');
+          if(!sw.includes('// v140 propagates Forecast reference integrity'))throw new Error('v140 provenance marker missing');
+          NODE
           ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|automaticProcurement|purchaseOrderCreated|paymentExecuted|creditApproved|investmentApproved' apps/control-web/public/sana-v3-*forecast-reference*.js
