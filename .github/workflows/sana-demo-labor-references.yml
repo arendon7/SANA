@@ -1,0 +1,27 @@
+name: SANA Demo Labor References
+
+on:
+  push:
+    branches: [demo/sana-labor-v141]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  labor-references:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Labor References V141
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-labor-references.js
+          node scripts/validate-sana-labor-references.mjs
+          grep -Fq 'LEGACY_REFERENCE_NOT_CAPTURED ≠ INVALID' apps/control-web/public/sana-v3-labor-references.js || grep -Fq 'LEGACY_REFERENCE_NOT_CAPTURED' apps/control-web/public/sana-v3-labor-references.js
+          grep -Fq 'PAYMENT_REF_DECLARED ≠ PAYMENT_VERIFIED' apps/control-web/public/sana-v3-labor-references.js
+          grep -Fq 'REFERENCE ≠ HR_SCORE ≠ PAYROLL_AUTHORITY' apps/control-web/public/sana-v3-labor-references.js
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|payrollExecuted|paymentExecuted|performanceScoreCreated|creditApproved|investmentApproved' apps/control-web/public/sana-v3-labor-references.js
