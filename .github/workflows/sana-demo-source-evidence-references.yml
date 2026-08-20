@@ -1,0 +1,29 @@
+name: SANA Demo Source Evidence References
+
+on:
+  push:
+    branches: [demo/sana-source-evidence-v143]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  source-evidence-references:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Source Evidence References V143
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-source-evidence-references.js
+          node scripts/validate-sana-source-evidence-references.mjs
+          grep -Fq 'LEGACY_REFERENCE_NOT_CAPTURED' apps/control-web/public/sana-v3-source-evidence-references.js
+          grep -Fq 'UNSUPPORTED_USE_TYPE' apps/control-web/public/sana-v3-source-evidence-references.js
+          grep -Fq 'TARGET_EXISTS ≠ SOURCE_CONTENT_CORRECT' apps/control-web/public/sana-v3-source-evidence-references.js
+          grep -Fq 'NO_EXTERNAL_FETCH' apps/control-web/public/sana-v3-source-evidence-references.js
+          grep -Fq 'NO_CERTIFICATION' apps/control-web/public/sana-v3-source-evidence-references.js
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|sourceVerified[[:space:]]*=[[:space:]]*true|hashVerified[[:space:]]*=[[:space:]]*true|contentIngested[[:space:]]*=[[:space:]]*true|accessPermissionVerified[[:space:]]*=[[:space:]]*true|creditApproved|investmentApproved' apps/control-web/public/sana-v3-source-evidence-references.js
