@@ -1,0 +1,31 @@
+name: SANA Demo Economic References
+
+on:
+  push:
+    branches: [demo/sana-economic-v145]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  economic-references:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Economic References V145
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-economic-references.js
+          node scripts/validate-sana-economic-references.mjs
+          grep -Fq 'LEGACY_REFERENCE_NOT_CAPTURED' apps/control-web/public/sana-v3-economic-references.js
+          grep -Fq 'DECLARED_NON_CANONICAL_REFERENCE' apps/control-web/public/sana-v3-economic-references.js
+          grep -Fq 'COST_SUPPORT_REF' apps/control-web/public/sana-v3-economic-references.js
+          grep -Fq 'CROSS_DOMAIN_COST_REF' apps/control-web/public/sana-v3-economic-references.js
+          grep -Fq 'INVOICE_REFERENCE_DECLARED ≠ INVOICE_VERIFIED' apps/control-web/public/sana-v3-economic-references.js
+          grep -Fq 'PAYMENT_STATUS_DECLARED ≠ PAYMENT_EXECUTED' apps/control-web/public/sana-v3-economic-references.js
+          grep -Fq 'REFERENCE ≠ CREDIT_RISK ≠ ELIGIBILITY ≠ INVESTMENT_SIGNAL' apps/control-web/public/sana-v3-economic-references.js
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|accountingEntr(y|ies)[[:space:]]*=[[:space:]]*[1-9]|invoiceVerified[[:space:]]*=[[:space:]]*true|paymentExecuted[[:space:]]*=[[:space:]]*true|saleVerified[[:space:]]*=[[:space:]]*true|cashReceived[[:space:]]*=[[:space:]]*true|creditApproved|investmentApproved' apps/control-web/public/sana-v3-economic-references.js
