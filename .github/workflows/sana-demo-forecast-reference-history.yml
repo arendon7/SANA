@@ -1,0 +1,31 @@
+name: SANA Demo Forecast Reference History
+
+on:
+  push:
+    branches: [demo/sana-forecast-v140]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  forecast-reference-history:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Forecast Reference History V140
+        run: |
+          set -euo pipefail
+          for f in \
+            apps/control-web/public/sana-v3-report-snapshot-forecast-references.js \
+            apps/control-web/public/sana-v3-dataroom-forecast-references.js \
+            apps/control-web/public/sana-v3-cycle-forecast-references.js \
+            apps/control-web/public/sana-v3-due-diligence-forecast-reference-gaps.js; do node --check "$f"; done
+          node scripts/validate-sana-forecast-reference-provenance.mjs
+          grep -Fq 'NO_LIVE_FALLBACK' apps/control-web/public/sana-v3-dataroom-forecast-references.js
+          grep -Fq 'NON_WEIGHTED' apps/control-web/public/sana-v3-cycle-forecast-references.js
+          grep -Fq 'NOT_CAPTURED_OR_LEGACY ≠ GAP' apps/control-web/public/sana-v3-due-diligence-forecast-reference-gaps.js
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|automaticProcurement|purchaseOrderCreated|paymentExecuted|creditApproved|investmentApproved' apps/control-web/public/sana-v3-*forecast-reference*.js
