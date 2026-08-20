@@ -11,3 +11,21 @@
   const baseCycle=views.cycle;if(baseCycle)views.cycle=()=>insert(baseCycle(),panel());
   window.__SANA_CYCLE_ECONOMIC_RECONCILIATION__=Object.freeze({forPlan,selected,integrity:INTEGRITY});
 })();
+
+// V145 loader: internal economic references only; no accounting/payment/sale authority.
+(() => {
+  'use strict';
+  if(typeof window==='undefined'||typeof document==='undefined'||typeof document.createElement!=='function')return;
+  const VERSION='V145',SRC='/sana-v3-economic-references.js';
+  const state={version:VERSION,status:'WAITING',attempts:0,integrity:'INTERNAL_REFERENCE_VALIDATION ≠ ACCOUNTING_VERIFICATION · NO_PAYMENT_EXECUTION · NO_CREDIT/INVESTMENT_AUTHORITY'};
+  function expose(){window.__SANA_ECONOMIC_REFERENCES_LOADER__=Object.freeze({...state})}
+  function ready(){return window.__SANA_ECONOMIC_RECONCILIATION__?.schema==='SANA_ECONOMIC_RECONCILIATION_LEDGER_V1'&&window.__SANA_PLAN_FIELD_WORKFLOW__?.findActivity&&window.__SANA_HARVEST_LEDGER__?.cases&&window.__SANA_LABOR_LEDGER__?.cases&&window.__SANA_INVENTORY_LEDGER__?.cases}
+  function start(){
+    state.attempts++;expose();
+    if(window.__SANA_ECONOMIC_RECONCILIATION__?.referenceVersion==='V145'){state.status='READY';expose();return}
+    if(!ready()){if(state.attempts<25){state.status='WAITING_DEPENDENCIES';expose();setTimeout(start,40);return}state.status='BLOCKED_DEPENDENCIES';expose();return}
+    if(document.querySelector?.('script[data-sana-economic-references-v145]'))return;
+    state.status='LOADING';expose();const s=document.createElement('script');s.src=SRC;s.defer=true;s.dataset.sanaEconomicReferencesV145='1';s.onload=()=>{state.status=window.__SANA_ECONOMIC_RECONCILIATION__?.referenceVersion==='V145'?'READY':'FAILED_CONTRACT';expose()};s.onerror=()=>{state.status='FAILED';expose()};document.head.appendChild(s);
+  }
+  expose();if(document.readyState==='complete')queueMicrotask(start);else window.addEventListener('load',start,{once:true});
+})();
