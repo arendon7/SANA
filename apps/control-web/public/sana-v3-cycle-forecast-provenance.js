@@ -10,3 +10,15 @@
   const baseCycle=views.cycle;if(baseCycle)views.cycle=()=>insert(baseCycle(),panel());
   window.__SANA_CYCLE_FORECAST__=Object.freeze({forPlan,selected,integrity:INTEGRITY});
 })();
+
+// V139 loader: activate Forecast reference integrity only after dependent APIs exist.
+(() => {
+  if(typeof window==='undefined'||typeof document==='undefined'||!document.createElement)return;
+  function load(){
+    if(window.__SANA_FORECAST_LEDGER__?.referenceVersion==='V139')return;
+    if(!window.__SANA_FORECAST_LEDGER__||!window.__SANA_NUTRITION_LEDGER__||!window.__SANA_PLAN_FIELD_WORKFLOW__)return;
+    if(document.querySelector?.('script[data-sana-forecast-references-v139]'))return;
+    const s=document.createElement('script');s.src='/sana-v3-forecast-references.js';s.defer=true;s.dataset.sanaForecastReferencesV139='1';document.head.appendChild(s);
+  }
+  if(document.readyState==='complete')queueMicrotask(load);else window.addEventListener('load',load,{once:true});
+})();
