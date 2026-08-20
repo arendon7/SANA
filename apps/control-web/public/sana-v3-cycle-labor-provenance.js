@@ -10,14 +10,26 @@
   window.__SANA_CYCLE_LABOR__=Object.freeze({forPlan,selected,integrity:'LABOR_PROVENANCE ≠ CYCLE_GATE · ASSIGNMENT ≠ ATTENDANCE · ATTENDANCE ≠ WORKED_TIME · WORKED_TIME ≠ TASK_COMPLETION · TASK_COMPLETION ≠ QUALITY · RATE_REFERENCE ≠ LABOR_COST · LABOR_COST ≠ PAYMENT · NO_HR_SCORING · PRIVACY_MINIMIZED'});
 })();
 
-// V141 loader: activate Labor reference integrity after the base labor/workflow APIs exist.
+// V141/V142 loader: activate Labor reference integrity, then privacy-minimized historical provenance.
 (() => {
   if(typeof window==='undefined'||typeof document==='undefined'||!document.createElement)return;
+  const HISTORY=[
+    ['/sana-v3-report-snapshot-labor-references.js','__SANA_REPORT_SNAPSHOT_LABOR_REFERENCES__'],
+    ['/sana-v3-cycle-labor-references.js','__SANA_CYCLE_LABOR_REFERENCES__'],
+    ['/sana-v3-due-diligence-labor-reference-gaps.js','__SANA_DD_LABOR_REFERENCE_GAPS__'],
+    ['/sana-v3-dataroom-labor-references.js','__SANA_DATAROOM_LABOR_REFERENCES__']
+  ];
+  function loadHistory(i=0){
+    if(i>=HISTORY.length)return;
+    const [src,marker]=HISTORY[i];if(window[marker])return loadHistory(i+1);
+    const key=`script[data-sana-labor-history-v142="${i}"]`;if(document.querySelector?.(key))return;
+    const s=document.createElement('script');s.src=src;s.defer=true;s.dataset.sanaLaborHistoryV142=String(i);s.onload=()=>loadHistory(i+1);document.head.appendChild(s);
+  }
   function load(){
-    if(window.__SANA_LABOR_LEDGER__?.referenceVersion==='V141')return;
+    if(window.__SANA_LABOR_LEDGER__?.referenceVersion==='V141')return loadHistory();
     if(!window.__SANA_LABOR_LEDGER__||!window.__SANA_PLAN_FIELD_WORKFLOW__)return;
     if(document.querySelector?.('script[data-sana-labor-references-v141]'))return;
-    const s=document.createElement('script');s.src='/sana-v3-labor-references.js';s.defer=true;s.dataset.sanaLaborReferencesV141='1';document.head.appendChild(s);
+    const s=document.createElement('script');s.src='/sana-v3-labor-references.js';s.defer=true;s.dataset.sanaLaborReferencesV141='1';s.onload=()=>loadHistory();document.head.appendChild(s);
   }
   if(document.readyState==='complete')queueMicrotask(load);else window.addEventListener('load',load,{once:true});
 })();
