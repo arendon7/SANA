@@ -44,3 +44,18 @@ jobs:
           if(!sw.includes('// v147 validates Commercial/Offtake internal and cross-domain references'))throw new Error('V147 provenance marker missing');
           NODE
           ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|verifiedContracts[[:space:]]*=[[:space:]]*[1-9]|verifiedInvoices[[:space:]]*=[[:space:]]*[1-9]|paymentsExecuted[[:space:]]*=[[:space:]]*[1-9]|bankSettlementsVerified[[:space:]]*=[[:space:]]*[1-9]|guaranteedRevenue[[:space:]]*=[[:space:]]*[1-9]|creditApproved|investmentApproved|orderExecuted|buyerIdentityVerified[[:space:]]*=[[:space:]]*true' apps/control-web/public/sana-v3-commercial-references.js apps/control-web/public/sana-v3-cycle-commercial-provenance.js
+      - name: Validate V3 compatibility on V147 cut
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          files=(apps/control-web/public/sana-v3*.js)
+          test ${#files[@]} -gt 0
+          for file in "${files[@]}"; do node --check "$file"; done
+          node -e "JSON.parse(require('fs').readFileSync('apps/control-web/public/sana-v3-manifest.webmanifest','utf8'))"
+          node scripts/validate-sana-demo-auth.mjs
+          test -s apps/control-web/public/sana-v3.html
+          grep -q 'productionExecutionAvailable=false' apps/control-web/public/sana-v3-core.js
+          grep -q 'canonicalMutated=false' apps/control-web/public/sana-v3-core.js
+          grep -q 'D10=PENDING' apps/control-web/public/sana-v3-core.js
+          ! grep -Eiq 'productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true|investmentApproved[[:space:]]*=[[:space:]]*true|creditApproved[[:space:]]*=[[:space:]]*true|buyerIdentityVerified[[:space:]]*=[[:space:]]*true' apps/control-web/public/sana-v3*.js
