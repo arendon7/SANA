@@ -20,8 +20,22 @@ jobs:
         run: |
           set -euo pipefail
           node --check apps/control-web/public/sana-v3-labor-references.js
+          node --check apps/control-web/public/sana-v3-cycle-labor-provenance.js
+          node --check apps/control-web/public/sana-v3-sw.js
           node scripts/validate-sana-labor-references.mjs
-          grep -Fq 'LEGACY_REFERENCE_NOT_CAPTURED ≠ INVALID' apps/control-web/public/sana-v3-labor-references.js || grep -Fq 'LEGACY_REFERENCE_NOT_CAPTURED' apps/control-web/public/sana-v3-labor-references.js
+          grep -Fq 'LEGACY_REFERENCE_NOT_CAPTURED' apps/control-web/public/sana-v3-labor-references.js
           grep -Fq 'PAYMENT_REF_DECLARED ≠ PAYMENT_VERIFIED' apps/control-web/public/sana-v3-labor-references.js
           grep -Fq 'REFERENCE ≠ HR_SCORE ≠ PAYROLL_AUTHORITY' apps/control-web/public/sana-v3-labor-references.js
-          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|payrollExecuted|paymentExecuted|performanceScoreCreated|creditApproved|investmentApproved' apps/control-web/public/sana-v3-labor-references.js
+          node - <<'NODE'
+          const fs=require('fs');
+          const sw=fs.readFileSync('apps/control-web/public/sana-v3-sw.js','utf8');
+          const loader=fs.readFileSync('apps/control-web/public/sana-v3-cycle-labor-provenance.js','utf8');
+          const marker="if(false){\nconst CACHE='sana-v3-demo-shell-v140';\n}\nconst CACHE='sana-v3-demo-shell-v141';";
+          if(!sw.includes(marker))throw new Error('v140 historical / v141 active marker missing');
+          if((sw.match(/const CACHE='sana-v3-demo-shell-v141';/g)||[]).length!==1)throw new Error('v141 cache marker count invalid');
+          if((sw.split('/sana-v3-labor-references.js').length-1)!==1)throw new Error('labor reference asset count invalid');
+          if(!loader.includes("s.src='/sana-v3-labor-references.js'"))throw new Error('V141 loader asset missing');
+          if(!loader.includes("data-sana-labor-references-v141")&&!loader.includes('sanaLaborReferencesV141'))throw new Error('V141 loader marker missing');
+          if(!sw.includes('// v141 validates Labor activity/evidence/support/cost-basis references'))throw new Error('v141 provenance marker missing');
+          NODE
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|payrollExecuted|paymentExecuted|performanceScoreCreated|creditApproved|investmentApproved' apps/control-web/public/sana-v3-labor-references.js apps/control-web/public/sana-v3-cycle-labor-provenance.js
