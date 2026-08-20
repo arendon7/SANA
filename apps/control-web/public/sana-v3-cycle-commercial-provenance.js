@@ -8,3 +8,15 @@
   const baseCycle=views.cycle;if(baseCycle)views.cycle=()=>{const s=selected();if(!s.valid||!s.cases.length)return baseCycle();const p=`<section class="card" style="margin-top:14px"><div class="card-head"><div><p class="kicker">CIERRE · COMMERCIAL PROVENANCE</p><h2>Interés, acuerdo y entrega · ${esc(s.plan.lot)}</h2><p>Proyección read-only/no ponderada. No modifica completitud, archivo, elegibilidad ni decisiones financieras.</p></div><span class="status warn">NO CYCLE GATE</span></div><div class="card-body"><div class="grid metrics">${metric('Casos',s.summary.cases,'commercial provenance')}${metric('Acuerdos ref',s.summary.agreementReferences,'≠ verified contract')}${metric('Entregas',s.summary.deliveries,'declaradas')}${metric('Pagos ejecutados','0','sin autoridad','good')}</div>${s.cases.map(c=>`<div class="gate"><i>${c.agreementReferences?'✓':'·'}</i><div><strong>${esc(c.caseId)} · ${esc(c.buyerRefs.join(' · ')||'sin comprador')}</strong><p>${c.buyerInterests} interés(es) · ${c.agreementReferences} acuerdo(s) ref · ${c.deliveries} entrega(s) · ${c.crossDomainReferences} ref(s) cruzada(s)</p></div><span class="status warn">READ-ONLY</span></div>`).join('')}<div class="section-note" style="margin-top:12px">${esc(INTEGRITY)}</div></div></section>`;return insert(baseCycle(),p)};
   window.__SANA_CYCLE_COMMERCIAL__=Object.freeze({selected,integrity:INTEGRITY});
 })();
+
+// V147 loader: explicit internal/cross-domain commercial references only; no identity, contract, order or payment authority.
+(() => {
+  'use strict';
+  if(typeof window==='undefined'||typeof document==='undefined'||typeof document.createElement!=='function')return;
+  const VERSION='V147',SRC='/sana-v3-commercial-references.js';
+  const state={version:VERSION,status:'WAITING',attempts:0,integrity:'REFERENCE_VALIDATION ≠ BUYER_IDENTITY/CONTRACT/ORDER/PAYMENT VERIFICATION · NO GUARANTEED_REVENUE/CREDIT/INVESTMENT_AUTHORITY'};
+  function expose(){window.__SANA_COMMERCIAL_REFERENCES_LOADER__=Object.freeze({...state})}
+  function ready(){return window.__SANA_COMMERCIAL_LEDGER__?.schema==='SANA_COMMERCIAL_OFFTAKE_LEDGER_V1'&&window.__SANA_HARVEST_LEDGER__?.cases&&window.__SANA_ECONOMIC_RECONCILIATION__?.cases}
+  function start(){state.attempts++;expose();if(window.__SANA_COMMERCIAL_LEDGER__?.referenceVersion===VERSION){state.status='READY';expose();return}if(!ready()){if(state.attempts<25){state.status='WAITING_DEPENDENCIES';expose();setTimeout(start,40);return}state.status='BLOCKED_DEPENDENCIES';expose();return}if(document.querySelector?.('script[data-sana-commercial-references-v147]'))return;state.status='LOADING';expose();const s=document.createElement('script');s.src=SRC;s.defer=true;s.dataset.sanaCommercialReferencesV147='1';s.onload=()=>{state.status=window.__SANA_COMMERCIAL_LEDGER__?.referenceVersion===VERSION?'READY':'FAILED_CONTRACT';expose()};s.onerror=()=>{state.status='FAILED';expose()};document.head.appendChild(s)}
+  expose();if(document.readyState==='complete')queueMicrotask(start);else window.addEventListener('load',start,{once:true});
+})();
