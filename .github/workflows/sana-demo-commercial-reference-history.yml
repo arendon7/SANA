@@ -1,0 +1,35 @@
+name: SANA Demo Commercial Reference History
+
+on:
+  push:
+    branches: [demo/sana-commercial-v148]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  commercial-reference-history:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Commercial Reference History V148
+        run: |
+          set -euo pipefail
+          for f in \
+            apps/control-web/public/sana-v3-report-snapshot-commercial-references.js \
+            apps/control-web/public/sana-v3-dataroom-commercial-references.js \
+            apps/control-web/public/sana-v3-cycle-commercial-references.js \
+            apps/control-web/public/sana-v3-due-diligence-commercial-reference-gaps.js; do node --check "$f"; done
+          node scripts/validate-sana-commercial-reference-provenance.mjs
+          grep -Fq 'CONTENT_MINIMIZED' apps/control-web/public/sana-v3-report-snapshot-commercial-references.js
+          grep -Fq 'NO_NONCANONICAL_VALUES' apps/control-web/public/sana-v3-report-snapshot-commercial-references.js
+          grep -Fq 'NO_LIVE_FALLBACK' apps/control-web/public/sana-v3-dataroom-commercial-references.js
+          grep -Fq 'NON_WEIGHTED' apps/control-web/public/sana-v3-cycle-commercial-references.js
+          grep -Fq 'NOT_CAPTURED_OR_LEGACY ≠ GAP' apps/control-web/public/sana-v3-due-diligence-commercial-reference-gaps.js
+          grep -Fq 'DECLARED_NON_CANONICAL_REFERENCE ≠ GAP' apps/control-web/public/sana-v3-due-diligence-commercial-reference-gaps.js
+          ! grep -Eq '__SANA_COMMERCIAL_LEDGER__|storage\?\.records|localStorage' apps/control-web/public/sana-v3-dataroom-commercial-references.js apps/control-web/public/sana-v3-cycle-commercial-references.js apps/control-web/public/sana-v3-due-diligence-commercial-reference-gaps.js
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|buyerIdentityVerified[[:space:]]*=[[:space:]]*true|verifiedContracts[[:space:]]*=[[:space:]]*[1-9]|verifiedInvoices[[:space:]]*=[[:space:]]*[1-9]|paymentsExecuted[[:space:]]*=[[:space:]]*[1-9]|bankSettlementsVerified[[:space:]]*=[[:space:]]*[1-9]|guaranteedRevenue[[:space:]]*=[[:space:]]*[1-9]|creditApproved|investmentApproved|orderExecuted' apps/control-web/public/sana-v3-*commercial-reference*.js
