@@ -1,0 +1,17 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "sana_demo": {
+      "root": "apps/control-web/",
+      "entrypoint": "server.mjs"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "sana_demo"
+      }
+    }
+  ]
+}

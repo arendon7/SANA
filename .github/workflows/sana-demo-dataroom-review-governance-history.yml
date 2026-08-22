@@ -1,0 +1,55 @@
+name: SANA Demo Data Room Reviewer Governance History
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-dataroom-review-governance.js'
+      - 'apps/control-web/public/sana-v3-dataroom-review-governance-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-dataroom-review-governance-gaps.js'
+      - 'scripts/validate-sana-dataroom-review-governance-history.mjs'
+      - '.github/workflows/sana-demo-dataroom-review-governance-history.yml'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-dataroom-review-governance.js'
+      - 'apps/control-web/public/sana-v3-dataroom-review-governance-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-dataroom-review-governance-gaps.js'
+      - 'scripts/validate-sana-dataroom-review-governance-history.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+
+jobs:
+  reviewer-governance-history-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contracts
+        run: |
+          node --check apps/control-web/public/sana-v3-report-snapshot-dataroom-review-governance.js
+          node --check apps/control-web/public/sana-v3-dataroom-review-governance-history.js
+          node --check apps/control-web/public/sana-v3-due-diligence-dataroom-review-governance-gaps.js
+          node scripts/validate-sana-dataroom-review-governance-history.mjs
+      - name: Validate snapshot-only history
+        run: |
+          grep -q 'SNAPSHOT_DATAROOM_REVIEW_GOVERNANCE_ONLY' apps/control-web/public/sana-v3-report-snapshot-dataroom-review-governance.js
+          grep -q 'NO_LIVE_FALLBACK' apps/control-web/public/sana-v3-dataroom-review-governance-history.js
+          grep -q 'GOVERNANCE_CHANGE ≠ IMPROVEMENT' apps/control-web/public/sana-v3-dataroom-review-governance-history.js
+          ! grep -q '__SANA_DATAROOM_REVIEW_GOVERNANCE__' apps/control-web/public/sana-v3-dataroom-review-governance-history.js
+          ! grep -Eq '\bstorage\s*(\?\.|\.)' apps/control-web/public/sana-v3-dataroom-review-governance-history.js
+      - name: Validate documentary gaps only
+        run: |
+          grep -q 'NO_GOVERNANCE_RECORD ≠ GAP' apps/control-web/public/sana-v3-due-diligence-dataroom-review-governance-gaps.js
+          grep -q 'NO_CONFLICT_DECLARED ≠ GAP ≠ VERIFIED_INDEPENDENCE' apps/control-web/public/sana-v3-due-diligence-dataroom-review-governance-gaps.js
+          grep -q 'CONFLICT_DECLARED ≠ GAP ≠ CONFLICT_FACT ≠ INVESTMENT_RISK ≠ DISQUALIFICATION' apps/control-web/public/sana-v3-due-diligence-dataroom-review-governance-gaps.js
+          grep -q 'RECUSAL_REFERENCE ≠ GAP ≠ FINDING_INVALIDITY' apps/control-web/public/sana-v3-due-diligence-dataroom-review-governance-gaps.js
+          grep -q 'GOVERNANCE_GAP ≠ INVESTMENT_RISK ≠ RISK_RATING ≠ RISK_SCORE ≠ ELIGIBILITY ≠ INVESTMENT_DECISION' apps/control-web/public/sana-v3-due-diligence-dataroom-review-governance-gaps.js
+          ! grep -q '__SANA_DATAROOM_REVIEW_GOVERNANCE__' apps/control-web/public/sana-v3-due-diligence-dataroom-review-governance-gaps.js
+      - name: Assert no disqualification scoring approval offer or execution authority
+        run: |
+          ! grep -Eq 'productionExecutionAvailable\s*=\s*true|productionActivationAllowed\s*=\s*true|canonicalMutated\s*=\s*true' apps/control-web/public/sana-v3-report-snapshot-dataroom-review-governance.js apps/control-web/public/sana-v3-dataroom-review-governance-history.js apps/control-web/public/sana-v3-due-diligence-dataroom-review-governance-gaps.js
+          ! grep -Eq 'fetch\s*\(' apps/control-web/public/sana-v3-report-snapshot-dataroom-review-governance.js apps/control-web/public/sana-v3-dataroom-review-governance-history.js apps/control-web/public/sana-v3-due-diligence-dataroom-review-governance-gaps.js

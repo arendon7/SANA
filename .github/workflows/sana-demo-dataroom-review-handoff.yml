@@ -1,0 +1,51 @@
+name: SANA Demo Data Room Review Handoff
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-dataroom-review-handoff.js'
+      - 'scripts/validate-sana-dataroom-review-handoff.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - '.github/workflows/sana-demo-dataroom-review-handoff.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-dataroom-review-handoff.js'
+      - 'scripts/validate-sana-dataroom-review-handoff.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+
+jobs:
+  dataroom-review-handoff-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contracts
+        run: |
+          node --check apps/control-web/public/sana-v3-dataroom-review-handoff.js
+          node scripts/validate-sana-dataroom-review-handoff.mjs
+      - name: Validate handoff boundaries
+        run: |
+          grep -q 'HANDOFF_PREPARED ≠ REVIEW_REQUESTED' apps/control-web/public/sana-v3-dataroom-review-handoff.js
+          grep -q 'REVIEW_PACKAGE_LINKED ≠ PACKAGE_VERIFIED' apps/control-web/public/sana-v3-dataroom-review-handoff.js
+          grep -q 'HANDOFF_ISSUED_REFERENCE ≠ EXTERNAL_DELIVERY_VERIFIED' apps/control-web/public/sana-v3-dataroom-review-handoff.js
+          grep -q 'ACK_REFERENCE ≠ VERIFIED_RECEIPT' apps/control-web/public/sana-v3-dataroom-review-handoff.js
+          grep -q 'CAPITAL_REVIEW_REQUEST_LINKED ≠ REVIEW_STARTED' apps/control-web/public/sana-v3-dataroom-review-handoff.js
+          grep -q 'HANDOFF_CLOSED ≠ REVIEW_COMPLETED ≠ DUE_DILIGENCE_APPROVAL' apps/control-web/public/sana-v3-dataroom-review-handoff.js
+          grep -q 'NO_AUTOMATIC_REVIEW_TRIGGER' apps/control-web/public/sana-v3-dataroom-review-handoff.js
+      - name: Validate assembly when v77 is present
+        run: |
+          node <<'NODE'
+          const fs=require('fs'),assert=require('assert');const html=fs.readFileSync('apps/control-web/public/sana-v3.html','utf8'),sw=fs.readFileSync('apps/control-web/public/sana-v3-sw.js','utf8');const reviewCase='/sana-v3-dataroom-review-case.js',handoff='/sana-v3-dataroom-review-handoff.js',impact='/sana-v3-dataroom-impact-history.js';if(!html.includes(handoff)){console.log('v77 staged before assembly; strict shell validation deferred.');process.exit(0)}for(const f of [reviewCase,handoff,impact]){assert(html.includes(f),`HTML missing ${f}`);assert(sw.includes(`'${f}'`),`PWA missing ${f}`)}assert(html.indexOf(reviewCase)<html.indexOf(handoff));assert(html.indexOf(handoff)<html.indexOf(impact));const versions=[...sw.matchAll(/const CACHE='sana-v3-demo-shell-v(\d+)'/g)].map(m=>Number(m[1]));assert(versions.length&&Math.max(...versions)>=77,'shell must be v77 or newer');
+          NODE
+      - name: Assert review-only runtime
+        run: |
+          ! grep -Eq 'fetch\s*\(' apps/control-web/public/sana-v3-dataroom-review-handoff.js
+          ! grep -Eq 'productionExecutionAvailable\s*=\s*true|productionActivationAllowed\s*=\s*true|canonicalMutated\s*=\s*true' apps/control-web/public/sana-v3-dataroom-review-handoff.js
+          ! grep -Eq 'automaticReviewTriggers\s*:\s*[1-9]|reviewsStartedByHandoff\s*:\s*[1-9]|dueDiligenceApprovals\s*:\s*[1-9]|externalActions\s*:\s*[1-9]' apps/control-web/public/sana-v3-dataroom-review-handoff.js
+
+# v77 certification trigger: Review Case can be handed off by reference without starting Capital Human Review or creating external authority.

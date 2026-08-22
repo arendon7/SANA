@@ -1,0 +1,57 @@
+name: SANA Demo AGROWAY brand lock
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/agroway-logo-*.svg'
+      - 'apps/control-web/public/sana-v3-agroway-brand.css'
+      - '.github/workflows/sana-demo-brand.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/agroway-logo-*.svg'
+      - 'apps/control-web/public/sana-v3-agroway-brand.css'
+      - '.github/workflows/sana-demo-brand.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  brand-lock:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate canonical AGROWAY assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          icon='apps/control-web/public/agroway-logo-legacy.svg'
+          full='apps/control-web/public/agroway-logo-canonical.svg'
+          tokens='apps/control-web/public/sana-v3-agroway-brand.css'
+          test -s "$icon"
+          test -s "$full"
+          test -s "$tokens"
+          grep -qi 'Isotipo canónico AGROWAY' "$icon"
+          grep -qi 'Logotipo canónico' "$full"
+          grep -qi '#f7a28a' "$icon"
+          grep -qi '#de7878' "$icon"
+          grep -qi '#f7a28a' "$full"
+          grep -qi '#de7878' "$full"
+          grep -qi -- '--ag-coral:#de7878' "$tokens"
+          grep -qi -- '--ag-salmon:#f7a28a' "$tokens"
+          grep -qi -- '--ag-green:#aac37e' "$tokens"
+          grep -qi -- '--ag-blue:#689eaf' "$tokens"
+          grep -qi -- '--ag-yellow:#fbdb63' "$tokens"
+          grep -qi -- '--ag-gray:#e0e2e0' "$tokens"
+          ! grep -Eiq 'productionReady|D10|canonicalMutated|MIGRATION_LIVE_ACK|activation lease' "$icon" "$full" "$tokens"
+      - name: Record provenance contract
+        shell: bash
+        run: |
+          cat <<'EOF'
+          AGROWAY brand source contract:
+          - Historical identity manual: Identidad de Marca Agroway copy.pdf
+          - Delivered art package: Agroway (1).zip / Logos Agroway-01..16.png
+          - Canonical family: conversation bubbles + leaf + AGROWAY wordmark
+          - Identity keywords: Ligero / Agro / Cercano
+          - Historical claim observed in commercial portfolio: TU CULTIVO A OTRO NIVEL
+          EOF

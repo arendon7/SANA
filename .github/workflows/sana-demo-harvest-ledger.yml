@@ -1,0 +1,97 @@
+name: SANA Demo Harvest Results Ledger
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-results.js'
+      - 'apps/control-web/public/sana-v3-harvest-ledger.js'
+      - 'apps/control-web/public/sana-v3-cycle-harvest-provenance.js'
+      - 'apps/control-web/public/sana-v3-passport-chain.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-harvest-ledger.mjs'
+      - 'scripts/validate-sana-cycle-harvest.mjs'
+      - '.github/workflows/sana-demo-harvest-ledger.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-results.js'
+      - 'apps/control-web/public/sana-v3-harvest-ledger.js'
+      - 'apps/control-web/public/sana-v3-cycle-harvest-provenance.js'
+      - 'apps/control-web/public/sana-v3-passport-chain.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-harvest-ledger.mjs'
+      - 'scripts/validate-sana-cycle-harvest.mjs'
+      - '.github/workflows/sana-demo-harvest-ledger.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  harvest-ledger-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-harvest-ledger.js
+          node --check apps/control-web/public/sana-v3-cycle-harvest-provenance.js
+          node scripts/validate-sana-harvest-ledger.mjs
+          node scripts/validate-sana-cycle-harvest.mjs
+      - name: Validate harvest and commercial boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          ledger='apps/control-web/public/sana-v3-harvest-ledger.js'
+          grep -q '__SANA_HARVEST_LEDGER__' "$ledger"
+          grep -q 'SANA_HARVEST_RESULTS_LEDGER_V1' "$ledger"
+          grep -q 'HARVEST ≠ SALE' "$ledger"
+          grep -q 'HANDOFF ≠ SALE' "$ledger"
+          grep -q 'SALE_DECLARATION ≠ PAYMENT' "$ledger"
+          grep -q 'PRICE_REFERENCE ≠ REALIZED_PRICE' "$ledger"
+          grep -q 'EXPECTED_REVENUE ≠ REALIZED_REVENUE' "$ledger"
+          grep -q 'QUALITY_CLASSIFICATION ≠ CERTIFICATION' "$ledger"
+          grep -q 'LOSS_DECLARED ≠ PROCESS_FAILURE' "$ledger"
+          grep -q 'YIELD ≠ PROFITABILITY' "$ledger"
+          grep -q 'RESULT ≠ CAUSALITY' "$ledger"
+          grep -q "paymentState:'NOT_CAPTURED'" "$ledger"
+          grep -q 'automaticFinancialActions:0' "$ledger"
+          ! grep -q 'storage.records.push' "$ledger"
+      - name: Validate cycle and Passport projections are read-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          ledger='apps/control-web/public/sana-v3-harvest-ledger.js'
+          cycle='apps/control-web/public/sana-v3-cycle-harvest-provenance.js'
+          grep -q 'PASSPORT · RESULTADOS' "$ledger"
+          grep -q '__SANA_CYCLE_HARVEST__' "$cycle"
+          grep -q 'HARVEST_PROVENANCE ≠ CYCLE_GATE' "$cycle"
+          grep -q 'SALE_DECLARATION ≠ PAYMENT' "$cycle"
+          grep -q 'No modifica completeness ni readyForArchive' "$cycle"
+          ! grep -q 'completeness=' "$cycle"
+          ! grep -q 'readyForArchive=' "$cycle"
+          ! grep -q 'storage.records.push' "$cycle"
+          ! grep -q 'openModal(' "$cycle"
+      - name: Validate assembly and active v45 shell
+        shell: bash
+        run: |
+          set -euo pipefail
+          html='apps/control-web/public/sana-v3.html'; sw='apps/control-web/public/sana-v3-sw.js'
+          grep -q '/sana-v3-results.js.*sana-v3-passport-chain.js.*sana-v3-data-trust.js.*sana-v3-harvest-ledger.js' "$html"
+          grep -q '/sana-v3-cycle-circularity-provenance.js.*sana-v3-cycle-harvest-provenance.js.*sana-v3-capital-dossier.js' "$html"
+          grep -q "'/sana-v3-harvest-ledger.js'" "$sw"
+          grep -q "'/sana-v3-cycle-harvest-provenance.js'" "$sw"
+          grep -q "^const CACHE='sana-v3-demo-shell-v45';" "$sw"
+      - name: Assert no financial execution or external certification authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          files='apps/control-web/public/sana-v3-harvest-ledger.js apps/control-web/public/sana-v3-cycle-harvest-provenance.js'
+          ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true' $files
+          ! grep -Eiq 'executePayment|authorizePayment|capturePayment|paymentApproved[[:space:]]*=[[:space:]]*true|invoiceIssued[[:space:]]*=[[:space:]]*true|revenueRealized[[:space:]]*=[[:space:]]*true|certifiedQuality[[:space:]]*=[[:space:]]*true|verifiedExternal[[:space:]]*=[[:space:]]*true|creditApproved|investmentApproved' $files

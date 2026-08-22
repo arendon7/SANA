@@ -1,0 +1,61 @@
+name: SANA Demo Capital Governance History
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-capital-governance.js'
+      - 'apps/control-web/public/sana-v3-dataroom-capital-governance-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-capital-governance-gaps.js'
+      - 'scripts/validate-sana-capital-governance-history.mjs'
+      - '.github/workflows/sana-demo-capital-governance-history.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-capital-governance.js'
+      - 'apps/control-web/public/sana-v3-dataroom-capital-governance-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-capital-governance-gaps.js'
+      - 'scripts/validate-sana-capital-governance-history.mjs'
+
+jobs:
+  capital-governance-history-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contracts
+        run: |
+          node --check apps/control-web/public/sana-v3-report-snapshot-capital-governance.js
+          node --check apps/control-web/public/sana-v3-dataroom-capital-governance-history.js
+          node --check apps/control-web/public/sana-v3-due-diligence-capital-governance-gaps.js
+          node scripts/validate-sana-capital-governance-history.mjs
+      - name: Validate snapshot-only and data-minimized history
+        run: |
+          grep -q 'COUNTERPARTY_REF_ONLY' apps/control-web/public/sana-v3-report-snapshot-capital-governance.js
+          grep -q 'NO_LIVE_CONTEXT_COPY' apps/control-web/public/sana-v3-report-snapshot-capital-governance.js
+          grep -q 'NO_LIVE_FALLBACK' apps/control-web/public/sana-v3-dataroom-capital-governance-history.js
+          ! grep -q '__SANA_CAPITAL_GOVERNANCE__' apps/control-web/public/sana-v3-dataroom-capital-governance-history.js
+          ! grep -q '__SANA_CAPITAL_READINESS__' apps/control-web/public/sana-v3-dataroom-capital-governance-history.js
+          ! grep -q '__SANA_COMMERCIAL_LEDGER__' apps/control-web/public/sana-v3-dataroom-capital-governance-history.js
+          ! grep -q '__SANA_ECONOMIC_RECONCILIATION__' apps/control-web/public/sana-v3-dataroom-capital-governance-history.js
+          ! grep -q 'storage\.' apps/control-web/public/sana-v3-dataroom-capital-governance-history.js
+      - name: Validate documentary gaps only
+        run: |
+          grep -q 'NO_COUNTERPARTY_INTEREST ≠ GAP' apps/control-web/public/sana-v3-due-diligence-capital-governance-gaps.js
+          grep -q 'NO_TERM_SHEET ≠ GAP' apps/control-web/public/sana-v3-due-diligence-capital-governance-gaps.js
+          grep -q 'NO_COMMITMENT ≠ GAP' apps/control-web/public/sana-v3-due-diligence-capital-governance-gaps.js
+          grep -q 'NO_FUNDING ≠ GAP' apps/control-web/public/sana-v3-due-diligence-capital-governance-gaps.js
+          grep -q 'LOW_DOCUMENT_COMPLETENESS ≠ GAP' apps/control-web/public/sana-v3-due-diligence-capital-governance-gaps.js
+      - name: Assert no offer, scoring or financial execution authority
+        run: |
+          for file in \
+            apps/control-web/public/sana-v3-report-snapshot-capital-governance.js \
+            apps/control-web/public/sana-v3-dataroom-capital-governance-history.js \
+            apps/control-web/public/sana-v3-due-diligence-capital-governance-gaps.js; do
+            ! grep -Eq 'fetch\s*\(' "$file"
+            ! grep -Eq 'productionExecutionAvailable\s*=\s*true|productionActivationAllowed\s*=\s*true|canonicalMutated\s*=\s*true' "$file"
+          done
+          grep -q 'DOCUMENT_COMPLETENESS ≠ ELIGIBILITY' apps/control-web/public/sana-v3-report-snapshot-capital-governance.js
+          grep -q 'FUNDING_STATUS_DECLARED ≠ DISBURSEMENT' apps/control-web/public/sana-v3-report-snapshot-capital-governance.js
+          grep -q 'CAPITAL_GAP ≠ ELIGIBILITY' apps/control-web/public/sana-v3-due-diligence-capital-governance-gaps.js

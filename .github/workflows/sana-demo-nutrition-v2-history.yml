@@ -1,0 +1,99 @@
+name: SANA Demo Nutrition V2 History
+
+on:
+  push:
+    branches: [demo/sana-nutrition-v2-v130]
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-nutrition-v2.js'
+      - 'apps/control-web/public/sana-v3-dataroom-nutrition-v2-history.js'
+      - 'apps/control-web/public/sana-v3-cycle-nutrition-v2-provenance.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-nutrition-v2-gaps.js'
+      - 'scripts/validate-sana-nutrition-v2-provenance.mjs'
+      - '.github/workflows/sana-demo-nutrition-v2-history.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-nutrition-v2.js'
+      - 'apps/control-web/public/sana-v3-dataroom-nutrition-v2-history.js'
+      - 'apps/control-web/public/sana-v3-cycle-nutrition-v2-provenance.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-nutrition-v2-gaps.js'
+      - 'scripts/validate-sana-nutrition-v2-provenance.mjs'
+      - '.github/workflows/sana-demo-nutrition-v2-history.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  nutrition-v2-history-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and V130 contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in \
+            apps/control-web/public/sana-v3-report-snapshot-nutrition-v2.js \
+            apps/control-web/public/sana-v3-dataroom-nutrition-v2-history.js \
+            apps/control-web/public/sana-v3-cycle-nutrition-v2-provenance.js \
+            apps/control-web/public/sana-v3-due-diligence-nutrition-v2-gaps.js; do
+            node --check "$file"
+          done
+          node scripts/validate-sana-nutrition-v2-provenance.mjs
+      - name: Validate snapshot boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          file='apps/control-web/public/sana-v3-report-snapshot-nutrition-v2.js'
+          grep -q 'ADDITIVE_V2 · NUTRITION_CHAIN' "$file"
+          grep -q 'EXPLICIT_PREDECESSOR_REFERENCES' "$file"
+          grep -q 'NO_V1_TO_V2_STAGE_PROMOTION' "$file"
+          grep -q 'NO_RETROACTIVE_REFERENCE_FILL' "$file"
+          grep -q 'referenceRows' "$file"
+          grep -q 'queueMicrotask(sync)' "$file"
+      - name: Validate Data Room is snapshot-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          file='apps/control-web/public/sana-v3-dataroom-nutrition-v2-history.js'
+          grep -q 'SNAPSHOT_NUTRITION_V2_ONLY' "$file"
+          grep -q 'V2_NOT_CAPTURED' "$file"
+          grep -q 'PARTIAL_V2_GRANULARITY' "$file"
+          grep -q 'NO_LIVE_FALLBACK' "$file"
+          ! grep -q '__SANA_NUTRITION_LEDGER__' "$file"
+          ! grep -q 'storage\.' "$file"
+      - name: Validate Cycle is non-weighted
+        shell: bash
+        run: |
+          set -euo pipefail
+          file='apps/control-web/public/sana-v3-cycle-nutrition-v2-provenance.js'
+          grep -q '__SANA_CYCLE_NUTRITION_V2__' "$file"
+          grep -q 'NUTRITION_V2_PROVENANCE ≠ CYCLE_GATE' "$file"
+          grep -q 'No modifica completeness ni readyForArchive' "$file"
+          ! grep -q 'completeness=' "$file"
+          ! grep -q 'readyForArchive=' "$file"
+          ! grep -q 'storage.records.push' "$file"
+      - name: Validate DD V2 fallback and documentary-only semantics
+        shell: bash
+        run: |
+          set -euo pipefail
+          file='apps/control-web/public/sana-v3-due-diligence-nutrition-v2-gaps.js'
+          grep -q 'function coverageOf' "$file"
+          grep -q "version:'V2'" "$file"
+          grep -q "version:'V1'" "$file"
+          grep -q 'removeSupersededV1Coverage' "$file"
+          grep -q 'activity-link-legacy' "$file"
+          grep -q 'predecessor-reference' "$file"
+          grep -q 'PROGRAM_OR_APPLICATION ≠ GAP' "$file"
+          grep -q 'REFERENCE ≠ APPLICATION_AUTHORITY ≠ INVENTORY_MOVEMENT ≠ CAUSALITY' "$file"
+          ! grep -q '__SANA_NUTRITION_LEDGER__' "$file"
+          ! grep -q 'storage\.' "$file"
+      - name: Assert no production or financial authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          files='apps/control-web/public/sana-v3-report-snapshot-nutrition-v2.js apps/control-web/public/sana-v3-dataroom-nutrition-v2-history.js apps/control-web/public/sana-v3-cycle-nutrition-v2-provenance.js apps/control-web/public/sana-v3-due-diligence-nutrition-v2-gaps.js'
+          ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true' $files
+          ! grep -Eiq 'purchaseOrder|executePayment|authorizePayment|autoPurchase|autoDispatch|certified[[:space:]]*=[[:space:]]*true|verifiedExternal[[:space:]]*=[[:space:]]*true|creditApproved|investmentApproved' $files

@@ -1,0 +1,83 @@
+name: SANA Demo Capture Sync History
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-capture-sync.js'
+      - 'apps/control-web/public/sana-v3-dataroom-capture-sync-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-capture-sync-gaps.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-capture-sync-history.mjs'
+      - '.github/workflows/sana-demo-capture-sync-history.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-capture-sync.js'
+      - 'apps/control-web/public/sana-v3-dataroom-capture-sync-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-capture-sync-gaps.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-capture-sync-history.mjs'
+      - '.github/workflows/sana-demo-capture-sync-history.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  capture-sync-history-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-report-snapshot-capture-sync.js
+          node --check apps/control-web/public/sana-v3-dataroom-capture-sync-history.js
+          node --check apps/control-web/public/sana-v3-due-diligence-capture-sync-gaps.js
+          node scripts/validate-sana-capture-sync-history.mjs
+      - name: Validate snapshot-only and content-minimized boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          snap='apps/control-web/public/sana-v3-report-snapshot-capture-sync.js'; hist='apps/control-web/public/sana-v3-dataroom-capture-sync-history.js'
+          grep -q '__SANA_REPORT_SNAPSHOT_CAPTURE_SYNC__' "$snap"
+          grep -q 'CONTENT_MINIMIZED' "$snap"
+          grep -q '__SANA_DATAROOM_CAPTURE_SYNC_HISTORY__' "$hist"
+          grep -q 'NOT_CAPTURED_IN_SNAPSHOT' "$hist"
+          grep -q 'NO_LIVE_FALLBACK' "$hist"
+          ! grep -q '__SANA_CAPTURE_SYNC_LEDGER__' "$hist"
+          ! grep -q 'storage\.' "$hist"
+      - name: Validate documentary gaps only
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='apps/control-web/public/sana-v3-due-diligence-capture-sync-gaps.js'
+          grep -q '__SANA_DD_CAPTURE_SYNC_GAPS__' "$f"
+          grep -q 'PENDING_SERVER ≠ GAP' "$f"
+          grep -q 'NO_RECORD_ACK ≠ GAP' "$f"
+          grep -q 'CONFLICT_REVIEW_REQUIRED ≠ GAP' "$f"
+          grep -q 'QUEUE_EMPTY ≠ DATA_COMPLETE' "$f"
+      - name: Validate assembly and active v54 shell
+        shell: bash
+        run: |
+          set -euo pipefail
+          html='apps/control-web/public/sana-v3.html'; sw='apps/control-web/public/sana-v3-sw.js'
+          grep -q '/sana-v3-report-snapshot-forecast.js.*sana-v3-report-snapshot-capture-sync.js.*sana-v3-cycle-closure.js' "$html"
+          grep -q '/sana-v3-due-diligence-forecast-gaps.js.*sana-v3-due-diligence-capture-sync-gaps.js.*sana-v3-due-diligence-remediation.js' "$html"
+          grep -q '/sana-v3-dataroom-forecast-history.js.*sana-v3-dataroom-capture-sync-history.js.*sana-v3-dataroom-entry.js' "$html"
+          grep -q "'/sana-v3-report-snapshot-capture-sync.js'" "$sw"
+          grep -q "'/sana-v3-dataroom-capture-sync-history.js'" "$sw"
+          grep -q "'/sana-v3-due-diligence-capture-sync-gaps.js'" "$sw"
+          grep -q "^const CACHE='sana-v3-demo-shell-v54';" "$sw"
+      - name: Assert no automatic resolution, production or investment authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          files='apps/control-web/public/sana-v3-report-snapshot-capture-sync.js apps/control-web/public/sana-v3-dataroom-capture-sync-history.js apps/control-web/public/sana-v3-due-diligence-capture-sync-gaps.js'
+          ! grep -Eiq 'productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true|investmentRecommendation[[:space:]]*=[[:space:]]*true|automaticResolution[[:space:]]*:[[:space:]]*true' $files
+          ! grep -Eiq 'fetch\(' $files

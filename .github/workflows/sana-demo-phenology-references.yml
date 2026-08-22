@@ -1,0 +1,41 @@
+name: SANA Demo Phenology References
+
+on:
+  push:
+    branches: [demo/sana-phenology-v133]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  phenology-references-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate V133 semantic references and assembly
+        run: |
+          set -euo pipefail
+          ref='apps/control-web/public/sana-v3-phenology-references.js'
+          cycle='apps/control-web/public/sana-v3-cycle-phenology-provenance.js'
+          sw='apps/control-web/public/sana-v3-sw.js'
+          node --check "$ref"
+          node --check "$cycle"
+          node --check "$sw"
+          node scripts/validate-sana-phenology-references.mjs
+          grep -q "const VERSION='V133'" "$ref"
+          grep -q 'LEGACY_REFERENCE_NOT_CAPTURED' "$ref"
+          grep -q 'CROSS_LOT_REFERENCE' "$ref"
+          grep -q 'FORWARD_REFERENCE' "$ref"
+          grep -q 'REFERENCE ≠ PLAN_PHASE' "$ref"
+          grep -q 'REFERENCE ≠ MANAGEMENT_DECISION' "$ref"
+          grep -q 'REFERENCE ≠ CAUSALITY' "$ref"
+          grep -q '__SANA_PHENOLOGY_REFERENCES_LOADER__' "$cycle"
+          grep -q '/sana-v3-phenology-references.js' "$cycle"
+          grep -q "const CACHE='sana-v3-demo-shell-v132'" "$sw"
+          grep -q "^const CACHE='sana-v3-demo-shell-v133';" "$sw"
+          grep -q "'/sana-v3-phenology-references.js'" "$sw"
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|creditApproved|investmentApproved|automaticPhaseChange|autoIrrigation|autoFertigation' "$ref" "$cycle"

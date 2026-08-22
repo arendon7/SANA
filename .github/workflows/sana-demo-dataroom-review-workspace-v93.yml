@@ -1,0 +1,41 @@
+name: SANA Demo Data Room Review Workspace V93
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-dataroom-review-workspace.js'
+      - 'apps/control-web/public/sana-v3-review-workspace.css'
+      - 'scripts/validate-sana-dataroom-review-workspace-v93.mjs'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - '.github/workflows/sana-demo-dataroom-review-workspace-v93.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-dataroom-review-workspace.js'
+      - 'apps/control-web/public/sana-v3-review-workspace.css'
+      - 'scripts/validate-sana-dataroom-review-workspace-v93.mjs'
+      - 'apps/control-web/public/sana-v3-sw.js'
+
+jobs:
+  review-workspace-v93-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Preserve V87–V93 workspace contracts
+        run: |
+          node scripts/validate-sana-dataroom-review-workspace.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v88.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v89.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v90.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v91.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v92.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v93.mjs
+      - name: Assert V93 shell, event scope and read-only boundary
+        run: |
+          grep -Eq "^const CACHE='sana-v3-demo-shell-v(9[3-9]|[1-9][0-9]{2,})';" apps/control-web/public/sana-v3-sw.js
+          grep -q 'SELECTED_EVENT ≠ VERIFIED_EVENT' apps/control-web/public/sana-v3-dataroom-review-workspace.js
+          grep -q 'EVENT_ID_MATCH ≠ ENTITY_IDENTITY' apps/control-web/public/sana-v3-dataroom-review-workspace.js
+          grep -q 'EVENT_NAVIGATION ≠ SOURCE_MUTATION' apps/control-web/public/sana-v3-dataroom-review-workspace.js
+          ! grep -Eq 'fetch\s*\(|canonicalMutated\s*=\s*true|dueDiligenceApprovals\s*:\s*[1-9]|investmentDecisions\s*:\s*[1-9]' apps/control-web/public/sana-v3-dataroom-review-workspace.js

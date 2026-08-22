@@ -1,0 +1,11 @@
+name: Assemble SANA v60 Commercial History (retired)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  retired:
+    if: ${{ false }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo 'v60 already assembled and will be certified from a human commit.'

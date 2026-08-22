@@ -2,14 +2,224 @@ import http from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-const here=path.dirname(fileURLToPath(import.meta.url));const root=path.join(here,'public');const port=Number(process.env.PORT||4273);
-const types={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.webmanifest':'application/manifest+json; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml'};
-const headers={'cache-control':'no-store','x-content-type-options':'nosniff','referrer-policy':'no-referrer','x-frame-options':'DENY','permissions-policy':'geolocation=(), microphone=(), camera=()'};
-function routeDocument(pathname){if(pathname==='/control'||pathname==='/control/')return{file:'home-original.html',mode:'HOME_RECOVERED'};if(pathname==='/control/projects/inv-yar-001'||pathname.startsWith('/control/projects/inv-yar-001/'))return{file:'project-original.html',mode:'PROJECT_RECOVERED'};if(pathname==='/control/identity-adapter'||pathname.startsWith('/control/identity-adapter/'))return{file:'identity-adapter.html',mode:'DIRECT'};if(pathname==='/control/authorization'||pathname.startsWith('/control/authorization/'))return{file:'authorization.html',mode:'DIRECT'};if(pathname==='/control/write-adapter'||pathname.startsWith('/control/write-adapter/'))return{file:'write-adapter.html',mode:'DIRECT'};if(pathname==='/control/handoff'||pathname.startsWith('/control/handoff/'))return{file:'handoff.html',mode:'DIRECT'};if(pathname==='/control/approvals'||pathname.startsWith('/control/approvals/'))return{file:'approvals.html',mode:'DIRECT'};if(pathname==='/control/evidence'||pathname.startsWith('/control/evidence/'))return{file:'evidence.html',mode:'DIRECT'};if(pathname==='/control/exceptions'||pathname.startsWith('/control/exceptions/'))return{file:'index.html',mode:'DIRECT'};return null}
-function integrateRecoveredHtml(text,mode){if(mode==='HOME_RECOVERED')return text.replace('href="/styles.css"','href="/home.css"').replace('<script src="/app.js"></script>','<script src="/home.js"></script><script type="module" src="/home-integration.js"></script>');if(mode==='PROJECT_RECOVERED')return text.replace('href="/styles.css"','href="/home.css"').replace('<script src="/project.js"></script>','<script src="/project.js"></script><script type="module" src="/project-integration.js"></script>');return text}
-function jsonForbidden(res,payload){const body=Buffer.from(JSON.stringify(payload));res.writeHead(404,{...headers,'content-type':'application/json','content-length':body.length});return res.end(body)}
-const server=http.createServer(async(req,res)=>{try{const url=new URL(req.url||'/',`http://${req.headers.host||'127.0.0.1'}`);if(!['GET','HEAD'].includes(req.method||'')){res.writeHead(405,headers);return res.end();}if(url.pathname.startsWith('/control/identity-adapter/api')||url.pathname.startsWith('/api/control/identity'))return jsonForbidden(res,{error:'OIDC_BROWSER_SESSION_ENDPOINT_FORBIDDEN',trust:'DEMO_RECONSTRUCTED',productionIdentityProviderWiringImplemented:true,browserAcceptsTokens:false,browserCreatesProductionSession:false,realProviderConfigured:false,realProviderConnectivityCertified:false,realProductionTokenVerified:false,executionState:'NOT_EXECUTED',canonicalMutated:false});if(url.pathname.startsWith('/control/write-adapter/api')||url.pathname.startsWith('/api/control/write'))return jsonForbidden(res,{error:'CANONICAL_WRITE_BROWSER_ENDPOINT_FORBIDDEN',trust:'DEMO_RECONSTRUCTED',browserCanInvokeAdapter:false,postgresTransactionAdapterImplemented:true,productionDatabaseConfigured:false,productionExecutionAvailable:false});if(url.pathname.startsWith('/control/handoff/api')||url.pathname.startsWith('/api/control/external-ack'))return jsonForbidden(res,{error:'EXTERNAL_ACK_BROWSER_ENDPOINT_FORBIDDEN',trust:'DEMO_RECONSTRUCTED',browserCanInvokeExternalAck:false,externalAckAdapterImplemented:true,productionExternalAckProviderWiringImplemented:true,externalAckDurableReceiptImplemented:true,externalAckProviderConfigured:false,externalAckProviderConnectivityCertified:false,realExternalAckObserved:false,executionState:'NOT_EXECUTED',canonicalMutated:false});if(url.pathname.startsWith('/api/control/production-host'))return jsonForbidden(res,{error:'PRODUCTION_HOST_BROWSER_ENDPOINT_FORBIDDEN',trust:'DEMO_RECONSTRUCTED',productionDeploymentHostImplemented:true,productionDeploymentHostReviewCertified:true,realProductionHostExecuted:false,productionHostEnvironmentBound:false,browserCanInvokeHost:false,browserCanProvideEnvironment:false,browserCanRunPreflights:false,browserActivationAllowed:false,productionExecutionAvailable:false,executionState:'NOT_EXECUTED',canonicalMutated:false});if(url.pathname.startsWith('/api/control/production-bootstrap'))return jsonForbidden(res,{error:'PRODUCTION_BOOTSTRAP_BROWSER_ENDPOINT_FORBIDDEN',trust:'DEMO_RECONSTRUCTED',productionBootstrapImplemented:true,productionBootstrapReviewCertified:true,realProductionBootstrapExecuted:false,realProductionBindingEvidenceIssued:false,realProductionActivationLeaseIssued:false,browserCanProvideEnvironment:false,browserCanRunPreflights:false,browserActivationAllowed:false,productionExecutionAvailable:false,executionState:'NOT_EXECUTED',canonicalMutated:false});if(url.pathname.startsWith('/api/control/production-activation'))return jsonForbidden(res,{error:'PRODUCTION_ACTIVATION_BROWSER_ENDPOINT_FORBIDDEN',trust:'DEMO_RECONSTRUCTED',productionActivationAuthorizationImplemented:true,productionActivationGateReviewCertified:true,realProductionActivationLeaseIssued:false,browserCanRequestActivation:false,browserCanApproveActivation:false,browserActivationAllowed:false,productionExecutionAvailable:false,executionState:'NOT_EXECUTED',canonicalMutated:false});if(url.pathname.startsWith('/api/control/production-readiness'))return jsonForbidden(res,{error:'PRODUCTION_READINESS_BROWSER_ENDPOINT_FORBIDDEN',trust:'DEMO_RECONSTRUCTED',readinessOrchestratorImplemented:true,d10HumanProductApproval:'PENDING',browserCanInvokeReadinessPreflights:false,browserActivationAllowed:false,productionActivationImplemented:true,realProductionActivationLeaseIssued:false,productionExecutionAvailable:false,executionState:'NOT_EXECUTED',canonicalMutated:false});
-if(url.pathname==='/project.js'){const original=await readFile(path.join(root,'project-original.js'),'utf8');const adapted=original.replace('/service-worker-project.js','/service-worker.js');const body=Buffer.from(adapted);res.writeHead(200,{...headers,'content-type':'text/javascript; charset=utf-8','content-length':body.length,'x-agroway-recovery':'PR9-3d58-adapted-sw-only'});return req.method==='HEAD'?res.end():res.end(body)}
-const doc=routeDocument(url.pathname);if(doc&&doc.mode!=='DIRECT'){const original=await readFile(path.join(root,doc.file),'utf8');const integrated=integrateRecoveredHtml(original,doc.mode);const body=Buffer.from(integrated);res.writeHead(200,{...headers,'content-type':'text/html; charset=utf-8','content-length':body.length,'x-agroway-recovery':'PR9-3d58-exact-source-integrated-runtime'});return req.method==='HEAD'?res.end():res.end(body)}
-let rel=doc?.file||decodeURIComponent(url.pathname).replace(/^\/+/, '')||'home-original.html';let target=path.resolve(root,rel);if(!target.startsWith(path.resolve(root)))throw new Error('PATH_REJECTED');try{if((await stat(target)).isDirectory())target=path.join(target,'index.html')}catch{if(doc)target=path.join(root,doc.file);else throw new Error('NOT_FOUND')}const body=await readFile(target);res.writeHead(200,{...headers,'content-type':types[path.extname(target)]||'application/octet-stream','content-length':body.length});if(req.method==='HEAD')return res.end();res.end(body)}catch(error){const status=error.message==='NOT_FOUND'?404:500;const body=Buffer.from(JSON.stringify({error:error.message,trust:'DEMO_RECONSTRUCTED',canonicalMutated:false,executionState:'NOT_EXECUTED'}));res.writeHead(status,{...headers,'content-type':'application/json','content-length':body.length});res.end(body)}});
-server.listen(port,'127.0.0.1',()=>console.log(`GREENATICS CONTROL v0.22 alpha21 http://127.0.0.1:${port}/control`));
+
+const here = path.dirname(fileURLToPath(import.meta.url));
+const root = path.join(here, 'public');
+const port = Number(process.env.PORT || 4273);
+const firebaseDefaults = Object.freeze({
+  apiKey: 'AIzaSyCN-Jv1hWXHO0fDvauPbwfqhKNdW3i0k3I',
+  authDomain: 'sana-demo-web.firebaseapp.com',
+  projectId: 'sana-demo-web',
+  storageBucket: 'sana-demo-web.firebasestorage.app',
+  messagingSenderId: '454867293969',
+  appId: '1:454867293969:web:1b4384820692b58449deb0',
+  measurementId: 'G-BMSHC9CVD3'
+});
+const types = {
+  '.html': 'text/html; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.webmanifest': 'application/manifest+json; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.svg': 'image/svg+xml'
+};
+const headers = {
+  'cache-control': 'no-store',
+  'x-content-type-options': 'nosniff',
+  'referrer-policy': 'no-referrer',
+  'x-frame-options': 'DENY',
+  'permissions-policy': 'geolocation=(), microphone=(), camera=()',
+  'x-sana-environment': 'DEMO'
+};
+
+function routeDocument(pathname) {
+  if (pathname === '/control' || pathname === '/control/') return { file: 'home-original.html', mode: 'HOME_RECOVERED' };
+  if (pathname === '/control/projects/inv-yar-001' || pathname.startsWith('/control/projects/inv-yar-001/')) return { file: 'project-original.html', mode: 'PROJECT_RECOVERED' };
+  if (pathname === '/control/identity-adapter' || pathname.startsWith('/control/identity-adapter/')) return { file: 'identity-adapter.html', mode: 'DIRECT' };
+  if (pathname === '/control/authorization' || pathname.startsWith('/control/authorization/')) return { file: 'authorization.html', mode: 'DIRECT' };
+  if (pathname === '/control/write-adapter' || pathname.startsWith('/control/write-adapter/')) return { file: 'write-adapter.html', mode: 'DIRECT' };
+  if (pathname === '/control/handoff' || pathname.startsWith('/control/handoff/')) return { file: 'handoff.html', mode: 'DIRECT' };
+  if (pathname === '/control/approvals' || pathname.startsWith('/control/approvals/')) return { file: 'approvals.html', mode: 'DIRECT' };
+  if (pathname === '/control/evidence' || pathname.startsWith('/control/evidence/')) return { file: 'evidence.html', mode: 'DIRECT' };
+  if (pathname === '/control/exceptions' || pathname.startsWith('/control/exceptions/')) return { file: 'index.html', mode: 'DIRECT' };
+  return null;
+}
+
+function injectDemoSession(text) {
+  const scripts = '<script src="/demo-config.js"></script><script type="module" src="/demo-session.js"></script>';
+  if (text.includes('/demo-session.js')) return text;
+  return text.includes('</body>') ? text.replace('</body>', `${scripts}</body>`) : `${text}${scripts}`;
+}
+
+function integrateRecoveredHtml(text, mode) {
+  let integrated = text;
+  if (mode === 'HOME_RECOVERED') {
+    integrated = integrated
+      .replace('href="/styles.css"', 'href="/home.css"')
+      .replace('<script src="/app.js"></script>', '<script src="/home.js"></script><script type="module" src="/home-integration.js"></script>');
+  }
+  if (mode === 'PROJECT_RECOVERED') {
+    integrated = integrated
+      .replace('href="/styles.css"', 'href="/home.css"')
+      .replace('<script src="/project.js"></script>', '<script src="/project.js"></script><script type="module" src="/project-integration.js"></script>');
+  }
+  return injectDemoSession(integrated);
+}
+
+function jsonResponse(res, status, payload) {
+  const body = Buffer.from(JSON.stringify(payload));
+  res.writeHead(status, { ...headers, 'content-type': 'application/json', 'content-length': body.length });
+  return res.end(body);
+}
+
+function jsonForbidden(res, payload) {
+  return jsonResponse(res, 404, payload);
+}
+
+function firebaseRuntimeConfig() {
+  return {
+    apiKey: process.env.SANA_DEMO_FIREBASE_API_KEY || firebaseDefaults.apiKey,
+    authDomain: process.env.SANA_DEMO_FIREBASE_AUTH_DOMAIN || firebaseDefaults.authDomain,
+    projectId: process.env.SANA_DEMO_FIREBASE_PROJECT_ID || firebaseDefaults.projectId,
+    storageBucket: process.env.SANA_DEMO_FIREBASE_STORAGE_BUCKET || firebaseDefaults.storageBucket,
+    messagingSenderId: process.env.SANA_DEMO_FIREBASE_MESSAGING_SENDER_ID || firebaseDefaults.messagingSenderId,
+    appId: process.env.SANA_DEMO_FIREBASE_APP_ID || firebaseDefaults.appId,
+    measurementId: process.env.SANA_DEMO_FIREBASE_MEASUREMENT_ID || firebaseDefaults.measurementId
+  };
+}
+
+function firebaseConfigured() {
+  const config = firebaseRuntimeConfig();
+  return Boolean(config.apiKey && config.authDomain && config.projectId && config.appId);
+}
+
+function demoConfigJavascript() {
+  const firebase = firebaseRuntimeConfig();
+  const config = {
+    environment: 'DEMO',
+    firebaseApiKey: firebase.apiKey,
+    firebaseAuthDomain: firebase.authDomain,
+    firebaseProjectId: firebase.projectId,
+    firebaseStorageBucket: firebase.storageBucket,
+    firebaseMessagingSenderId: firebase.messagingSenderId,
+    firebaseAppId: firebase.appId,
+    firebaseMeasurementId: firebase.measurementId,
+    emailPasswordEnabled: firebaseConfigured(),
+    localProfilesEnabled: true,
+    productionExecutionAvailable: false,
+    productionActivationAllowed: false,
+    canonicalMutated: false
+  };
+  return `window.__SANA_DEMO_CONFIG__ = Object.freeze(${JSON.stringify(config)});\n`;
+}
+
+async function sendHtml(res, req, filename, { guard = false } = {}) {
+  let text = await readFile(path.join(root, filename), 'utf8');
+  if (guard) text = injectDemoSession(text);
+  const body = Buffer.from(text);
+  res.writeHead(200, { ...headers, 'content-type': 'text/html; charset=utf-8', 'content-length': body.length });
+  return req.method === 'HEAD' ? res.end() : res.end(body);
+}
+
+const server = http.createServer(async (req, res) => {
+  try {
+    const url = new URL(req.url || '/', `http://${req.headers.host || '127.0.0.1'}`);
+    if (!['GET', 'HEAD'].includes(req.method || '')) {
+      res.writeHead(405, headers);
+      return res.end();
+    }
+
+    if (['/', '/demo', '/demo/', '/login', '/signup', '/demo-auth.html'].includes(url.pathname)) {
+      return sendHtml(res, req, 'demo-auth.html');
+    }
+
+    if (url.pathname === '/demo-config.js') {
+      const body = Buffer.from(demoConfigJavascript());
+      res.writeHead(200, { ...headers, 'content-type': 'text/javascript; charset=utf-8', 'content-length': body.length });
+      return req.method === 'HEAD' ? res.end() : res.end(body);
+    }
+
+    if (url.pathname === '/demo/health') {
+      return jsonResponse(res, 200, {
+        status: 'OK',
+        environment: 'DEMO',
+        firebaseConfigured: firebaseConfigured(),
+        firebaseProjectId: firebaseRuntimeConfig().projectId,
+        localProfilesEnabled: true,
+        productionExecutionAvailable: false,
+        productionActivationAllowed: false,
+        executionState: 'NOT_EXECUTED',
+        canonicalMutated: false
+      });
+    }
+
+    if (url.pathname.startsWith('/control/identity-adapter/api') || url.pathname.startsWith('/api/control/identity')) {
+      return jsonForbidden(res, { error: 'OIDC_BROWSER_SESSION_ENDPOINT_FORBIDDEN', trust: 'DEMO_RECONSTRUCTED', productionIdentityProviderWiringImplemented: true, browserAcceptsTokens: false, browserCreatesProductionSession: false, realProviderConfigured: false, realProviderConnectivityCertified: false, realProductionTokenVerified: false, executionState: 'NOT_EXECUTED', canonicalMutated: false });
+    }
+    if (url.pathname.startsWith('/control/write-adapter/api') || url.pathname.startsWith('/api/control/write')) {
+      return jsonForbidden(res, { error: 'CANONICAL_WRITE_BROWSER_ENDPOINT_FORBIDDEN', trust: 'DEMO_RECONSTRUCTED', browserCanInvokeAdapter: false, postgresTransactionAdapterImplemented: true, productionDatabaseConfigured: false, productionExecutionAvailable: false });
+    }
+    if (url.pathname.startsWith('/control/handoff/api') || url.pathname.startsWith('/api/control/external-ack')) {
+      return jsonForbidden(res, { error: 'EXTERNAL_ACK_BROWSER_ENDPOINT_FORBIDDEN', trust: 'DEMO_RECONSTRUCTED', browserCanInvokeExternalAck: false, externalAckAdapterImplemented: true, productionExternalAckProviderWiringImplemented: true, externalAckDurableReceiptImplemented: true, externalAckProviderConfigured: false, externalAckProviderConnectivityCertified: false, realExternalAckObserved: false, executionState: 'NOT_EXECUTED', canonicalMutated: false });
+    }
+    if (url.pathname.startsWith('/api/control/production-host')) {
+      return jsonForbidden(res, { error: 'PRODUCTION_HOST_BROWSER_ENDPOINT_FORBIDDEN', trust: 'DEMO_RECONSTRUCTED', productionDeploymentHostImplemented: true, productionDeploymentHostReviewCertified: true, realProductionHostExecuted: false, productionHostEnvironmentBound: false, browserCanInvokeHost: false, browserCanProvideEnvironment: false, browserCanRunPreflights: false, browserActivationAllowed: false, productionExecutionAvailable: false, executionState: 'NOT_EXECUTED', canonicalMutated: false });
+    }
+    if (url.pathname.startsWith('/api/control/production-bootstrap')) {
+      return jsonForbidden(res, { error: 'PRODUCTION_BOOTSTRAP_BROWSER_ENDPOINT_FORBIDDEN', trust: 'DEMO_RECONSTRUCTED', productionBootstrapImplemented: true, productionBootstrapReviewCertified: true, realProductionBootstrapExecuted: false, realProductionBindingEvidenceIssued: false, realProductionActivationLeaseIssued: false, browserCanProvideEnvironment: false, browserCanRunPreflights:false, browserActivationAllowed: false, productionExecutionAvailable: false, executionState: 'NOT_EXECUTED', canonicalMutated: false });
+    }
+    if (url.pathname.startsWith('/api/control/production-activation')) {
+      return jsonForbidden(res, { error: 'PRODUCTION_ACTIVATION_BROWSER_ENDPOINT_FORBIDDEN', trust: 'DEMO_RECONSTRUCTED', productionActivationAuthorizationImplemented: true, productionActivationGateReviewCertified: true, realProductionActivationLeaseIssued: false, browserCanRequestActivation: false, browserCanApproveActivation: false, browserActivationAllowed: false, productionExecutionAvailable: false, executionState: 'NOT_EXECUTED', canonicalMutated: false });
+    }
+    if (url.pathname.startsWith('/api/control/production-readiness')) {
+      return jsonForbidden(res, { error: 'PRODUCTION_READINESS_BROWSER_ENDPOINT_FORBIDDEN', trust: 'DEMO_RECONSTRUCTED', readinessOrchestratorImplemented: true, d10HumanProductApproval: 'PENDING', browserCanInvokeReadinessPreflights: false, browserActivationAllowed: false, productionActivationImplemented: true, realProductionActivationLeaseIssued: false, productionExecutionAvailable: false, executionState: 'NOT_EXECUTED', canonicalMutated: false });
+    }
+
+    if (url.pathname === '/project.js') {
+      const original = await readFile(path.join(root, 'project-original.js'), 'utf8');
+      const adapted = original.replace('/service-worker-project.js', '/service-worker.js');
+      const body = Buffer.from(adapted);
+      res.writeHead(200, { ...headers, 'content-type': 'text/javascript; charset=utf-8', 'content-length': body.length, 'x-agroway-recovery': 'PR9-3d58-adapted-sw-only' });
+      return req.method === 'HEAD' ? res.end() : res.end(body);
+    }
+
+    const doc = routeDocument(url.pathname);
+    if (doc && doc.mode !== 'DIRECT') {
+      const original = await readFile(path.join(root, doc.file), 'utf8');
+      const integrated = integrateRecoveredHtml(original, doc.mode);
+      const body = Buffer.from(integrated);
+      res.writeHead(200, { ...headers, 'content-type': 'text/html; charset=utf-8', 'content-length': body.length, 'x-agroway-recovery': 'PR9-3d58-exact-source-integrated-runtime' });
+      return req.method === 'HEAD' ? res.end() : res.end(body);
+    }
+
+    let rel = doc?.file || decodeURIComponent(url.pathname).replace(/^\/+/, '') || 'demo-auth.html';
+    let target = path.resolve(root, rel);
+    if (!target.startsWith(path.resolve(root))) throw new Error('PATH_REJECTED');
+    try {
+      if ((await stat(target)).isDirectory()) target = path.join(target, 'index.html');
+    } catch {
+      if (doc) target = path.join(root, doc.file);
+      else throw new Error('NOT_FOUND');
+    }
+
+    if (path.extname(target) === '.html' && url.pathname.startsWith('/control')) {
+      let text = await readFile(target, 'utf8');
+      text = injectDemoSession(text);
+      const body = Buffer.from(text);
+      res.writeHead(200, { ...headers, 'content-type': 'text/html; charset=utf-8', 'content-length': body.length });
+      return req.method === 'HEAD' ? res.end() : res.end(body);
+    }
+
+    const body = await readFile(target);
+    res.writeHead(200, { ...headers, 'content-type': types[path.extname(target)] || 'application/octet-stream', 'content-length': body.length });
+    if (req.method === 'HEAD') return res.end();
+    res.end(body);
+  } catch (error) {
+    const status = error.message === 'NOT_FOUND' ? 404 : 500;
+    return jsonResponse(res, status, { error: error.message, trust: 'DEMO_RECONSTRUCTED', canonicalMutated: false, executionState: 'NOT_EXECUTED' });
+  }
+});
+
+server.listen(port, '127.0.0.1', () => {
+  console.log(`SANA DEMO functional auth http://127.0.0.1:${port}/`);
+});

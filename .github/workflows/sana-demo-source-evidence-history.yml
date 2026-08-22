@@ -1,0 +1,85 @@
+name: SANA Demo Source Evidence History
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-source-evidence.js'
+      - 'apps/control-web/public/sana-v3-dataroom-source-evidence-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-source-evidence-gaps.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-source-evidence-history.mjs'
+      - '.github/workflows/sana-demo-source-evidence-history.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-source-evidence.js'
+      - 'apps/control-web/public/sana-v3-dataroom-source-evidence-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-source-evidence-gaps.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-source-evidence-history.mjs'
+      - '.github/workflows/sana-demo-source-evidence-history.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  source-evidence-history-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-report-snapshot-source-evidence.js
+          node --check apps/control-web/public/sana-v3-dataroom-source-evidence-history.js
+          node --check apps/control-web/public/sana-v3-due-diligence-source-evidence-gaps.js
+          node scripts/validate-sana-source-evidence-history.mjs
+      - name: Validate snapshot-only and content-minimized history
+        shell: bash
+        run: |
+          set -euo pipefail
+          snap='apps/control-web/public/sana-v3-report-snapshot-source-evidence.js'; hist='apps/control-web/public/sana-v3-dataroom-source-evidence-history.js'
+          grep -q '__SANA_REPORT_SNAPSHOT_SOURCE_EVIDENCE__' "$snap"
+          grep -q 'CONTENT_NOT_COPIED' "$snap"
+          grep -q 'REVIEWER_IDENTITY_MINIMIZED' "$snap"
+          grep -q '__SANA_DATAROOM_SOURCE_EVIDENCE_HISTORY__' "$hist"
+          grep -q 'NOT_CAPTURED_IN_SNAPSHOT' "$hist"
+          grep -q 'NO_LIVE_FALLBACK' "$hist"
+          ! grep -q '__SANA_SOURCE_EVIDENCE_LEDGER__' "$hist"
+          ! grep -q '__SANA_DOCUMENT_SOURCES__' "$hist"
+          ! grep -q 'storage\.' "$hist"
+      - name: Validate documentary gaps only
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='apps/control-web/public/sana-v3-due-diligence-source-evidence-gaps.js'
+          grep -q '__SANA_DD_SOURCE_EVIDENCE_GAPS__' "$f"
+          grep -q 'NO_FINGERPRINT ≠ GAP' "$f"
+          grep -q 'HASH_NOT_VERIFIED ≠ GAP' "$f"
+          grep -q 'SOURCE_NOT_EXTERNALLY_VERIFIED ≠ GAP' "$f"
+          grep -q 'VERSION_NOT_IMMUTABLE ≠ GAP' "$f"
+          grep -q 'DOCUMENTARY_PRIORITY ≠ SOURCE_INVALIDITY' "$f"
+      - name: Validate assembly and active v56 shell
+        shell: bash
+        run: |
+          set -euo pipefail
+          html='apps/control-web/public/sana-v3.html'; sw='apps/control-web/public/sana-v3-sw.js'
+          grep -q '/sana-v3-report-snapshot-capture-sync.js.*sana-v3-report-snapshot-source-evidence.js.*sana-v3-cycle-closure.js' "$html"
+          grep -q '/sana-v3-due-diligence-capture-sync-gaps.js.*sana-v3-due-diligence-source-evidence-gaps.js.*sana-v3-due-diligence-remediation.js' "$html"
+          grep -q '/sana-v3-dataroom-capture-sync-history.js.*sana-v3-dataroom-source-evidence-history.js.*sana-v3-dataroom-entry.js' "$html"
+          grep -q "'/sana-v3-report-snapshot-source-evidence.js'" "$sw"
+          grep -q "'/sana-v3-dataroom-source-evidence-history.js'" "$sw"
+          grep -q "'/sana-v3-due-diligence-source-evidence-gaps.js'" "$sw"
+          grep -q "^const CACHE='sana-v3-demo-shell-v56';" "$sw"
+      - name: Assert no external fetch, verification escalation, production or investment authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          files='apps/control-web/public/sana-v3-report-snapshot-source-evidence.js apps/control-web/public/sana-v3-dataroom-source-evidence-history.js apps/control-web/public/sana-v3-due-diligence-source-evidence-gaps.js'
+          ! grep -Eiq 'fetch\(|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true|investmentRecommendation[[:space:]]*=[[:space:]]*true' $files

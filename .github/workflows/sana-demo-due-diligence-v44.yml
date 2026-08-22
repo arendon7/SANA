@@ -1,0 +1,114 @@
+name: SANA Demo Due Diligence V44
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-sync.js'
+      - 'apps/control-web/public/sana-v3-report-snapshot-circularity.js'
+      - 'apps/control-web/public/sana-v3-report-snapshot-data-trust.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-gaps.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-material-gaps.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-health-gaps.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-nutrition-gaps.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-phenology-gaps.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-circularity-gaps.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-data-trust-gaps.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-remediation.js'
+      - 'apps/control-web/public/sana-v3-dd-next-cut.js'
+      - 'apps/control-web/public/sana-v3-dataroom-phenology-history.js'
+      - 'apps/control-web/public/sana-v3-dataroom-circularity-history.js'
+      - 'apps/control-web/public/sana-v3-dataroom-data-trust-history.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-health-snapshot.mjs'
+      - 'scripts/validate-sana-health-gaps.mjs'
+      - 'scripts/validate-sana-nutrition-snapshot.mjs'
+      - 'scripts/validate-sana-nutrition-gaps.mjs'
+      - 'scripts/validate-sana-phenology-snapshot.mjs'
+      - 'scripts/validate-sana-phenology-gaps.mjs'
+      - 'scripts/validate-sana-circularity-snapshot.mjs'
+      - 'scripts/validate-sana-circularity-gaps.mjs'
+      - 'scripts/validate-sana-data-trust-snapshot.mjs'
+      - 'scripts/validate-sana-data-trust-gaps.mjs'
+      - '.github/workflows/sana-demo-due-diligence-v44.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-sync.js'
+      - 'apps/control-web/public/sana-v3-report-snapshot-circularity.js'
+      - 'apps/control-web/public/sana-v3-report-snapshot-data-trust.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-gaps.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-material-gaps.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-health-gaps.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-nutrition-gaps.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-phenology-gaps.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-circularity-gaps.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-data-trust-gaps.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-remediation.js'
+      - 'apps/control-web/public/sana-v3-dd-next-cut.js'
+      - 'apps/control-web/public/sana-v3-dataroom-phenology-history.js'
+      - 'apps/control-web/public/sana-v3-dataroom-circularity-history.js'
+      - 'apps/control-web/public/sana-v3-dataroom-data-trust-history.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-health-snapshot.mjs'
+      - 'scripts/validate-sana-health-gaps.mjs'
+      - 'scripts/validate-sana-nutrition-snapshot.mjs'
+      - 'scripts/validate-sana-nutrition-gaps.mjs'
+      - 'scripts/validate-sana-phenology-snapshot.mjs'
+      - 'scripts/validate-sana-phenology-gaps.mjs'
+      - 'scripts/validate-sana-circularity-snapshot.mjs'
+      - 'scripts/validate-sana-circularity-gaps.mjs'
+      - 'scripts/validate-sana-data-trust-snapshot.mjs'
+      - 'scripts/validate-sana-data-trust-gaps.mjs'
+      - '.github/workflows/sana-demo-due-diligence-v44.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  composed-dd-v44:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate composed historical semantics
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/validate-sana-health-snapshot.mjs
+          node scripts/validate-sana-health-gaps.mjs
+          node scripts/validate-sana-nutrition-snapshot.mjs
+          node scripts/validate-sana-nutrition-gaps.mjs
+          node scripts/validate-sana-phenology-snapshot.mjs
+          node scripts/validate-sana-phenology-gaps.mjs
+          node scripts/validate-sana-circularity-snapshot.mjs
+          node scripts/validate-sana-circularity-gaps.mjs
+          node scripts/validate-sana-data-trust-snapshot.mjs
+          node scripts/validate-sana-data-trust-gaps.mjs
+      - name: Validate Data Trust is composed before remediation
+        shell: bash
+        run: |
+          set -euo pipefail
+          html='apps/control-web/public/sana-v3.html'; sw='apps/control-web/public/sana-v3-sw.js'
+          grep -q '/sana-v3-report-snapshot-circularity.js.*sana-v3-report-snapshot-data-trust.js.*sana-v3-cycle-closure.js' "$html"
+          grep -q '/sana-v3-due-diligence-circularity-gaps.js.*sana-v3-due-diligence-data-trust-gaps.js.*sana-v3-due-diligence-remediation.js.*sana-v3-dd-next-cut.js' "$html"
+          grep -q '/sana-v3-dataroom-circularity-history.js.*sana-v3-dataroom-data-trust-history.js.*sana-v3-dataroom-entry.js' "$html"
+          grep -q '__SANA_REPORT_SNAPSHOT_DATA_TRUST__' apps/control-web/public/sana-v3-report-snapshot-data-trust.js
+          grep -q '__SANA_DD_DATA_TRUST_GAPS__' apps/control-web/public/sana-v3-due-diligence-data-trust-gaps.js
+          grep -q '__SANA_DATAROOM_DATA_TRUST_HISTORY__' apps/control-web/public/sana-v3-dataroom-data-trust-history.js
+          grep -q 'READING_OR_NO_ACK ≠ GAP' apps/control-web/public/sana-v3-due-diligence-data-trust-gaps.js
+          grep -q 'HARDWARE_NOT_VERIFIED ≠ GAP' apps/control-web/public/sana-v3-due-diligence-data-trust-gaps.js
+          grep -q "^const CACHE='sana-v3-demo-shell-v44';" "$sw"
+      - name: Validate no live fallback or investment inference
+        shell: bash
+        run: |
+          set -euo pipefail
+          history='apps/control-web/public/sana-v3-dataroom-data-trust-history.js'; gaps='apps/control-web/public/sana-v3-due-diligence-data-trust-gaps.js'
+          ! grep -q '__SANA_DATA_TRUST__' "$history"
+          ! grep -q '__SANA_DATA_TRUST__' "$gaps"
+          ! grep -q 'storage\.' "$history"
+          ! grep -q 'storage\.' "$gaps"
+          ! grep -Eiq 'creditApproved|investmentApproved|eligibilityApproved|sensorFailure[[:space:]]*=[[:space:]]*true|agronomicPerformance|verifiedExternal[[:space:]]*=[[:space:]]*true' "$history" "$gaps"

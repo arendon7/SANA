@@ -1,0 +1,45 @@
+name: SANA Demo Nutrition Lifecycle Assembly
+
+on:
+  push:
+    branches: [demo/sana-nutrition-v2-v132]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  nutrition-lifecycle-assembly:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate V132 assembly
+        run: |
+          set -euo pipefail
+          for f in \
+            apps/control-web/public/sana-v3-nutrition-references.js \
+            apps/control-web/public/sana-v3-nutrition-lifecycle.js \
+            apps/control-web/public/sana-v3-report-snapshot-nutrition-lifecycle.js \
+            apps/control-web/public/sana-v3-cycle-nutrition-lifecycle.js \
+            apps/control-web/public/sana-v3-due-diligence-nutrition-lifecycle-gaps.js \
+            apps/control-web/public/sana-v3-dataroom-nutrition-lifecycle.js \
+            apps/control-web/public/sana-v3-sw.js; do node --check "$f"; done
+          refs='apps/control-web/public/sana-v3-nutrition-references.js'
+          life='apps/control-web/public/sana-v3-nutrition-lifecycle.js'
+          sw='apps/control-web/public/sana-v3-sw.js'
+          grep -q '__SANA_NUTRITION_LIFECYCLE_LOADER__' "$refs"
+          grep -q "prior==='READY'||prior==='FAILED'" "$refs"
+          grep -q '/sana-v3-nutrition-lifecycle.js' "$refs"
+          grep -q '__SANA_NUTRITION_LIFECYCLE_HISTORY_LOADER__' "$life"
+          grep -q "version:'V132'" "$life"
+          for a in \
+            '/sana-v3-report-snapshot-nutrition-lifecycle.js' \
+            '/sana-v3-cycle-nutrition-lifecycle.js' \
+            '/sana-v3-due-diligence-nutrition-lifecycle-gaps.js' \
+            '/sana-v3-dataroom-nutrition-lifecycle.js'; do grep -q "$a" "$life"; grep -q "'$a'" "$sw"; done
+          grep -q "const CACHE='sana-v3-demo-shell-v131'" "$sw"
+          grep -q "^const CACHE='sana-v3-demo-shell-v132';" "$sw"
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|creditApproved|investmentApproved' "$refs" "$life" apps/control-web/public/sana-v3-*nutrition-lifecycle*.js

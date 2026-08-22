@@ -1,0 +1,55 @@
+name: SANA Demo Data Room Document Assurance History
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-dataroom-assurance.js'
+      - 'apps/control-web/public/sana-v3-dataroom-assurance-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-dataroom-assurance-gaps.js'
+      - 'scripts/validate-sana-dataroom-assurance-history.mjs'
+      - '.github/workflows/sana-demo-dataroom-assurance-history.yml'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-dataroom-assurance.js'
+      - 'apps/control-web/public/sana-v3-dataroom-assurance-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-dataroom-assurance-gaps.js'
+      - 'scripts/validate-sana-dataroom-assurance-history.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+
+jobs:
+  dataroom-document-assurance-history-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contracts
+        run: |
+          node --check apps/control-web/public/sana-v3-report-snapshot-dataroom-assurance.js
+          node --check apps/control-web/public/sana-v3-dataroom-assurance-history.js
+          node --check apps/control-web/public/sana-v3-due-diligence-dataroom-assurance-gaps.js
+          node scripts/validate-sana-dataroom-assurance-history.mjs
+      - name: Validate snapshot-only and ref-only history
+        run: |
+          grep -q 'SNAPSHOT_DATAROOM_ASSURANCE_ONLY' apps/control-web/public/sana-v3-report-snapshot-dataroom-assurance.js
+          grep -q 'NO_LIVE_FALLBACK' apps/control-web/public/sana-v3-dataroom-assurance-history.js
+          grep -q 'ASSURANCE_CHANGE ≠ IMPROVEMENT' apps/control-web/public/sana-v3-dataroom-assurance-history.js
+          ! grep -q '__SANA_DATAROOM_ASSURANCE__' apps/control-web/public/sana-v3-dataroom-assurance-history.js
+          ! grep -Eq '\bstorage\s*(\?\.|\.)' apps/control-web/public/sana-v3-dataroom-assurance-history.js
+      - name: Validate documentary gaps only
+        run: |
+          grep -q 'NO_ASSURANCE_REQUEST ≠ GAP' apps/control-web/public/sana-v3-due-diligence-dataroom-assurance-gaps.js
+          grep -q 'PASS_REFERENCE ≠ GAP' apps/control-web/public/sana-v3-due-diligence-dataroom-assurance-gaps.js
+          grep -q 'FAIL_REFERENCE ≠ GAP' apps/control-web/public/sana-v3-due-diligence-dataroom-assurance-gaps.js
+          grep -q 'ASSURANCE_SUPERSEDED ≠ GAP' apps/control-web/public/sana-v3-due-diligence-dataroom-assurance-gaps.js
+          grep -q 'ASSURANCE_GAP ≠ FAILED_VERIFICATION ≠ DOCUMENT_INVALIDITY ≠ INVESTMENT_RISK ≠ ELIGIBILITY ≠ INVESTMENT_DECISION' apps/control-web/public/sana-v3-due-diligence-dataroom-assurance-gaps.js
+          ! grep -q '__SANA_DATAROOM_ASSURANCE__' apps/control-web/public/sana-v3-due-diligence-dataroom-assurance-gaps.js
+      - name: Assert no verification approval offer or execution authority
+        run: |
+          ! grep -Eq 'productionExecutionAvailable\s*=\s*true|productionActivationAllowed\s*=\s*true|canonicalMutated\s*=\s*true' apps/control-web/public/sana-v3-report-snapshot-dataroom-assurance.js apps/control-web/public/sana-v3-dataroom-assurance-history.js apps/control-web/public/sana-v3-due-diligence-dataroom-assurance-gaps.js
+          ! grep -Eq 'fetch\s*\(' apps/control-web/public/sana-v3-report-snapshot-dataroom-assurance.js apps/control-web/public/sana-v3-dataroom-assurance-history.js apps/control-web/public/sana-v3-due-diligence-dataroom-assurance-gaps.js

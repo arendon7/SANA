@@ -1,0 +1,57 @@
+name: SANA Demo Due Diligence V56
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-due-diligence-source-evidence-gaps.js'
+      - 'apps/control-web/public/sana-v3-dataroom-source-evidence-history.js'
+      - 'apps/control-web/public/sana-v3-report-snapshot-source-evidence.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-remediation.js'
+      - 'apps/control-web/public/sana-v3-dd-next-cut.js'
+      - 'apps/control-web/public/sana-v3-dataroom-entry.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'scripts/validate-sana-source-evidence-history.mjs'
+      - '.github/workflows/sana-demo-due-diligence-v56.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-due-diligence-source-evidence-gaps.js'
+      - 'apps/control-web/public/sana-v3-dataroom-source-evidence-history.js'
+      - 'apps/control-web/public/sana-v3-report-snapshot-source-evidence.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-remediation.js'
+      - 'apps/control-web/public/sana-v3-dd-next-cut.js'
+      - 'apps/control-web/public/sana-v3-dataroom-entry.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'scripts/validate-sana-source-evidence-history.mjs'
+      - '.github/workflows/sana-demo-due-diligence-v56.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  composed-dd-v56:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate source evidence historical semantics
+        run: node scripts/validate-sana-source-evidence-history.mjs
+      - name: Validate Source Evidence is composed before remediation
+        shell: bash
+        run: |
+          set -euo pipefail
+          html='apps/control-web/public/sana-v3.html'
+          grep -q '/sana-v3-due-diligence-capture-sync-gaps.js.*sana-v3-due-diligence-source-evidence-gaps.js.*sana-v3-due-diligence-remediation.js.*sana-v3-dd-next-cut.js' "$html"
+          grep -q '/sana-v3-dataroom-capture-sync-history.js.*sana-v3-dataroom-source-evidence-history.js.*sana-v3-dataroom-entry.js' "$html"
+      - name: Validate snapshot-only boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          hist='apps/control-web/public/sana-v3-dataroom-source-evidence-history.js'; gaps='apps/control-web/public/sana-v3-due-diligence-source-evidence-gaps.js'
+          grep -q 'NO_LIVE_FALLBACK' "$hist"
+          grep -q 'CONTENT_NOT_COPIED' "$hist"
+          grep -q 'SOURCE_NOT_EXTERNALLY_VERIFIED ≠ GAP' "$gaps"
+          grep -q 'NO_FINGERPRINT ≠ GAP' "$gaps"
+          grep -q 'DOCUMENTARY_PRIORITY ≠ SOURCE_INVALIDITY' "$gaps"

@@ -1,0 +1,94 @@
+name: Assemble SANA v50 Labor History
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - '.github/workflows/assemble-sana-v50.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  assemble-v50:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply exact v50 assembly migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          html_path=Path('apps/control-web/public/sana-v3.html')
+          sw_path=Path('apps/control-web/public/sana-v3-sw.js')
+          html=html_path.read_text()
+          sw=sw_path.read_text()
+
+          def replace_once(text, old, new, label):
+              count=text.count(old)
+              if count==0 and new in text:
+                  return text
+              if count!=1:
+                  raise SystemExit(f'{label}: expected exactly one anchor, found {count}')
+              return text.replace(old,new,1)
+
+          html=replace_once(html,
+            '<script src="/sana-v3-report-snapshot-harvest.js"></script><script src="/sana-v3-report-snapshot-inventory.js"></script><script src="/sana-v3-cycle-closure.js"></script>',
+            '<script src="/sana-v3-report-snapshot-harvest.js"></script><script src="/sana-v3-report-snapshot-inventory.js"></script><script src="/sana-v3-report-snapshot-labor.js"></script><script src="/sana-v3-cycle-closure.js"></script>',
+            'html snapshot labor')
+          html=replace_once(html,
+            '<script src="/sana-v3-due-diligence-harvest-gaps.js"></script><script src="/sana-v3-due-diligence-inventory-gaps.js"></script><script src="/sana-v3-due-diligence-remediation.js"></script>',
+            '<script src="/sana-v3-due-diligence-harvest-gaps.js"></script><script src="/sana-v3-due-diligence-inventory-gaps.js"></script><script src="/sana-v3-due-diligence-labor-gaps.js"></script><script src="/sana-v3-due-diligence-remediation.js"></script>',
+            'html labor gaps')
+          html=replace_once(html,
+            '<script src="/sana-v3-dataroom-harvest-history.js"></script><script src="/sana-v3-dataroom-inventory-history.js"></script><script src="/sana-v3-dataroom-entry.js"></script>',
+            '<script src="/sana-v3-dataroom-harvest-history.js"></script><script src="/sana-v3-dataroom-inventory-history.js"></script><script src="/sana-v3-dataroom-labor-history.js"></script><script src="/sana-v3-dataroom-entry.js"></script>',
+            'html labor history')
+
+          sw=replace_once(sw,
+            "'/sana-v3-report-snapshot-harvest.js','/sana-v3-report-snapshot-inventory.js','/sana-v3-cycle-closure.js'",
+            "'/sana-v3-report-snapshot-harvest.js','/sana-v3-report-snapshot-inventory.js','/sana-v3-report-snapshot-labor.js','/sana-v3-cycle-closure.js'",
+            'sw snapshot labor')
+          sw=replace_once(sw,
+            "'/sana-v3-due-diligence-harvest-gaps.js','/sana-v3-due-diligence-inventory-gaps.js','/sana-v3-due-diligence-remediation.js'",
+            "'/sana-v3-due-diligence-harvest-gaps.js','/sana-v3-due-diligence-inventory-gaps.js','/sana-v3-due-diligence-labor-gaps.js','/sana-v3-due-diligence-remediation.js'",
+            'sw labor gaps')
+          sw=replace_once(sw,
+            "'/sana-v3-dataroom-harvest-history.js','/sana-v3-dataroom-inventory-history.js','/sana-v3-dataroom-entry.js'",
+            "'/sana-v3-dataroom-harvest-history.js','/sana-v3-dataroom-inventory-history.js','/sana-v3-dataroom-labor-history.js','/sana-v3-dataroom-entry.js'",
+            'sw labor history')
+          sw=replace_once(sw,
+            "if(false){\nconst CACHE='sana-v3-demo-shell-v48';\n}\nconst CACHE='sana-v3-demo-shell-v49';",
+            "if(false){\nconst CACHE='sana-v3-demo-shell-v48';\n}\nif(false){\nconst CACHE='sana-v3-demo-shell-v49';\n}\nconst CACHE='sana-v3-demo-shell-v50';",
+            'sw v50 cache')
+
+          html_path.write_text(html)
+          sw_path.write_text(sw)
+          PY
+          node --check apps/control-web/public/sana-v3-report-snapshot-labor.js
+          node --check apps/control-web/public/sana-v3-dataroom-labor-history.js
+          node --check apps/control-web/public/sana-v3-due-diligence-labor-gaps.js
+          grep -q '/sana-v3-report-snapshot-inventory.js.*sana-v3-report-snapshot-labor.js.*sana-v3-cycle-closure.js' apps/control-web/public/sana-v3.html
+          grep -q '/sana-v3-due-diligence-inventory-gaps.js.*sana-v3-due-diligence-labor-gaps.js.*sana-v3-due-diligence-remediation.js' apps/control-web/public/sana-v3.html
+          grep -q '/sana-v3-dataroom-inventory-history.js.*sana-v3-dataroom-labor-history.js.*sana-v3-dataroom-entry.js' apps/control-web/public/sana-v3.html
+          grep -q "^const CACHE='sana-v3-demo-shell-v50';" apps/control-web/public/sana-v3-sw.js
+      - name: Commit v50 assembly
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- apps/control-web/public/sana-v3.html apps/control-web/public/sana-v3-sw.js; then
+            echo 'v50 assembly already applied.'
+            exit 0
+          fi
+          git config user.name 'sana-demo-assembly[bot]'
+          git config user.email 'sana-demo-assembly[bot]@users.noreply.github.com'
+          git add apps/control-web/public/sana-v3.html apps/control-web/public/sana-v3-sw.js
+          git commit -m 'feat(demo): assemble labor history shell v50'
+          git push origin HEAD:demo/sana-functional-auth-v1

@@ -1,0 +1,35 @@
+(() => {
+  'use strict';
+  const laborApi=()=>window.__SANA_LABOR_LEDGER__;
+  const cycleApi=()=>window.__SANA_CYCLE_CLOSURE__;
+  function forPlan(planId){const plan=DEMO.plans.find(p=>p.id===planId);if(!plan)return {valid:false,cases:[]};const cases=(laborApi()?.forLot?.(plan.lot)||[]).map(c=>({caseId:c.id,role:c.role||'',activityId:c.activityId||'',workedHours:c.hours??0,assignmentCount:c.assignments?.length??0,attendanceCount:c.attendance?.length??0,resultCount:c.results?.length??0,evidenceCount:c.evidence?.length??0,costDeclarationCount:c.costs?.length??0,declaredCost:c.declaredCost??0,costUnit:c.costUnit||'',paymentCaptured:c.semantics?.paymentCaptured??0,unsupportedWorked:c.semantics?.unsupportedWorked?.length??0,unresolvedCostBasis:c.semantics?.unresolvedCostBasis?.length??0,personRefRedacted:true}));return {valid:true,plan:{id:plan.id,version:plan.version,lot:plan.lot},cases,integrity:'LABOR_PROVENANCE ≠ CYCLE_GATE · ASSIGNMENT ≠ ATTENDANCE · ATTENDANCE ≠ WORKED_TIME · WORKED_TIME ≠ TASK_COMPLETION · TASK_COMPLETION ≠ QUALITY · RATE_REFERENCE ≠ LABOR_COST · LABOR_COST ≠ PAYMENT · NO_HR_SCORING · PRIVACY_MINIMIZED'} }
+  function selected(){const p=cycleApi()?.selectedPlan?.();return p?forPlan(p.id):{valid:false,cases:[]}}
+  function panel(){const s=selected();if(!s.valid)return '';if(!s.cases.length)return `<section class="card" style="margin-top:14px"><div class="card-head"><div><p class="kicker">CIERRE · EQUIPO</p><h2>Sin procedencia laboral vinculada</h2><p>Ausencia de captura no equivale a ausencia de trabajo. Esta capa no modifica gates ni evalúa personas.</p></div><span class="status warn">NO CAPTURADO</span></div></section>`;const hours=Math.round(s.cases.reduce((n,c)=>n+(Number(c.workedHours)||0),0)*10)/10,results=s.cases.reduce((n,c)=>n+c.resultCount,0),evidence=s.cases.reduce((n,c)=>n+c.evidenceCount,0),costs=s.cases.reduce((n,c)=>n+c.costDeclarationCount,0);return `<section class="card" style="margin-top:14px"><div class="card-head"><div><p class="kicker">CIERRE · EQUIPO</p><h2>Procedencia laboral agregada del ciclo</h2><p>${esc(s.plan.id)} v${s.plan.version} · lote ${esc(s.plan.lot)} · sin nombres, score ni nómina.</p></div><span class="status teal">PRIVACY-MINIMIZED</span></div><div class="card-body"><div class="grid metrics">${metric('Horas declaradas',hours,'tiempo ≠ cierre')}${metric('Resultados',results,'resultado ≠ calidad')}${metric('Evidencias',evidence,'soporte ≠ performance')}${metric('Costos declarados',costs,'costo ≠ pago')}</div><div class="table-wrap" style="margin-top:12px"><table class="table"><thead><tr><th>Rol / actividad</th><th>Asignación</th><th>Presencia</th><th>Horas</th><th>Resultados</th><th>Costo/pago</th></tr></thead><tbody>${s.cases.map(c=>`<tr><td><strong>${esc(c.role||'rol')}</strong><br><small>${esc(c.activityId||'sin actividad')}</small></td><td>${c.assignmentCount}</td><td>${c.attendanceCount}</td><td>${c.workedHours}</td><td>${c.resultCount} · ${c.evidenceCount} evidencia(s)</td><td>${c.costDeclarationCount} costo(s)<br><small>${c.paymentCaptured} pago(s) capturado(s)</small></td></tr>`).join('')}</tbody></table></div><div class="section-note" style="margin-top:12px">LABOR_PROVENANCE ≠ CYCLE_GATE · WORKED_TIME ≠ TASK_COMPLETION ≠ QUALITY · RATE_REFERENCE ≠ LABOR_COST ≠ PAYMENT · NO_HR_SCORING. No modifica completeness ni readyForArchive.</div></div></section>`}
+  function insert(html,section){const marker='<footer class="footer">';const at=html.lastIndexOf(marker);return at<0?html+section:html.slice(0,at)+section+html.slice(at)}
+  const base=views.cycle;if(base)views.cycle=()=>insert(base(),panel());
+  window.__SANA_CYCLE_LABOR__=Object.freeze({forPlan,selected,integrity:'LABOR_PROVENANCE ≠ CYCLE_GATE · ASSIGNMENT ≠ ATTENDANCE · ATTENDANCE ≠ WORKED_TIME · WORKED_TIME ≠ TASK_COMPLETION · TASK_COMPLETION ≠ QUALITY · RATE_REFERENCE ≠ LABOR_COST · LABOR_COST ≠ PAYMENT · NO_HR_SCORING · PRIVACY_MINIMIZED'});
+})();
+
+// V141/V142 loader: activate Labor reference integrity, then privacy-minimized historical provenance.
+(() => {
+  if(typeof window==='undefined'||typeof document==='undefined'||!document.createElement)return;
+  const HISTORY=[
+    ['/sana-v3-report-snapshot-labor-references.js','__SANA_REPORT_SNAPSHOT_LABOR_REFERENCES__'],
+    ['/sana-v3-cycle-labor-references.js','__SANA_CYCLE_LABOR_REFERENCES__'],
+    ['/sana-v3-due-diligence-labor-reference-gaps.js','__SANA_DD_LABOR_REFERENCE_GAPS__'],
+    ['/sana-v3-dataroom-labor-references.js','__SANA_DATAROOM_LABOR_REFERENCES__']
+  ];
+  function loadHistory(i=0){
+    if(i>=HISTORY.length)return;
+    const [src,marker]=HISTORY[i];if(window[marker])return loadHistory(i+1);
+    const key=`script[data-sana-labor-history-v142="${i}"]`;if(document.querySelector?.(key))return;
+    const s=document.createElement('script');s.src=src;s.defer=true;s.dataset.sanaLaborHistoryV142=String(i);s.onload=()=>loadHistory(i+1);document.head.appendChild(s);
+  }
+  function load(){
+    if(window.__SANA_LABOR_LEDGER__?.referenceVersion==='V141')return loadHistory();
+    if(!window.__SANA_LABOR_LEDGER__||!window.__SANA_PLAN_FIELD_WORKFLOW__)return;
+    if(document.querySelector?.('script[data-sana-labor-references-v141]'))return;
+    const s=document.createElement('script');s.src='/sana-v3-labor-references.js';s.defer=true;s.dataset.sanaLaborReferencesV141='1';s.onload=()=>loadHistory();document.head.appendChild(s);
+  }
+  if(document.readyState==='complete')queueMicrotask(load);else window.addEventListener('load',load,{once:true});
+})();

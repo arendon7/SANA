@@ -1,0 +1,11 @@
+name: Assemble SANA v61 Capital Governance (retired)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  retired:
+    if: ${{ false }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo 'v61 already assembled and will be certified from a human commit.'

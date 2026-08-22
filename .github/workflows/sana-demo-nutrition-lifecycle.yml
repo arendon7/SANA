@@ -1,0 +1,33 @@
+name: SANA Demo Nutrition Lifecycle
+
+on:
+  push:
+    branches: [demo/sana-nutrition-v2-v131]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  nutrition-lifecycle-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate V131 lifecycle
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-nutrition-lifecycle.js
+          node scripts/validate-sana-nutrition-lifecycle.mjs
+          f='apps/control-web/public/sana-v3-nutrition-lifecycle.js'
+          grep -q 'COMPLETED_REVIEWED' "$f"
+          grep -q 'CLOSED_NOT_EXECUTED' "$f"
+          grep -q 'NON_TERMINAL_DECISION' "$f"
+          grep -q 'DEFERRED_HUMAN ≠ TERMINAL_CLOSURE' "$f"
+          grep -q 'RESPONSE ≠ CASE_CLOSURE' "$f"
+          grep -q 'CASE_CLOSE ≠ APPLICATION_SUCCESS' "$f"
+          grep -q 'CASE_CLOSE ≠ INVENTORY_RECONCILED' "$f"
+          grep -q 'CASE_CLOSE ≠ CYCLE_GATE' "$f"
+          ! grep -q 'storage.records.push' "$f"

@@ -1,0 +1,59 @@
+name: SANA Demo Capital Human Review History
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-capital-review.js'
+      - 'apps/control-web/public/sana-v3-dataroom-capital-review-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-capital-review-gaps.js'
+      - 'scripts/validate-sana-capital-review-history.mjs'
+      - '.github/workflows/sana-demo-capital-review-history.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-capital-review.js'
+      - 'apps/control-web/public/sana-v3-dataroom-capital-review-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-capital-review-gaps.js'
+      - 'scripts/validate-sana-capital-review-history.mjs'
+
+jobs:
+  capital-human-review-history-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contracts
+        run: |
+          node --check apps/control-web/public/sana-v3-report-snapshot-capital-review.js
+          node --check apps/control-web/public/sana-v3-dataroom-capital-review-history.js
+          node --check apps/control-web/public/sana-v3-due-diligence-capital-review-gaps.js
+          node scripts/validate-sana-capital-review-history.mjs
+      - name: Validate snapshot-only and reviewer-ref-only history
+        run: |
+          grep -q 'REVIEWER_REF_ONLY' apps/control-web/public/sana-v3-report-snapshot-capital-review.js
+          grep -q 'NO_REVIEWER_IDENTITY' apps/control-web/public/sana-v3-report-snapshot-capital-review.js
+          grep -q 'NO_FREEFORM_NOTE_COPY' apps/control-web/public/sana-v3-report-snapshot-capital-review.js
+          grep -q 'NO_LIVE_FALLBACK' apps/control-web/public/sana-v3-dataroom-capital-review-history.js
+          ! grep -q '__SANA_CAPITAL_REVIEW__' apps/control-web/public/sana-v3-dataroom-capital-review-history.js
+          ! grep -q '__SANA_CAPITAL_GOVERNANCE__' apps/control-web/public/sana-v3-dataroom-capital-review-history.js
+          ! grep -q 'storage\.' apps/control-web/public/sana-v3-dataroom-capital-review-history.js
+      - name: Validate documentary gaps only
+        run: |
+          grep -q 'NO_REVIEW ≠ GAP' apps/control-web/public/sana-v3-due-diligence-capital-review-gaps.js
+          grep -q 'REVIEW_OPEN ≠ GAP' apps/control-web/public/sana-v3-due-diligence-capital-review-gaps.js
+          grep -q 'REVIEW_COMPLETED ≠ GAP' apps/control-web/public/sana-v3-due-diligence-capital-review-gaps.js
+          grep -q 'HUMAN_DECISION_REFERENCE ≠ GAP' apps/control-web/public/sana-v3-due-diligence-capital-review-gaps.js
+      - name: Assert no approval, scoring or financial execution authority
+        run: |
+          for file in \
+            apps/control-web/public/sana-v3-report-snapshot-capital-review.js \
+            apps/control-web/public/sana-v3-dataroom-capital-review-history.js \
+            apps/control-web/public/sana-v3-due-diligence-capital-review-gaps.js; do
+            ! grep -Eq 'fetch\s*\(' "$file"
+            ! grep -Eq 'productionExecutionAvailable\s*=\s*true|productionActivationAllowed\s*=\s*true|canonicalMutated\s*=\s*true' "$file"
+          done
+          grep -q 'REVIEW_COMPLETED ≠ APPROVAL' apps/control-web/public/sana-v3-report-snapshot-capital-review.js
+          grep -q 'ASSESSMENT_REFERENCE ≠ CREDIT_SCORE ≠ INVESTMENT_RECOMMENDATION' apps/control-web/public/sana-v3-report-snapshot-capital-review.js
+          grep -q 'REVIEW_GAP ≠ APPROVAL ≠ ELIGIBILITY' apps/control-web/public/sana-v3-due-diligence-capital-review-gaps.js

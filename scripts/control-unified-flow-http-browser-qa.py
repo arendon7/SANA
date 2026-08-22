@@ -2,6 +2,7 @@
 from pathlib import Path
 import json, os, subprocess, time, urllib.request
 from playwright.sync_api import sync_playwright
+from control_browser_demo_auth import authenticate_demo_admin
 root=Path(__file__).resolve().parents[1]; ev=root/'docs/product/evidence/unified-control-flow'; ev.mkdir(parents=True,exist_ok=True)
 server=subprocess.Popen(['node','apps/control-web/server.mjs'],cwd=root,env={**os.environ,'PORT':'4273'},stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True)
 for _ in range(80):
@@ -20,6 +21,7 @@ try:
       context=browser.new_context(viewport={'width':w,'height':h},locale='es-CO',accept_downloads=True)
       page=context.new_page(); page.set_default_timeout(7000); errors=[]; page_errors=[]
       page.on('console',lambda m: errors.append(m.text) if m.type=='error' else None); page.on('pageerror',lambda e: page_errors.append(str(e)))
+      authenticate_demo_admin(page,'http://127.0.0.1:4273/control/exceptions')
       r=page.goto('http://127.0.0.1:4273/control/exceptions',wait_until='networkidle'); ck(f'{label}:exceptions-http',r and r.status==200)
       ck(f'{label}:flow-four-steps',page.locator('.flow-step').count()==4,page.locator('.flow-step').count())
       page.locator('[data-id="agro"]').click(); page.wait_for_timeout(120); ctx=flow(page)

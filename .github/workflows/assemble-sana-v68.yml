@@ -1,0 +1,14 @@
+name: Assemble SANA v68 Data Room Document Exchange History
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  assemble-v68-retired:
+    if: ${{ false }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo 'v68 assembler retired after deterministic assembly; shell is certified separately.'

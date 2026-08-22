@@ -1,0 +1,86 @@
+name: SANA Demo Forecast Ledger
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-forecast-ledger.js'
+      - 'apps/control-web/public/sana-v3-cycle-forecast-provenance.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-forecast-ledger.mjs'
+      - '.github/workflows/sana-demo-forecast-ledger.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-forecast-ledger.js'
+      - 'apps/control-web/public/sana-v3-cycle-forecast-provenance.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-forecast-ledger.mjs'
+      - '.github/workflows/sana-demo-forecast-ledger.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  forecast-ledger-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-forecast-ledger.js
+          node --check apps/control-web/public/sana-v3-cycle-forecast-provenance.js
+          node scripts/validate-sana-forecast-ledger.mjs
+      - name: Validate forecast boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='apps/control-web/public/sana-v3-forecast-ledger.js'
+          grep -q '__SANA_FORECAST_LEDGER__' "$f"
+          grep -q 'SANA_INPUT_FORECAST_LEDGER_V1' "$f"
+          grep -q 'FORECAST_ESTIMATE ≠ CONFIRMED_NEED' "$f"
+          grep -q 'LEGACY_FORECAST_STOCK_ASSUMPTION ≠ PHYSICAL_COUNT' "$f"
+          grep -q 'PLANNING_AVAILABILITY ≠ CERTIFIED_STOCK' "$f"
+          grep -q 'FORECAST_GAP ≠ PURCHASE_AUTHORIZATION' "$f"
+          grep -q 'PURCHASE_REQUEST ≠ PURCHASE_ORDER' "$f"
+          grep -q 'PURCHASE_ORDER ≠ RECEIPT' "$f"
+          grep -q 'RECEIPT ≠ CONSUMPTION' "$f"
+          grep -q 'MODEL_ESTIMATE ≠ HUMAN_DECISION' "$f"
+          grep -q 'NO_AUTOMATIC_PROCUREMENT' "$f"
+      - name: Validate explicit relations and cycle projection
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='apps/control-web/public/sana-v3-forecast-ledger.js'; cycle='apps/control-web/public/sana-v3-cycle-forecast-provenance.js'
+          grep -q 'forecastRef' "$f"
+          grep -q 'FORECAST · INVENTARIO' "$f"
+          grep -q 'CAMPO · FORECAST' "$f"
+          grep -q 'NUTRICIÓN · FORECAST' "$f"
+          grep -q 'PASSPORT · FORECAST' "$f"
+          grep -q '__SANA_CYCLE_FORECAST__' "$cycle"
+          grep -q 'FORECAST_PROVENANCE ≠ CYCLE_GATE' "$cycle"
+          ! grep -q 'completeness[[:space:]]*=' "$cycle"
+          ! grep -q 'readyForArchive[[:space:]]*=' "$cycle"
+      - name: Validate assembly and active v51 shell
+        shell: bash
+        run: |
+          set -euo pipefail
+          html='apps/control-web/public/sana-v3.html'; sw='apps/control-web/public/sana-v3-sw.js'
+          grep -q '/sana-v3-inventory-activity-bridge.js.*sana-v3-forecast-ledger.js.*sana-v3-labor-ledger.js' "$html"
+          grep -q '/sana-v3-cycle-inventory-provenance.js.*sana-v3-cycle-forecast-provenance.js.*sana-v3-cycle-labor-provenance.js' "$html"
+          grep -q "'/sana-v3-forecast-ledger.js'" "$sw"
+          grep -q "'/sana-v3-cycle-forecast-provenance.js'" "$sw"
+          grep -q "^const CACHE='sana-v3-demo-shell-v51';" "$sw"
+      - name: Assert no procurement, payment or production authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          files='apps/control-web/public/sana-v3-forecast-ledger.js apps/control-web/public/sana-v3-cycle-forecast-provenance.js'
+          ! grep -Eiq 'purchaseOrderCreated[[:space:]]*=[[:space:]]*true|paymentExecuted[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true|autoPurchase|autoReplenish' $files
+          ! grep -Eiq 'fetch\(' $files

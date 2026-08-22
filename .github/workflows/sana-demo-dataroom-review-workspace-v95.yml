@@ -1,0 +1,38 @@
+name: SANA Demo Data Room Review Workspace V95
+
+on:
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-dataroom-review-workspace.js'
+      - 'apps/control-web/public/sana-v3-review-workspace.css'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-dataroom-review-workspace-v95.mjs'
+      - '.github/workflows/sana-demo-dataroom-review-workspace-v95.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  review-workspace-v95-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Preserve V87–V95 workspace contracts
+        run: |
+          node scripts/validate-sana-dataroom-review-workspace.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v88.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v89.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v90.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v91.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v92.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v93.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v94.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v95.mjs
+      - name: Assert V95 shell, source-state semantics and read-only boundary
+        run: |
+          grep -q "const CACHE='sana-v3-demo-shell-v95';" apps/control-web/public/sana-v3-sw.js
+          grep -q 'SOURCE_API_UNAVAILABLE ≠ STAGE_NOT_REFERENCED ≠ REVIEW_GAP' apps/control-web/public/sana-v3-dataroom-review-workspace.js
+          grep -q 'SOURCE_READ_ERROR ≠ SOURCE_EMPTY' apps/control-web/public/sana-v3-dataroom-review-workspace.js
+          ! grep -Eq 'fetch\s*\(|storage\s*(\?\.|\.)|openModal\s*\(' apps/control-web/public/sana-v3-dataroom-review-workspace.js

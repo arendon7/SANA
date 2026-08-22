@@ -1,0 +1,105 @@
+name: SANA Demo Circularity Ledger
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-circularity.js'
+      - 'apps/control-web/public/sana-v3-circularity-ledger.js'
+      - 'apps/control-web/public/sana-v3-cycle-circularity-provenance.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-circularity-ledger.mjs'
+      - 'scripts/validate-sana-cycle-circularity.mjs'
+      - '.github/workflows/sana-demo-circularity-ledger.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-circularity.js'
+      - 'apps/control-web/public/sana-v3-circularity-ledger.js'
+      - 'apps/control-web/public/sana-v3-cycle-circularity-provenance.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-circularity-ledger.mjs'
+      - 'scripts/validate-sana-cycle-circularity.mjs'
+      - '.github/workflows/sana-demo-circularity-ledger.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  circularity-ledger-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-circularity-ledger.js
+          node --check apps/control-web/public/sana-v3-cycle-circularity-provenance.js
+          node scripts/validate-sana-circularity-ledger.mjs
+          node scripts/validate-sana-cycle-circularity.mjs
+      - name: Validate circularity boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          ledger='apps/control-web/public/sana-v3-circularity-ledger.js'
+          grep -q '__SANA_CIRCULARITY_LEDGER__' "$ledger"
+          grep -q 'SANA_CIRCULARITY_LEDGER_V1' "$ledger"
+          grep -q 'GENERATED ≠ RECOVERED' "$ledger"
+          grep -q 'DESTINATION_PLAN ≠ EXECUTION' "$ledger"
+          grep -q 'EXECUTION ≠ RECOVERY' "$ledger"
+          grep -q 'INTERNAL_TREATMENT_INPUT ≠ RECOVERED_OUTPUT' "$ledger"
+          grep -q 'EXTERNAL_HANDOFF ≠ VERIFIED_DISPOSITION' "$ledger"
+          grep -q 'HANDLED_COVERAGE ≠ CIRCULARITY_RATE' "$ledger"
+          grep -q 'EVIDENCE ≠ ENVIRONMENTAL_IMPACT' "$ledger"
+          grep -q 'LEGACY_CIRCULARITY_CAPTURE' "$ledger"
+          grep -q 'EXTERNAL_DISPOSITION_NOT_VERIFIED' "$ledger"
+          ! grep -q 'storage.records.push' "$ledger"
+      - name: Validate quantity and execution semantics
+        shell: bash
+        run: |
+          set -euo pipefail
+          ledger='apps/control-web/public/sana-v3-circularity-ledger.js'
+          grep -q 'MEASURED_DEMO' "$ledger"
+          grep -q 'ESTIMATED_DEMO' "$ledger"
+          grep -q 'TREATMENT_IN_PROGRESS' "$ledger"
+          grep -q 'EXTERNAL_HANDOFF_PENDING' "$ledger"
+          ! grep -Eiq 'autoRecovery|autoDisposition|autoCircularity|circularityRate[[:space:]]*=[[:space:]]*handled|recoveredQuantity[[:space:]]*=[[:space:]]*handledQuantity' "$ledger"
+      - name: Validate cycle projection is read-only and non-weighted
+        shell: bash
+        run: |
+          set -euo pipefail
+          cycle='apps/control-web/public/sana-v3-cycle-circularity-provenance.js'
+          grep -q '__SANA_CYCLE_CIRCULARITY__' "$cycle"
+          grep -q 'CIRCULARITY_PROVENANCE ≠ CYCLE_GATE' "$cycle"
+          grep -q 'DESTINATION_PLAN ≠ EXECUTION' "$cycle"
+          grep -q 'EXECUTION ≠ VERIFIED_DISPOSITION' "$cycle"
+          grep -q 'HANDLED_COVERAGE ≠ CIRCULARITY_RATE' "$cycle"
+          grep -q 'EVIDENCE ≠ ENVIRONMENTAL_IMPACT' "$cycle"
+          grep -q 'No modifica completeness ni readyForArchive' "$cycle"
+          ! grep -q 'completeness=' "$cycle"
+          ! grep -q 'readyForArchive=' "$cycle"
+          ! grep -q 'storage.records.push' "$cycle"
+          ! grep -q 'openModal(' "$cycle"
+      - name: Validate assembly and active shell
+        shell: bash
+        run: |
+          set -euo pipefail
+          html='apps/control-web/public/sana-v3.html'
+          sw='apps/control-web/public/sana-v3-sw.js'
+          grep -q '/sana-v3-health-ledger.js.*sana-v3-circularity-ledger.js.*sana-v3-cycle-closure.js' "$html"
+          grep -q '/sana-v3-cycle-health-provenance.js.*sana-v3-cycle-circularity-provenance.js.*sana-v3-capital-dossier.js' "$html"
+          grep -q "'/sana-v3-circularity-ledger.js'" "$sw"
+          grep -q "'/sana-v3-cycle-circularity-provenance.js'" "$sw"
+          grep -q "^const CACHE='sana-v3-demo-shell-v41';" "$sw"
+      - name: Assert no production or external authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          files='apps/control-web/public/sana-v3-circularity-ledger.js apps/control-web/public/sana-v3-cycle-circularity-provenance.js'
+          ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true' $files
+          ! grep -Eiq 'verifiedDisposition[[:space:]]*=[[:space:]]*true|certifiedRecovery[[:space:]]*=[[:space:]]*true|environmentalImpactVerified[[:space:]]*=[[:space:]]*true|regulatoryClassificationVerified[[:space:]]*=[[:space:]]*true|creditApproved|investmentApproved' $files
