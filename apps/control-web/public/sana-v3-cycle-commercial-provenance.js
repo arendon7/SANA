@@ -20,3 +20,17 @@
   function start(){state.attempts++;expose();if(window.__SANA_COMMERCIAL_LEDGER__?.referenceVersion===VERSION){state.status='READY';expose();return}if(!ready()){if(state.attempts<25){state.status='WAITING_DEPENDENCIES';expose();setTimeout(start,40);return}state.status='BLOCKED_DEPENDENCIES';expose();return}if(document.querySelector?.('script[data-sana-commercial-references-v147]'))return;state.status='LOADING';expose();const s=document.createElement('script');s.src=SRC;s.defer=true;s.dataset.sanaCommercialReferencesV147='1';s.onload=()=>{state.status=window.__SANA_COMMERCIAL_LEDGER__?.referenceVersion===VERSION?'READY':'FAILED_CONTRACT';expose()};s.onerror=()=>{state.status='FAILED';expose()};document.head.appendChild(s)}
   expose();if(document.readyState==='complete')queueMicrotask(start);else window.addEventListener('load',start,{once:true});
 })();
+
+// V148 loader: snapshot-only commercial reference history; no identity, contract, order, payment, credit or investment authority.
+(() => {
+  'use strict';
+  if(typeof window==='undefined'||typeof document==='undefined'||typeof document.createElement!=='function'||typeof window.addEventListener!=='function')return;
+  const VERSION='V148';
+  const ASSETS=['/sana-v3-report-snapshot-commercial-references.js','/sana-v3-cycle-commercial-references.js','/sana-v3-due-diligence-commercial-reference-gaps.js','/sana-v3-dataroom-commercial-references.js'];
+  const state={version:VERSION,status:'WAITING',index:0,attempts:0,integrity:'SNAPSHOT_ONLY · CONTENT_MINIMIZED · NON_WEIGHTED · NO_BUYER_IDENTITY/CONTRACT/ORDER/PAYMENT/GUARANTEED_REVENUE/CREDIT/INVESTMENT_AUTHORITY'};
+  function expose(){window.__SANA_COMMERCIAL_REFERENCE_HISTORY_LOADER__=Object.freeze({...state})}
+  function v147Ready(){return window.__SANA_COMMERCIAL_LEDGER__?.referenceVersion==='V147'&&window.__SANA_COMMERCIAL_REFERENCES_LOADER__?.status==='READY'}
+  function loadNext(){if(state.index>=ASSETS.length){state.status='READY';expose();return}const src=ASSETS[state.index];if(document.querySelector?.(`script[src="${src}"]`)){state.index++;expose();queueMicrotask(loadNext);return}state.status='LOADING';expose();const s=document.createElement('script');s.src=src;s.defer=true;s.dataset.sanaCommercialReferenceHistoryV148=String(state.index+1);s.onload=()=>{state.index++;expose();loadNext()};s.onerror=()=>{state.status='FAILED';expose()};document.head.appendChild(s)}
+  function start(){state.attempts++;expose();if(!v147Ready()){if(state.attempts<25){state.status='WAITING_V147';expose();setTimeout(start,40);return}state.status='BLOCKED_V147';expose();return}loadNext()}
+  expose();if(document.readyState==='complete')queueMicrotask(start);else window.addEventListener('load',start,{once:true});
+})();
