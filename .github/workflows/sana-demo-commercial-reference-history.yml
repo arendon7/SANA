@@ -23,7 +23,11 @@ jobs:
             apps/control-web/public/sana-v3-report-snapshot-commercial-references.js \
             apps/control-web/public/sana-v3-dataroom-commercial-references.js \
             apps/control-web/public/sana-v3-cycle-commercial-references.js \
-            apps/control-web/public/sana-v3-due-diligence-commercial-reference-gaps.js; do node --check "$f"; done
+            apps/control-web/public/sana-v3-due-diligence-commercial-reference-gaps.js \
+            apps/control-web/public/sana-v3-cycle-commercial-provenance.js \
+            apps/control-web/public/sana-v3-commercial-references.js \
+            apps/control-web/public/sana-v3-sw.js; do node --check "$f"; done
+          node scripts/validate-sana-commercial-references.mjs
           node scripts/validate-sana-commercial-reference-provenance.mjs
           grep -Fq 'CONTENT_MINIMIZED' apps/control-web/public/sana-v3-report-snapshot-commercial-references.js
           grep -Fq 'NO_NONCANONICAL_VALUES' apps/control-web/public/sana-v3-report-snapshot-commercial-references.js
@@ -32,4 +36,17 @@ jobs:
           grep -Fq 'NOT_CAPTURED_OR_LEGACY ≠ GAP' apps/control-web/public/sana-v3-due-diligence-commercial-reference-gaps.js
           grep -Fq 'DECLARED_NON_CANONICAL_REFERENCE ≠ GAP' apps/control-web/public/sana-v3-due-diligence-commercial-reference-gaps.js
           ! grep -Eq '__SANA_COMMERCIAL_LEDGER__|storage\?\.records|localStorage' apps/control-web/public/sana-v3-dataroom-commercial-references.js apps/control-web/public/sana-v3-cycle-commercial-references.js apps/control-web/public/sana-v3-due-diligence-commercial-reference-gaps.js
-          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|buyerIdentityVerified[[:space:]]*=[[:space:]]*true|verifiedContracts[[:space:]]*=[[:space:]]*[1-9]|verifiedInvoices[[:space:]]*=[[:space:]]*[1-9]|paymentsExecuted[[:space:]]*=[[:space:]]*[1-9]|bankSettlementsVerified[[:space:]]*=[[:space:]]*[1-9]|guaranteedRevenue[[:space:]]*=[[:space:]]*[1-9]|creditApproved|investmentApproved|orderExecuted' apps/control-web/public/sana-v3-*commercial-reference*.js
+          node - <<'NODE'
+          const fs=require('fs');
+          const loader=fs.readFileSync('apps/control-web/public/sana-v3-cycle-commercial-provenance.js','utf8');
+          const sw=fs.readFileSync('apps/control-web/public/sana-v3-sw.js','utf8');
+          const assets=['/sana-v3-report-snapshot-commercial-references.js','/sana-v3-cycle-commercial-references.js','/sana-v3-due-diligence-commercial-reference-gaps.js','/sana-v3-dataroom-commercial-references.js'];
+          if(!loader.includes("const VERSION='V148'"))throw new Error('V148 loader version missing');
+          if(!loader.includes('__SANA_COMMERCIAL_REFERENCE_HISTORY_LOADER__'))throw new Error('V148 loader state missing');
+          let last=-1;for(const a of assets){const i=loader.indexOf(a);if(i<0||i<=last)throw new Error(`V148 loader asset/order invalid: ${a}`);last=i;}
+          if((sw.match(/const CACHE='sana-v3-demo-shell-v148';/g)||[]).length!==1)throw new Error('v148 cache marker must remain exactly once');
+          if(!sw.includes("if(false){\nconst CACHE='sana-v3-demo-shell-v147';\n}"))throw new Error('v147 historical cache marker missing');
+          for(const a of assets)if((sw.split(a).length-1)!==1)throw new Error(`V148 SW asset count invalid: ${a}`);
+          if(!sw.includes('// v148 propagates Commercial Reference integrity'))throw new Error('v148 provenance marker missing');
+          NODE
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|buyerIdentityVerified[[:space:]]*=[[:space:]]*true|verifiedContracts[[:space:]]*=[[:space:]]*[1-9]|verifiedInvoices[[:space:]]*=[[:space:]]*[1-9]|paymentsExecuted[[:space:]]*=[[:space:]]*[1-9]|bankSettlementsVerified[[:space:]]*=[[:space:]]*[1-9]|guaranteedRevenue[[:space:]]*=[[:space:]]*[1-9]|creditApproved|investmentApproved|orderExecuted' apps/control-web/public/sana-v3-*commercial-reference*.js apps/control-web/public/sana-v3-cycle-commercial-provenance.js
