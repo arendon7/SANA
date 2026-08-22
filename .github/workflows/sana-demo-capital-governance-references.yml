@@ -1,0 +1,32 @@
+name: SANA Demo Capital Governance References
+
+on:
+  push:
+    branches: [demo/sana-capital-v149]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  capital-governance-references:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Capital Governance References V149
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-capital-governance-references.js
+          node scripts/validate-sana-capital-governance-references.mjs
+          grep -Fq 'LEGACY_REFERENCE_NOT_CAPTURED' apps/control-web/public/sana-v3-capital-governance-references.js
+          grep -Fq 'DECLARED_NON_CANONICAL_REFERENCE' apps/control-web/public/sana-v3-capital-governance-references.js
+          grep -Fq 'CAPITAL_SUPPORT_REF' apps/control-web/public/sana-v3-capital-governance-references.js
+          grep -Fq 'COUNTERPARTY_REF_DECLARED ≠ VERIFIED_IDENTITY' apps/control-web/public/sana-v3-capital-governance-references.js
+          grep -Fq 'TERM_SHEET_REF_DECLARED ≠ SIGNED_OR_VERIFIED_TERM_SHEET' apps/control-web/public/sana-v3-capital-governance-references.js
+          grep -Fq 'COMMITMENT_REF_DECLARED ≠ VERIFIED_COMMITMENT_OR_FUNDING' apps/control-web/public/sana-v3-capital-governance-references.js
+          grep -Fq 'DOCUMENT_COMPLETENESS ≠ ELIGIBILITY ≠ CREDIT_SCORE' apps/control-web/public/sana-v3-capital-governance-references.js
+          grep -Fq 'REFERENCE ≠ OFFER ≠ SOLICITATION ≠ BROKERAGE ≠ CUSTODY ≠ INVESTMENT_RECOMMENDATION' apps/control-web/public/sana-v3-capital-governance-references.js
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|verifiedTermSheets[[:space:]]*=[[:space:]]*[1-9]|verifiedCommitments[[:space:]]*=[[:space:]]*[1-9]|legalClosingsVerified[[:space:]]*=[[:space:]]*[1-9]|fundingExecuted[[:space:]]*=[[:space:]]*[1-9]|custodyAmount[[:space:]]*=[[:space:]]*[1-9]|creditScore[[:space:]]*=[[:space:]]*[1-9]|eligibilityDecision[[:space:]]*=[[:space:]]*true|investmentRecommendation[[:space:]]*=[[:space:]]*true|automaticInvestmentActions[[:space:]]*=[[:space:]]*[1-9]' apps/control-web/public/sana-v3-capital-governance-references.js
