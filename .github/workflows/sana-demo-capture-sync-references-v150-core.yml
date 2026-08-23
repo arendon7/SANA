@@ -1,0 +1,53 @@
+name: SANA Demo Capture Sync References V150 Core
+
+on:
+  push:
+    branches: [demo/sana-capture-sync-v150-core]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  capture-sync-references-core:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Capture Sync V150 reference core
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-capture-sync-ledger.js
+          node --check apps/control-web/public/sana-v3-data-trust.js
+          node --check apps/control-web/public/sana-v3-capture-sync-references.js
+          node scripts/validate-sana-capture-sync-ledger.mjs
+          node scripts/validate-sana-capture-sync-references-v150.mjs
+          f='apps/control-web/public/sana-v3-capture-sync-references.js'
+          grep -Fq 'LEGACY_REFERENCE_NOT_CAPTURED' "$f"
+          grep -Fq 'DECLARED_NON_CANONICAL_REFERENCE' "$f"
+          grep -Fq 'RECORD_REF' "$f"
+          grep -Fq 'ACK_COHERENCE_REF' "$f"
+          grep -Fq 'CONFLICT_CANDIDATE_REF' "$f"
+          grep -Fq 'ACK_REFERENCE_COHERENCE ≠ SERVER_VERIFICATION' "$f"
+          grep -Fq 'CANDIDATE_REFERENCE ≠ SOURCE_VERIFICATION' "$f"
+          grep -Fq 'CONFLICT_CANDIDATE ≠ TRUTH' "$f"
+          grep -Fq 'NO_CANONICAL_WRITE' "$f"
+      - name: Assert V150 core has no execution or verification authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='apps/control-web/public/sana-v3-capture-sync-references.js'
+          ! grep -Eiq 'canonicalMutated[[:space:]]*[:=][[:space:]]*true|productionExecutionAvailable[[:space:]]*[:=][[:space:]]*true|sourceVerified[[:space:]]*[:=][[:space:]]*true|hardwareVerified[[:space:]]*[:=][[:space:]]*true|calibratedMeasurement[[:space:]]*[:=][[:space:]]*true|automaticResolution[[:space:]]*[:=][[:space:]]*true|creditApproved|investmentApproved|managementDecision[[:space:]]*[:=]' "$f"
+          ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket' "$f"
+      - name: Assert core-only isolation before V149 promotion
+        shell: bash
+        run: |
+          set -euo pipefail
+          test ! -e apps/control-web/public/sana-v3-report-snapshot-capture-sync-references.js
+          test ! -e apps/control-web/public/sana-v3-cycle-capture-sync-references.js
+          test ! -e apps/control-web/public/sana-v3-due-diligence-capture-sync-reference-gaps.js
+          test ! -e apps/control-web/public/sana-v3-dataroom-capture-sync-references.js
+          ! grep -q "sana-v3-demo-shell-v150" apps/control-web/public/sana-v3-sw.js
