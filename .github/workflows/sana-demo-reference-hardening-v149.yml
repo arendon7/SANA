@@ -44,12 +44,13 @@ jobs:
           grep -Fq 'SOURCE CASE LOT DEFINES CYCLE MEMBERSHIP' apps/control-web/public/sana-v3-cycle-economic-references.js
           grep -Fq 'PROYECCIÓN CROSS-DOMAIN DERIVADA' apps/control-web/public/sana-v3-due-diligence-commercial-reference-gaps.js
           ! grep -Eq 'targetLot===plan\.lot|refId===plan\.id' apps/control-web/public/sana-v3-cycle-commercial-references.js apps/control-web/public/sana-v3-cycle-economic-references.js
-      - name: Assert v149 PWA assembly without asset churn
+      - name: Assert v149 PWA provenance is forward-compatible
         run: |
           set -euo pipefail
           node - <<'NODE'
           const fs=require('fs');
           const sw=fs.readFileSync('apps/control-web/public/sana-v3-sw.js','utf8');
+          const lines=sw.split(/\r?\n/);
           const assets=[
             '/sana-v3-commercial-references.js',
             '/sana-v3-report-snapshot-commercial-references.js',
@@ -58,10 +59,22 @@ jobs:
             '/sana-v3-cycle-economic-references.js',
             '/sana-v3-due-diligence-commercial-reference-gaps.js'
           ];
-          if((sw.match(/^const CACHE='sana-v3-demo-shell-v149';$/gm)||[]).length!==1)throw new Error('v149 must be the single active cache marker');
-          if((sw.match(/const CACHE='sana-v3-demo-shell-v148';/g)||[]).length!==1)throw new Error('v148 marker must remain exactly once');
-          if(!sw.includes("if(false){\nconst CACHE='sana-v3-demo-shell-v148';\n}\nconst CACHE='sana-v3-demo-shell-v149';"))throw new Error('v148 historical → v149 active transition malformed');
-          if(!sw.includes("if(false){\nconst CACHE='sana-v3-demo-shell-v147';\n}"))throw new Error('v147 historical marker missing');
+          const markers=[];
+          for(let i=0;i<lines.length;i++){
+            const m=lines[i].match(/^const CACHE='sana-v3-demo-shell-v(\d+)';$/);
+            if(m)markers.push({version:Number(m[1]),index:i,historical:i>0&&lines[i-1].trim()==='if(false){'});
+          }
+          const active=markers.filter(m=>!m.historical);
+          if(active.length!==1)throw new Error(`expected one active cache marker, got ${active.length}`);
+          if(active[0].version<149)throw new Error(`active shell v${active[0].version} predates certified v149`);
+          const v149=markers.filter(m=>m.version===149);
+          if(v149.length!==1)throw new Error(`v149 marker expected once, got ${v149.length}`);
+          const v148=markers.filter(m=>m.version===148);
+          if(v148.length!==1||!v148[0].historical)throw new Error('v148 historical marker missing/malformed');
+          const v147=markers.filter(m=>m.version===147);
+          if(v147.length!==1||!v147[0].historical)throw new Error('v147 historical marker missing/malformed');
+          if(active[0].version===149&&v149[0].historical)throw new Error('active v149 cannot be historical');
+          if(active[0].version>149&&!v149[0].historical)throw new Error('v149 must be historical once a later shell is active');
           for(const asset of assets){const count=sw.split(asset).length-1;if(count!==1)throw new Error(`${asset} expected once in SW, got ${count}`);}
           if(!sw.includes('// v149 hardens declared-vs-derived reference semantics, row-level historical deltas and source-case cycle scoping without authority expansion.'))throw new Error('v149 provenance comment missing');
           NODE
