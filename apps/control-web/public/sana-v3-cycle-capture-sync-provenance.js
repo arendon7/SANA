@@ -10,3 +10,25 @@
   const baseCycle=views.cycle;if(baseCycle)views.cycle=()=>insert(baseCycle(),panel());
   window.__SANA_CYCLE_CAPTURE_SYNC__=Object.freeze({forPlan,selected,integrity:INTEGRITY});
 })();
+
+// V150 loader: Capture Sync reference coherence only; no server/source verification or canonical authority.
+(() => {
+  'use strict';
+  if(typeof window==='undefined'||typeof document==='undefined'||typeof document.createElement!=='function')return;
+  const VERSION='V150',SRC='/sana-v3-capture-sync-references.js';
+  const state={version:VERSION,status:'WAITING',attempts:0,integrity:'REFERENCE_COHERENCE ≠ VERIFIED_SYNC/SOURCE · NO_CANONICAL_WRITE · NO_AGRONOMIC/CREDIT/INVESTMENT_AUTHORITY'};
+  function expose(){window.__SANA_CAPTURE_SYNC_REFERENCES_LOADER__=Object.freeze({...state})}
+  function ready(){return window.__SANA_CAPTURE_SYNC_LEDGER__?.schema==='SANA_CAPTURE_SYNC_LEDGER_V1'&&window.__SANA_CAPTURE_SYNC_LEDGER__?.cases&&window.__SANA_DATA_TRUST__?.rows}
+  function start(){
+    state.attempts++;expose();
+    if(window.__SANA_CAPTURE_SYNC_LEDGER__?.referenceVersion==='V150'){state.status='READY';expose();return}
+    if(!ready()){if(state.attempts<25){state.status='WAITING_DEPENDENCIES';expose();setTimeout(start,40);return}state.status='BLOCKED_DEPENDENCIES';expose();return}
+    if(document.querySelector?.('script[data-sana-capture-sync-references-v150]'))return;
+    state.status='LOADING';expose();
+    const s=document.createElement('script');s.src=SRC;s.defer=true;s.dataset.sanaCaptureSyncReferencesV150='1';
+    s.onload=()=>{state.status=window.__SANA_CAPTURE_SYNC_LEDGER__?.referenceVersion==='V150'?'READY':'FAILED_CONTRACT';expose()};
+    s.onerror=()=>{state.status='FAILED';expose()};
+    document.head.appendChild(s);
+  }
+  expose();if(document.readyState==='complete')queueMicrotask(start);else window.addEventListener('load',start,{once:true});
+})();
