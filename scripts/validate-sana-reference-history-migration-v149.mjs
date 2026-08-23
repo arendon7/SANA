@@ -36,6 +36,7 @@ assert.equal(migration.valid,true);
 assert.equal(migration.state,'CAPTURED_BOTH');
 assert.equal(migration.semanticChanges,1);
 assert.equal(migration.rowChanges,0);
+assert.equal(migration.derivedProjectionChanges,0);
 assert.ok(migration.changes.some(c=>c.changeKind==='SEMANTIC_GRANULARITY_CHANGED'&&c.field==='referenceSemanticsVersion'));
 assert.equal(migration.comparisonFields.includes('origin'),false);
 assert.equal(migration.comparisonFields.includes('temporalPolicy'),false);
@@ -47,24 +48,30 @@ changedRow.refId='HR-H2';changedRow.targetId='HR-H2';
 const migrationWithTargetChange=api.diff(legacy,changedModern);
 assert.equal(migrationWithTargetChange.semanticChanges,1);
 assert.equal(migrationWithTargetChange.rowChanges,2);
+assert.equal(migrationWithTargetChange.derivedProjectionChanges,0);
 assert.ok(migrationWithTargetChange.changes.some(c=>c.changeKind==='REFERENCE_ROW_REMOVED'));
 assert.ok(migrationWithTargetChange.changes.some(c=>c.changeKind==='REFERENCE_ROW_ADDED'));
 
-// Once both snapshots are V149, origin and temporal policy are part of structural identity.
+// Once both snapshots are V149, origin and temporal policy are structural and derived deltas are labeled separately.
 const modernOriginChanged=snap('S-V149-ORIGIN','2026-08-23',modernData);
 modernOriginChanged.manifest.commercialReferences.cases[0].rows[0].origin='DERIVED_CROSS_DOMAIN_PROJECTION';
 modernOriginChanged.manifest.commercialReferences.cases[0].rows[0].temporalPolicy='NOT_APPLICABLE_NO_DECLARATION_TIMESTAMP';
 const v149Structural=api.diff(modern,modernOriginChanged);
 assert.equal(v149Structural.semanticChanges,0);
 assert.equal(v149Structural.rowChanges,2);
+assert.equal(v149Structural.derivedProjectionChanges,1);
 assert.equal(v149Structural.comparisonFields.includes('origin'),true);
 assert.equal(v149Structural.comparisonFields.includes('temporalPolicy'),true);
+assert.ok(v149Structural.changes.some(c=>c.changeKind==='REFERENCE_ROW_REMOVED'));
+assert.ok(v149Structural.changes.some(c=>c.changeKind==='DERIVED_PROJECTION_ROW_ADDED'));
 
 const identical=api.diff(modern,snap('S-V149-IDENTICAL','2026-08-24',modernData));
 assert.equal(identical.total,0);
 assert.equal(identical.rowChanges,0);
 assert.equal(identical.semanticChanges,0);
+assert.equal(identical.derivedProjectionChanges,0);
 
+assert.match(src,/DECLARED_REFERENCE_DELTA ≠ DERIVED_PROJECTION_DELTA/);
 assert.match(src,/SEMANTIC_GRANULARITY_CHANGE ≠ REFERENCE_CHANGE/);
 assert.doesNotMatch(src,/__SANA_COMMERCIAL_LEDGER__|localStorage|storage\?\.records/);
 console.log('SANA Commercial Reference History Migration V149: OK');
