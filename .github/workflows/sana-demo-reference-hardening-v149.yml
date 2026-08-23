@@ -1,0 +1,49 @@
+name: SANA Demo Reference Hardening V149
+
+on:
+  push:
+    branches: [demo/sana-reference-hardening-v149]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  reference-hardening:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Reference Scope and Historical Delta V149
+        run: |
+          set -euo pipefail
+          for f in \
+            apps/control-web/public/sana-v3-commercial-references.js \
+            apps/control-web/public/sana-v3-report-snapshot-commercial-references.js \
+            apps/control-web/public/sana-v3-dataroom-commercial-references.js \
+            apps/control-web/public/sana-v3-cycle-commercial-references.js \
+            apps/control-web/public/sana-v3-cycle-economic-references.js \
+            apps/control-web/public/sana-v3-due-diligence-commercial-reference-gaps.js; do node --check "$f"; done
+          node scripts/validate-sana-commercial-references.mjs
+          node scripts/validate-sana-commercial-reference-provenance.mjs
+          node scripts/validate-sana-reference-hardening-v149.mjs
+      - name: Assert hardened semantic boundaries
+        run: |
+          set -euo pipefail
+          grep -Fq "referenceSemanticsVersion:SEMANTICS_VERSION" apps/control-web/public/sana-v3-commercial-references.js
+          grep -Fq 'DECLARED_COMMERCIAL_REFERENCE ≠ DERIVED_CROSS_DOMAIN_PROJECTION' apps/control-web/public/sana-v3-commercial-references.js
+          grep -Fq 'MISSING_EXPECTED_KIND' apps/control-web/public/sana-v3-commercial-references.js
+          grep -Fq 'ADDITIVE_V149 · COMMERCIAL_REFERENCE_PROVENANCE_HARDENED' apps/control-web/public/sana-v3-report-snapshot-commercial-references.js
+          grep -Fq 'ROW_LEVEL_STRUCTURAL_DIFF' apps/control-web/public/sana-v3-dataroom-commercial-references.js
+          grep -Fq 'SOURCE CASE LOT DEFINES CYCLE MEMBERSHIP' apps/control-web/public/sana-v3-cycle-commercial-references.js
+          grep -Fq 'SOURCE CASE LOT DEFINES CYCLE MEMBERSHIP' apps/control-web/public/sana-v3-cycle-economic-references.js
+          grep -Fq 'PROYECCIÓN CROSS-DOMAIN DERIVADA' apps/control-web/public/sana-v3-due-diligence-commercial-reference-gaps.js
+          ! grep -Eq 'targetLot===plan\.lot|refId===plan\.id' apps/control-web/public/sana-v3-cycle-commercial-references.js apps/control-web/public/sana-v3-cycle-economic-references.js
+      - name: Assert snapshot-only and no authority expansion
+        run: |
+          set -euo pipefail
+          ! grep -Eq '__SANA_COMMERCIAL_LEDGER__|storage\?\.records|localStorage' apps/control-web/public/sana-v3-dataroom-commercial-references.js apps/control-web/public/sana-v3-cycle-commercial-references.js apps/control-web/public/sana-v3-due-diligence-commercial-reference-gaps.js
+          ! grep -Eq '__SANA_ECONOMIC_RECONCILIATION__|storage\?\.records|localStorage' apps/control-web/public/sana-v3-cycle-economic-references.js
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|buyerIdentityVerified[[:space:]]*=[[:space:]]*true|verifiedContracts[[:space:]]*=[[:space:]]*[1-9]|verifiedInvoices[[:space:]]*=[[:space:]]*[1-9]|paymentsExecuted[[:space:]]*=[[:space:]]*[1-9]|bankSettlementsVerified[[:space:]]*=[[:space:]]*[1-9]|guaranteedRevenue[[:space:]]*=[[:space:]]*[1-9]|creditApproved|investmentApproved|orderExecuted|accountingVerified[[:space:]]*=[[:space:]]*true' apps/control-web/public/sana-v3-commercial-references.js apps/control-web/public/sana-v3-report-snapshot-commercial-references.js apps/control-web/public/sana-v3-dataroom-commercial-references.js apps/control-web/public/sana-v3-cycle-commercial-references.js apps/control-web/public/sana-v3-cycle-economic-references.js apps/control-web/public/sana-v3-due-diligence-commercial-reference-gaps.js
