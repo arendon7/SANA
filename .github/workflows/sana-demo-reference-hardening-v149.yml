@@ -25,7 +25,8 @@ jobs:
             apps/control-web/public/sana-v3-dataroom-commercial-references.js \
             apps/control-web/public/sana-v3-cycle-commercial-references.js \
             apps/control-web/public/sana-v3-cycle-economic-references.js \
-            apps/control-web/public/sana-v3-due-diligence-commercial-reference-gaps.js; do node --check "$f"; done
+            apps/control-web/public/sana-v3-due-diligence-commercial-reference-gaps.js \
+            apps/control-web/public/sana-v3-sw.js; do node --check "$f"; done
           node scripts/validate-sana-commercial-references.mjs
           node scripts/validate-sana-commercial-reference-provenance.mjs
           node scripts/validate-sana-reference-hardening-v149.mjs
@@ -41,6 +42,27 @@ jobs:
           grep -Fq 'SOURCE CASE LOT DEFINES CYCLE MEMBERSHIP' apps/control-web/public/sana-v3-cycle-economic-references.js
           grep -Fq 'PROYECCIÓN CROSS-DOMAIN DERIVADA' apps/control-web/public/sana-v3-due-diligence-commercial-reference-gaps.js
           ! grep -Eq 'targetLot===plan\.lot|refId===plan\.id' apps/control-web/public/sana-v3-cycle-commercial-references.js apps/control-web/public/sana-v3-cycle-economic-references.js
+      - name: Assert v149 PWA assembly without asset churn
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs=require('fs');
+          const sw=fs.readFileSync('apps/control-web/public/sana-v3-sw.js','utf8');
+          const assets=[
+            '/sana-v3-commercial-references.js',
+            '/sana-v3-report-snapshot-commercial-references.js',
+            '/sana-v3-dataroom-commercial-references.js',
+            '/sana-v3-cycle-commercial-references.js',
+            '/sana-v3-cycle-economic-references.js',
+            '/sana-v3-due-diligence-commercial-reference-gaps.js'
+          ];
+          if((sw.match(/^const CACHE='sana-v3-demo-shell-v149';$/gm)||[]).length!==1)throw new Error('v149 must be the single active cache marker');
+          if((sw.match(/const CACHE='sana-v3-demo-shell-v148';/g)||[]).length!==1)throw new Error('v148 marker must remain exactly once');
+          if(!sw.includes("if(false){\nconst CACHE='sana-v3-demo-shell-v148';\n}\nconst CACHE='sana-v3-demo-shell-v149';"))throw new Error('v148 historical → v149 active transition malformed');
+          if(!sw.includes("if(false){\nconst CACHE='sana-v3-demo-shell-v147';\n}"))throw new Error('v147 historical marker missing');
+          for(const asset of assets){const count=sw.split(asset).length-1;if(count!==1)throw new Error(`${asset} expected once in SW, got ${count}`);}
+          if(!sw.includes('// v149 hardens declared-vs-derived reference semantics, row-level historical deltas and source-case cycle scoping without authority expansion.'))throw new Error('v149 provenance comment missing');
+          NODE
       - name: Assert snapshot-only and no authority expansion
         run: |
           set -euo pipefail
