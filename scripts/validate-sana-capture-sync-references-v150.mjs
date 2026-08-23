@@ -69,7 +69,9 @@ assert.equal(api.referenceVersion,'V150');
 
 const good=api.forCase('SYNC-GOOD');
 assert.equal(good.referenceState,'CAPTURED_V150');
-assert.deepEqual(good.referenceCoverage,{linked:2,total:2,percent:100});
+assert.equal(good.referenceCoverage.linked,2);
+assert.equal(good.referenceCoverage.total,2);
+assert.equal(good.referenceCoverage.percent,100);
 assert.equal(good.referenceIssues,0);
 assert.equal(good.declaredReferenceRows.length,1);
 assert.equal(good.declaredReferenceRows[0].status,'DECLARED_NON_CANONICAL_REFERENCE');
@@ -77,7 +79,9 @@ assert.ok(good.referenceRows.some(r=>r.kind==='RECORD_REF'&&r.reference.status==
 assert.ok(good.referenceRows.some(r=>r.kind==='ACK_COHERENCE_REF'&&r.reference.status==='LINKED'));
 
 const conflict=api.forCase('SYNC-CONFLICT');
-assert.deepEqual(conflict.referenceCoverage,{linked:3,total:3,percent:100});
+assert.equal(conflict.referenceCoverage.linked,3);
+assert.equal(conflict.referenceCoverage.total,3);
+assert.equal(conflict.referenceCoverage.percent,100);
 assert.equal(conflict.referenceIssues,0);
 assert.equal(conflict.referenceRows.filter(r=>r.kind==='CONFLICT_CANDIDATE_REF'&&r.reference.status==='LINKED').length,2);
 
