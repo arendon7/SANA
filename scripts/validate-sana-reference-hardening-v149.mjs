@@ -40,36 +40,25 @@ const commercialCases=[
     {id:'E-CROSS',kind:'EVIDENCE',observedAt:'2026-08-06T13:00:00Z',supports:['A1']}
   ],crossDomainRefs:[
     {id:'XH-CROSS',kind:'HARVEST_HANDOFF_REFERENCE',sourceDomain:'HARVEST',sourceRef:'HR-H1'},
-    {id:'XE-MISMATCH',kind:'ECONOMIC_EVENT_REFERENCE',sourceDomain:'ECONOMICS',sourceRef:'EC-S1',sourceKind:'INVOICE_REFERENCE'}
+    {id:'XE-CROSS',kind:'ECONOMIC_EVENT_REFERENCE',sourceDomain:'ECONOMICS',sourceRef:'EC-S1',sourceKind:'SALE_DECLARATION'},
+    {id:'XE-MISMATCH',kind:'ECONOMIC_EVENT_REFERENCE',sourceDomain:'ECONOMICS',sourceRef:'EC-S2',sourceKind:'INVOICE_REFERENCE'}
   ],integrity:'BASE'},
   {id:'COM-LEGACY',lot:'L3',events:[{id:'L1',kind:'OFFER_REGISTERED'}],crossDomainRefs:[],integrity:'BASE'}
 ];
 
-const base={
-  schema:'SANA_COMMERCIAL_OFFTAKE_LEDGER_V1',
-  cases:()=>structuredClone(commercialCases),
-  forLot:lot=>structuredClone(commercialCases.filter(c=>c.lot===lot)),
-  summary:()=>({schema:'SANA_COMMERCIAL_OFFTAKE_LEDGER_V1',cases:commercialCases.length,integrity:'BASE'}),
-  integrity:'BASE'
-};
+const base={schema:'SANA_COMMERCIAL_OFFTAKE_LEDGER_V1',cases:()=>structuredClone(commercialCases),forLot:lot=>structuredClone(commercialCases.filter(c=>c.lot===lot)),summary:()=>({schema:'SANA_COMMERCIAL_OFFTAKE_LEDGER_V1',cases:commercialCases.length,integrity:'BASE'}),integrity:'BASE'};
 const meta=['COM-GOOD','COM-FORWARD','COM-CROSS'].map((id,i)=>({id:`META-${i}`,type:'commercial-reference-meta',createdAt:`2026-08-10T0${i}:00:00Z`,values:{sourceSchema:base.schema,caseId:id,referenceVersion:'V147'}}));
-const harvestCases=[
-  {id:'HR-L1',lot:'L1',events:[
-    {id:'HR-H1',kind:'HANDOFF',lot:'L1',observedAt:'2026-08-02T09:00:00Z'},
-    {id:'HR-S1',kind:'SALE_DECLARATION',lot:'L1',observedAt:'2026-08-02T12:00:00Z'},
-    {id:'HR-FUT',kind:'HANDOFF',lot:'L1',observedAt:'2026-08-05T10:00:00Z'}
-  ]}
+const harvestCases=[{id:'HR-L1',lot:'L1',events:[
+  {id:'HR-H1',kind:'HANDOFF',lot:'L1',observedAt:'2026-08-02T09:00:00Z'},
+  {id:'HR-S1',kind:'SALE_DECLARATION',lot:'L1',observedAt:'2026-08-02T12:00:00Z'},
+  {id:'HR-FUT',kind:'HANDOFF',lot:'L1',observedAt:'2026-08-05T10:00:00Z'}
+]}];
+const economicCases=[
+  {id:'EC-L1',lot:'L1',events:[{id:'EC-S1',kind:'SALE_DECLARATION',lot:'L1',observedAt:'2026-08-02T14:00:00Z'}]},
+  {id:'EC-L2',lot:'L2',events:[{id:'EC-S2',kind:'SALE_DECLARATION',lot:'L2',observedAt:'2026-08-06T14:00:00Z'}]}
 ];
-const economicCases=[{id:'EC-L1',lot:'L1',events:[{id:'EC-S1',kind:'SALE_DECLARATION',lot:'L1',observedAt:'2026-08-02T14:00:00Z'}]}];
 
-const liveContext={
-  window:{
-    __SANA_COMMERCIAL_LEDGER__:base,
-    __SANA_HARVEST_LEDGER__:{cases:()=>structuredClone(harvestCases)},
-    __SANA_ECONOMIC_RECONCILIATION__:{cases:()=>structuredClone(economicCases)}
-  },
-  storage:{records:meta},views:{results:()=>''},document:{addEventListener:()=>{}},identity:{displayName:'QA'},esc:v=>String(v??''),metric:()=>'',openModal:()=>{},structuredClone,console,Date,Set,Map,Object,Array,Number,String,Math
-};
+const liveContext={window:{__SANA_COMMERCIAL_LEDGER__:base,__SANA_HARVEST_LEDGER__:{cases:()=>structuredClone(harvestCases)},__SANA_ECONOMIC_RECONCILIATION__:{cases:()=>structuredClone(economicCases)}},storage:{records:meta},views:{results:()=>''},document:{addEventListener:()=>{}},identity:{displayName:'QA'},esc:v=>String(v??''),metric:()=>'',openModal:()=>{},structuredClone,console,Date,Set,Map,Object,Array,Number,String,Math};
 vm.createContext(liveContext);vm.runInContext(liveSrc,liveContext);
 const api=liveContext.window.__SANA_COMMERCIAL_LEDGER__;
 assert.equal(api.referenceVersion,'V147');
@@ -93,17 +82,13 @@ const cross=api.forCase('COM-CROSS');
 assert.ok(cross.referenceRows.some(r=>r.sourceEventId==='D-CROSS'&&r.reference.status==='CROSS_SCOPE_REFERENCE'));
 assert.ok(cross.referenceRows.some(r=>r.sourceEventId==='E-CROSS'&&r.reference.status==='CROSS_CASE_REFERENCE'));
 assert.ok(cross.referenceRows.some(r=>r.sourceEventId==='XH-CROSS'&&r.reference.status==='CROSS_SCOPE_REFERENCE'&&r.origin==='DERIVED_CROSS_DOMAIN_PROJECTION'));
+assert.ok(cross.referenceRows.some(r=>r.sourceEventId==='XE-CROSS'&&r.reference.status==='CROSS_SCOPE_REFERENCE'));
 assert.ok(cross.referenceRows.some(r=>r.sourceEventId==='XE-MISMATCH'&&r.reference.status==='KIND_MISMATCH'));
 assert.equal(api.forCase('COM-LEGACY').referenceState,'LEGACY_REFERENCE_NOT_CAPTURED');
 assert.match(api.integrity,/DECLARED_COMMERCIAL_REFERENCE ≠ DERIVED_CROSS_DOMAIN_PROJECTION/);
 assert.match(api.integrity,/DERIVED_REFERENCE_HAS_NO_DECLARATION_TIMESTAMP/);
 
-// Capture a V149-hardened snapshot and prove non-canonical values stay out.
-const snapshotContext={
-  console,Date,JSON,Object,Array,Number,String,Math,Map,Set,queueMicrotask:f=>f(),
-  window:{__SANA_REPORT_SNAPSHOT_COMMERCIAL__:{enrichCommercial:m=>{m.commercial={rows:[]}}},__SANA_COMMERCIAL_LEDGER__:api},
-  document:{addEventListener:()=>{},getElementById:()=>null},modalAction:null
-};
+const snapshotContext={console,Date,JSON,Object,Array,Number,String,Math,Map,Set,queueMicrotask:f=>f(),window:{__SANA_REPORT_SNAPSHOT_COMMERCIAL__:{enrichCommercial:m=>{m.commercial={rows:[]}}},__SANA_COMMERCIAL_LEDGER__:api},document:{addEventListener:()=>{},getElementById:()=>null},modalAction:null};
 vm.createContext(snapshotContext);vm.runInContext(snapshotSrc,snapshotContext);
 const manifest1={schema:'SANA_DUE_DILIGENCE_SNAPSHOT_V1',farm:{id:'F1'}};
 snapshotContext.window.__SANA_REPORT_SNAPSHOT_COMMERCIAL_REFERENCES__.enrichCommercialReferences(manifest1);
@@ -116,11 +101,9 @@ assert.equal(captured1.contentLeakCount,0);
 const serialized=JSON.stringify(captured1);
 for(const forbidden of ['BUYER-SECRET','AGR-SECRET','EVIDENCE-SECRET','INV-SECRET','DECLARED_PAID','REC-SECRET','COMMERCIAL-SECRET','"buyerRef"','"agreementRef"','"invoiceRef"','"paymentState"','"receiptRef"','"evidenceRef"','"commercialRef"'])assert.equal(serialized.includes(forbidden),false,`forbidden payload leaked: ${forbidden}`);
 
-// Mutating live state after capture must not mutate the historical snapshot.
 snapshotContext.window.__SANA_COMMERCIAL_LEDGER__={...api,cases:()=>[]};
 assert.deepEqual(plain(manifest1.commercialReferences),captured1);
 
-// Data Room must detect row-level target swaps even when aggregate counters remain unchanged.
 const manifest2=structuredClone(manifest1);
 const rowToSwap=manifest2.commercialReferences.cases.find(c=>c.caseId==='COM-GOOD').rows.find(r=>r.kind==='HARVEST_DELIVERY_REF');
 rowToSwap.refId='HR-H2';rowToSwap.targetId='HR-H2';
@@ -133,7 +116,6 @@ assert.equal(dataDiff.valid,true);assert.equal(dataDiff.state,'CAPTURED_BOTH');a
 assert.ok(dataDiff.changes.some(c=>c.changeKind==='REFERENCE_ROW_REMOVED'));
 assert.ok(dataDiff.changes.some(c=>c.changeKind==='REFERENCE_ROW_ADDED'));
 
-// Cycle membership must come only from source case lot, never targetLot.
 const scopeManifest={schema:'SANA_DUE_DILIGENCE_SNAPSHOT_V1',commercialReferences:{cases:[
   {caseId:'C-L1',lot:'L1',linked:0,total:1,issues:1,declaredCanonicalLinked:0,declaredCanonicalTotal:1,derivedCrossDomainLinked:0,derivedCrossDomainTotal:0,declaredNonCanonicalCount:0,rows:[{targetLot:'L2'}]},
   {caseId:'C-L2',lot:'L2',linked:0,total:1,issues:1,declaredCanonicalLinked:0,declaredCanonicalTotal:1,derivedCrossDomainLinked:0,derivedCrossDomainTotal:0,declaredNonCanonicalCount:0,rows:[{targetLot:'L1'}]}
@@ -147,13 +129,12 @@ const cc={...cycleCommon,window:{__SANA_DUE_DILIGENCE_SNAPSHOT__:{snapshots:()=>
 vm.createContext(cc);vm.runInContext(cycleCommercialSrc,cc);
 const cp1=cc.window.__SANA_CYCLE_COMMERCIAL_REFERENCES__.forPlan('P1');
 assert.deepEqual(plain(cp1.cases.map(c=>c.caseId)),['C-L1']);assert.equal(cp1.summary.foreignTargets,1);
-const cp2=cc.window.__SANA_CYCLE_COMMERCIAL_REFERENCES__.forPlan('P2');assert.deepEqual(plain(cp2.cases.map(c=>c.caseId)),['C-L2']);
+assert.deepEqual(plain(cc.window.__SANA_CYCLE_COMMERCIAL_REFERENCES__.forPlan('P2').cases.map(c=>c.caseId)),['C-L2']);
 const ec={...cycleCommon,window:{__SANA_DUE_DILIGENCE_SNAPSHOT__:{snapshots:()=>[scopeSnapshot]},__SANA_CYCLE_CLOSURE__:{selectedPlan:()=>({id:'P1',lot:'L1'})}}};
 vm.createContext(ec);vm.runInContext(cycleEconomicSrc,ec);
 assert.deepEqual(plain(ec.window.__SANA_CYCLE_ECONOMIC_REFERENCES__.forPlan('P1').cases.map(c=>c.caseId)),['E-L1']);
 assert.deepEqual(plain(ec.window.__SANA_CYCLE_ECONOMIC_REFERENCES__.forPlan('P2').cases.map(c=>c.caseId)),['E-L2']);
 
-// DD must distinguish declared vs derived issues, while legacy remains outside gaps.
 const ddManifest=structuredClone(manifest1);
 const fwdCase=ddManifest.commercialReferences.cases.find(c=>c.caseId==='COM-FORWARD');
 assert.ok(fwdCase.rows.some(r=>r.origin==='DECLARED_COMMERCIAL_EVENT'&&r.status==='FORWARD_REFERENCE'));
@@ -165,7 +146,6 @@ assert.ok(gaps.some(g=>/FORWARD_REFERENCE/.test(g.condition)&&/REFERENCIA DECLAR
 assert.ok(gaps.some(g=>/MISSING_EXPECTED_KIND/.test(g.condition)&&/PROYECCIÓN CROSS-DOMAIN DERIVADA/.test(g.detail)));
 assert.equal(gaps.some(g=>g.id.includes('COM-LEGACY')),false);
 
-// Static hardening contracts.
 assert.doesNotMatch(cycleCommercialSrc,/targetLot===plan\.lot|\.some\([^\n]*targetLot/);
 assert.doesNotMatch(cycleEconomicSrc,/targetLot===plan\.lot|refId===plan\.id|\.some\([^\n]*targetLot/);
 assert.match(cycleCommercialSrc,/SOURCE CASE LOT DEFINES CYCLE MEMBERSHIP/);
