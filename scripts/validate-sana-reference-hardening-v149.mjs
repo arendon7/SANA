@@ -9,6 +9,7 @@ const dataroomSrc=fs.readFileSync(root+'sana-v3-dataroom-commercial-references.j
 const cycleCommercialSrc=fs.readFileSync(root+'sana-v3-cycle-commercial-references.js','utf8');
 const cycleEconomicSrc=fs.readFileSync(root+'sana-v3-cycle-economic-references.js','utf8');
 const ddSrc=fs.readFileSync(root+'sana-v3-due-diligence-commercial-reference-gaps.js','utf8');
+const plain=v=>JSON.parse(JSON.stringify(v));
 
 for(const [name,src] of [['live',liveSrc],['snapshot',snapshotSrc],['dataroom',dataroomSrc],['cycle-commercial',cycleCommercialSrc],['cycle-economic',cycleEconomicSrc],['dd',ddSrc]])new vm.Script(src,{filename:name});
 
@@ -77,8 +78,8 @@ assert.equal(api.referenceSemanticsVersion,'V149');
 const good=api.forCase('COM-GOOD');
 assert.equal(good.referenceCoverage.total,6);
 assert.equal(good.referenceCoverage.linked,6);
-assert.deepEqual(good.declaredReferenceCoverage,{linked:3,total:3,percent:100,issues:0});
-assert.deepEqual(good.derivedCrossDomainCoverage,{linked:3,total:3,percent:100,issues:0});
+assert.deepEqual(plain(good.declaredReferenceCoverage),{linked:3,total:3,percent:100,issues:0});
+assert.deepEqual(plain(good.derivedCrossDomainCoverage),{linked:3,total:3,percent:100,issues:0});
 assert.ok(good.referenceRows.filter(r=>r.origin==='DECLARED_COMMERCIAL_EVENT').every(r=>r.temporalPolicy==='ENFORCED_WHEN_COMPARABLE'));
 assert.ok(good.referenceRows.filter(r=>r.origin==='DERIVED_CROSS_DOMAIN_PROJECTION').every(r=>r.temporalPolicy==='NOT_APPLICABLE_NO_DECLARATION_TIMESTAMP'));
 
@@ -106,7 +107,7 @@ const snapshotContext={
 vm.createContext(snapshotContext);vm.runInContext(snapshotSrc,snapshotContext);
 const manifest1={schema:'SANA_DUE_DILIGENCE_SNAPSHOT_V1',farm:{id:'F1'}};
 snapshotContext.window.__SANA_REPORT_SNAPSHOT_COMMERCIAL_REFERENCES__.enrichCommercialReferences(manifest1);
-const captured1=structuredClone(manifest1.commercialReferences);
+const captured1=plain(manifest1.commercialReferences);
 assert.equal(captured1.referenceSemanticsVersion,'V149');
 assert.equal(captured1.granularity,'ADDITIVE_V149 · COMMERCIAL_REFERENCE_PROVENANCE_HARDENED');
 assert.ok(captured1.cases.flatMap(c=>c.rows).some(r=>r.origin==='DECLARED_COMMERCIAL_EVENT'));
@@ -117,7 +118,7 @@ for(const forbidden of ['BUYER-SECRET','AGR-SECRET','EVIDENCE-SECRET','INV-SECRE
 
 // Mutating live state after capture must not mutate the historical snapshot.
 snapshotContext.window.__SANA_COMMERCIAL_LEDGER__={...api,cases:()=>[]};
-assert.deepEqual(manifest1.commercialReferences,captured1);
+assert.deepEqual(plain(manifest1.commercialReferences),captured1);
 
 // Data Room must detect row-level target swaps even when aggregate counters remain unchanged.
 const manifest2=structuredClone(manifest1);
@@ -145,12 +146,12 @@ const cycleCommon={DEMO:{plans:[{id:'P1',lot:'L1'},{id:'P2',lot:'L2'}]},views:{c
 const cc={...cycleCommon,window:{__SANA_DUE_DILIGENCE_SNAPSHOT__:{snapshots:()=>[scopeSnapshot]},__SANA_CYCLE_CLOSURE__:{selectedPlan:()=>({id:'P1',lot:'L1'})}}};
 vm.createContext(cc);vm.runInContext(cycleCommercialSrc,cc);
 const cp1=cc.window.__SANA_CYCLE_COMMERCIAL_REFERENCES__.forPlan('P1');
-assert.deepEqual(cp1.cases.map(c=>c.caseId),['C-L1']);assert.equal(cp1.summary.foreignTargets,1);
-const cp2=cc.window.__SANA_CYCLE_COMMERCIAL_REFERENCES__.forPlan('P2');assert.deepEqual(cp2.cases.map(c=>c.caseId),['C-L2']);
+assert.deepEqual(plain(cp1.cases.map(c=>c.caseId)),['C-L1']);assert.equal(cp1.summary.foreignTargets,1);
+const cp2=cc.window.__SANA_CYCLE_COMMERCIAL_REFERENCES__.forPlan('P2');assert.deepEqual(plain(cp2.cases.map(c=>c.caseId)),['C-L2']);
 const ec={...cycleCommon,window:{__SANA_DUE_DILIGENCE_SNAPSHOT__:{snapshots:()=>[scopeSnapshot]},__SANA_CYCLE_CLOSURE__:{selectedPlan:()=>({id:'P1',lot:'L1'})}}};
 vm.createContext(ec);vm.runInContext(cycleEconomicSrc,ec);
-assert.deepEqual(ec.window.__SANA_CYCLE_ECONOMIC_REFERENCES__.forPlan('P1').cases.map(c=>c.caseId),['E-L1']);
-assert.deepEqual(ec.window.__SANA_CYCLE_ECONOMIC_REFERENCES__.forPlan('P2').cases.map(c=>c.caseId),['E-L2']);
+assert.deepEqual(plain(ec.window.__SANA_CYCLE_ECONOMIC_REFERENCES__.forPlan('P1').cases.map(c=>c.caseId)),['E-L1']);
+assert.deepEqual(plain(ec.window.__SANA_CYCLE_ECONOMIC_REFERENCES__.forPlan('P2').cases.map(c=>c.caseId)),['E-L2']);
 
 // DD must distinguish declared vs derived issues, while legacy remains outside gaps.
 const ddManifest=structuredClone(manifest1);
