@@ -1,0 +1,74 @@
+name: SANA Demo Capture Sync References V150
+
+on:
+  push:
+    branches: [demo/sana-capture-sync-v150]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  capture-sync-references:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Capture Sync references V150
+        shell: bash
+        run: |
+          set -euo pipefail
+          for f in \
+            apps/control-web/public/sana-v3-capture-sync-ledger.js \
+            apps/control-web/public/sana-v3-data-trust.js \
+            apps/control-web/public/sana-v3-capture-sync-references.js \
+            apps/control-web/public/sana-v3-cycle-capture-sync-provenance.js \
+            apps/control-web/public/sana-v3-sw.js; do node --check "$f"; done
+          node scripts/validate-sana-capture-sync-ledger.mjs
+          node scripts/validate-sana-capture-sync-references-v150.mjs
+          node scripts/validate-sana-reference-hardening-v149.mjs
+          node scripts/validate-sana-reference-history-migration-v149.mjs
+      - name: Assert V150 reference semantics
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='apps/control-web/public/sana-v3-capture-sync-references.js'
+          grep -Fq 'LEGACY_REFERENCE_NOT_CAPTURED' "$f"
+          grep -Fq 'DECLARED_NON_CANONICAL_REFERENCE' "$f"
+          grep -Fq 'RECORD_REF' "$f"
+          grep -Fq 'ACK_COHERENCE_REF' "$f"
+          grep -Fq 'CONFLICT_CANDIDATE_REF' "$f"
+          grep -Fq 'ACK_REFERENCE_COHERENCE ≠ SERVER_VERIFICATION' "$f"
+          grep -Fq 'CANDIDATE_REFERENCE ≠ SOURCE_VERIFICATION' "$f"
+          grep -Fq 'CONFLICT_CANDIDATE ≠ TRUTH' "$f"
+          grep -Fq 'NO_CANONICAL_WRITE' "$f"
+      - name: Assert V150 loader and PWA assembly
+        shell: bash
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs=require('fs');
+          const loader=fs.readFileSync('apps/control-web/public/sana-v3-cycle-capture-sync-provenance.js','utf8');
+          const sw=fs.readFileSync('apps/control-web/public/sana-v3-sw.js','utf8');
+          if(!loader.includes("const VERSION='V150',SRC='/sana-v3-capture-sync-references.js'"))throw new Error('V150 loader contract missing');
+          if(!loader.includes('__SANA_CAPTURE_SYNC_REFERENCES_LOADER__'))throw new Error('V150 loader state missing');
+          if(!loader.includes("__SANA_CAPTURE_SYNC_LEDGER__?.schema==='SANA_CAPTURE_SYNC_LEDGER_V1'"))throw new Error('Capture Sync dependency guard missing');
+          if(!loader.includes('__SANA_DATA_TRUST__?.rows'))throw new Error('Data Trust dependency guard missing');
+          if((sw.match(/const CACHE='sana-v3-demo-shell-v150';/g)||[]).length!==1)throw new Error('v150 active cache marker must remain exactly once');
+          if(!sw.includes("if(false){\nconst CACHE='sana-v3-demo-shell-v149';\n}"))throw new Error('v149 historical cache marker missing');
+          if((sw.split('/sana-v3-capture-sync-references.js').length-1)!==1)throw new Error('V150 SW asset count invalid');
+          if(!sw.includes('// v150 validates Capture Sync record/ACK/conflict-candidate reference coherence'))throw new Error('v150 provenance marker missing');
+          NODE
+      - name: Assert no authority expansion and reserve history for V151
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='apps/control-web/public/sana-v3-capture-sync-references.js'
+          ! grep -Eiq 'canonicalMutated[[:space:]]*[:=][[:space:]]*true|productionExecutionAvailable[[:space:]]*[:=][[:space:]]*true|sourceVerified[[:space:]]*[:=][[:space:]]*true|hardwareVerified[[:space:]]*[:=][[:space:]]*true|calibratedMeasurement[[:space:]]*[:=][[:space:]]*true|automaticResolution[[:space:]]*[:=][[:space:]]*true|creditApproved|investmentApproved|managementDecision[[:space:]]*[:=]' "$f"
+          ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket' "$f"
+          test ! -e apps/control-web/public/sana-v3-report-snapshot-capture-sync-references.js
+          test ! -e apps/control-web/public/sana-v3-cycle-capture-sync-references.js
+          test ! -e apps/control-web/public/sana-v3-due-diligence-capture-sync-reference-gaps.js
+          test ! -e apps/control-web/public/sana-v3-dataroom-capture-sync-references.js
