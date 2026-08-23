@@ -30,6 +30,7 @@ jobs:
           node scripts/validate-sana-commercial-references.mjs
           node scripts/validate-sana-commercial-reference-provenance.mjs
           node scripts/validate-sana-reference-hardening-v149.mjs
+          node scripts/validate-sana-reference-history-migration-v149.mjs
       - name: Assert hardened semantic boundaries
         run: |
           set -euo pipefail
@@ -38,6 +39,7 @@ jobs:
           grep -Fq 'MISSING_EXPECTED_KIND' apps/control-web/public/sana-v3-commercial-references.js
           grep -Fq 'ADDITIVE_V149 · COMMERCIAL_REFERENCE_PROVENANCE_HARDENED' apps/control-web/public/sana-v3-report-snapshot-commercial-references.js
           grep -Fq 'ROW_LEVEL_STRUCTURAL_DIFF' apps/control-web/public/sana-v3-dataroom-commercial-references.js
+          grep -Fq 'SEMANTIC_GRANULARITY_CHANGE ≠ REFERENCE_CHANGE' apps/control-web/public/sana-v3-dataroom-commercial-references.js
           grep -Fq 'SOURCE CASE LOT DEFINES CYCLE MEMBERSHIP' apps/control-web/public/sana-v3-cycle-commercial-references.js
           grep -Fq 'SOURCE CASE LOT DEFINES CYCLE MEMBERSHIP' apps/control-web/public/sana-v3-cycle-economic-references.js
           grep -Fq 'PROYECCIÓN CROSS-DOMAIN DERIVADA' apps/control-web/public/sana-v3-due-diligence-commercial-reference-gaps.js
