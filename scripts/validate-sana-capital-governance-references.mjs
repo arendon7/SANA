@@ -40,13 +40,13 @@ for(const kind of ['COUNTERPARTY_REF_DECLARED','TERM_SHEET_REF_DECLARED','DECISI
 assert.ok(good.declaredReferenceRows.every(r=>r.status==='DECLARED_NON_CANONICAL_REFERENCE'&&r.valueExposed===false));
 assert.ok(good.declaredReferenceRows.every(r=>!Object.hasOwn(r,'refId')&&!Object.hasOwn(r,'value')));
 const bad=api.forCase('CAP-BAD');
-assert.equal(bad.referenceCoverage.total,6);assert.equal(bad.referenceCoverage.linked,0);assert.equal(bad.referenceIssues,6);
+assert.equal(bad.referenceCoverage.total,7);assert.equal(bad.referenceCoverage.linked,0);assert.equal(bad.referenceIssues,7);
 for(const status of ['MISSING_REFERENCE','MISSING_TARGET','CROSS_CASE_REFERENCE','CROSS_SCOPE_REFERENCE','KIND_MISMATCH','FORWARD_REFERENCE'])assert.ok(bad.referenceRows.some(r=>r.reference.status===status),status);
 for(const kind of ['COMMITMENT_REF_DECLARED','FUNDING_REF_DECLARED','CLOSING_REF_DECLARED','DD_REQUEST_REF_DECLARED','EVIDENCE_REF_DECLARED'])assert.ok(bad.declaredReferenceRows.some(r=>r.kind===kind),kind);
 assert.ok(bad.declaredReferenceRows.every(r=>r.valueExposed===false&&!Object.hasOwn(r,'refId')));
 const legacy=api.forCase('CAP-LEGACY');assert.equal(legacy.referenceState,'LEGACY_REFERENCE_NOT_CAPTURED');assert.equal(legacy.referenceCoverage.total,0);
 const other=api.forCase('CAP-OTHER');assert.equal(other.referenceState,'LEGACY_REFERENCE_NOT_CAPTURED');
-const sum=api.summary();assert.equal(sum.referenceCaptured,2);assert.equal(sum.referenceExpected,8);assert.equal(sum.referenceLinked,2);assert.equal(sum.referenceIssues,6);assert.equal(sum.legacyReferenceNotCaptured,2);
+const sum=api.summary();assert.equal(sum.referenceCaptured,2);assert.equal(sum.referenceExpected,9);assert.equal(sum.referenceLinked,2);assert.equal(sum.referenceIssues,7);assert.equal(sum.legacyReferenceNotCaptured,2);
 assert.equal(sum.declaredReferenceValuePolicy,'COUNT_AND_KIND_ONLY · VALUE_NOT_EXPOSED');
 assert.match(api.integrity,/REFERENCE_TARGET ≠ CASE_MEMBERSHIP/);
 assert.match(api.integrity,/DOCUMENT_COMPLETENESS ≠ ELIGIBILITY ≠ CREDIT_SCORE/);
