@@ -1,0 +1,102 @@
+name: TEMP SANA Capital V151 Assembly
+
+on:
+  push:
+    branches: [demo/sana-capital-v151]
+
+permissions:
+  contents: write
+
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: demo/sana-capital-v151
+      - name: Assemble v151 loader and shell
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          ref=Path('apps/control-web/public/sana-v3-capital-governance-references.js')
+          s=ref.read_text()
+          marker='// V151 loader: historical Capital Governance reference provenance; snapshot-only consumers.'
+          if marker not in s:
+              loader=r'''
+
+// V151 loader: historical Capital Governance reference provenance; snapshot-only consumers.
+(() => {
+  'use strict';
+  if(typeof window==='undefined'||typeof document==='undefined'||typeof document.createElement!=='function')return;
+  const VERSION='V151';
+  const ASSETS=[
+    '/sana-v3-report-snapshot-capital-governance-references.js',
+    '/sana-v3-cycle-capital-governance-references.js',
+    '/sana-v3-due-diligence-capital-governance-reference-gaps.js',
+    '/sana-v3-dataroom-capital-governance-references.js'
+  ];
+  const state={version:VERSION,status:'WAITING',attempts:0,loaded:[],integrity:'SNAPSHOT → CYCLE → DD → DATA_ROOM · NO_RETROFILL · NO_LIVE_FALLBACK · NON_WEIGHTED · NO_ELIGIBILITY/CREDIT/INVESTMENT_AUTHORITY'};
+  function expose(){window.__SANA_CAPITAL_GOVERNANCE_REFERENCE_HISTORY_LOADER__=Object.freeze({...state,loaded:[...state.loaded]})}
+  function ready(){return window.__SANA_CAPITAL_GOVERNANCE__?.referenceVersion==='V150'&&window.__SANA_REPORT_SNAPSHOT_CAPITAL_GOVERNANCE__?.enrichCapitalGovernance&&window.__SANA_DUE_DILIGENCE_SNAPSHOT__?.snapshots&&window.__SANA_CYCLE_CLOSURE__?.selectedPlan&&window.__SANA_DUE_DILIGENCE_GAPS__?.derive}
+  function load(src){return new Promise((resolve,reject)=>{if(document.querySelector?.(`script[data-sana-capital-v151="${src}"]`)){resolve();return}const el=document.createElement('script');el.src=src;el.defer=true;el.dataset.sanaCapitalV151=src;el.onload=()=>{state.loaded.push(src);expose();resolve()};el.onerror=()=>reject(new Error(`Failed ${src}`));document.head.appendChild(el)})}
+  async function start(){
+    state.attempts++;expose();
+    if(window.__SANA_DATAROOM_CAPITAL_GOVERNANCE_REFERENCES__&&window.__SANA_CYCLE_CAPITAL_GOVERNANCE_REFERENCES__&&window.__SANA_DD_CAPITAL_GOVERNANCE_REFERENCE_GAPS__){state.status='READY';expose();return}
+    if(!ready()){if(state.attempts<50){state.status='WAITING_DEPENDENCIES';expose();setTimeout(start,50);return}state.status='BLOCKED_DEPENDENCIES';expose();return}
+    state.status='LOADING';expose();
+    try{for(const src of ASSETS)await load(src);state.status='READY';expose()}catch(err){state.status='FAILED';state.error=String(err?.message||err);expose()}
+  }
+  expose();if(document.readyState==='complete')queueMicrotask(start);else window.addEventListener('load',start,{once:true});
+})();
+'''
+              ref.write_text(s+loader)
+
+          sw=Path('apps/control-web/public/sana-v3-sw.js')
+          s=sw.read_text()
+          if "const CACHE='sana-v3-demo-shell-v151';" not in s:
+              old="const CACHE='sana-v3-demo-shell-v150';"
+              new="if(false){\nconst CACHE='sana-v3-demo-shell-v150';\n}\nconst CACHE='sana-v3-demo-shell-v151';"
+              assert s.count(old)==1, 'expected exactly one active v150 marker'
+              s=s.replace(old,new,1)
+          anchor="'/sana-v3-capital-governance-references.js','/sana-v3-capital-review-ledger.js',"
+          assets="'/sana-v3-capital-governance-references.js','/sana-v3-report-snapshot-capital-governance-references.js','/sana-v3-cycle-capital-governance-references.js','/sana-v3-due-diligence-capital-governance-reference-gaps.js','/sana-v3-dataroom-capital-governance-references.js','/sana-v3-capital-review-ledger.js',"
+          if '/sana-v3-report-snapshot-capital-governance-references.js' not in s:
+              assert s.count(anchor)==1, 'Capital V151 SW anchor missing/duplicated'
+              s=s.replace(anchor,assets,1)
+          comment='// v151 propagates minimized Capital Governance reference integrity through Snapshot, Cycle, DD and Data Room without live fallback, retrofill, weighting, credit or investment authority.'
+          if comment not in s:
+              anchor_comment='// v150 validates Capital Governance EVIDENCE.supports with same-case/scope semantics while keeping non-canonical capital refs value-hidden and non-authoritative.'
+              assert s.count(anchor_comment)==1, 'v150 comment anchor missing/duplicated'
+              s=s.replace(anchor_comment,anchor_comment+'\n'+comment,1)
+          sw.write_text(s)
+          PY
+          node --check apps/control-web/public/sana-v3-capital-governance-references.js
+          node --check apps/control-web/public/sana-v3-sw.js
+          node scripts/validate-sana-capital-governance-references.mjs
+          node scripts/validate-sana-capital-governance-reference-provenance.mjs
+          node - <<'NODE'
+          const fs=require('fs');
+          const ref=fs.readFileSync('apps/control-web/public/sana-v3-capital-governance-references.js','utf8');
+          const sw=fs.readFileSync('apps/control-web/public/sana-v3-sw.js','utf8');
+          const assets=['/sana-v3-report-snapshot-capital-governance-references.js','/sana-v3-cycle-capital-governance-references.js','/sana-v3-due-diligence-capital-governance-reference-gaps.js','/sana-v3-dataroom-capital-governance-references.js'];
+          if(!ref.includes("const VERSION='V151'"))throw new Error('V151 loader version missing');
+          if(!ref.includes('__SANA_CAPITAL_GOVERNANCE_REFERENCE_HISTORY_LOADER__'))throw new Error('V151 loader state missing');
+          let last=-1;for(const a of assets){const i=ref.indexOf(a);if(i<0||i<=last)throw new Error(`V151 loader asset/order invalid: ${a}`);last=i;}
+          if((sw.match(/const CACHE='sana-v3-demo-shell-v151';/g)||[]).length!==1)throw new Error('v151 active cache marker invalid');
+          if(!sw.includes("if(false){\nconst CACHE='sana-v3-demo-shell-v150';\n}"))throw new Error('v150 historical marker missing');
+          for(const a of assets)if((sw.split(a).length-1)!==1)throw new Error(`V151 SW asset count invalid: ${a}`);
+          if(!sw.includes('// v151 propagates minimized Capital Governance reference integrity'))throw new Error('v151 marker missing');
+          NODE
+      - name: Commit assembly if changed
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/control-web/public/sana-v3-capital-governance-references.js apps/control-web/public/sana-v3-sw.js
+          git commit -m 'chore(sana): assemble capital reference history v151'
+          git push origin HEAD:demo/sana-capital-v151
