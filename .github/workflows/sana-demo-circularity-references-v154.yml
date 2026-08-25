@@ -16,13 +16,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Validate Circularity References V154 core
+      - name: Validate Circularity References V154 final
         shell: bash
         run: |
           set -euo pipefail
           node --check apps/control-web/public/sana-v3-circularity-ledger.js
           node --check apps/control-web/public/sana-v3-circularity-references.js
+          node --check apps/control-web/public/sana-v3-cycle-circularity-provenance.js
+          node --check apps/control-web/public/sana-v3-sw.js
           node scripts/validate-sana-circularity-ledger.mjs
+          node scripts/validate-sana-cycle-circularity.mjs
           node scripts/validate-sana-circularity-references-v154.mjs
           node scripts/validate-sana-reference-hardening-v149.mjs
           node scripts/validate-sana-reference-history-migration-v149.mjs
@@ -37,4 +40,16 @@ jobs:
           grep -Fq 'RECEIVER_REFERENCE_DECLARED ≠ RECEIVER_IDENTITY_VERIFIED' apps/control-web/public/sana-v3-circularity-references.js
           grep -Fq 'EXTERNAL_HANDOFF ≠ VERIFIED_DISPOSITION' apps/control-web/public/sana-v3-circularity-references.js
           grep -Fq 'REFERENCE ≠ CIRCULARITY_RATE ≠ ENVIRONMENTAL_IMPACT ≠ REGULATORY_CLASSIFICATION ≠ CREDIT_RISK ≠ ELIGIBILITY ≠ INVESTMENT_SIGNAL' apps/control-web/public/sana-v3-circularity-references.js
-          ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|canonicalMutated[[:space:]]*[:=][[:space:]]*true|productionExecutionAvailable[[:space:]]*[:=][[:space:]]*true|verifiedDisposition[[:space:]]*[:=][[:space:]]*true|certifiedRecovery[[:space:]]*[:=][[:space:]]*true|environmentalImpactVerified[[:space:]]*[:=][[:space:]]*true|regulatoryClassificationVerified[[:space:]]*[:=][[:space:]]*true|creditApproved|eligibilityApproved|investmentApproved' apps/control-web/public/sana-v3-circularity-references.js
+          node - <<'NODE'
+          const fs=require('fs');
+          const loader=fs.readFileSync('apps/control-web/public/sana-v3-cycle-circularity-provenance.js','utf8');
+          const sw=fs.readFileSync('apps/control-web/public/sana-v3-sw.js','utf8');
+          if(!loader.includes("const VERSION='V154',SRC='/sana-v3-circularity-references.js'"))throw new Error('V154 loader contract missing');
+          if(!loader.includes('__SANA_CIRCULARITY_REFERENCES_LOADER__'))throw new Error('V154 loader state missing');
+          if(!loader.includes("__SANA_CIRCULARITY_LEDGER__?.schema==='SANA_CIRCULARITY_LEDGER_V1'"))throw new Error('Circularity dependency guard missing');
+          if((sw.match(/^const CACHE='sana-v3-demo-shell-v154';$/gm)||[]).length!==1)throw new Error('v154 active cache marker invalid');
+          if(!sw.includes("if(false){\nconst CACHE='sana-v3-demo-shell-v153';\n}"))throw new Error('v153 historical marker missing');
+          if((sw.split('/sana-v3-circularity-references.js').length-1)!==1)throw new Error('V154 SW asset count invalid');
+          if(!sw.includes('// v154 validates explicit Circularity EVIDENCE.supports references'))throw new Error('v154 provenance marker missing');
+          NODE
+          ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|canonicalMutated[[:space:]]*[:=][[:space:]]*true|productionExecutionAvailable[[:space:]]*[:=][[:space:]]*true|verifiedDisposition[[:space:]]*[:=][[:space:]]*true|certifiedRecovery[[:space:]]*[:=][[:space:]]*true|environmentalImpactVerified[[:space:]]*[:=][[:space:]]*true|regulatoryClassificationVerified[[:space:]]*[:=][[:space:]]*true|creditApproved|eligibilityApproved|investmentApproved' apps/control-web/public/sana-v3-circularity-references.js apps/control-web/public/sana-v3-cycle-circularity-provenance.js
