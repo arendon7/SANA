@@ -46,3 +46,36 @@
   function scheduleMark(){const run=()=>mark(document.getElementById('modal-form'));queueMicrotask(run);setTimeout(run,25)}
   if(typeof document!=='undefined'&&document.addEventListener){document.addEventListener('click',e=>{if(e.target.closest?.('[data-material-chain-event],[data-econ-cost],[data-inventory-movement]'))scheduleMark()},true)}
 })();
+
+// V157 loader: minimized historical Material reference provenance only.
+(() => {
+  'use strict';
+  if(typeof window==='undefined'||typeof document==='undefined'||typeof document.createElement!=='function')return;
+  const VERSION='V157';
+  const ASSETS=[
+    '/sana-v3-report-snapshot-material-references.js',
+    '/sana-v3-cycle-material-references.js',
+    '/sana-v3-due-diligence-material-reference-gaps.js',
+    '/sana-v3-dataroom-material-references.js'
+  ];
+  const state={version:VERSION,status:'WAITING',attempts:0,loaded:0,integrity:'SNAPSHOT_ONLY_HISTORY · CONTENT_MINIMIZED · NON_WEIGHTED · NO_RETROFILL · NO_CERTIFICATION/CREDIT/INVESTMENT_AUTHORITY'};
+  function expose(){window.__SANA_MATERIAL_REFERENCE_HISTORY_LOADER__=Object.freeze({...state})}
+  function ready(){return window.__SANA_MATERIAL_CHAIN__?.referenceVersion==='V156'}
+  function loadAt(i){
+    if(i>=ASSETS.length){state.loaded=ASSETS.length;state.status='READY';expose();return}
+    const src=ASSETS[i],key=`materialReferenceHistoryV157${i}`;
+    const existing=document.querySelector?.(`script[data-${key.replace(/[A-Z]/g,m=>`-${m.toLowerCase()}`)}]`);
+    if(existing){state.loaded=Math.max(state.loaded,i+1);loadAt(i+1);return}
+    const s=document.createElement('script');s.src=src;s.defer=true;s.dataset[key]='1';
+    s.onload=()=>{state.loaded=i+1;expose();loadAt(i+1)};
+    s.onerror=()=>{state.status='FAILED';expose()};
+    document.head.appendChild(s);
+  }
+  function start(){
+    state.attempts++;expose();
+    if(window.__SANA_REPORT_SNAPSHOT_MATERIAL_REFERENCES__&&window.__SANA_CYCLE_MATERIAL_REFERENCES__&&window.__SANA_DD_MATERIAL_REFERENCE_GAPS__&&window.__SANA_DATAROOM_MATERIAL_REFERENCES__){state.loaded=ASSETS.length;state.status='READY';expose();return}
+    if(!ready()){if(state.attempts<25){state.status='WAITING_V156';expose();setTimeout(start,40);return}state.status='BLOCKED_V156';expose();return}
+    state.status='LOADING';expose();loadAt(0);
+  }
+  expose();if(document.readyState==='complete')queueMicrotask(start);else window.addEventListener('load',start,{once:true});
+})();
