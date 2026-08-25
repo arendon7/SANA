@@ -32,7 +32,7 @@ assert.equal(good.referenceCoverage.total,2); // duplicate SRC-FARM is deduplica
 assert.equal(good.referenceCoverage.linked,2);
 assert.equal(good.referenceCoverage.percent,100);
 assert.equal(good.referenceIssues,0);
-assert.deepEqual(good.referenceRows.map(r=>r.refId),['SRC-FARM','SRC-FARM-2']); // latest metadata replaces M0
+assert.deepEqual([...good.referenceRows.map(r=>r.refId)],['SRC-FARM','SRC-FARM-2']); // latest metadata replaces M0
 assert.equal(good.verification.state,'VERIFICADO_EXTERNO'); // base verification is preserved, not overwritten by refs
 assert.ok(good.referenceRows.every(r=>r.reference.status==='LINKED'));
 for(const r of good.referenceRows){assert.equal('externalId' in r.reference.target,false);assert.equal('provider' in r.reference.target,false)}
