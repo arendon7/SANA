@@ -1,0 +1,38 @@
+name: SANA Demo Impact References V156
+
+on:
+  pull_request:
+  push:
+    branches: [demo/sana-impact-v156]
+
+permissions:
+  contents: read
+
+jobs:
+  impact-references-v156:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Impact References V156
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-impact-references.js
+          node scripts/validate-sana-impact-references-v156.mjs
+          grep -Fq 'SANA_IMPACT_LEDGER_V1' apps/control-web/public/sana-v3-impact-references.js
+          grep -Fq 'LEGACY_REFERENCE_NOT_CAPTURED' apps/control-web/public/sana-v3-impact-references.js
+          grep -Fq 'CAPTURED_V156' apps/control-web/public/sana-v3-impact-references.js
+          grep -Fq 'IMPACT_SOURCE_REF' apps/control-web/public/sana-v3-impact-references.js
+          grep -Fq 'MISSING_TARGET' apps/control-web/public/sana-v3-impact-references.js
+          grep -Fq 'CROSS_SCOPE_REFERENCE' apps/control-web/public/sana-v3-impact-references.js
+          grep -Fq 'FORWARD_REFERENCE' apps/control-web/public/sana-v3-impact-references.js
+          grep -Fq 'DECLARED_NON_CANONICAL_REFERENCE' apps/control-web/public/sana-v3-impact-references.js
+          grep -Fq 'COUNT_AND_KIND_ONLY · VALUE_NOT_EXPOSED' apps/control-web/public/sana-v3-impact-references.js
+          grep -Fq 'SOURCE_REFERENCE ≠ INDICATOR_VALIDITY' apps/control-web/public/sana-v3-impact-references.js
+          grep -Fq 'SOURCE_REFERENCE ≠ CAUSALITY' apps/control-web/public/sana-v3-impact-references.js
+          grep -Fq 'SOURCE_REGISTRY_REFERENCE ≠ EXTERNAL_VERIFICATION' apps/control-web/public/sana-v3-impact-references.js
+          grep -Fq 'REFERENCE ≠ CERTIFICATION ≠ IMPACT_VERIFICATION ≠ CREDIT_RISK ≠ ELIGIBILITY ≠ INVESTMENT_SIGNAL' apps/control-web/public/sana-v3-impact-references.js
+          ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|canonicalMutated[[:space:]]*[:=][[:space:]]*true|productionExecutionAvailable[[:space:]]*[:=][[:space:]]*true|externalVerification[[:space:]]*[:=][[:space:]]*true|certified[[:space:]]*[:=][[:space:]]*true|causalityVerified[[:space:]]*[:=][[:space:]]*true|impactVerified[[:space:]]*[:=][[:space:]]*true|creditApproved|eligibilityApproved|investmentApproved' apps/control-web/public/sana-v3-impact-references.js
