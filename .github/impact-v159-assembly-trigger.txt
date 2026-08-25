@@ -1,1 +1,2 @@
 temporary assembly trigger for V159; remove before promotion
+retry: 2026-08-25
