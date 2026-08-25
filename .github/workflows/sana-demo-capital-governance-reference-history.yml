@@ -16,15 +16,18 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Validate Capital Governance Reference History V151 core
+      - name: Validate Capital Governance Reference History V151
         shell: bash
         run: |
           set -euo pipefail
           for f in \
+            apps/control-web/public/sana-v3-capital-governance-references.js \
             apps/control-web/public/sana-v3-report-snapshot-capital-governance-references.js \
             apps/control-web/public/sana-v3-dataroom-capital-governance-references.js \
             apps/control-web/public/sana-v3-cycle-capital-governance-references.js \
-            apps/control-web/public/sana-v3-due-diligence-capital-governance-reference-gaps.js; do node --check "$f"; done
+            apps/control-web/public/sana-v3-due-diligence-capital-governance-reference-gaps.js \
+            apps/control-web/public/sana-v3-sw.js; do node --check "$f"; done
+          node scripts/validate-sana-capital-governance-references.mjs
           node scripts/validate-sana-capital-governance-reference-provenance.mjs
           grep -Fq 'ADDITIVE_V151 · CAPITAL_GOVERNANCE_REFERENCE_PROVENANCE' apps/control-web/public/sana-v3-report-snapshot-capital-governance-references.js
           grep -Fq 'CONTENT_MINIMIZED' apps/control-web/public/sana-v3-report-snapshot-capital-governance-references.js
@@ -37,12 +40,24 @@ jobs:
           grep -Fq 'NOT_CAPTURED_OR_LEGACY ≠ GAP' apps/control-web/public/sana-v3-due-diligence-capital-governance-reference-gaps.js
           grep -Fq 'DECLARED_NON_CANONICAL_REFERENCE ≠ GAP' apps/control-web/public/sana-v3-due-diligence-capital-governance-reference-gaps.js
           ! grep -Eq '__SANA_CAPITAL_GOVERNANCE__|storage\?\.records|localStorage' apps/control-web/public/sana-v3-dataroom-capital-governance-references.js apps/control-web/public/sana-v3-cycle-capital-governance-references.js apps/control-web/public/sana-v3-due-diligence-capital-governance-reference-gaps.js
-          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|verifiedIdentity[[:space:]]*=[[:space:]]*true|verifiedTermSheets[[:space:]]*=[[:space:]]*[1-9]|verifiedCommitments[[:space:]]*=[[:space:]]*[1-9]|legalClosingsVerified[[:space:]]*=[[:space:]]*[1-9]|fundingExecuted[[:space:]]*=[[:space:]]*[1-9]|custodyAmount[[:space:]]*=[[:space:]]*[1-9]|creditApproved|eligibilityApproved|investmentApproved|investmentRecommendation[[:space:]]*=[[:space:]]*true' apps/control-web/public/sana-v3-*capital-governance-reference*.js
-      - name: Validate V150 and V3 compatibility before assembly
+          node - <<'NODE'
+          const fs=require('fs');
+          const ref=fs.readFileSync('apps/control-web/public/sana-v3-capital-governance-references.js','utf8');
+          const sw=fs.readFileSync('apps/control-web/public/sana-v3-sw.js','utf8');
+          const assets=['/sana-v3-report-snapshot-capital-governance-references.js','/sana-v3-cycle-capital-governance-references.js','/sana-v3-due-diligence-capital-governance-reference-gaps.js','/sana-v3-dataroom-capital-governance-references.js'];
+          if(!ref.includes("const VERSION='V151'"))throw new Error('V151 loader version missing');
+          if(!ref.includes('__SANA_CAPITAL_GOVERNANCE_REFERENCE_HISTORY_LOADER__'))throw new Error('V151 loader state missing');
+          let last=-1;for(const a of assets){const i=ref.indexOf(a);if(i<0||i<=last)throw new Error(`V151 loader asset/order invalid: ${a}`);last=i;}
+          if((sw.match(/const CACHE='sana-v3-demo-shell-v151';/g)||[]).length!==1)throw new Error('v151 active cache marker invalid');
+          if(!sw.includes("if(false){\nconst CACHE='sana-v3-demo-shell-v150';\n}"))throw new Error('v150 historical marker missing');
+          for(const a of assets)if((sw.split(a).length-1)!==1)throw new Error(`V151 SW asset count invalid: ${a}`);
+          if(!sw.includes('// v151 propagates minimized Capital Governance reference integrity'))throw new Error('v151 provenance marker missing');
+          NODE
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|verifiedIdentity[[:space:]]*=[[:space:]]*true|verifiedTermSheets[[:space:]]*=[[:space:]]*[1-9]|verifiedCommitments[[:space:]]*=[[:space:]]*[1-9]|legalClosingsVerified[[:space:]]*=[[:space:]]*[1-9]|fundingExecuted[[:space:]]*=[[:space:]]*[1-9]|custodyAmount[[:space:]]*=[[:space:]]*[1-9]|creditApproved|eligibilityApproved|investmentApproved|investmentRecommendation[[:space:]]*=[[:space:]]*true' apps/control-web/public/sana-v3-*capital-governance-reference*.js apps/control-web/public/sana-v3-capital-governance-references.js
+      - name: Validate V3 compatibility on final V151 cut
         shell: bash
         run: |
           set -euo pipefail
-          node scripts/validate-sana-capital-governance-references.mjs
           shopt -s nullglob
           files=(apps/control-web/public/sana-v3*.js)
           test ${#files[@]} -gt 0
