@@ -19,3 +19,21 @@
   const base=views.cycle;if(base)views.cycle=()=>insert(base(),panel());
   window.__SANA_CYCLE_MATERIAL__=Object.freeze({forPlan,selected,integrity:'LIVE_MATERIAL_PROVENANCE_DEMO · MATERIAL_PROVENANCE ≠ CYCLE_GATE ≠ PERFORMANCE ≠ EXTERNAL_CERTIFICATION'});
 })();
+
+// V156 loader: explicit Material Chain reference integrity only; no certification, mutation or decision authority.
+(() => {
+  'use strict';
+  if(typeof window==='undefined'||typeof document==='undefined'||typeof document.createElement!=='function')return;
+  const VERSION='V156',SRC='/sana-v3-material-references.js';
+  const state={version:VERSION,status:'WAITING',attempts:0,integrity:'MATERIAL_REFERENCE_VALIDATION ≠ MATERIAL/GENETIC/PHYTOSANITARY/ICA_CERTIFICATION · NO_INVENTORY_OR_ACCOUNTING_EXECUTION · NO_CREDIT/ELIGIBILITY/INVESTMENT_AUTHORITY'};
+  function expose(){window.__SANA_MATERIAL_REFERENCES_LOADER__=Object.freeze({...state})}
+  function ready(){return window.__SANA_MATERIAL_CHAIN__?.schema==='SANA_MATERIAL_CHAIN_V1'&&Array.isArray(window.DEMO?.material)&&Array.isArray(window.DEMO?.lots)}
+  function start(){
+    state.attempts++;expose();
+    if(window.__SANA_MATERIAL_CHAIN__?.referenceVersion===VERSION){state.status='READY';expose();return}
+    if(!ready()){if(state.attempts<25){state.status='WAITING_DEPENDENCIES';expose();setTimeout(start,40);return}state.status='BLOCKED_DEPENDENCIES';expose();return}
+    if(document.querySelector?.('script[data-sana-material-references-v156]'))return;
+    state.status='LOADING';expose();const s=document.createElement('script');s.src=SRC;s.defer=true;s.dataset.sanaMaterialReferencesV156='1';s.onload=()=>{state.status=window.__SANA_MATERIAL_CHAIN__?.referenceVersion===VERSION?'READY':'FAILED_CONTRACT';expose()};s.onerror=()=>{state.status='FAILED';expose()};document.head.appendChild(s);
+  }
+  expose();if(document.readyState==='complete')queueMicrotask(start);else window.addEventListener('load',start,{once:true});
+})();
