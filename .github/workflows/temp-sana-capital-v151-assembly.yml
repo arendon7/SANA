@@ -100,3 +100,5 @@ jobs:
           git add apps/control-web/public/sana-v3-capital-governance-references.js apps/control-web/public/sana-v3-sw.js
           git commit -m 'chore(sana): assemble capital reference history v151'
           git push origin HEAD:demo/sana-capital-v151
+
+# retrigger assembly after core certification
