@@ -60,3 +60,21 @@
 
   window.__SANA_IMPACT_LEDGER__=Object.freeze({rows:()=>ledgerRows().map(r=>({...r,boundary:{...r.boundary},baseline:{...r.baseline},observation:{...r.observation},calculation:{...r.calculation},estimation:{...r.estimation},provenance:{...r.provenance},verification:{...r.verification},navigation:r.navigation.map(n=>({...n}))})),summary,integrity:'LIVE_METHOD ≠ SNAPSHOT_HISTORY ≠ EXTERNAL_VERIFICATION ≠ CERTIFICATION'});
 })();
+
+// V156 loader: explicit Source Registry links only; navigation/source labels never become evidence.
+(() => {
+  'use strict';
+  if(typeof window==='undefined'||typeof document==='undefined'||typeof document.createElement!=='function')return;
+  const VERSION='V156',SRC='/sana-v3-impact-references.js';
+  const state={version:VERSION,status:'WAITING',attempts:0,integrity:'SOURCE_REGISTRY_REFERENCE ≠ CONTENT_CORRECTNESS ≠ CAUSALITY ≠ EXTERNAL_VERIFICATION · NO_CERTIFICATION · NO_CREDIT/ELIGIBILITY/INVESTMENT_AUTHORITY'};
+  function expose(){window.__SANA_IMPACT_REFERENCES_LOADER__=Object.freeze({...state})}
+  function ready(){return window.__SANA_IMPACT_LEDGER__?.rows&&window.__SANA_DOCUMENT_SOURCES__?.rows}
+  function start(){
+    state.attempts++;expose();
+    if(window.__SANA_IMPACT_LEDGER__?.referenceVersion==='V156'){state.status='READY';expose();return}
+    if(!ready()){if(state.attempts<30){state.status='WAITING_DEPENDENCIES';expose();setTimeout(start,40);return}state.status='BLOCKED_DEPENDENCIES';expose();return}
+    if(document.querySelector?.('script[data-sana-impact-references-v156]'))return;
+    state.status='LOADING';expose();const s=document.createElement('script');s.src=SRC;s.defer=true;s.dataset.sanaImpactReferencesV156='1';s.onload=()=>{state.status=window.__SANA_IMPACT_LEDGER__?.referenceVersion==='V156'?'READY':'FAILED_CONTRACT';expose()};s.onerror=()=>{state.status='FAILED';expose()};document.head.appendChild(s);
+  }
+  expose();if(document.readyState==='complete')queueMicrotask(start);else window.addEventListener('load',start,{once:true});
+})();
