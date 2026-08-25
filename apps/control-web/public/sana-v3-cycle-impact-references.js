@@ -1,0 +1,11 @@
+(() => {
+  'use strict';
+  const SCHEMA='SANA_DUE_DILIGENCE_SNAPSHOT_V1',REPORT='RPT-DD';
+  const INTEGRITY='SNAPSHOT_IMPACT_REFERENCES_ONLY · NO_LIVE_FALLBACK · READ_ONLY · NON_WEIGHTED · IMPACT_REFERENCE ≠ CYCLE_GATE · REFERENCE_ISSUE ≠ IMPACT_FAILURE · REFERENCE ≠ EXTERNAL_VERIFICATION ≠ CERTIFICATION ≠ CREDIT_RISK ≠ ELIGIBILITY ≠ INVESTMENT_SIGNAL';
+  function snapshots(){return (window.__SANA_DUE_DILIGENCE_SNAPSHOT__?.snapshots?.()||[]).filter(s=>s?.manifest?.schema===SCHEMA&&s?.reportType===REPORT).slice().sort((a,b)=>String(b.cutoff||b.createdAt||'').localeCompare(String(a.cutoff||a.createdAt||'')))}
+  function selected(){const s=snapshots()[0]||null,d=s?.manifest?.impactReferences||null;if(!s)return {valid:false,state:'NO_SNAPSHOT',snapshot:null,data:null,integrity:INTEGRITY};return {valid:true,state:d?'CAPTURED':'NOT_CAPTURED_IN_SNAPSHOT',snapshot:s,data:d,integrity:INTEGRITY}}
+  function panel(){const s=selected();if(!s.valid||s.state!=='CAPTURED')return '';const d=s.data||{};return `<section class="card" style="margin-top:14px"><div class="card-head"><div><p class="kicker">CIERRE · IMPACT REFERENCES V159</p><h2>Procedencia referencial del último corte</h2><p>${esc(s.snapshot.cutoff||'sin corte')} · read-only; no modifica completitud, readyForArchive, metodología ni gates.</p></div><span class="status warn">NON_WEIGHTED</span></div><div class="card-body"><div class="grid metrics">${metric('Indicadores capturados',d.capturedCount||0,'opt-in V158')}${metric('Enlazadas',`${d.linked||0}/${d.expected||0}`,'Source Registry IDs')}${metric('Issues',d.issueCount||0,'documentales; no impacto')}${metric('Verificación creada','0','references ≠ verification','good')}</div><div class="section-note">IMPACT REFERENCE ≠ CYCLE GATE · REFERENCE ISSUE ≠ IMPACT FAILURE · REFERENCE CHANGE ≠ IMPACT/METHODOLOGY CHANGE · NO LIVE FALLBACK · NON_WEIGHTED.</div></div></section>`}
+  function insert(html,section){for(const m of ['<footer class="footer-note">','<footer class="footer">']){const i=html.lastIndexOf(m);if(i>=0)return html.slice(0,i)+section+html.slice(i)}return html+section}
+  const base=views.cycle;if(base)views.cycle=()=>insert(base(),panel());
+  window.__SANA_CYCLE_IMPACT_REFERENCES__=Object.freeze({selected,integrity:INTEGRITY});
+})();
