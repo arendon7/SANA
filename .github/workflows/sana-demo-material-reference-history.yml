@@ -20,10 +20,13 @@ jobs:
         run: |
           set -euo pipefail
           for f in \
+            apps/control-web/public/sana-v3-material-references.js \
             apps/control-web/public/sana-v3-report-snapshot-material-references.js \
             apps/control-web/public/sana-v3-cycle-material-references.js \
             apps/control-web/public/sana-v3-due-diligence-material-reference-gaps.js \
-            apps/control-web/public/sana-v3-dataroom-material-references.js; do node --check "$f"; done
+            apps/control-web/public/sana-v3-dataroom-material-references.js \
+            apps/control-web/public/sana-v3-sw.js; do node --check "$f"; done
+          node scripts/validate-sana-material-references.mjs
           node scripts/validate-sana-material-reference-history.mjs
           grep -Fq 'CONTENT_MINIMIZED' apps/control-web/public/sana-v3-report-snapshot-material-references.js
           grep -Fq 'NO_NONCANONICAL_VALUES' apps/control-web/public/sana-v3-report-snapshot-material-references.js
@@ -37,4 +40,17 @@ jobs:
             apps/control-web/public/sana-v3-cycle-material-references.js \
             apps/control-web/public/sana-v3-due-diligence-material-reference-gaps.js \
             apps/control-web/public/sana-v3-dataroom-material-references.js
-          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|geneticIdentityVerified[[:space:]]*=[[:space:]]*true|phytosanitaryVerified[[:space:]]*=[[:space:]]*true|icaCertified[[:space:]]*=[[:space:]]*true|creditApproved|investmentApproved|inventoryExecuted|accountingEntryCreated' apps/control-web/public/sana-v3-*material-reference*.js
+          node - <<'NODE'
+          const fs=require('fs');
+          const loader=fs.readFileSync('apps/control-web/public/sana-v3-material-references.js','utf8');
+          const sw=fs.readFileSync('apps/control-web/public/sana-v3-sw.js','utf8');
+          const assets=['/sana-v3-report-snapshot-material-references.js','/sana-v3-cycle-material-references.js','/sana-v3-due-diligence-material-reference-gaps.js','/sana-v3-dataroom-material-references.js'];
+          if(!loader.includes("const VERSION='V157'"))throw new Error('V157 loader version missing');
+          if(!loader.includes('__SANA_MATERIAL_REFERENCE_HISTORY_LOADER__'))throw new Error('V157 loader state missing');
+          let last=-1;for(const a of assets){const i=loader.indexOf(a);if(i<0||i<=last)throw new Error(`V157 loader asset/order invalid: ${a}`);last=i;}
+          if((sw.match(/const CACHE='sana-v3-demo-shell-v157';/g)||[]).length!==1)throw new Error('v157 cache marker must remain exactly once');
+          if(!sw.includes("if(false){\nconst CACHE='sana-v3-demo-shell-v156';\n}"))throw new Error('v156 historical marker missing');
+          for(const a of assets)if((sw.split(a).length-1)!==1)throw new Error(`V157 SW asset count invalid: ${a}`);
+          if(!sw.includes('// v157 propagates minimized Material reference integrity'))throw new Error('v157 provenance marker missing');
+          NODE
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|geneticIdentityVerified[[:space:]]*=[[:space:]]*true|phytosanitaryVerified[[:space:]]*=[[:space:]]*true|icaCertified[[:space:]]*=[[:space:]]*true|creditApproved|investmentApproved|inventoryExecuted|accountingEntryCreated' apps/control-web/public/sana-v3-*material-reference*.js apps/control-web/public/sana-v3-material-references.js
