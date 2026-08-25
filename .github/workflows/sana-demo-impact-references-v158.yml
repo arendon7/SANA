@@ -20,6 +20,8 @@ jobs:
         run: |
           set -euo pipefail
           node --check apps/control-web/public/sana-v3-impact-references.js
+          node --check apps/control-web/public/sana-v3-impact-ledger.js
+          node --check apps/control-web/public/sana-v3-sw.js
           node scripts/validate-sana-impact-references-v158.mjs
           grep -Fq "const VERSION='V158'" apps/control-web/public/sana-v3-impact-references.js
           grep -Fq 'LEGACY_REFERENCE_NOT_CAPTURED' apps/control-web/public/sana-v3-impact-references.js
@@ -30,4 +32,16 @@ jobs:
           grep -Fq 'PROVENANCE_LABEL ≠ SOURCE_REGISTRY_REFERENCE' apps/control-web/public/sana-v3-impact-references.js
           grep -Fq 'SOURCE_REGISTRY_REFERENCE ≠ EXTERNAL_VERIFICATION' apps/control-web/public/sana-v3-impact-references.js
           grep -Fq 'REFERENCE ≠ CERTIFICATION ≠ IMPACT_VERIFICATION ≠ CREDIT_RISK ≠ ELIGIBILITY ≠ INVESTMENT_SIGNAL' apps/control-web/public/sana-v3-impact-references.js
-          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|impactVerified[[:space:]]*=[[:space:]]*true|certified[[:space:]]*=[[:space:]]*true|creditApproved|eligibilityApproved|investmentApproved|investmentRecommendation' apps/control-web/public/sana-v3-impact-references.js
+          node - <<'NODE'
+          const fs=require('fs');
+          const loader=fs.readFileSync('apps/control-web/public/sana-v3-impact-ledger.js','utf8');
+          const sw=fs.readFileSync('apps/control-web/public/sana-v3-sw.js','utf8');
+          if(!loader.includes("const VERSION='V158',SRC='/sana-v3-impact-references.js'"))throw new Error('V158 loader contract missing');
+          if(!loader.includes('__SANA_IMPACT_REFERENCES_LOADER__'))throw new Error('V158 loader state missing');
+          if(!loader.includes("window.__SANA_DOCUMENT_SOURCES__?.rows"))throw new Error('V158 Source Registry dependency missing');
+          if((sw.match(/const CACHE='sana-v3-demo-shell-v158';/g)||[]).length!==1)throw new Error('v158 cache marker must remain exactly once');
+          if(!sw.includes("if(false){\nconst CACHE='sana-v3-demo-shell-v157';\n}"))throw new Error('v157 historical marker missing');
+          if((sw.split('/sana-v3-impact-references.js').length-1)!==1)throw new Error('V158 SW asset count invalid');
+          if(!sw.includes('// v158 validates explicit Impact Source Registry references'))throw new Error('V158 provenance marker missing');
+          NODE
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|impactVerified[[:space:]]*=[[:space:]]*true|certified[[:space:]]*=[[:space:]]*true|creditApproved|eligibilityApproved|investmentApproved|investmentRecommendation' apps/control-web/public/sana-v3-impact-references.js apps/control-web/public/sana-v3-impact-ledger.js
