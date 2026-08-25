@@ -38,3 +38,23 @@
   const base=views.cycle;if(base)views.cycle=()=>insert(base(),panel());
   window.__SANA_CYCLE_CIRCULARITY__=Object.freeze({forPlan,selected,integrity:'CIRCULARITY_PROVENANCE ≠ CYCLE_GATE · GENERATED ≠ RECOVERED · DESTINATION_PLAN ≠ EXECUTION · EXECUTION ≠ VERIFIED_DISPOSITION · HANDLED_COVERAGE ≠ CIRCULARITY_RATE · EVIDENCE ≠ ENVIRONMENTAL_IMPACT'});
 })();
+
+// V154 loader: internal Circularity support references only; no evidence/disposition/recovery/impact authority.
+(() => {
+  'use strict';
+  if(typeof window==='undefined'||typeof document==='undefined'||typeof document.createElement!=='function')return;
+  const VERSION='V154',SRC='/sana-v3-circularity-references.js';
+  const state={version:VERSION,status:'WAITING',attempts:0,integrity:'SUPPORT_REFERENCE ≠ EVIDENCE_VERIFIED · RECEIVER_REF ≠ VERIFIED_DISPOSITION · NO_RECOVERY/IMPACT/REGULATORY/CREDIT/INVESTMENT_AUTHORITY'};
+  function expose(){window.__SANA_CIRCULARITY_REFERENCES_LOADER__=Object.freeze({...state})}
+  function ready(){return window.__SANA_CIRCULARITY_LEDGER__?.schema==='SANA_CIRCULARITY_LEDGER_V1'&&window.__SANA_CIRCULARITY_LEDGER__?.cases}
+  function start(){
+    state.attempts++;expose();
+    if(window.__SANA_CIRCULARITY_LEDGER__?.referenceVersion===VERSION){state.status='READY';expose();return}
+    if(!ready()){if(state.attempts<25){state.status='WAITING_DEPENDENCIES';expose();setTimeout(start,40);return}state.status='BLOCKED_DEPENDENCIES';expose();return}
+    if(document.querySelector?.('script[data-sana-circularity-references-v154]'))return;
+    state.status='LOADING';expose();const s=document.createElement('script');s.src=SRC;s.defer=true;s.dataset.sanaCircularityReferencesV154='1';
+    s.onload=()=>{state.status=window.__SANA_CIRCULARITY_LEDGER__?.referenceVersion===VERSION?'READY':'FAILED_CONTRACT';expose()};
+    s.onerror=()=>{state.status='FAILED';expose()};document.head.appendChild(s);
+  }
+  expose();if(document.readyState==='complete')queueMicrotask(start);else window.addEventListener('load',start,{once:true});
+})();
