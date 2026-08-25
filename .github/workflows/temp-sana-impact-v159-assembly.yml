@@ -14,66 +14,26 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: demo/sana-impact-v159
-      - name: Assemble v159 loader and shell
+      - name: Assemble v159 shell
+        run: python scripts/temp-assemble-sana-impact-v159.py
+      - name: Validate assembled shell
+        shell: bash
         run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          ledger=Path('apps/control-web/public/sana-v3-impact-ledger.js')
-          s=ledger.read_text()
-          marker='// V159 loader: historical Impact reference provenance only; snapshot history remains separate from Impact values/methodology.'
-          if marker not in s:
-              loader=r'''
-
-// V159 loader: historical Impact reference provenance only; snapshot history remains separate from Impact values/methodology.
-(() => {
-  'use strict';
-  if(typeof window==='undefined'||typeof document==='undefined'||typeof document.createElement!=='function')return;
-  const VERSION='V159';
-  const ASSETS=['/sana-v3-report-snapshot-impact-references.js','/sana-v3-cycle-impact-references.js','/sana-v3-due-diligence-impact-reference-gaps.js','/sana-v3-dataroom-impact-references.js'];
-  const state={version:VERSION,status:'WAITING_V158',attempts:0,loaded:[],integrity:'SNAPSHOT_REFERENCE_HISTORY_ONLY · NO_RICH_IMPACT_PAYLOAD · NO_LIVE_FALLBACK_IN_HISTORY · NON_WEIGHTED · NO_VERIFICATION/CERTIFICATION/CREDIT/ELIGIBILITY/INVESTMENT_AUTHORITY'};
-  function expose(){window.__SANA_IMPACT_REFERENCE_HISTORY_LOADER__=Object.freeze({...state,loaded:[...state.loaded]})}
-  function priorReady(){const p=window.__SANA_IMPACT_REFERENCES_LOADER__;return p?.status==='READY'||p?.status==='FAILED'||p?.status==='FAILED_CONTRACT'||p?.status==='BLOCKED_DEPENDENCIES'}
-  function load(src){return new Promise((resolve,reject)=>{if(document.querySelector?.(`script[src="${src}"]`)){state.loaded.push(src);expose();resolve();return}const x=document.createElement('script');x.src=src;x.defer=true;x.dataset.sanaImpactReferenceHistoryV159='1';x.onload=()=>{state.loaded.push(src);expose();resolve()};x.onerror=()=>reject(new Error(src));document.head.appendChild(x)})}
-  async function start(){state.attempts++;expose();if(!priorReady()){if(state.attempts<40){state.status='WAITING_V158';expose();setTimeout(start,40);return}state.status='BLOCKED_V158';expose();return}state.status='LOADING';expose();try{for(const src of ASSETS)await load(src);state.status='READY';expose()}catch{state.status='FAILED';expose()}}
-  expose();if(document.readyState==='complete')queueMicrotask(start);else window.addEventListener('load',start,{once:true});
-})();
-'''
-              s=s.rstrip()+loader+'\n'
-              ledger.write_text(s)
-
-          sw=Path('apps/control-web/public/sana-v3-sw.js')
-          s=sw.read_text()
-          if "const CACHE='sana-v3-demo-shell-v159';" not in s:
-              old="const CACHE='sana-v3-demo-shell-v158';"
-              new="if(false){\nconst CACHE='sana-v3-demo-shell-v158';\n}\nconst CACHE='sana-v3-demo-shell-v159';"
-              assert s.count(old)==1, 'expected exactly one active v158 marker'
-              s=s.replace(old,new,1)
-          anchor="'/sana-v3-impact-references.js',"
-          assets="'/sana-v3-impact-references.js','/sana-v3-report-snapshot-impact-references.js','/sana-v3-cycle-impact-references.js','/sana-v3-due-diligence-impact-reference-gaps.js','/sana-v3-dataroom-impact-references.js',"
-          if '/sana-v3-report-snapshot-impact-references.js' not in s:
-              assert s.count(anchor)==1, 'impact references asset anchor missing/duplicated'
-              s=s.replace(anchor,assets,1)
-          comment='// v159 propagates Impact Source Registry reference integrity through content-minimized Snapshot, Cycle, Due Diligence and Data Room without live fallback, weighting, verification, certification, credit or investment authority.'
-          if comment not in s:
-              s=s.rstrip()+'\n'+comment+'\n'
-          sw.write_text(s)
-          PY
-          node --check apps/control-web/public/sana-v3-impact-ledger.js
+          set -euo pipefail
           node --check apps/control-web/public/sana-v3-sw.js
           grep -q "^const CACHE='sana-v3-demo-shell-v159';$" apps/control-web/public/sana-v3-sw.js
           test "$(grep -c "const CACHE='sana-v3-demo-shell-v158';" apps/control-web/public/sana-v3-sw.js)" -eq 1
-          grep -Fq '__SANA_IMPACT_REFERENCE_HISTORY_LOADER__' apps/control-web/public/sana-v3-impact-ledger.js
           for a in \
             /sana-v3-report-snapshot-impact-references.js \
             /sana-v3-cycle-impact-references.js \
             /sana-v3-due-diligence-impact-reference-gaps.js \
             /sana-v3-dataroom-impact-references.js; do test "$(grep -o "$a" apps/control-web/public/sana-v3-sw.js | wc -l)" -eq 1; done
       - name: Commit assembly if changed
+        shell: bash
         run: |
           if git diff --quiet; then exit 0; fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add apps/control-web/public/sana-v3-impact-ledger.js apps/control-web/public/sana-v3-sw.js
+          git add apps/control-web/public/sana-v3-sw.js
           git commit -m 'chore(sana): assemble impact shell v159'
           git push origin HEAD:demo/sana-impact-v159
