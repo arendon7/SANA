@@ -1,0 +1,34 @@
+name: SANA Demo Material References
+
+on:
+  push:
+    branches: [demo/sana-material-v156]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  material-references:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Material References V156
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-material-references.js
+          node scripts/validate-sana-material-references.mjs
+          grep -Fq 'LEGACY_REFERENCE_NOT_CAPTURED' apps/control-web/public/sana-v3-material-references.js
+          grep -Fq 'DECLARED_NON_CANONICAL_REFERENCE' apps/control-web/public/sana-v3-material-references.js
+          grep -Fq 'DESTINATION_LOT_REF' apps/control-web/public/sana-v3-material-references.js
+          grep -Fq 'COST_MATERIAL_EVENT_REF' apps/control-web/public/sana-v3-material-references.js
+          grep -Fq 'INVENTORY_MATERIAL_EVENT_REF' apps/control-web/public/sana-v3-material-references.js
+          grep -Fq 'CROSS_MATERIAL_REFERENCE' apps/control-web/public/sana-v3-material-references.js
+          grep -Fq 'FORWARD_REFERENCE' apps/control-web/public/sana-v3-material-references.js
+          grep -Fq 'SOURCE_REFERENCE_DECLARED ≠ ORIGIN_VERIFIED' apps/control-web/public/sana-v3-material-references.js
+          grep -Fq 'EVIDENCE_REFERENCE_DECLARED ≠ EVIDENCE_VERIFIED' apps/control-web/public/sana-v3-material-references.js
+          grep -Fq 'REFERENCE ≠ GENETIC_QUALITY ≠ PHYTOSANITARY_STATUS ≠ ICA_CERTIFICATION ≠ CREDIT_RISK ≠ ELIGIBILITY ≠ INVESTMENT_SIGNAL' apps/control-web/public/sana-v3-material-references.js
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|geneticIdentityVerified[[:space:]]*=[[:space:]]*true|phytosanitaryVerified[[:space:]]*=[[:space:]]*true|icaCertified[[:space:]]*=[[:space:]]*true|creditApproved|investmentApproved|inventoryExecuted|accountingEntryCreated' apps/control-web/public/sana-v3-material-references.js
