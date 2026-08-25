@@ -3,6 +3,8 @@ name: TEMP SANA Circularity V155 Assembly
 on:
   push:
     branches: [demo/sana-circularity-v155]
+  pull_request:
+    branches: [demo/sana-functional-auth-v1]
 
 permissions:
   contents: write
