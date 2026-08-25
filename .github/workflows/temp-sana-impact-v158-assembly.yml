@@ -1,0 +1,51 @@
+name: TEMP SANA Impact V158 Assembly
+
+on:
+  push:
+    branches: [demo/sana-impact-v158]
+
+permissions:
+  contents: write
+
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: demo/sana-impact-v158
+      - name: Assemble v158 shell
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('apps/control-web/public/sana-v3-sw.js')
+          s=p.read_text()
+          if "const CACHE='sana-v3-demo-shell-v158';" not in s:
+              old="const CACHE='sana-v3-demo-shell-v157';"
+              new="if(false){\nconst CACHE='sana-v3-demo-shell-v157';\n}\nconst CACHE='sana-v3-demo-shell-v158';"
+              assert s.count(old)==1, 'expected exactly one active v157 marker'
+              s=s.replace(old,new,1)
+          anchor="'/sana-v3-impact-ledger.js',"
+          assets="'/sana-v3-impact-ledger.js','/sana-v3-impact-references.js',"
+          if '/sana-v3-impact-references.js' not in s:
+              assert s.count(anchor)==1, 'impact ledger asset anchor missing/duplicated'
+              s=s.replace(anchor,assets,1)
+          comment='// v158 validates explicit Impact Source Registry references without changing methodology, history, verification, certification, credit, eligibility or investment authority.'
+          if comment not in s:
+              anchor_comment='// v157 propagates minimized Material reference integrity through Snapshot, Cycle, DD and Data Room without live fallback, retrofill, weighting, certification, credit or investment authority.'
+              assert s.count(anchor_comment)==1, 'v157 comment anchor missing/duplicated'
+              s=s.replace(anchor_comment,anchor_comment+'\n'+comment,1)
+          p.write_text(s)
+          PY
+          node --check apps/control-web/public/sana-v3-sw.js
+          grep -q "^const CACHE='sana-v3-demo-shell-v158';$" apps/control-web/public/sana-v3-sw.js
+          test "$(grep -c "const CACHE='sana-v3-demo-shell-v157';" apps/control-web/public/sana-v3-sw.js)" -eq 1
+          test "$(grep -o '/sana-v3-impact-references.js' apps/control-web/public/sana-v3-sw.js | wc -l)" -eq 1
+      - name: Commit assembly if changed
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/control-web/public/sana-v3-sw.js
+          git commit -m 'chore(sana): assemble impact shell v158'
+          git push origin HEAD:demo/sana-impact-v158
