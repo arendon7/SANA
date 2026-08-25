@@ -32,3 +32,36 @@
   }
   expose();if(document.readyState==='complete')queueMicrotask(start);else window.addEventListener('load',start,{once:true});
 })();
+
+// V153 loader: snapshot-only Capture Sync reference history; no retrofill, source verification, weighting or authority.
+(() => {
+  'use strict';
+  if(typeof window==='undefined'||typeof document==='undefined'||typeof document.createElement!=='function')return;
+  const VERSION='V153';
+  const ASSETS=[
+    '/sana-v3-report-snapshot-capture-sync-references.js',
+    '/sana-v3-cycle-capture-sync-references.js',
+    '/sana-v3-due-diligence-capture-sync-reference-gaps.js',
+    '/sana-v3-dataroom-capture-sync-references.js'
+  ];
+  const state={version:VERSION,status:'WAITING',attempts:0,loaded:[],integrity:'SNAPSHOT_ONLY_REFERENCE_HISTORY · NO_RETROFILL · NON_WEIGHTED · REFERENCE ≠ VERIFIED_SYNC/SOURCE ≠ DATA_COMPLETENESS/AGRONOMIC/CREDIT/ELIGIBILITY/INVESTMENT_AUTHORITY'};
+  function expose(){window.__SANA_CAPTURE_SYNC_REFERENCE_HISTORY_LOADER__=Object.freeze({...state,loaded:[...state.loaded]})}
+  function parentReady(){const p=window.__SANA_CAPTURE_SYNC_REFERENCES_LOADER__;return window.__SANA_CAPTURE_SYNC_LEDGER__?.referenceVersion==='V152'&&(p?.status==='READY'||p?.status==='FAILED')}
+  function alreadyReady(){return window.__SANA_REPORT_SNAPSHOT_CAPTURE_SYNC_REFERENCES__&&window.__SANA_CYCLE_CAPTURE_SYNC_REFERENCES__&&window.__SANA_DD_CAPTURE_SYNC_REFERENCE_GAPS__&&window.__SANA_DATAROOM_CAPTURE_SYNC_REFERENCES__}
+  function loadAt(i){
+    if(i>=ASSETS.length){state.status=alreadyReady()?'READY':'FAILED_CONTRACT';expose();return}
+    const src=ASSETS[i];
+    if(document.querySelector?.(`script[src="${src}"]`)){state.loaded.push(src);expose();loadAt(i+1);return}
+    state.status='LOADING';expose();const s=document.createElement('script');s.src=src;s.defer=true;s.dataset.sanaCaptureSyncReferenceHistoryV153=String(i+1);
+    s.onload=()=>{state.loaded.push(src);expose();loadAt(i+1)};
+    s.onerror=()=>{state.status='FAILED';state.failedAsset=src;expose()};
+    document.head.appendChild(s);
+  }
+  function start(){
+    state.attempts++;expose();
+    if(alreadyReady()){state.status='READY';state.loaded=[...ASSETS];expose();return}
+    if(!parentReady()){if(state.attempts<25){state.status='WAITING_V152';expose();setTimeout(start,40);return}state.status='BLOCKED_DEPENDENCIES';expose();return}
+    loadAt(0);
+  }
+  expose();if(document.readyState==='complete')queueMicrotask(start);else window.addEventListener('load',start,{once:true});
+})();
