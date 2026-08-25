@@ -27,7 +27,9 @@ assert.equal(api.referenceVersion,'V156');
 
 const good=api.forIndicator('soil-om');
 assert.equal(good.referenceState,'CAPTURED_V156');
-assert.deepEqual(good.referenceCoverage,{linked:1,total:1,percent:100});
+assert.equal(good.referenceCoverage.linked,1);
+assert.equal(good.referenceCoverage.total,1);
+assert.equal(good.referenceCoverage.percent,100);
 assert.equal(good.referenceIssues,0);
 assert.equal(good.referenceRows[0].reference.status,'LINKED');
 assert.equal(good.referenceRows[0].reference.target.id,'SRC-FARM');
