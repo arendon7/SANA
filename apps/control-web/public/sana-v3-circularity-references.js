@@ -88,3 +88,17 @@
 
   window.__SANA_CIRCULARITY_LEDGER__=Object.freeze({...base,cases,forCase,forLot,summary,referenceVersion:VERSION,integrity:`${base.integrity||''} · ${INTEGRITY}`});
 })();
+
+// V155 loader: historical Circularity reference provenance only; snapshot-only downstream projections.
+(() => {
+  'use strict';
+  if(typeof window==='undefined'||typeof document==='undefined'||typeof document.createElement!=='function')return;
+  const VERSION='V155';
+  const ASSETS=['/sana-v3-report-snapshot-circularity-references.js','/sana-v3-cycle-circularity-references.js','/sana-v3-due-diligence-circularity-reference-gaps.js','/sana-v3-dataroom-circularity-references.js'];
+  const state={version:VERSION,status:'WAITING',attempts:0,integrity:'SNAPSHOT_ONLY · CONTENT_MINIMIZED · NON_WEIGHTED · NO_RETROFILL · NO_EVIDENCE/DISPOSITION/RECOVERY/IMPACT/REGULATORY/CREDIT/INVESTMENT_AUTHORITY'};
+  function expose(){window.__SANA_CIRCULARITY_REFERENCE_HISTORY_LOADER__=Object.freeze({...state})}
+  function ready(){return window.__SANA_CIRCULARITY_LEDGER__?.referenceVersion==='V154'}
+  function inject(src){return new Promise((resolve,reject)=>{if(document.querySelector?.(`script[src="${src}"]`)){resolve();return}const e=document.createElement('script');e.src=src;e.defer=true;e.dataset.sanaCircularityReferenceHistoryV155='1';e.onload=resolve;e.onerror=reject;document.head.appendChild(e)})}
+  async function start(){state.attempts++;expose();if(state.status==='READY'||state.status==='LOADING')return;if(!ready()){if(state.attempts<25){state.status='WAITING_DEPENDENCIES';expose();setTimeout(start,40);return}state.status='BLOCKED_DEPENDENCIES';expose();return}state.status='LOADING';expose();try{for(const src of ASSETS)await inject(src);state.status='READY'}catch{state.status='FAILED'}expose()}
+  expose();if(document.readyState==='complete')queueMicrotask(start);else window.addEventListener('load',start,{once:true});
+})();
