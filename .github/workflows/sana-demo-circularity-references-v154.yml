@@ -6,7 +6,7 @@ on:
     branches: [demo/sana-circularity-v154]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   circularity-references-v154:
@@ -47,9 +47,56 @@ jobs:
           if(!loader.includes("const VERSION='V154',SRC='/sana-v3-circularity-references.js'"))throw new Error('V154 loader contract missing');
           if(!loader.includes('__SANA_CIRCULARITY_REFERENCES_LOADER__'))throw new Error('V154 loader state missing');
           if(!loader.includes("__SANA_CIRCULARITY_LEDGER__?.schema==='SANA_CIRCULARITY_LEDGER_V1'"))throw new Error('Circularity dependency guard missing');
-          if((sw.match(/^const CACHE='sana-v3-demo-shell-v154';$/gm)||[]).length!==1)throw new Error('v154 active cache marker invalid');
+          const active=(sw.match(/^const CACHE='sana-v3-demo-shell-v154';$/gm)||[]).length===1;
+          const historical=sw.includes("if(false){\nconst CACHE='sana-v3-demo-shell-v154';\n}");
+          if(!active&&!historical)throw new Error('v154 cache marker must remain active or historical');
           if(!sw.includes("if(false){\nconst CACHE='sana-v3-demo-shell-v153';\n}"))throw new Error('v153 historical marker missing');
           if((sw.split('/sana-v3-circularity-references.js').length-1)!==1)throw new Error('V154 SW asset count invalid');
           if(!sw.includes('// v154 validates explicit Circularity EVIDENCE.supports references'))throw new Error('v154 provenance marker missing');
           NODE
           ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|canonicalMutated[[:space:]]*[:=][[:space:]]*true|productionExecutionAvailable[[:space:]]*[:=][[:space:]]*true|verifiedDisposition[[:space:]]*[:=][[:space:]]*true|certifiedRecovery[[:space:]]*[:=][[:space:]]*true|environmentalImpactVerified[[:space:]]*[:=][[:space:]]*true|regulatoryClassificationVerified[[:space:]]*[:=][[:space:]]*true|creditApproved|eligibilityApproved|investmentApproved' apps/control-web/public/sana-v3-circularity-references.js apps/control-web/public/sana-v3-cycle-circularity-provenance.js
+
+  assemble-v155:
+    needs: circularity-references-v154
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: demo/sana-circularity-v155
+      - name: Assemble v155 service worker
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('apps/control-web/public/sana-v3-sw.js')
+          s=p.read_text()
+          if "const CACHE='sana-v3-demo-shell-v155';" not in s:
+              old="const CACHE='sana-v3-demo-shell-v154';"
+              assert s.count(old)==1, 'expected exactly one active v154 marker'
+              s=s.replace(old,"if(false){\nconst CACHE='sana-v3-demo-shell-v154';\n}\nconst CACHE='sana-v3-demo-shell-v155';",1)
+          anchor="'/sana-v3-circularity-references.js',"
+          assets="'/sana-v3-circularity-references.js','/sana-v3-report-snapshot-circularity-references.js','/sana-v3-cycle-circularity-references.js','/sana-v3-due-diligence-circularity-reference-gaps.js','/sana-v3-dataroom-circularity-references.js',"
+          if '/sana-v3-report-snapshot-circularity-references.js' not in s:
+              assert s.count(anchor)==1, 'circularity reference asset anchor missing/duplicated'
+              s=s.replace(anchor,assets,1)
+          comment='// v155 propagates minimized Circularity reference integrity through Snapshot, Cycle, DD and Data Room without live fallback, retrofill, weighting, environmental, regulatory, credit or investment authority.'
+          if comment not in s:
+              anchor_comment='// v154 validates explicit Circularity EVIDENCE.supports references without evidence, receiver, recovery, disposition, impact, regulatory, credit or investment authority.'
+              assert s.count(anchor_comment)==1, 'v154 comment anchor missing/duplicated'
+              s=s.replace(anchor_comment,anchor_comment+'\n'+comment,1)
+          p.write_text(s)
+          PY
+          node --check apps/control-web/public/sana-v3-sw.js
+          grep -q "^const CACHE='sana-v3-demo-shell-v155';$" apps/control-web/public/sana-v3-sw.js
+          test "$(grep -c "const CACHE='sana-v3-demo-shell-v154';" apps/control-web/public/sana-v3-sw.js)" -eq 1
+          for a in /sana-v3-report-snapshot-circularity-references.js /sana-v3-cycle-circularity-references.js /sana-v3-due-diligence-circularity-reference-gaps.js /sana-v3-dataroom-circularity-references.js; do test "$(grep -o "$a" apps/control-web/public/sana-v3-sw.js | wc -l)" -eq 1; done
+      - name: Commit assembly if changed
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/control-web/public/sana-v3-sw.js
+          git commit -m 'chore(sana): assemble circularity shell v155'
+          git push origin HEAD:demo/sana-circularity-v155
