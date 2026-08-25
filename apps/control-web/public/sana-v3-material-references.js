@@ -1,0 +1,39 @@
+(() => {
+  'use strict';
+  const VERSION='V156';
+  const SCHEMA='SANA_MATERIAL_CHAIN_V1';
+  const INTEGRITY='MATERIAL_REFERENCE ≠ MATERIAL_IDENTITY_VERIFICATION · DESTINATION_REFERENCE ≠ TRANSPLANT_EXECUTION · MATERIAL_EVENT_REFERENCE ≠ COST_OR_INVENTORY_VALIDITY · SOURCE_REFERENCE_DECLARED ≠ ORIGIN_VERIFIED · EVIDENCE_REFERENCE_DECLARED ≠ EVIDENCE_VERIFIED · RESPONSIBLE_DECLARED ≠ IDENTITY_VERIFIED · REFERENCE ≠ GENETIC_QUALITY ≠ PHYTOSANITARY_STATUS ≠ ICA_CERTIFICATION ≠ CREDIT_RISK ≠ ELIGIBILITY ≠ INVESTMENT_SIGNAL';
+  const base=window.__SANA_MATERIAL_CHAIN__;
+  if(!base?.all||base.schema!==SCHEMA)return;
+
+  const records=()=>Array.isArray(storage?.records)?storage.records:[];
+  const values=r=>r?.values||{};
+  const tagged=r=>values(r).referenceVersion===VERSION;
+  const materialIds=()=>new Set((DEMO?.material||[]).map(x=>x.id).filter(Boolean));
+  const lotIds=()=>new Set((DEMO?.lots||[]).map(x=>x.id).filter(Boolean));
+  const chains=()=>base.all();
+  const eventIndex=()=>{const m=new Map();for(const c of chains())for(const e of c.events||[])m.set(e.id,{event:e,materialId:c.identity?.id||e.materialId||'',lot:c.target||c.identity?.targetLot||''});return m};
+  const time=v=>{const n=Date.parse(v||'');return Number.isFinite(n)?n:null};
+  function ref(source,kind,targetId,status,target=null,extra={}){return {source:{id:source.id||'',type:source.type||'',materialId:source.materialId||'',observedAt:source.observedAt||''},kind,targetId:targetId||'',status,target:target?{id:target.id||'',kind:target.kind||'',materialId:target.materialId||'',lot:target.lot||''}:null,...extra}}
+  function nonCanonical(source,kind,value){return {sourceId:source.id||'',sourceType:source.type||'',kind,valueCaptured:Boolean(value),status:'DECLARED_NON_CANONICAL_REFERENCE'}}
+  function sourceRowsFor(materialId){
+    const mids=materialIds(),lots=lotIds(),events=eventIndex(),rows=[],declared=[];
+    const materialEvents=records().filter(r=>r.type==='material-lifecycle-event'&&tagged(r)&&values(r).materialId===materialId);
+    for(const r of materialEvents){const v=values(r),src={id:r.id,type:r.type,materialId,observedAt:v.date||r.createdAt||''};if(v.destinationLot){const ok=lots.has(v.destinationLot);rows.push(ref(src,'DESTINATION_LOT_REF',v.destinationLot,ok?'LINKED':'MISSING_TARGET',ok?{id:v.destinationLot,kind:'DEMO_LOT',lot:v.destinationLot}:null))}if(v.sourceRef)declared.push(nonCanonical(src,'SOURCE_REFERENCE_DECLARED',v.sourceRef));if(v.evidenceRef)declared.push(nonCanonical(src,'EVIDENCE_REFERENCE_DECLARED',v.evidenceRef))}
+    const rels=records().filter(r=>['economics-cost','inventory-movement'].includes(r.type)&&tagged(r)&&values(r).materialId===materialId);
+    for(const r of rels){const v=values(r),src={id:r.id,type:r.type,materialId,observedAt:v.date||r.createdAt||''};if(v.materialId){const ok=mids.has(v.materialId);rows.push(ref(src,'MATERIAL_ID_REF',v.materialId,ok?'LINKED':'MISSING_TARGET',ok?{id:v.materialId,kind:'DEMO_MATERIAL',materialId:v.materialId}:null))}if(v.materialEventId){const target=events.get(v.materialEventId);let status='LINKED';if(!target)status='MISSING_TARGET';else if(v.materialId&&target.materialId!==v.materialId)status='CROSS_MATERIAL_REFERENCE';else{const a=time(src.observedAt),b=time(target.event?.date);if(a!==null&&b!==null&&b>a)status='FORWARD_REFERENCE'}rows.push(ref(src,r.type==='economics-cost'?'COST_MATERIAL_EVENT_REF':'INVENTORY_MATERIAL_EVENT_REF',v.materialEventId,status,target?{id:target.event.id,kind:'MATERIAL_EVENT',materialId:target.materialId,lot:target.lot}:null,{sourceMaterialId:v.materialId||'',targetMaterialId:target?.materialId||''}))}}
+    return {taggedCount:materialEvents.length+rels.length,rows,declared};
+  }
+  function decorate(c){const materialId=c.identity?.id||'',r=sourceRowsFor(materialId),issues=r.rows.filter(x=>x.status!=='LINKED').length,linked=r.rows.length-issues,total=r.rows.length;return {...c,referenceVersion:VERSION,referenceState:r.taggedCount?'CAPTURED':'LEGACY_REFERENCE_NOT_CAPTURED',referenceCoverage:{total,linked,issues,percent:total?Math.round(linked/total*100):100},referenceRows:r.rows,referenceIssues:issues,declaredReferenceRows:r.declared,declaredNonCanonicalReferences:r.declared.length,referenceIntegrity:INTEGRITY}}
+  function all(){return base.all().map(decorate)}
+  function forMaterial(id){const c=base.forMaterial?.(id);return c?decorate(c):null}
+  function forLot(lotId){return all().filter(c=>c.target===lotId||(c.events||[]).some(e=>e.destinationLot===lotId||e.to===lotId))}
+  function summary(){const a=all();return {schema:SCHEMA,referenceVersion:VERSION,chains:a.length,referenceCaptured:a.filter(c=>c.referenceState==='CAPTURED').length,legacyReferenceNotCaptured:a.filter(c=>c.referenceState==='LEGACY_REFERENCE_NOT_CAPTURED').length,referenceExpected:a.reduce((n,c)=>n+c.referenceCoverage.total,0),referenceLinked:a.reduce((n,c)=>n+c.referenceCoverage.linked,0),referenceIssues:a.reduce((n,c)=>n+c.referenceIssues,0),declaredNonCanonical:a.reduce((n,c)=>n+c.declaredNonCanonicalReferences,0),integrity:INTEGRITY}}
+  const wrapped=Object.freeze({...base,referenceVersion:VERSION,all,forMaterial,forLot,summary,integrity:`${base.integrity||'MATERIAL_CHAIN_DEMO'} · ${INTEGRITY}`});
+  window.__SANA_MATERIAL_CHAIN__=wrapped;
+
+  if(typeof views!=='undefined'&&views.material){const prior=views.material;views.material=()=>{const html=prior(),s=summary();const panel=`<section class="card" style="margin-top:14px"><div class="card-head"><div><p class="kicker">MATERIAL VEGETAL · REFERENCIAS V156</p><h2>Vínculos internos explícitos y verificables</h2><p>Solo capturas V156 entran al denominador. Legacy permanece válido y las referencias externas siguen declarativas.</p></div><span class="status ${s.referenceIssues?'danger':'teal'}">${s.referenceIssues} ISSUE(S)</span></div><div class="card-body"><div class="grid metrics">${metric('Refs. esperadas',s.referenceExpected,'solo vínculos canónicos V156')}${metric('Enlazadas',s.referenceLinked,'existencia + alcance')}${metric('Legacy',s.legacyReferenceNotCaptured,'no retrovalidado')}${metric('Refs. declaradas',s.declaredNonCanonical,'origen/evidencia no verificados')}</div><div class="section-note">${esc(INTEGRITY)}</div></div></section>`;const marker='<footer class="footer">',at=html.lastIndexOf(marker);return at<0?html+panel:html.slice(0,at)+panel+html.slice(at)}}
+
+  function mark(form){if(!form||form.querySelector('[name="referenceVersion"]'))return;const material=form.querySelector('[name="materialId"]'),event=form.querySelector('[name="materialEventId"]'),dest=form.querySelector('[name="destinationLot"]');if(!material&&!event&&!dest)return;const input=document.createElement('input');input.type='hidden';input.name='referenceVersion';input.value=VERSION;form.appendChild(input)}
+  if(typeof document!=='undefined'&&document.addEventListener){document.addEventListener('click',e=>{if(e.target.closest?.('[data-material-chain-event],[data-econ-cost],[data-inventory-movement]'))queueMicrotask(()=>mark(document.getElementById('modal-form')))},true)}
+})();
