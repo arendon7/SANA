@@ -6,7 +6,7 @@ on:
     branches: [demo/sana-circularity-v155]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   circularity-reference-history-v155:
@@ -35,3 +35,70 @@ jobs:
           grep -Fq 'DECLARED_NON_CANONICAL_REFERENCE ≠ GAP' apps/control-web/public/sana-v3-due-diligence-circularity-reference-gaps.js
           ! grep -Eq '__SANA_CIRCULARITY_LEDGER__|storage\.?|localStorage' apps/control-web/public/sana-v3-dataroom-circularity-references.js apps/control-web/public/sana-v3-cycle-circularity-references.js apps/control-web/public/sana-v3-due-diligence-circularity-reference-gaps.js
           ! grep -Eiq 'canonicalMutated[[:space:]]*[:=][[:space:]]*true|productionExecutionAvailable[[:space:]]*[:=][[:space:]]*true|verifiedDisposition[[:space:]]*[:=][[:space:]]*true|certifiedRecovery[[:space:]]*[:=][[:space:]]*true|environmentalImpactVerified[[:space:]]*[:=][[:space:]]*true|regulatoryClassificationVerified[[:space:]]*[:=][[:space:]]*true|creditApproved|eligibilityApproved|investmentApproved' apps/control-web/public/sana-v3-*circularity-reference*.js
+
+  assemble-v155:
+    needs: circularity-reference-history-v155
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: demo/sana-circularity-v155
+      - name: Assemble loader and shell
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          refs=Path('apps/control-web/public/sana-v3-circularity-references.js')
+          s=refs.read_text()
+          if '__SANA_CIRCULARITY_REFERENCE_HISTORY_LOADER__' not in s:
+              s+=r'''
+
+// V155 loader: historical Circularity reference provenance only; snapshot-only downstream projections.
+(() => {
+  'use strict';
+  if(typeof window==='undefined'||typeof document==='undefined'||typeof document.createElement!=='function')return;
+  const VERSION='V155';
+  const ASSETS=['/sana-v3-report-snapshot-circularity-references.js','/sana-v3-cycle-circularity-references.js','/sana-v3-due-diligence-circularity-reference-gaps.js','/sana-v3-dataroom-circularity-references.js'];
+  const state={version:VERSION,status:'WAITING',attempts:0,integrity:'SNAPSHOT_ONLY · CONTENT_MINIMIZED · NON_WEIGHTED · NO_RETROFILL · NO_EVIDENCE/DISPOSITION/RECOVERY/IMPACT/REGULATORY/CREDIT/INVESTMENT_AUTHORITY'};
+  function expose(){window.__SANA_CIRCULARITY_REFERENCE_HISTORY_LOADER__=Object.freeze({...state})}
+  function ready(){return window.__SANA_CIRCULARITY_LEDGER__?.referenceVersion==='V154'}
+  function inject(src){return new Promise((resolve,reject)=>{if(document.querySelector?.(`script[src="${src}"]`)){resolve();return}const e=document.createElement('script');e.src=src;e.defer=true;e.dataset.sanaCircularityReferenceHistoryV155='1';e.onload=resolve;e.onerror=reject;document.head.appendChild(e)})}
+  async function start(){state.attempts++;expose();if(state.status==='READY'||state.status==='LOADING')return;if(!ready()){if(state.attempts<25){state.status='WAITING_DEPENDENCIES';expose();setTimeout(start,40);return}state.status='BLOCKED_DEPENDENCIES';expose();return}state.status='LOADING';expose();try{for(const src of ASSETS)await inject(src);state.status='READY'}catch{state.status='FAILED'}expose()}
+  expose();if(document.readyState==='complete')queueMicrotask(start);else window.addEventListener('load',start,{once:true});
+})();
+'''
+              refs.write_text(s)
+          sw=Path('apps/control-web/public/sana-v3-sw.js')
+          s=sw.read_text()
+          if "const CACHE='sana-v3-demo-shell-v155';" not in s:
+              old="const CACHE='sana-v3-demo-shell-v154';"
+              assert s.count(old)==1, 'expected exactly one active v154 marker'
+              s=s.replace(old,"if(false){\nconst CACHE='sana-v3-demo-shell-v154';\n}\nconst CACHE='sana-v3-demo-shell-v155';",1)
+          anchor="'/sana-v3-circularity-references.js',"
+          assets="'/sana-v3-circularity-references.js','/sana-v3-report-snapshot-circularity-references.js','/sana-v3-cycle-circularity-references.js','/sana-v3-due-diligence-circularity-reference-gaps.js','/sana-v3-dataroom-circularity-references.js',"
+          if '/sana-v3-report-snapshot-circularity-references.js' not in s:
+              assert s.count(anchor)==1, 'circularity reference asset anchor missing/duplicated'
+              s=s.replace(anchor,assets,1)
+          comment='// v155 propagates minimized Circularity reference integrity through Snapshot, Cycle, DD and Data Room without live fallback, retrofill, weighting, environmental, regulatory, credit or investment authority.'
+          if comment not in s:
+              anchor_comment='// v154 validates explicit Circularity EVIDENCE.supports references without evidence, receiver, recovery, disposition, impact, regulatory, credit or investment authority.'
+              assert s.count(anchor_comment)==1, 'v154 comment anchor missing/duplicated'
+              s=s.replace(anchor_comment,anchor_comment+'\n'+comment,1)
+          sw.write_text(s)
+          PY
+          node --check apps/control-web/public/sana-v3-circularity-references.js
+          node --check apps/control-web/public/sana-v3-sw.js
+          grep -q "^const CACHE='sana-v3-demo-shell-v155';$" apps/control-web/public/sana-v3-sw.js
+          test "$(grep -c "const CACHE='sana-v3-demo-shell-v154';" apps/control-web/public/sana-v3-sw.js)" -eq 1
+          grep -Fq '__SANA_CIRCULARITY_REFERENCE_HISTORY_LOADER__' apps/control-web/public/sana-v3-circularity-references.js
+          for a in /sana-v3-report-snapshot-circularity-references.js /sana-v3-cycle-circularity-references.js /sana-v3-due-diligence-circularity-reference-gaps.js /sana-v3-dataroom-circularity-references.js; do test "$(grep -o "$a" apps/control-web/public/sana-v3-sw.js | wc -l)" -eq 1; done
+      - name: Commit assembly if changed
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/control-web/public/sana-v3-circularity-references.js apps/control-web/public/sana-v3-sw.js
+          git commit -m 'chore(sana): assemble circularity shell v155'
+          git push origin HEAD:demo/sana-circularity-v155
