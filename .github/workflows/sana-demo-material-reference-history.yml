@@ -1,0 +1,40 @@
+name: SANA Demo Material Reference History
+
+on:
+  push:
+    branches: [demo/sana-material-v157]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  material-reference-history:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Material Reference History V157
+        run: |
+          set -euo pipefail
+          for f in \
+            apps/control-web/public/sana-v3-report-snapshot-material-references.js \
+            apps/control-web/public/sana-v3-cycle-material-references.js \
+            apps/control-web/public/sana-v3-due-diligence-material-reference-gaps.js \
+            apps/control-web/public/sana-v3-dataroom-material-references.js; do node --check "$f"; done
+          node scripts/validate-sana-material-reference-history.mjs
+          grep -Fq 'CONTENT_MINIMIZED' apps/control-web/public/sana-v3-report-snapshot-material-references.js
+          grep -Fq 'NO_NONCANONICAL_VALUES' apps/control-web/public/sana-v3-report-snapshot-material-references.js
+          grep -Fq 'NO_RICH_MATERIAL_PAYLOAD' apps/control-web/public/sana-v3-report-snapshot-material-references.js
+          grep -Fq 'NON_WEIGHTED' apps/control-web/public/sana-v3-cycle-material-references.js
+          grep -Fq 'ORPHAN_SOURCE_NEVER_ASSIGNED_BY_TARGET' apps/control-web/public/sana-v3-cycle-material-references.js
+          grep -Fq 'NOT_CAPTURED_OR_LEGACY ≠ GAP' apps/control-web/public/sana-v3-due-diligence-material-reference-gaps.js
+          grep -Fq 'DECLARED_NON_CANONICAL_REFERENCE ≠ GAP' apps/control-web/public/sana-v3-due-diligence-material-reference-gaps.js
+          grep -Fq 'ROW_LEVEL_STRUCTURAL_DIFF' apps/control-web/public/sana-v3-dataroom-material-references.js
+          ! grep -Eiq '__SANA_MATERIAL_CHAIN__|localStorage|storage[?]*[.]?records' \
+            apps/control-web/public/sana-v3-cycle-material-references.js \
+            apps/control-web/public/sana-v3-due-diligence-material-reference-gaps.js \
+            apps/control-web/public/sana-v3-dataroom-material-references.js
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|geneticIdentityVerified[[:space:]]*=[[:space:]]*true|phytosanitaryVerified[[:space:]]*=[[:space:]]*true|icaCertified[[:space:]]*=[[:space:]]*true|creditApproved|investmentApproved|inventoryExecuted|accountingEntryCreated' apps/control-web/public/sana-v3-*material-reference*.js
