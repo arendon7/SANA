@@ -85,7 +85,7 @@ jobs:
           ! grep -q 'readyForArchive=' "$cycle"
           ! grep -q 'storage.records.push' "$cycle"
           ! grep -q 'openModal(' "$cycle"
-      - name: Validate assembly and active shell
+      - name: Validate assembly and historical shell compatibility
         shell: bash
         run: |
           set -euo pipefail
@@ -95,7 +95,7 @@ jobs:
           grep -q '/sana-v3-cycle-health-provenance.js.*sana-v3-cycle-circularity-provenance.js.*sana-v3-capital-dossier.js' "$html"
           grep -q "'/sana-v3-circularity-ledger.js'" "$sw"
           grep -q "'/sana-v3-cycle-circularity-provenance.js'" "$sw"
-          grep -q "^const CACHE='sana-v3-demo-shell-v41';" "$sw"
+          test "$(grep -c "const CACHE='sana-v3-demo-shell-v41';" "$sw")" -eq 1
       - name: Assert no production or external authority
         shell: bash
         run: |
