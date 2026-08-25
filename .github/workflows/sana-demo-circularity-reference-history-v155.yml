@@ -1,0 +1,37 @@
+name: SANA Demo Circularity Reference History V155
+
+on:
+  pull_request:
+  push:
+    branches: [demo/sana-circularity-v155]
+
+permissions:
+  contents: read
+
+jobs:
+  circularity-reference-history-v155:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Circularity Reference History V155 core
+        shell: bash
+        run: |
+          set -euo pipefail
+          for f in \
+            apps/control-web/public/sana-v3-report-snapshot-circularity-references.js \
+            apps/control-web/public/sana-v3-dataroom-circularity-references.js \
+            apps/control-web/public/sana-v3-cycle-circularity-references.js \
+            apps/control-web/public/sana-v3-due-diligence-circularity-reference-gaps.js; do node --check "$f"; done
+          node scripts/validate-sana-circularity-reference-provenance-v155.mjs
+          grep -Fq 'ADDITIVE_V155 · CIRCULARITY_REFERENCE_PROVENANCE' apps/control-web/public/sana-v3-report-snapshot-circularity-references.js
+          grep -Fq 'COUNT_AND_KIND_ONLY · VALUE_NOT_EXPOSED' apps/control-web/public/sana-v3-report-snapshot-circularity-references.js
+          grep -Fq 'NO_RETROFILL' apps/control-web/public/sana-v3-report-snapshot-circularity-references.js
+          grep -Fq 'ROW_LEVEL_STRUCTURAL_DIFF' apps/control-web/public/sana-v3-dataroom-circularity-references.js
+          grep -Fq 'NON_WEIGHTED' apps/control-web/public/sana-v3-cycle-circularity-references.js
+          grep -Fq 'NOT_CAPTURED_OR_LEGACY ≠ GAP' apps/control-web/public/sana-v3-due-diligence-circularity-reference-gaps.js
+          grep -Fq 'DECLARED_NON_CANONICAL_REFERENCE ≠ GAP' apps/control-web/public/sana-v3-due-diligence-circularity-reference-gaps.js
+          ! grep -Eq '__SANA_CIRCULARITY_LEDGER__|storage\.?|localStorage' apps/control-web/public/sana-v3-dataroom-circularity-references.js apps/control-web/public/sana-v3-cycle-circularity-references.js apps/control-web/public/sana-v3-due-diligence-circularity-reference-gaps.js
+          ! grep -Eiq 'canonicalMutated[[:space:]]*[:=][[:space:]]*true|productionExecutionAvailable[[:space:]]*[:=][[:space:]]*true|verifiedDisposition[[:space:]]*[:=][[:space:]]*true|certifiedRecovery[[:space:]]*[:=][[:space:]]*true|environmentalImpactVerified[[:space:]]*[:=][[:space:]]*true|regulatoryClassificationVerified[[:space:]]*[:=][[:space:]]*true|creditApproved|eligibilityApproved|investmentApproved' apps/control-web/public/sana-v3-*circularity-reference*.js
