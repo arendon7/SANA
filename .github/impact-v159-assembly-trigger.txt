@@ -1,3 +1,0 @@
-temporary assembly trigger for V159; remove before promotion
-retry: 2026-08-25
-post-assembly-validation: 2026-08-25
