@@ -81,3 +81,17 @@
   }
   expose();if(document.readyState==='complete')queueMicrotask(start);else window.addEventListener('load',start,{once:true});
 })();
+
+// V159 loader: historical Impact reference provenance only; snapshot history remains separate from Impact values/methodology.
+(() => {
+  'use strict';
+  if(typeof window==='undefined'||typeof document==='undefined'||typeof document.createElement!=='function')return;
+  const VERSION='V159';
+  const ASSETS=['/sana-v3-report-snapshot-impact-references.js','/sana-v3-cycle-impact-references.js','/sana-v3-due-diligence-impact-reference-gaps.js','/sana-v3-dataroom-impact-references.js'];
+  const state={version:VERSION,status:'WAITING_V158',attempts:0,loaded:[],integrity:'SNAPSHOT_REFERENCE_HISTORY_ONLY · NO_RICH_IMPACT_PAYLOAD · NO_LIVE_FALLBACK_IN_HISTORY · NON_WEIGHTED · NO_VERIFICATION/CERTIFICATION/CREDIT/ELIGIBILITY/INVESTMENT_AUTHORITY'};
+  function expose(){window.__SANA_IMPACT_REFERENCE_HISTORY_LOADER__=Object.freeze({...state,loaded:[...state.loaded]})}
+  function priorReady(){const p=window.__SANA_IMPACT_REFERENCES_LOADER__;return p?.status==='READY'||p?.status==='FAILED'||p?.status==='FAILED_CONTRACT'||p?.status==='BLOCKED_DEPENDENCIES'}
+  function load(src){return new Promise((resolve,reject)=>{if(document.querySelector?.(`script[src="${src}"]`)){state.loaded.push(src);expose();resolve();return}const x=document.createElement('script');x.src=src;x.defer=true;x.dataset.sanaImpactReferenceHistoryV159='1';x.onload=()=>{state.loaded.push(src);expose();resolve()};x.onerror=()=>reject(new Error(src));document.head.appendChild(x)})}
+  async function start(){state.attempts++;expose();if(!priorReady()){if(state.attempts<40){state.status='WAITING_V158';expose();setTimeout(start,40);return}state.status='BLOCKED_V158';expose();return}state.status='LOADING';expose();try{for(const src of ASSETS)await load(src);state.status='READY';expose()}catch{state.status='FAILED';expose()}}
+  expose();if(document.readyState==='complete')queueMicrotask(start);else window.addEventListener('load',start,{once:true});
+})();
