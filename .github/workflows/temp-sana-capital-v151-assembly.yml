@@ -3,6 +3,7 @@ name: TEMP SANA Capital V151 Assembly
 on:
   push:
     branches: [demo/sana-capital-v151]
+  pull_request:
 
 permissions:
   contents: write
