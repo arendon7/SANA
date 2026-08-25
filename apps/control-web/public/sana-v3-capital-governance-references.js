@@ -30,3 +30,28 @@
   document.addEventListener('click',e=>{const b=e.target.closest('[data-capital-governance-ref]');if(b)openReference(b.dataset.capitalGovernanceRef)});
   window.__SANA_CAPITAL_GOVERNANCE__=Object.freeze({...base,referenceVersion:VERSION,referenceSemanticsVersion:VERSION,cases,forLot,forCase:caseFor,summary,integrity:`${base.integrity} · ${INTEGRITY}`});
 })();
+
+// V151 loader: historical Capital Governance reference provenance; snapshot-only consumers.
+(() => {
+  'use strict';
+  if(typeof window==='undefined'||typeof document==='undefined'||typeof document.createElement!=='function')return;
+  const VERSION='V151';
+  const ASSETS=[
+    '/sana-v3-report-snapshot-capital-governance-references.js',
+    '/sana-v3-cycle-capital-governance-references.js',
+    '/sana-v3-due-diligence-capital-governance-reference-gaps.js',
+    '/sana-v3-dataroom-capital-governance-references.js'
+  ];
+  const state={version:VERSION,status:'WAITING',attempts:0,loaded:[],integrity:'SNAPSHOT → CYCLE → DD → DATA_ROOM · NO_RETROFILL · NO_LIVE_FALLBACK · NON_WEIGHTED · NO_ELIGIBILITY/CREDIT/INVESTMENT_AUTHORITY'};
+  function expose(){window.__SANA_CAPITAL_GOVERNANCE_REFERENCE_HISTORY_LOADER__=Object.freeze({...state,loaded:[...state.loaded]})}
+  function ready(){return window.__SANA_CAPITAL_GOVERNANCE__?.referenceVersion==='V150'&&window.__SANA_REPORT_SNAPSHOT_CAPITAL_GOVERNANCE__?.enrichCapitalGovernance&&window.__SANA_DUE_DILIGENCE_SNAPSHOT__?.snapshots&&window.__SANA_CYCLE_CLOSURE__?.selectedPlan&&window.__SANA_DUE_DILIGENCE_GAPS__?.derive}
+  function load(src){return new Promise((resolve,reject)=>{if(document.querySelector?.(`script[data-sana-capital-v151="${src}"]`)){resolve();return}const el=document.createElement('script');el.src=src;el.defer=true;el.dataset.sanaCapitalV151=src;el.onload=()=>{state.loaded.push(src);expose();resolve()};el.onerror=()=>reject(new Error(`Failed ${src}`));document.head.appendChild(el)})}
+  async function start(){
+    state.attempts++;expose();
+    if(window.__SANA_DATAROOM_CAPITAL_GOVERNANCE_REFERENCES__&&window.__SANA_CYCLE_CAPITAL_GOVERNANCE_REFERENCES__&&window.__SANA_DD_CAPITAL_GOVERNANCE_REFERENCE_GAPS__){state.status='READY';expose();return}
+    if(!ready()){if(state.attempts<50){state.status='WAITING_DEPENDENCIES';expose();setTimeout(start,50);return}state.status='BLOCKED_DEPENDENCIES';expose();return}
+    state.status='LOADING';expose();
+    try{for(const src of ASSETS)await load(src);state.status='READY';expose()}catch(err){state.status='FAILED';state.error=String(err?.message||err);expose()}
+  }
+  expose();if(document.readyState==='complete')queueMicrotask(start);else window.addEventListener('load',start,{once:true});
+})();
