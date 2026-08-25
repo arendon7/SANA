@@ -15,6 +15,8 @@ const records=[
   {id:'I1',type:'inventory-movement',createdAt:'2026-08-04T12:00:00Z',values:{referenceVersion:'V156',materialId:'M1',materialEventId:'E2'}},
   {id:'R2',type:'material-lifecycle-event',createdAt:'2026-08-04T12:00:00Z',values:{referenceVersion:'V156',materialId:'M2',date:'2026-08-04',destinationLot:'L9'}},
   {id:'C2',type:'economics-cost',createdAt:'2026-08-04T12:00:00Z',values:{referenceVersion:'V156',materialId:'M2',materialEventId:'E2',date:'2026-08-04'}},
+  {id:'O1',type:'material-lifecycle-event',createdAt:'2026-08-02T12:00:00Z',values:{referenceVersion:'V156',materialId:'M9',destinationLot:'L1',sourceRef:'ORPHAN-SOURCE'}},
+  {id:'O2',type:'inventory-movement',createdAt:'2026-08-06T12:00:00Z',values:{referenceVersion:'V156',materialId:'M9',materialEventId:'E1'}},
   {id:'OLD',type:'economics-cost',values:{materialId:'M3',materialEventId:'E3'}}
 ];
 const sandbox={window:{__SANA_MATERIAL_CHAIN__:base},DEMO:{material:[{id:'M1'},{id:'M2'},{id:'M3'}],lots:[{id:'L1'},{id:'L2'},{id:'L3'}]},storage:{records},structuredClone,console,Date,setTimeout,clearTimeout};
@@ -37,13 +39,19 @@ assert.ok(m2.referenceRows.some(r=>r.kind==='COST_MATERIAL_EVENT_REF'&&r.status=
 const legacy=api.forMaterial('M3');
 assert.equal(legacy.referenceState,'LEGACY_REFERENCE_NOT_CAPTURED');
 assert.equal(legacy.referenceCoverage.total,0);
+const orphan=api.orphanReferenceRows();
+assert.equal(orphan.length,4);
+assert.ok(orphan.some(r=>r.source.id==='O1'&&r.kind==='MATERIAL_ID_REF'&&r.status==='MISSING_TARGET'));
+assert.ok(orphan.some(r=>r.source.id==='O1'&&r.kind==='DESTINATION_LOT_REF'&&r.status==='LINKED'));
+assert.ok(orphan.some(r=>r.source.id==='O2'&&r.kind==='INVENTORY_MATERIAL_EVENT_REF'&&r.status==='SOURCE_MATERIAL_MISSING'));
 const summary=api.summary();
 assert.equal(summary.referenceCaptured,2);
 assert.equal(summary.legacyReferenceNotCaptured,1);
-assert.equal(summary.referenceExpected,8);
-assert.equal(summary.referenceLinked,5);
-assert.equal(summary.referenceIssues,3);
-assert.equal(summary.declaredNonCanonical,2);
+assert.equal(summary.orphanSourceCount,2);
+assert.equal(summary.referenceExpected,12);
+assert.equal(summary.referenceLinked,6);
+assert.equal(summary.referenceIssues,6);
+assert.equal(summary.declaredNonCanonical,3);
 assert.match(api.integrity,/MATERIAL_REFERENCE ≠ MATERIAL_IDENTITY_VERIFICATION/);
 assert.match(api.integrity,/SOURCE_REFERENCE_DECLARED ≠ ORIGIN_VERIFIED/);
 assert.match(api.integrity,/REFERENCE ≠ GENETIC_QUALITY ≠ PHYTOSANITARY_STATUS ≠ ICA_CERTIFICATION/);
