@@ -27,6 +27,8 @@ jobs:
           grep -Fq 'COST_MATERIAL_EVENT_REF' apps/control-web/public/sana-v3-material-references.js
           grep -Fq 'INVENTORY_MATERIAL_EVENT_REF' apps/control-web/public/sana-v3-material-references.js
           grep -Fq 'CROSS_MATERIAL_REFERENCE' apps/control-web/public/sana-v3-material-references.js
+          grep -Fq 'SOURCE_MATERIAL_MISSING' apps/control-web/public/sana-v3-material-references.js
+          grep -Fq 'orphanSourceCount' apps/control-web/public/sana-v3-material-references.js
           grep -Fq 'FORWARD_REFERENCE' apps/control-web/public/sana-v3-material-references.js
           grep -Fq 'SOURCE_REFERENCE_DECLARED ≠ ORIGIN_VERIFIED' apps/control-web/public/sana-v3-material-references.js
           grep -Fq 'EVIDENCE_REFERENCE_DECLARED ≠ EVIDENCE_VERIFIED' apps/control-web/public/sana-v3-material-references.js
