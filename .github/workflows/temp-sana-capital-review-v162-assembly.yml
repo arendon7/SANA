@@ -1,4 +1,5 @@
 name: TEMP SANA Capital Review V162 Assembly
+# activation trigger: workflow now exists before this push
 
 on:
   push:
