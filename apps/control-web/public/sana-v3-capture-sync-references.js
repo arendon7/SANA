@@ -109,3 +109,22 @@
   document.addEventListener('click',e=>{const b=e.target.closest('[data-capture-sync-ref]');if(b)openReference(b.dataset.captureSyncRef)});
   window.__SANA_CAPTURE_SYNC_LEDGER__=Object.freeze({...base,referenceVersion:VERSION,referenceSemanticsVersion:VERSION,cases,forLot,forRecord,forCase:caseFor,summary,integrity:`${base.integrity} · ${INTEGRITY}`});
 })();
+
+// V160 loader: Data Trust reverse reference coherence after Capture Sync V152; no verification or authority.
+(() => {
+  'use strict';
+  if(typeof window==='undefined'||typeof document==='undefined'||typeof document.createElement!=='function')return;
+  const VERSION='V160',SRC='/sana-v3-data-trust-references.js';
+  const state={version:VERSION,status:'WAITING',integrity:'INTERNAL_COHERENCE ≠ VERIFIED_SYNC/SOURCE/HARDWARE/MEASUREMENT · NO_CANONICAL_WRITE · NO_AGRONOMIC/CREDIT/ELIGIBILITY/INVESTMENT_AUTHORITY'};
+  function expose(){window.__SANA_DATA_TRUST_REFERENCES_LOADER__=Object.freeze({...state})}
+  function start(){
+    expose();
+    if(window.__SANA_DATA_TRUST__?.referenceVersion===VERSION){state.status='READY';expose();return}
+    if(window.__SANA_CAPTURE_SYNC_LEDGER__?.referenceVersion!=='V152'||!window.__SANA_DATA_TRUST__?.rows){state.status='BLOCKED_DEPENDENCIES';expose();return}
+    if(document.querySelector?.('script[data-sana-data-trust-references-v160]'))return;
+    state.status='LOADING';expose();const s=document.createElement('script');s.src=SRC;s.defer=true;s.dataset.sanaDataTrustReferencesV160='1';
+    s.onload=()=>{state.status=window.__SANA_DATA_TRUST__?.referenceVersion===VERSION?'READY':'FAILED_CONTRACT';expose()};
+    s.onerror=()=>{state.status='FAILED';expose()};document.head.appendChild(s);
+  }
+  expose();queueMicrotask(start);
+})();
