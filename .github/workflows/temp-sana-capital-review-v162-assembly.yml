@@ -1,10 +1,8 @@
 name: TEMP SANA Capital Review V162 Assembly
-# activation trigger: workflow now exists before this push
 
 on:
   push:
     branches: [demo/sana-capital-review-v162]
-  pull_request:
 
 permissions:
   contents: write
@@ -27,26 +25,26 @@ jobs:
           s=ledger.read_text()
           marker='// V162 loader: Capital Human Review internal reference integrity only; no approval, eligibility, credit, investment or execution authority.'
           if marker not in s:
-              loader=r'''
+              loader="""\
 
-// V162 loader: Capital Human Review internal reference integrity only; no approval, eligibility, credit, investment or execution authority.
-(() => {
-  'use strict';
-  if(typeof window==='undefined'||typeof document==='undefined'||typeof document.createElement!=='function')return;
-  const VERSION='V162',SRC='/sana-v3-capital-review-references.js';
-  const state={version:VERSION,status:'WAITING',attempts:0,integrity:'CAPITAL_CASE/SNAPSHOT/SUPPORT REFERENCES ONLY · SNAPSHOT_REFERENCE ≠ CONTENT_CORRECTNESS · REVIEWER_REF ≠ VERIFIED_IDENTITY · NO_APPROVAL/ELIGIBILITY/CREDIT/INVESTMENT/EXECUTION_AUTHORITY'};
-  function expose(){window.__SANA_CAPITAL_REVIEW_REFERENCES_LOADER__=Object.freeze({...state})}
-  function ready(){return window.__SANA_CAPITAL_REVIEW__?.schema==='SANA_CAPITAL_HUMAN_REVIEW_LEDGER_V1'&&window.__SANA_CAPITAL_GOVERNANCE__?.referenceVersion==='V150'&&window.__SANA_DUE_DILIGENCE_SNAPSHOT__?.snapshots}
-  function start(){
-    state.attempts++;expose();
-    if(window.__SANA_CAPITAL_REVIEW__?.referenceVersion===VERSION){state.status='READY';expose();return}
-    if(!ready()){if(state.attempts<50){state.status='WAITING_DEPENDENCIES';expose();setTimeout(start,50);return}state.status='BLOCKED_DEPENDENCIES';expose();return}
-    if(document.querySelector?.('script[data-sana-capital-review-v162]'))return;
-    state.status='LOADING';expose();const el=document.createElement('script');el.src=SRC;el.defer=true;el.dataset.sanaCapitalReviewV162='1';el.onload=()=>{state.status=window.__SANA_CAPITAL_REVIEW__?.referenceVersion===VERSION?'READY':'FAILED_CONTRACT';expose()};el.onerror=()=>{state.status='FAILED';expose()};document.head.appendChild(el);
-  }
-  expose();if(document.readyState==='complete')queueMicrotask(start);else window.addEventListener('load',start,{once:true});
-})();
-'''
+          // V162 loader: Capital Human Review internal reference integrity only; no approval, eligibility, credit, investment or execution authority.
+          (() => {
+            'use strict';
+            if(typeof window==='undefined'||typeof document==='undefined'||typeof document.createElement!=='function')return;
+            const VERSION='V162',SRC='/sana-v3-capital-review-references.js';
+            const state={version:VERSION,status:'WAITING',attempts:0,integrity:'CAPITAL_CASE/SNAPSHOT/SUPPORT REFERENCES ONLY · SNAPSHOT_REFERENCE ≠ CONTENT_CORRECTNESS · REVIEWER_REF ≠ VERIFIED_IDENTITY · NO_APPROVAL/ELIGIBILITY/CREDIT/INVESTMENT/EXECUTION_AUTHORITY'};
+            function expose(){window.__SANA_CAPITAL_REVIEW_REFERENCES_LOADER__=Object.freeze({...state})}
+            function ready(){return window.__SANA_CAPITAL_REVIEW__?.schema==='SANA_CAPITAL_HUMAN_REVIEW_LEDGER_V1'&&window.__SANA_CAPITAL_GOVERNANCE__?.referenceVersion==='V150'&&window.__SANA_DUE_DILIGENCE_SNAPSHOT__?.snapshots}
+            function start(){
+              state.attempts++;expose();
+              if(window.__SANA_CAPITAL_REVIEW__?.referenceVersion===VERSION){state.status='READY';expose();return}
+              if(!ready()){if(state.attempts<50){state.status='WAITING_DEPENDENCIES';expose();setTimeout(start,50);return}state.status='BLOCKED_DEPENDENCIES';expose();return}
+              if(document.querySelector?.('script[data-sana-capital-review-v162]'))return;
+              state.status='LOADING';expose();const el=document.createElement('script');el.src=SRC;el.defer=true;el.dataset.sanaCapitalReviewV162='1';el.onload=()=>{state.status=window.__SANA_CAPITAL_REVIEW__?.referenceVersion===VERSION?'READY':'FAILED_CONTRACT';expose()};el.onerror=()=>{state.status='FAILED';expose()};document.head.appendChild(el);
+            }
+            expose();if(document.readyState==='complete')queueMicrotask(start);else window.addEventListener('load',start,{once:true});
+          })();
+          """
               ledger.write_text(s.rstrip()+loader)
 
           sw=Path('apps/control-web/public/sana-v3-sw.js')
@@ -63,10 +61,12 @@ jobs:
               s=s.replace(anchor,assets,1)
           comment='// v162 validates Capital Human Review capital-case, snapshot and support references without identity, approval, eligibility, credit, investment or execution authority.'
           if comment not in s:
-              anchor_comment='// v161 propagates content-minimized Data Trust reference provenance through Snapshot, Cycle, Due Diligence and Data Room without live fallback, weighting, scoring, verification, credit or investment authority.'
-              if s.count(anchor_comment)!=1:
-                  anchor_comment='// v161 propagates content-minimized Data Trust reference provenance through Snapshot, Cycle, Due Diligence and Data Room without live fallback, weighting, source/measurement verification, credit, eligibility or investment authority.'
-              assert s.count(anchor_comment)==1, 'v161 comment anchor missing/duplicated'
+              anchors=[
+                '// v161 propagates content-minimized Data Trust reference provenance through Snapshot, Cycle, Due Diligence and Data Room without live fallback, weighting, scoring, verification, credit or investment authority.',
+                '// v161 propagates content-minimized Data Trust reference provenance through Snapshot, Cycle, Due Diligence and Data Room without live fallback, weighting, source/measurement verification, credit, eligibility or investment authority.'
+              ]
+              anchor_comment=next((x for x in anchors if s.count(x)==1),None)
+              assert anchor_comment, 'v161 comment anchor missing/duplicated'
               s=s.replace(anchor_comment,anchor_comment+'\n'+comment,1)
           sw.write_text(s)
           PY
