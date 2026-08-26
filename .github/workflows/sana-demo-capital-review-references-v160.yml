@@ -21,6 +21,8 @@ jobs:
         run: |
           set -euo pipefail
           node --check apps/control-web/public/sana-v3-capital-review-references.js
+          node --check apps/control-web/public/sana-v3-capital-review-ledger.js
+          node --check apps/control-web/public/sana-v3-sw.js
           node scripts/validate-sana-capital-review-references.mjs
           grep -Fq 'CAPTURED_V160' apps/control-web/public/sana-v3-capital-review-references.js
           grep -Fq 'LEGACY_REFERENCE_NOT_CAPTURED' apps/control-web/public/sana-v3-capital-review-references.js
@@ -32,4 +34,17 @@ jobs:
           grep -Fq 'REVIEWER_REF_DECLARED ≠ VERIFIED_IDENTITY' apps/control-web/public/sana-v3-capital-review-references.js
           grep -Fq 'ASSESSMENT_REF_DECLARED ≠ CREDIT_SCORE ≠ INVESTMENT_RECOMMENDATION' apps/control-web/public/sana-v3-capital-review-references.js
           grep -Fq 'REFERENCE ≠ OFFER ≠ SOLICITATION ≠ BROKERAGE ≠ CUSTODY ≠ DISBURSEMENT' apps/control-web/public/sana-v3-capital-review-references.js
-          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|reviewerIdentitiesVerified[[:space:]]*=[[:space:]]*[1-9]|approvalsVerified[[:space:]]*=[[:space:]]*[1-9]|creditScore[[:space:]]*=[[:space:]]*[1-9]|investmentRecommendation[[:space:]]*=[[:space:]]*true|eligibilityDecision[[:space:]]*=[[:space:]]*true|fundingExecuted[[:space:]]*=[[:space:]]*[1-9]|disbursementExecuted|offerCreated|solicitationCreated' apps/control-web/public/sana-v3-capital-review-references.js
+          node - <<'NODE'
+          const fs=require('fs');
+          const ledger=fs.readFileSync('apps/control-web/public/sana-v3-capital-review-ledger.js','utf8');
+          const sw=fs.readFileSync('apps/control-web/public/sana-v3-sw.js','utf8');
+          if(!ledger.includes("const VERSION='V160',SRC='/sana-v3-capital-review-references.js'"))throw new Error('V160 loader contract missing');
+          if(!ledger.includes('__SANA_CAPITAL_REVIEW_REFERENCES_LOADER__'))throw new Error('V160 loader state missing');
+          if(!ledger.includes("__SANA_CAPITAL_GOVERNANCE__?.referenceVersion==='V150'"))throw new Error('V160 loader must wait for Capital Governance V150');
+          if(!ledger.includes('__SANA_DUE_DILIGENCE_SNAPSHOT__?.snapshots'))throw new Error('V160 loader must wait for DD snapshots');
+          if((sw.match(/const CACHE='sana-v3-demo-shell-v160';/g)||[]).length!==1)throw new Error('v160 cache marker must remain exactly once');
+          if(!sw.includes("if(false){\nconst CACHE='sana-v3-demo-shell-v159';\n}"))throw new Error('v159 historical cache marker missing');
+          if((sw.split('/sana-v3-capital-review-references.js').length-1)!==1)throw new Error('V160 SW asset count invalid');
+          if(!sw.includes('// v160 validates Capital Human Review capital-case, snapshot and support references'))throw new Error('v160 provenance marker missing');
+          NODE
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|reviewerIdentitiesVerified[[:space:]]*=[[:space:]]*[1-9]|approvalsVerified[[:space:]]*=[[:space:]]*[1-9]|creditScore[[:space:]]*=[[:space:]]*[1-9]|investmentRecommendation[[:space:]]*=[[:space:]]*true|eligibilityDecision[[:space:]]*=[[:space:]]*true|fundingExecuted[[:space:]]*=[[:space:]]*[1-9]|disbursementExecuted|offerCreated|solicitationCreated' apps/control-web/public/sana-v3-capital-review-references.js apps/control-web/public/sana-v3-capital-review-ledger.js
