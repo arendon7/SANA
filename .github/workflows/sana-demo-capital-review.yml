@@ -58,11 +58,12 @@ jobs:
           f='apps/control-web/public/sana-v3-capital-review-references.js'
           if [[ ! -f "$f" ]]; then exit 0; fi
           grep -Fq 'LEGACY_REFERENCE_NOT_CAPTURED' "$f"
-          grep -Fq 'REVIEW_REFERENCE ≠ APPROVAL' "$f"
-          grep -Fq 'GAP_REFERENCE ≠ GAP_RESOLUTION' "$f"
-          grep -Fq 'METHODOLOGY_SUPPORT_REFERENCE ≠ EXTERNAL_VALIDATION' "$f"
-          grep -Fq 'REMEDIATION_REFERENCE ≠ EFFECTIVENESS' "$f"
-          grep -Fq 'REVIEW ≠ SCORE ≠ CREDIT_RISK ≠ ELIGIBILITY ≠ INVESTMENT_RECOMMENDATION' "$f"
+          grep -Fq 'CAPITAL_CASE_REFERENCE ≠ APPROVAL_OR_ELIGIBILITY' "$f"
+          grep -Fq 'SNAPSHOT_REFERENCE ≠ CONTENT_CORRECTNESS ≠ LIVE_STATE' "$f"
+          grep -Fq 'REVIEW_SUPPORT_REFERENCE ≠ VERIFIED_FACT' "$f"
+          grep -Fq 'ASSESSMENT_REF_DECLARED ≠ CREDIT_SCORE ≠ INVESTMENT_RECOMMENDATION' "$f"
+          grep -Fq 'DECISION_REF_DECLARED ≠ APPROVAL_OR_EXECUTION' "$f"
+          grep -Fq 'REFERENCE ≠ OFFER ≠ SOLICITATION ≠ BROKERAGE ≠ CUSTODY ≠ DISBURSEMENT' "$f"
           ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|creditApproved|investmentApproved|fundingExecuted[[:space:]]*[:=][[:space:]]*[1-9]|approvalsVerified[[:space:]]*[:=][[:space:]]*[1-9]' "$f"
       - name: Validate Human Review assembly forward-compatible
         shell: bash
