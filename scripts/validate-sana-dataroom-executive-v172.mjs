@@ -99,7 +99,7 @@ assert.ok(lotA.locators.every(x=>['SNAPSHOT_REF','CASE_REF','EVENT_REF','ENTITY_
 assert.equal(new Set(lotA.locators.map(x=>x.locatorKey)).size,lotA.locators.length,'locator keys must be deterministic/unique per source reference');
 
 const ddSnapshots=lotA.locators.filter(x=>x.sourceId==='DUE_DILIGENCE_SNAPSHOT'&&x.kind==='SNAPSHOT_REF');
-assert.deepEqual(ddSnapshots.map(x=>x.referenceId).sort(),['SNAP-A','SNAP-B']);
+assert.equal(JSON.stringify(Array.from(ddSnapshots,x=>x.referenceId).sort()),JSON.stringify(['SNAP-A','SNAP-B']));
 assert.ok(ddSnapshots.every(x=>x.scopeQuality==='SNAPSHOT_GLOBAL'));
 
 const stateRows=lotA.locators.filter(x=>x.sourceId==='DATAROOM_360'&&x.kind==='ENTITY_REF');
