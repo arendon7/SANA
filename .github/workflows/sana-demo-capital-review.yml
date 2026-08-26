@@ -153,7 +153,7 @@ jobs:
               s=s.replace(anchor,assets,1)
           comment='// v162 validates Capital Human Review capital-case, snapshot and support references without identity, approval, eligibility, credit, investment or execution authority.'
           if comment not in s:
-              anchor_comment='// v161 propagates content-minimized Data Trust reference provenance through Snapshot, Cycle, Due Diligence and Data Room without live fallback, weighting, scoring, verification, credit or investment authority.'
+              anchor_comment='// v161 propagates content-minimized Data Trust reference provenance through Snapshot, Cycle, Due Diligence and Data Room without live fallback, weighting, source/measurement verification, credit, eligibility or investment authority.'
               assert s.count(anchor_comment)==1, 'v161 comment anchor missing/duplicated'
               s=s.replace(anchor_comment,anchor_comment+'\n'+comment,1)
           sw.write_text(s)
