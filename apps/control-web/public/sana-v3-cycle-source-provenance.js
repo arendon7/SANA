@@ -1,0 +1,25 @@
+(() => {
+  'use strict';
+  const sourceApi=()=>window.__SANA_SOURCE_EVIDENCE_LEDGER__;
+  const cycleApi=()=>window.__SANA_CYCLE_CLOSURE__;
+  const INTEGRITY='SOURCE_PROVENANCE ≠ CYCLE_GATE · REFERENCE_REGISTERED ≠ CONTENT_INGESTED · VERSION_LABEL ≠ IMMUTABLE_VERSION · FINGERPRINT_DECLARED ≠ HASH_VERIFIED · HUMAN_REVIEW_RECORDED ≠ EXTERNAL_VERIFICATION · EXTERNAL_VERIFICATION_STATUS_DECLARED ≠ EXTERNAL_VERIFICATION · USE_DECLARED ≠ RELIANCE_VALIDATED · SOURCE_LINK ≠ ACCESS_PERMISSION · NO_EXTERNAL_FETCH';
+  function unique(rows){const seen=new Set();return rows.filter(r=>{if(seen.has(r.id))return false;seen.add(r.id);return true})}
+  function forPlan(planId){const plan=DEMO.plans.find(p=>p.id===planId);if(!plan)return {valid:false,sources:[]};const farmId=DEMO.farm?.id||'';const rows=unique([...(sourceApi()?.forScope?.(plan.lot)||[]),...(farmId?sourceApi()?.forScope?.(farmId)||[]:[]),...(sourceApi()?.forTarget?.(planId)||[]),...(sourceApi()?.forTarget?.(plan.lot)||[])]).map(c=>({sourceId:c.id,provider:c.provider||'',scope:c.scope||'',externalId:c.externalId||'',versionLabel:c.versionLabel||'',versionImmutable:false,fingerprintDeclared:Boolean(c.fingerprint),hashVerified:false,humanReviewRecorded:Boolean(c.humanReviewRecorded),useCount:c.useCount||0,externalVerificationStatus:c.externalVerificationStatus||'NOT_CAPTURED',externalVerificationClaimed:Boolean(c.externalVerificationClaimed),sourceVerified:false,contentIngested:false,accessPermissionVerified:false}));return {valid:true,plan:{id:plan.id,version:plan.version,lot:plan.lot},sources:rows,integrity:INTEGRITY}}
+  function selected(){const p=cycleApi()?.selectedPlan?.();return p?forPlan(p.id):{valid:false,sources:[]}}
+  function panel(){const s=selected();if(!s.valid||!s.sources.length)return '';return `<section class="card" style="margin-top:14px"><div class="card-head"><div><p class="kicker">CIERRE · SOURCE EVIDENCE</p><h2>Procedencia documental del ciclo</h2><p>${esc(s.plan.id)} · ${esc(s.plan.lot)} · referencias del lote/predio y usos explícitos; no modifica completitud ni readyForArchive.</p></div><span class="status warn">NO GATE</span></div><div class="card-body">${s.sources.map(c=>`<div class="gate"><i>${c.humanReviewRecorded?'✓':'·'}</i><div><strong>${esc(c.sourceId)} · ${esc(c.externalId)}</strong><p>${esc(c.versionLabel||'sin versión')} · ${c.fingerprintDeclared?'fingerprint declarado':'sin fingerprint'} · ${c.humanReviewRecorded?'revisión humana':'sin revisión'} · sourceVerified=false</p></div><span class="status warn">REFERENCE_ONLY</span></div>`).join('')}<div class="section-note">${esc(INTEGRITY)}</div></div></section>`}
+  function insert(html,section){const markers=['<footer class="footer-note">','<footer class="footer">'];for(const marker of markers){const at=html.lastIndexOf(marker);if(at>=0)return html.slice(0,at)+section+html.slice(at)}return html+section}
+  const baseCycle=views.cycle;if(baseCycle)views.cycle=()=>insert(baseCycle(),panel());
+  window.__SANA_CYCLE_SOURCE_EVIDENCE__=Object.freeze({forPlan,selected,integrity:INTEGRITY});
+})();
+
+// V143 loader: activate Source Evidence semantic reference integrity after source + forecast APIs exist.
+(() => {
+  if(typeof window==='undefined'||typeof document==='undefined'||!document.createElement)return;
+  function load(){
+    if(window.__SANA_SOURCE_EVIDENCE_LEDGER__?.referenceVersion==='V143')return;
+    if(!window.__SANA_SOURCE_EVIDENCE_LEDGER__||!window.__SANA_INPUT_FORECAST__)return;
+    if(document.querySelector?.('script[data-sana-source-evidence-references-v143]'))return;
+    const s=document.createElement('script');s.src='/sana-v3-source-evidence-references.js';s.defer=true;s.dataset.sanaSourceEvidenceReferencesV143='1';document.head.appendChild(s);
+  }
+  if(document.readyState==='complete')queueMicrotask(load);else window.addEventListener('load',load,{once:true});
+})();

@@ -1,0 +1,190 @@
+name: SANA Demo Nutrition Ledger
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1, demo/sana-nutrition-v2-v128, demo/sana-nutrition-v2-v129]
+    paths:
+      - 'apps/control-web/public/sana-v3-nutrition-ledger.js'
+      - 'apps/control-web/public/sana-v3-nutrition-references.js'
+      - 'apps/control-web/public/sana-v3-cycle-nutrition-provenance.js'
+      - 'apps/control-web/public/sana-v3-report-snapshot-sync.js'
+      - 'apps/control-web/public/sana-v3-dataroom-nutrition-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-nutrition-gaps.js'
+      - 'apps/control-web/public/sana-v3-inventory-operations.js'
+      - 'apps/control-web/public/sana-v3-plan-field-workflow.js'
+      - 'apps/control-web/public/sana-v3-passport-chain.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-nutrition-ledger.mjs'
+      - 'scripts/validate-sana-nutrition-chain-v2.mjs'
+      - 'scripts/validate-sana-nutrition-references.mjs'
+      - 'scripts/validate-sana-cycle-nutrition.mjs'
+      - 'scripts/validate-sana-nutrition-snapshot.mjs'
+      - 'scripts/validate-sana-nutrition-gaps.mjs'
+      - '.github/workflows/sana-demo-nutrition-ledger.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-nutrition-ledger.js'
+      - 'apps/control-web/public/sana-v3-nutrition-references.js'
+      - 'apps/control-web/public/sana-v3-cycle-nutrition-provenance.js'
+      - 'apps/control-web/public/sana-v3-report-snapshot-sync.js'
+      - 'apps/control-web/public/sana-v3-dataroom-nutrition-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-nutrition-gaps.js'
+      - 'apps/control-web/public/sana-v3-inventory-operations.js'
+      - 'apps/control-web/public/sana-v3-plan-field-workflow.js'
+      - 'apps/control-web/public/sana-v3-passport-chain.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-nutrition-ledger.mjs'
+      - 'scripts/validate-sana-nutrition-chain-v2.mjs'
+      - 'scripts/validate-sana-nutrition-references.mjs'
+      - 'scripts/validate-sana-cycle-nutrition.mjs'
+      - 'scripts/validate-sana-nutrition-snapshot.mjs'
+      - 'scripts/validate-sana-nutrition-gaps.mjs'
+      - '.github/workflows/sana-demo-nutrition-ledger.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  nutrition-ledger-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-nutrition-ledger.js
+          node --check apps/control-web/public/sana-v3-nutrition-references.js
+          node --check apps/control-web/public/sana-v3-cycle-nutrition-provenance.js
+          node --check apps/control-web/public/sana-v3-report-snapshot-sync.js
+          node --check apps/control-web/public/sana-v3-dataroom-nutrition-history.js
+          node --check apps/control-web/public/sana-v3-due-diligence-nutrition-gaps.js
+          node scripts/validate-sana-nutrition-ledger.mjs
+          node scripts/validate-sana-nutrition-chain-v2.mjs
+          node scripts/validate-sana-nutrition-references.mjs
+          node scripts/validate-sana-cycle-nutrition.mjs
+          node scripts/validate-sana-nutrition-snapshot.mjs
+          node scripts/validate-sana-nutrition-gaps.mjs
+      - name: Validate nutrition V1 boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          ledger='apps/control-web/public/sana-v3-nutrition-ledger.js'
+          grep -q '__SANA_NUTRITION_LEDGER__' "$ledger"
+          grep -q 'SANA_NUTRITION_LEDGER_V1' "$ledger"
+          grep -q 'PROGRAM ≠ APPLICATION' "$ledger"
+          grep -q 'PREFLIGHT ≠ AUTHORIZATION' "$ledger"
+          grep -q 'HUMAN_DECISION_REQUIRED' "$ledger"
+          grep -q 'INVENTORY_MOVEMENT_EXPLICIT_ONLY' "$ledger"
+          grep -q 'RESPONSE ≠ CAUSAL_EFFECT' "$ledger"
+          grep -q 'DEFERRED_HUMAN' "$ledger"
+          grep -q 'NO_CAUSAL_ATTRIBUTION' "$ledger"
+          grep -q 'MOVEMENT_NOT_CAPTURED' "$ledger"
+          ! grep -q 'storage.records.push' "$ledger"
+      - name: Validate V128 explicit Activity link chain
+        shell: bash
+        run: |
+          set -euo pipefail
+          ledger='apps/control-web/public/sana-v3-nutrition-ledger.js'
+          grep -q 'SANA_NUTRITION_CHAIN_V2' "$ledger"
+          grep -q "\['ACTIVITY_LINK','Actividad vinculada'\]" "$ledger"
+          grep -q 'chainCoverage' "$ledger"
+          grep -q 'legacyStages:base.stages' "$ledger"
+          grep -q 'ACTIVITY_LINK_EVENT ≠ APPLICATION' "$ledger"
+          grep -q 'EMBEDDED_V1_RELATION ≠ V2_STAGE' "$ledger"
+          grep -q 'APPLICATION.activityId ≠ ACTIVITY_LINK_STAGE' "$ledger"
+          grep -q 'DECISION ≠ ACTIVITY_LINK ≠ APPLICATION' "$ledger"
+          grep -q 'ACTIVITY_RELATION_DEMO' "$ledger"
+      - name: Validate V129 predecessor references
+        shell: bash
+        run: |
+          set -euo pipefail
+          refs='apps/control-web/public/sana-v3-nutrition-references.js'
+          grep -q "REFERENCE_VERSION='V129'" "$refs"
+          grep -q "PREFLIGHT:'PROGRAM'" "$refs"
+          grep -q "DECISION:'PREFLIGHT'" "$refs"
+          grep -q "ACTIVITY_LINK:'DECISION'" "$refs"
+          grep -q "APPLICATION:'ACTIVITY_LINK'" "$refs"
+          grep -q "EVIDENCE:'APPLICATION'" "$refs"
+          grep -q "RESPONSE:'EVIDENCE'" "$refs"
+          grep -q 'MISSING_REFERENCE' "$refs"
+          grep -q 'MISSING_TARGET' "$refs"
+          grep -q 'KIND_MISMATCH' "$refs"
+          grep -q 'CROSS_CASE_REFERENCE' "$refs"
+          grep -q 'FORWARD_REFERENCE' "$refs"
+          grep -q 'LEGACY_REFERENCE_NOT_CAPTURED' "$refs"
+          grep -q 'CASE_MEMBERSHIP ≠ PREDECESSOR_REFERENCE' "$refs"
+          grep -q 'REFERENCE ≠ APPLICATION_AUTHORITY' "$refs"
+          grep -q 'REFERENCE ≠ INVENTORY_MOVEMENT' "$refs"
+          grep -q 'REFERENCE ≠ CAUSALITY' "$refs"
+      - name: Validate inventory relation is explicit-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          ledger='apps/control-web/public/sana-v3-nutrition-ledger.js'
+          inventory='apps/control-web/public/sana-v3-inventory-operations.js'
+          grep -q '__SANA_INVENTORY__' "$inventory"
+          grep -q 'forActivity:id=>movements().filter' "$inventory"
+          grep -q 'NUNCA se descuenta o repone inventario por inferencia\|Nunca se descuenta o repone inventario por inferencia' "$inventory"
+          grep -q 'NO_EXPLICIT_RELATION' "$ledger"
+          grep -q 'MOVEMENT_DIRECTION_REVIEW' "$ledger"
+          ! grep -Eiq 'autoInventoryMovement|autoStockMutation|inventoryMutationAllowed[[:space:]]*=[[:space:]]*true|stockMutationAllowed[[:space:]]*=[[:space:]]*true' "$ledger"
+      - name: Validate snapshot history and gaps remain V1 compatible
+        shell: bash
+        run: |
+          set -euo pipefail
+          sync='apps/control-web/public/sana-v3-report-snapshot-sync.js'
+          history='apps/control-web/public/sana-v3-dataroom-nutrition-history.js'
+          gaps='apps/control-web/public/sana-v3-due-diligence-nutrition-gaps.js'
+          grep -q 'function enrichNutrition' "$sync"
+          grep -q 'SNAPSHOT_CAPTURED_FROM_NUTRITION_LEDGER' "$sync"
+          grep -q 'ADDITIVE_V1 · NUTRITION_LEDGER' "$sync"
+          grep -q 'NO_PROGRAM_TO_APPLICATION_INFERENCE' "$sync"
+          grep -q 'NO_INVENTORY_MOVEMENT_INFERENCE' "$sync"
+          grep -q '__SANA_DATAROOM_NUTRITION_HISTORY__' "$history"
+          grep -q 'NOT_CAPTURED_IN_SNAPSHOT' "$history"
+          grep -q 'SNAPSHOT_NUTRITION_DIFF_ONLY · CHANGE ≠ IMPROVEMENT ≠ APPLICATION_CAUSALITY ≠ RESPONSE_CAUSALITY ≠ CREDIT_RISK ≠ INVESTMENT_SIGNAL' "$history"
+          ! grep -q '__SANA_NUTRITION_LEDGER__' "$history"
+          ! grep -q 'storage\.' "$history"
+          grep -q '__SANA_DD_NUTRITION_GAPS__' "$gaps"
+          grep -q 'PROGRAM_OR_APPLICATION ≠ GAP' "$gaps"
+          grep -q 'NUTRITION GAP ≠ AGRONOMIC PERFORMANCE ≠ APPLICATION FAILURE ≠ CREDIT RISK ≠ INVESTMENT SIGNAL' "$gaps"
+          ! grep -q '__SANA_NUTRITION_LEDGER__' "$gaps"
+          ! grep -q 'storage\.' "$gaps"
+      - name: Validate cycle projection is read-only and non-weighted
+        shell: bash
+        run: |
+          set -euo pipefail
+          cycle='apps/control-web/public/sana-v3-cycle-nutrition-provenance.js'
+          grep -q '__SANA_CYCLE_NUTRITION__' "$cycle"
+          grep -q 'NUTRITION_PROVENANCE ≠ CYCLE_GATE ≠ APPLICATION_AUTHORIZATION ≠ INVENTORY_DISPATCH ≠ PERFORMANCE ≠ CAUSAL_EFFECT' "$cycle"
+          grep -q 'No modifica completeness ni readyForArchive' "$cycle"
+          ! grep -q 'completeness=' "$cycle"
+          ! grep -q 'readyForArchive=' "$cycle"
+          ! grep -q 'storage.records.push' "$cycle"
+          ! grep -q 'openModal(' "$cycle"
+      - name: Validate V129 assembly and offline shell
+        shell: bash
+        run: |
+          set -euo pipefail
+          html='apps/control-web/public/sana-v3.html'
+          sw='apps/control-web/public/sana-v3-sw.js'
+          grep -q '/sana-v3-nutrition-ledger.js.*sana-v3-nutrition-references.js.*sana-v3-health-ledger.js' "$html"
+          grep -q '/sana-v3-cycle-material-provenance.js.*sana-v3-cycle-nutrition-provenance.js.*sana-v3-cycle-health-provenance.js' "$html"
+          grep -q '/sana-v3-due-diligence-health-lifecycle-gaps.js.*sana-v3-due-diligence-nutrition-gaps.js.*sana-v3-due-diligence-remediation.js' "$html"
+          grep -q '/sana-v3-dataroom-health-lifecycle.js.*sana-v3-dataroom-nutrition-history.js.*sana-v3-dataroom-entry.js' "$html"
+          grep -q "'/sana-v3-nutrition-ledger.js'" "$sw"
+          grep -q "'/sana-v3-nutrition-references.js'" "$sw"
+          grep -q "^const CACHE='sana-v3-demo-shell-v129';" "$sw"
+      - name: Assert no production, purchase or financial authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          files='apps/control-web/public/sana-v3-nutrition-ledger.js apps/control-web/public/sana-v3-nutrition-references.js apps/control-web/public/sana-v3-cycle-nutrition-provenance.js apps/control-web/public/sana-v3-dataroom-nutrition-history.js apps/control-web/public/sana-v3-due-diligence-nutrition-gaps.js apps/control-web/public/sana-v3-report-snapshot-sync.js'
+          ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true' $files
+          ! grep -Eiq 'purchaseOrder|executePayment|authorizePayment|autoPurchase|autoDispatch|certified[[:space:]]*=[[:space:]]*true|verifiedExternal[[:space:]]*=[[:space:]]*true|icaApproved[[:space:]]*=[[:space:]]*true|creditApproved|investmentApproved' $files

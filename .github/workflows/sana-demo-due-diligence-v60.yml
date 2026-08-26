@@ -1,0 +1,43 @@
+name: SANA Demo Due Diligence V60
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-due-diligence-commercial-gaps.js'
+      - 'apps/control-web/public/sana-v3-report-snapshot-commercial.js'
+      - 'apps/control-web/public/sana-v3-dataroom-commercial-history.js'
+      - 'scripts/validate-sana-commercial-history.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - '.github/workflows/sana-demo-due-diligence-v60.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-due-diligence-commercial-gaps.js'
+      - 'apps/control-web/public/sana-v3-report-snapshot-commercial.js'
+      - 'apps/control-web/public/sana-v3-dataroom-commercial-history.js'
+      - 'scripts/validate-sana-commercial-history.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+
+jobs:
+  composed-dd-v60:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate commercial historical semantics
+        run: node scripts/validate-sana-commercial-history.mjs
+      - name: Validate commercial DD composition before remediation
+        run: |
+          grep -q '/sana-v3-due-diligence-commercial-gaps.js.*sana-v3-due-diligence-remediation.js.*sana-v3-dd-next-cut.js' apps/control-web/public/sana-v3.html
+          grep -q '/sana-v3-dataroom-commercial-history.js.*sana-v3-dataroom-entry.js' apps/control-web/public/sana-v3.html
+      - name: Validate documentary and authority boundaries
+        run: |
+          grep -q 'NO_AGREEMENT ≠ GAP' apps/control-web/public/sana-v3-due-diligence-commercial-gaps.js
+          grep -q 'COMMERCIAL_GAP ≠ MARKET_DEMAND' apps/control-web/public/sana-v3-due-diligence-commercial-gaps.js
+          grep -q 'verifiedContracts' apps/control-web/public/sana-v3-due-diligence-commercial-gaps.js
+          grep -q 'paymentsExecuted' apps/control-web/public/sana-v3-due-diligence-commercial-gaps.js
+          grep -q 'guaranteedRevenue' apps/control-web/public/sana-v3-due-diligence-commercial-gaps.js

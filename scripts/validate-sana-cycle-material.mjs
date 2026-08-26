@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+const code=fs.readFileSync('apps/control-web/public/sana-v3-cycle-material-provenance.js','utf8');
+const sandbox={window:{__SANA_MATERIAL_CHAIN__:{forLot:()=>[{identity:{id:'MAT-1',species:'Café',origin:'Vivero'},stageCoverage:{percent:86},quantities:{explicitEvents:2,legacyEvents:1,declaredLoss:12,latestSurvivalRate:88,mismatches:0},evidence:{coverage:92},relations:{costCount:1,inventoryCount:2}}]},__SANA_CYCLE_CLOSURE__:{selectedPlan:()=>({id:'PL-1'})}},DEMO:{plans:[{id:'PL-1',version:4,lot:'CAF-A1'}]},views:{cycle:()=>'<strong>73%</strong><footer class="footer">x</footer>'},esc:v=>String(v??''),metric:()=>'',console};
+sandbox.globalThis=sandbox;vm.createContext(sandbox);vm.runInContext(code,sandbox);
+const api=sandbox.window.__SANA_CYCLE_MATERIAL__;if(!api)throw new Error('missing API');
+const state=api.forPlan('PL-1');if(!state.valid||state.chains.length!==1)throw new Error('missing chain');
+if(state.chains[0].survival!==88||state.chains[0].declaredLoss!==12)throw new Error('quantity projection failed');
+const html=sandbox.views.cycle();if(!html.includes('Procedencia vegetal del ciclo')||!html.includes('DECLARED_LOSS ≠ FAILURE')||!html.includes('73%'))throw new Error('cycle material panel contract failed');
+if(code.includes('completeness=')||code.includes('readyForArchive='))throw new Error('cycle gates must remain unchanged');
+console.log('cycle material contract OK');

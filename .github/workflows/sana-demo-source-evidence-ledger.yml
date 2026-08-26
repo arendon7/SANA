@@ -1,0 +1,88 @@
+name: SANA Demo Source Evidence Ledger
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-source-evidence-ledger.js'
+      - 'apps/control-web/public/sana-v3-cycle-source-provenance.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-source-evidence-ledger.mjs'
+      - '.github/workflows/sana-demo-source-evidence-ledger.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-source-evidence-ledger.js'
+      - 'apps/control-web/public/sana-v3-cycle-source-provenance.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-source-evidence-ledger.mjs'
+      - '.github/workflows/sana-demo-source-evidence-ledger.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  source-evidence-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-source-evidence-ledger.js
+          node --check apps/control-web/public/sana-v3-cycle-source-provenance.js
+          node scripts/validate-sana-source-evidence-ledger.mjs
+      - name: Validate source evidence boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='apps/control-web/public/sana-v3-source-evidence-ledger.js'
+          grep -q '__SANA_SOURCE_EVIDENCE_LEDGER__' "$f"
+          grep -q 'SANA_SOURCE_EVIDENCE_LEDGER_V1' "$f"
+          grep -q 'REFERENCE_REGISTERED ≠ CONTENT_INGESTED' "$f"
+          grep -q 'EXTERNAL_ID ≠ CONTENT_HASH' "$f"
+          grep -q 'VERSION_LABEL ≠ IMMUTABLE_VERSION' "$f"
+          grep -q 'FINGERPRINT_DECLARED ≠ HASH_VERIFIED' "$f"
+          grep -q 'HUMAN_REVIEW_RECORDED ≠ EXTERNAL_VERIFICATION' "$f"
+          grep -q 'EXTERNAL_VERIFICATION_STATUS_DECLARED ≠ EXTERNAL_VERIFICATION' "$f"
+          grep -q 'USE_DECLARED ≠ RELIANCE_VALIDATED' "$f"
+          grep -q 'SOURCE_LINK ≠ ACCESS_PERMISSION' "$f"
+          grep -q 'NO_GRAPH_TOKEN' "$f"
+          grep -q 'NO_SHAREPOINT_WRITE' "$f"
+      - name: Validate no local verification escalation
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='apps/control-web/public/sana-v3-source-evidence-ledger.js'
+          ! grep -Eiq 'sourceVerified[[:space:]]*:[[:space:]]*true|hashVerified[[:space:]]*:[[:space:]]*true|contentIngested[[:space:]]*:[[:space:]]*true|accessPermissionVerified[[:space:]]*:[[:space:]]*true' "$f"
+          grep -q 'externallyVerified:0' "$f"
+      - name: Validate cycle projection is read-only and non-weighted
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='apps/control-web/public/sana-v3-cycle-source-provenance.js'
+          grep -q '__SANA_CYCLE_SOURCE_EVIDENCE__' "$f"
+          grep -q 'SOURCE_PROVENANCE ≠ CYCLE_GATE' "$f"
+          ! grep -q 'completeness[[:space:]]*=' "$f"
+          ! grep -q 'readyForArchive[[:space:]]*=' "$f"
+      - name: Validate assembly and active v55 shell
+        shell: bash
+        run: |
+          set -euo pipefail
+          html='apps/control-web/public/sana-v3.html'; sw='apps/control-web/public/sana-v3-sw.js'
+          grep -q '/sana-v3-source-bridge.js.*sana-v3-source-evidence-ledger.js.*sana-v3-economics.js' "$html"
+          grep -q '/sana-v3-cycle-capture-sync-provenance.js.*sana-v3-cycle-source-provenance.js.*sana-v3-cycle-labor-provenance.js' "$html"
+          grep -q "'/sana-v3-source-evidence-ledger.js'" "$sw"
+          grep -q "'/sana-v3-cycle-source-provenance.js'" "$sw"
+          grep -q "^const CACHE='sana-v3-demo-shell-v55';" "$sw"
+      - name: Assert no external fetch, SharePoint write, production or canonical authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          files='apps/control-web/public/sana-v3-source-evidence-ledger.js apps/control-web/public/sana-v3-cycle-source-provenance.js'
+          ! grep -Eiq 'fetch\(|graph\.microsoft|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true' $files

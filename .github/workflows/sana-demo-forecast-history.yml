@@ -1,0 +1,84 @@
+name: SANA Demo Forecast History
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-forecast.js'
+      - 'apps/control-web/public/sana-v3-dataroom-forecast-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-forecast-gaps.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-forecast-history.mjs'
+      - '.github/workflows/sana-demo-forecast-history.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-forecast.js'
+      - 'apps/control-web/public/sana-v3-dataroom-forecast-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-forecast-gaps.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-forecast-history.mjs'
+      - '.github/workflows/sana-demo-forecast-history.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  forecast-history-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-report-snapshot-forecast.js
+          node --check apps/control-web/public/sana-v3-dataroom-forecast-history.js
+          node --check apps/control-web/public/sana-v3-due-diligence-forecast-gaps.js
+          node scripts/validate-sana-forecast-history.mjs
+      - name: Validate snapshot-only historical boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          snap='apps/control-web/public/sana-v3-report-snapshot-forecast.js'; hist='apps/control-web/public/sana-v3-dataroom-forecast-history.js'
+          grep -q '__SANA_REPORT_SNAPSHOT_FORECAST__' "$snap"
+          grep -q 'REVIEWER_IDENTITY_REDACTED' "$snap"
+          grep -q '__SANA_DATAROOM_FORECAST_HISTORY__' "$hist"
+          grep -q 'NOT_CAPTURED_IN_SNAPSHOT' "$hist"
+          grep -q 'NO_LIVE_FALLBACK' "$hist"
+          ! grep -q '__SANA_FORECAST_LEDGER__' "$hist"
+          ! grep -q '__SANA_INVENTORY_LEDGER__' "$hist"
+      - name: Validate documentary gaps only
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='apps/control-web/public/sana-v3-due-diligence-forecast-gaps.js'
+          grep -q '__SANA_DD_FORECAST_GAPS__' "$f"
+          grep -q 'FORECAST_GAP_OR_PENDING_REVIEW ≠ GAP' "$f"
+          grep -q 'CONFIRMED_NEED ≠ GAP' "$f"
+          grep -q 'PURCHASE_REQUEST_PENDING ≠ GAP' "$f"
+          grep -q 'MISSING_PURCHASE_ORDER ≠ GAP' "$f"
+          grep -q 'DOCUMENTARY_PRIORITY ≠ PROCUREMENT_NEED' "$f"
+      - name: Validate assembly and active v52 shell
+        shell: bash
+        run: |
+          set -euo pipefail
+          html='apps/control-web/public/sana-v3.html'; sw='apps/control-web/public/sana-v3-sw.js'
+          grep -q '/sana-v3-report-snapshot-labor.js.*sana-v3-report-snapshot-forecast.js.*sana-v3-cycle-closure.js' "$html"
+          grep -q '/sana-v3-due-diligence-labor-gaps.js.*sana-v3-due-diligence-forecast-gaps.js.*sana-v3-due-diligence-remediation.js' "$html"
+          grep -q '/sana-v3-dataroom-labor-history.js.*sana-v3-dataroom-forecast-history.js.*sana-v3-dataroom-entry.js' "$html"
+          grep -q "'/sana-v3-report-snapshot-forecast.js'" "$sw"
+          grep -q "'/sana-v3-dataroom-forecast-history.js'" "$sw"
+          grep -q "'/sana-v3-due-diligence-forecast-gaps.js'" "$sw"
+          grep -q "^const CACHE='sana-v3-demo-shell-v52';" "$sw"
+      - name: Assert no procurement, payment, production or investment authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          files='apps/control-web/public/sana-v3-report-snapshot-forecast.js apps/control-web/public/sana-v3-dataroom-forecast-history.js apps/control-web/public/sana-v3-due-diligence-forecast-gaps.js'
+          ! grep -Eiq 'paymentExecuted[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true|investmentRecommendation[[:space:]]*=[[:space:]]*true|autoPurchase|autoReplenish' $files
+          ! grep -Eiq 'fetch\(' $files

@@ -1,0 +1,72 @@
+name: SANA Demo Harvest History
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-harvest.js'
+      - 'apps/control-web/public/sana-v3-dataroom-harvest-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-harvest-gaps.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-harvest-snapshot.mjs'
+      - 'scripts/validate-sana-harvest-gaps.mjs'
+      - '.github/workflows/sana-demo-harvest-history.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-harvest.js'
+      - 'apps/control-web/public/sana-v3-dataroom-harvest-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-harvest-gaps.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-harvest-snapshot.mjs'
+      - 'scripts/validate-sana-harvest-gaps.mjs'
+
+permissions:
+  contents: read
+
+jobs:
+  harvest-history-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contracts
+        run: |
+          node --check apps/control-web/public/sana-v3-report-snapshot-harvest.js
+          node --check apps/control-web/public/sana-v3-dataroom-harvest-history.js
+          node --check apps/control-web/public/sana-v3-due-diligence-harvest-gaps.js
+          node scripts/validate-sana-harvest-snapshot.mjs
+          node scripts/validate-sana-harvest-gaps.mjs
+      - name: Validate snapshot-only history
+        run: |
+          grep -q '__SANA_REPORT_SNAPSHOT_HARVEST__' apps/control-web/public/sana-v3-report-snapshot-harvest.js
+          grep -q 'NO_HARVEST_TO_SALE_INFERENCE' apps/control-web/public/sana-v3-report-snapshot-harvest.js
+          grep -q 'NO_SALE_TO_PAYMENT_INFERENCE' apps/control-web/public/sana-v3-report-snapshot-harvest.js
+          grep -q '__SANA_DATAROOM_HARVEST_HISTORY__' apps/control-web/public/sana-v3-dataroom-harvest-history.js
+          grep -q 'NO_LIVE_FALLBACK' apps/control-web/public/sana-v3-dataroom-harvest-history.js
+          ! grep -q '__SANA_HARVEST_LEDGER__' apps/control-web/public/sana-v3-dataroom-harvest-history.js
+      - name: Validate documentary gaps only
+        run: |
+          grep -q '__SANA_DD_HARVEST_GAPS__' apps/control-web/public/sana-v3-due-diligence-harvest-gaps.js
+          grep -q 'HARVEST_OR_NO_SALE ≠ GAP' apps/control-web/public/sana-v3-due-diligence-harvest-gaps.js
+          grep -q 'PAYMENT_NOT_CAPTURED ≠ GAP' apps/control-web/public/sana-v3-due-diligence-harvest-gaps.js
+          grep -q 'LOSS_DECLARED ≠ GAP' apps/control-web/public/sana-v3-due-diligence-harvest-gaps.js
+          ! grep -q '__SANA_HARVEST_LEDGER__' apps/control-web/public/sana-v3-due-diligence-harvest-gaps.js
+      - name: Validate assembly and active v46 shell
+        run: |
+          html=apps/control-web/public/sana-v3.html; sw=apps/control-web/public/sana-v3-sw.js
+          grep -q '/sana-v3-report-snapshot-data-trust.js.*sana-v3-report-snapshot-harvest.js.*sana-v3-cycle-closure.js' "$html"
+          grep -q '/sana-v3-due-diligence-data-trust-gaps.js.*sana-v3-due-diligence-harvest-gaps.js.*sana-v3-due-diligence-remediation.js' "$html"
+          grep -q '/sana-v3-dataroom-data-trust-history.js.*sana-v3-dataroom-harvest-history.js.*sana-v3-dataroom-entry.js' "$html"
+          grep -q "'/sana-v3-report-snapshot-harvest.js'" "$sw"
+          grep -q "'/sana-v3-due-diligence-harvest-gaps.js'" "$sw"
+          grep -q "'/sana-v3-dataroom-harvest-history.js'" "$sw"
+          grep -q "^const CACHE='sana-v3-demo-shell-v46';" "$sw"
+      - name: Assert no financial execution or investment authority
+        run: |
+          files='apps/control-web/public/sana-v3-report-snapshot-harvest.js apps/control-web/public/sana-v3-dataroom-harvest-history.js apps/control-web/public/sana-v3-due-diligence-harvest-gaps.js'
+          ! grep -Eiq 'paymentExecuted[[:space:]]*=[[:space:]]*true|realizedRevenue[[:space:]]*=[[:space:]]*true|creditApproved|investmentApproved|canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true' $files
+          ! grep -Eiq 'fetch\(' $files

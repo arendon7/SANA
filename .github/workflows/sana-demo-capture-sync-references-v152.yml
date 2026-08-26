@@ -1,0 +1,55 @@
+name: SANA Demo Capture Sync References V152
+
+on:
+  pull_request:
+  push:
+    branches: [demo/sana-capture-sync-v152]
+
+permissions:
+  contents: read
+
+jobs:
+  capture-sync-references-v152:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Capture Sync References V152 final
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-capture-sync-references.js
+          node --check apps/control-web/public/sana-v3-cycle-capture-sync-provenance.js
+          node --check apps/control-web/public/sana-v3-sw.js
+          node scripts/validate-sana-capture-sync-ledger.mjs
+          node scripts/validate-sana-capture-sync-references-v152.mjs
+          node scripts/validate-sana-reference-hardening-v149.mjs
+          node scripts/validate-sana-reference-history-migration-v149.mjs
+          grep -Fq 'LEGACY_REFERENCE_NOT_CAPTURED' apps/control-web/public/sana-v3-capture-sync-references.js
+          grep -Fq 'CAPTURED_V152' apps/control-web/public/sana-v3-capture-sync-references.js
+          grep -Fq 'MISSING_SOURCE_SCOPE' apps/control-web/public/sana-v3-capture-sync-references.js
+          grep -Fq 'MISSING_TARGET_SCOPE' apps/control-web/public/sana-v3-capture-sync-references.js
+          grep -Fq 'COUNT_AND_KIND_ONLY · VALUE_NOT_EXPOSED' apps/control-web/public/sana-v3-capture-sync-references.js
+          grep -Fq 'ACK_REFERENCE_COHERENCE ≠ SERVER_VERIFICATION' apps/control-web/public/sana-v3-capture-sync-references.js
+          grep -Fq 'CANDIDATE_REFERENCE ≠ SOURCE_VERIFICATION' apps/control-web/public/sana-v3-capture-sync-references.js
+          grep -Fq 'CONFLICT_CANDIDATE ≠ TRUTH' apps/control-web/public/sana-v3-capture-sync-references.js
+          grep -Fq "const VERSION='V152',SRC='/sana-v3-capture-sync-references.js'" apps/control-web/public/sana-v3-cycle-capture-sync-provenance.js
+          grep -Fq '__SANA_CAPTURE_SYNC_REFERENCES_LOADER__' apps/control-web/public/sana-v3-cycle-capture-sync-provenance.js
+          node - <<'NODE'
+          const fs=require('fs');
+          const loader=fs.readFileSync('apps/control-web/public/sana-v3-cycle-capture-sync-provenance.js','utf8');
+          const sw=fs.readFileSync('apps/control-web/public/sana-v3-sw.js','utf8');
+          if(!loader.includes("__SANA_CAPTURE_SYNC_LEDGER__?.schema==='SANA_CAPTURE_SYNC_LEDGER_V1'"))throw new Error('Capture Sync dependency guard missing');
+          if(!loader.includes('__SANA_DATA_TRUST__?.rows'))throw new Error('Data Trust dependency guard missing');
+          const active=(sw.match(/^const CACHE='sana-v3-demo-shell-v152';$/gm)||[]).length===1;
+          const historical=sw.includes("if(false){\nconst CACHE='sana-v3-demo-shell-v152';\n}");
+          if(!active&&!historical)throw new Error('v152 cache marker missing');
+          if((sw.split("const CACHE='sana-v3-demo-shell-v152';").length-1)!==1)throw new Error('v152 cache marker duplicated');
+          if(!sw.includes("if(false){\nconst CACHE='sana-v3-demo-shell-v151';\n}"))throw new Error('v151 historical marker missing');
+          if((sw.split('/sana-v3-capture-sync-references.js').length-1)!==1)throw new Error('V152 SW asset count invalid');
+          if(!sw.includes('// v152 validates Capture Sync record, ACK and conflict-candidate reference coherence'))throw new Error('v152 provenance marker missing');
+          NODE
+          ! grep -Eiq 'canonicalMutated[[:space:]]*[:=][[:space:]]*true|productionExecutionAvailable[[:space:]]*[:=][[:space:]]*true|sourceVerified[[:space:]]*[:=][[:space:]]*true|hardwareVerified[[:space:]]*[:=][[:space:]]*true|calibratedMeasurement[[:space:]]*[:=][[:space:]]*true|automaticResolution[[:space:]]*[:=][[:space:]]*true|creditApproved|eligibilityApproved|investmentApproved|managementDecision[[:space:]]*[:=]' apps/control-web/public/sana-v3-capture-sync-references.js apps/control-web/public/sana-v3-cycle-capture-sync-provenance.js
+          ! grep -Eiq 'fetch\(|XMLHttpRequest|WebSocket' apps/control-web/public/sana-v3-capture-sync-references.js

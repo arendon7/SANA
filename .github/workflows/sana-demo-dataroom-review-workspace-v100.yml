@@ -1,0 +1,52 @@
+name: SANA Demo Data Room Review Workspace V100
+
+on:
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-dataroom-review-workspace.js'
+      - 'apps/control-web/public/sana-v3-review-workspace.css'
+      - 'apps/control-web/public/sana-v3-dataroom-review-case.js'
+      - 'apps/control-web/public/sana-v3-dataroom-review-handoff.js'
+      - 'apps/control-web/public/sana-v3-dataroom-review-feedback.js'
+      - 'apps/control-web/public/sana-v3-dataroom-review-response.js'
+      - 'apps/control-web/public/sana-v3-dataroom-review-disposition.js'
+      - 'apps/control-web/public/sana-v3-dataroom-review-round.js'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-dataroom-review-workspace-v100.mjs'
+      - '.github/workflows/sana-demo-dataroom-review-workspace-v100.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  review-workspace-v100-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Preserve V87–V100 workspace contracts
+        run: |
+          node scripts/validate-sana-dataroom-review-workspace.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v88.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v89.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v90.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v91.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v92.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v93.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v94.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v95.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v96.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v97.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v98.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v99.mjs
+          node scripts/validate-sana-dataroom-review-workspace-v100.mjs
+      - name: Assert V100 shell, exact row focus and read-only boundary
+        run: |
+          grep -q "const CACHE='sana-v3-demo-shell-v100';" apps/control-web/public/sana-v3-sw.js
+          grep -q 'SOURCE_CASE_FOCUS ≠ SOURCE_VERIFICATION' apps/control-web/public/sana-v3-dataroom-review-workspace.js
+          grep -q 'MULTIPLE_ROW_MATCHES ≠ ROW_SELECTION' apps/control-web/public/sana-v3-dataroom-review-workspace.js
+          grep -q 'data-review-source-case' apps/control-web/public/sana-v3-dataroom-review-case.js
+          grep -q 'data-review-source-case' apps/control-web/public/sana-v3-dataroom-review-round.js
+          ! grep -Eq 'location\.hash\s*=' apps/control-web/public/sana-v3-dataroom-review-workspace.js
+          ! grep -Eq 'fetch\s*\(|storage\s*(\?\.|\.)|openModal\s*\(' apps/control-web/public/sana-v3-dataroom-review-workspace.js

@@ -1,0 +1,119 @@
+(() => {
+  'use strict';
+
+  const PASSPORT_LOT_KEY='sana.v3.passport.lot';
+
+  function passportLot(){
+    const saved=localStorage.getItem(PASSPORT_LOT_KEY);
+    return DEMO.lots.some(l=>l.id===saved)?saved:'CAF-A1';
+  }
+  function money(n){try{return new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(Number(n)||0)}catch{return `${Number(n)||0} COP`}}
+
+  function localPlanReviews(lot){
+    let reviews=[];
+    try{reviews=JSON.parse(localStorage.getItem('sana.v3.plan.reviews')||'[]')}catch{}
+    const planIds=new Set(DEMO.plans.filter(p=>p.lot===lot).map(p=>p.id));
+    return reviews.filter(r=>planIds.has(r.planId));
+  }
+
+  function resultRows(lot,records){
+    const local=records.filter(r=>r.type==='harvest-result');
+    if(local.length)return local.map(r=>({title:`Resultado ${r.values?.quantity||'—'} ${r.values?.unit||''}`,meta:`${r.values?.date||'Ahora'} · ${r.values?.quality||'sin clasificación'} · ${r.values?.provenance||'sin procedencia'}`,state:'LOCAL_ONLY',quality:r.values?.evidence||'Sin soporte'}));
+    const base=window.__SANA_RESULT_BASE__?.[lot];
+    return base?[{title:`Resultado base ${base.observed} ${base.unit}`,meta:`${base.date} · ${base.quality} · plan ${base.planned} ${base.unit}`,state:'BASELINE_DEMO',quality:`Evidencia ${base.evidence}%`}]:[];
+  }
+
+  function economicsRows(lot){
+    const api=window.__SANA_ECONOMICS__;
+    const summary=api?.lotSummary?.(lot);
+    if(!summary)return [];
+    const rows=[{title:'Costo agregado histórico DEMO',meta:`${money(summary.baseRecorded)} · ${summary.baseRecordedProvenance||'BASELINE_DEMO'} · no itemizado al ciclo`,state:'BASELINE_DEMO',quality:'Contexto económico'}];
+    (api.forLot?.(lot)||[]).forEach(c=>rows.push({
+      title:`${c.concept} · ${money(c.amount)}`,
+      meta:`${c.categoryLabel||c.category} · ${c.activityId?`${c.activityId} · ${c.planId||'sin plan'} v${c.planVersion||'—'}`:'costo de lote no asignado a ciclo'} · soporte ${c.evidence}`,
+      state:c.linkIntegrity==='OK'?'LOCAL_ONLY':'LINK_MISMATCH',
+      quality:c.supported?'Con soporte DEMO':'Sin soporte'
+    }));
+    if(summary.priceScenario)rows.push({title:'Escenario comercial DEMO',meta:`${summary.volume} ${summary.unit} × ${money(summary.priceScenario)}/${summary.unit} · bruto escenario ${money(summary.grossScenario)}`,state:'SCENARIO_ONLY',quality:'No es venta ni ingreso'});
+    return rows;
+  }
+
+  function chainFor(lot){
+    const unit=DEMO.lots.find(l=>l.id===lot);
+    const plans=DEMO.plans.filter(p=>p.lot===lot);
+    const tasks=DEMO.tasks.filter(t=>t.lot===lot);
+    const evidence=DEMO.evidence.filter(e=>e.lot===lot);
+    const incidents=DEMO.incidents.filter(i=>i.lot===lot);
+    const records=storage.records.filter(r=>r.lot===lot || r.values?.lot===lot || String(r.values?.allocationRef||'').includes(`|${lot}|`));
+    const planReviews=localPlanReviews(lot);
+    const workflowActivities=window.__SANA_PLAN_FIELD_WORKFLOW__?.forLot?.(lot)||[];
+
+    const identityRows=[
+      {title:`${unit?.crop||'Unidad'} · ${unit?.name||lot}`,meta:`${lot} · ${unit?.area||'—'} ha · ${unit?.variety||'sin variedad'}`,state:'VERIFICABLE_DEMO',quality:'Alta'},
+      {title:'Finca La Esperanza',meta:'Támesis · Antioquia · unidad sintética',state:'DEMO',quality:'Contexto'}
+    ];
+    const planning=plans.map(p=>({title:`${p.name} · v${p.version}`,meta:`${p.phase} · ${p.owner} · ${p.progress}%`,state:'VERSIONADO',quality:'Alta'}));
+    planReviews.forEach(r=>planning.push({title:'Revisión humana de plan',meta:`${r.by} · ${r.at}`,state:'LOCAL_ONLY',quality:'Sandbox'}));
+
+    const field=records.filter(r=>r.type==='structured-visit').map(r=>({title:r.values?.purpose||r.title,meta:`${r.values?.owner||'Responsable'} · ${r.values?.finding||'sin hallazgo'}`,state:'LOCAL_ONLY',quality:'Estructurado'}));
+    incidents.forEach(i=>field.push({title:i.finding||i.title||'Incidencia',meta:`${i.severity||i.kind||'—'} · ${i.status||'—'} · ${i.owner||'—'}`,state:i.status||'DEMO',quality:'AGROWAY'}));
+
+    const execution=workflowActivities.length?workflowActivities.map(a=>({
+      title:a.title,
+      meta:`${a.owner} · ${a.when} · ${a.planId?`${a.planId} v${a.planVersion} · ${a.phase}`:'sin plan asociado'} · evidencia aportada ${a.evidence.length}`,
+      state:a.state.label,
+      quality:a.evidenceRequired?(a.evidence.length?'Evidencia vinculada':'Evidencia pendiente'):'Evidencia no bloqueante'
+    })):tasks.map(t=>({title:t.title,meta:`${t.owner} · ${t.when} · expectativa: ${t.evidence||'sin definir'}`,state:storage.done.has(t.id)?'CIERRE LEGACY':'ABIERTA',quality:'Sin contrato Activity Evidence'}));
+
+    const proofs=evidence.map(e=>({title:e.title,meta:`${e.type} · ${e.by} · ${e.date}`,state:e.integrity,quality:'Evidencia DEMO'}));
+    workflowActivities.forEach(a=>a.evidence.forEach(r=>proofs.push({title:`${r.values?.evidenceType||'Evidencia'} · ${a.id}`,meta:`${r.values?.responsible||a.owner} · ${r.values?.observedAt||String(r.createdAt||'').slice(0,10)} · ${r.values?.provenance||'LOCAL_ONLY'}`,state:'LOCAL_ONLY',quality:`Vinculada a ${a.planId||'actividad general'}`})));
+    records.filter(r=>!['structured-visit','plan-review','harvest-result','plan-activity','activity-evidence','activity-close','economics-cost'].includes(r.type)).forEach(r=>proofs.push({title:r.title,meta:`${r.type} · ${r.createdAt||'Ahora'}`,state:'LOCAL_ONLY',quality:'Sandbox'}));
+    const results=resultRows(lot,records);
+    const economics=economicsRows(lot);
+
+    return {unit,plans,tasks,evidence,records,workflowActivities,identity:identityRows,planning,field,execution,proofs,results,economics};
+  }
+
+  function integrityScore(chain){
+    const plan=chain.plans.length?100:35;
+    const required=chain.workflowActivities.filter(a=>a.evidenceRequired);
+    const taskEvidence=required.length?Math.round(required.filter(a=>a.evidence.length>0).length/required.length*100):(chain.workflowActivities.length?100:35);
+    const proof=Math.min(100,55+chain.proofs.length*8);
+    const contextual=chain.field.length?92:65;
+    const result=chain.results.length?90:55;
+    return Math.round(plan*.22+taskEvidence*.23+proof*.25+contextual*.15+result*.15);
+  }
+
+  function chainBlock(number,title,subtitle,rows){
+    const ok=rows.length>0;
+    return `<article class="passport-chain-step ${ok?'has-data':'missing'}"><header><span>${number}</span><div><strong>${esc(title)}</strong><small>${esc(subtitle)}</small></div><b>${ok?rows.length:'0'}</b></header><div class="passport-chain-rows">${rows.length?rows.map(r=>`<div class="passport-chain-row"><i></i><div><strong>${esc(r.title)}</strong><small>${esc(r.meta)}</small></div><span class="status ${/LOCAL|PEND|NO|ABIERTA|REPROG|LEGACY|MISMATCH|SCENARIO/i.test(r.state)?'warn':/OBSERV|BLOCK/i.test(r.state)?'danger':'teal'}">${esc(r.state)}</span><em>${esc(r.quality)}</em></div>`).join(''):'<div class="passport-gap">Falta información para reconstruir esta parte de la historia.</div>'}</div></article>`;
+  }
+
+  function passportOperational(){
+    const lotId=passportLot();
+    const c=chainFor(lotId);
+    const score=integrityScore(c);
+    const pendingTasks=c.workflowActivities.filter(a=>a.needsEvidence).length;
+    const legacyClosures=c.workflowActivities.filter(a=>a.state.code==='LEGACY_DONE').length;
+    const localOnly=c.records.filter(r=>r.type!=='economics-cost').length+localPlanReviews(lotId).length;
+    const economicLocal=window.__SANA_ECONOMICS__?.forLot?.(lotId)?.length||0;
+    const plan=c.plans[0];
+    const nextGap=pendingTasks?'Registrar evidencia realmente aportada para actividades que la exigen':legacyClosures?'Reconstruir cierres previos que no tienen contrato de evidencia':!c.field.length?'Registrar acompañamiento técnico estructurado':!c.results.length?'Registrar resultado/cierre productivo':'Mantener continuidad entre plan, campo, evidencia, resultado y procedencia económica';
+
+    return `${head('SANA · PASSPORT Y EVIDENCIA','Reconstruir por qué ocurrió cada decisión y qué resultado siguió.','Passport conecta origen, plan versionado, actividad, ejecución, evidencia realmente aportada, resultado productivo y procedencia económica. La expectativa de evidencia nunca se contabiliza como prueba y un costo nunca se confunde con prueba agronómica.',`<button class="btn secondary" data-action="exportPassport">Exportar vista DEMO</button>`)}
+      <section class="passport-lot-switcher">${DEMO.lots.filter(l=>!['VIV-01'].includes(l.id)).map(l=>`<button class="${l.id===lotId?'active':''}" data-passport-lot="${l.id}"><small>${l.id}</small><strong>${esc(l.crop)} · ${esc(l.name)}</strong><span>${l.area} ha · ${l.evidence}% evidencia base</span></button>`).join('')}</section>
+      <section class="passport-hero" style="margin-top:14px"><article class="passport-main"><small>PASSPORT · SANA-DEMO-${lotId}-2026</small><h2>${esc(c.unit?.crop||'Unidad')} · ${esc(c.unit?.name||lotId)}</h2><p>${lotId} · ${c.unit?.area||'—'} ha · Finca La Esperanza · Támesis${plan?` · Plan v${plan.version}`:''}</p><div class="passport-meta"><div><span>Integridad reconstruible</span><strong>${score}%</strong></div><div><span>Pruebas visibles</span><strong>${c.proofs.length}</strong></div><div><span>Costos itemizados</span><strong>${economicLocal}</strong></div><div><span>Registros locales</span><strong>${localOnly}</strong></div></div></article><article class="card"><div class="card-head"><div><h2>Brecha prioritaria</h2><p>Lo siguiente que mejora la reconstrucción.</p></div><span class="status ${score>=85?'teal':'warn'}">${score>=85?'ALTA':'MEJORABLE'}</span></div><div class="card-body"><div class="section-note"><strong>${esc(nextGap)}</strong><br>El porcentaje mide completitud DEMO de la cadena; no certifica autenticidad externa, causalidad, impacto ni rentabilidad.</div><div class="gate"><i class="${pendingTasks?'warn':''}">${pendingTasks?'!':'✓'}</i><div><strong>Actividades que exigen evidencia</strong><p>${pendingTasks} actividad(es) no tienen todavía una prueba registrada.</p></div><span class="status ${pendingTasks?'warn':'teal'}">${pendingTasks?'ABIERTO':'OK'}</span></div><div class="gate"><i class="${legacyClosures?'warn':''}">${legacyClosures?'!':'✓'}</i><div><strong>Cierres previos sin contrato</strong><p>${legacyClosures} cierre(s) del sandbox anterior requieren reconstrucción si se quieren usar como evidencia.</p></div><span class="status ${legacyClosures?'warn':'teal'}">${legacyClosures?'REVISAR':'OK'}</span></div><div class="gate"><i class="${localOnly?'warn':''}">${localOnly?'!':'✓'}</i><div><strong>Eventos LOCAL_ONLY</strong><p>${localOnly} evento(s) operativos aún son sandbox/nube DEMO, nunca ACK productivo.</p></div><span class="status ${localOnly?'warn':'teal'}">${localOnly?'DEMO':'OK'}</span></div></div></article></section>
+      <section class="passport-chain" style="margin-top:14px">${chainBlock('01','Identidad y contexto','Qué unidad estamos observando.',c.identity)}${chainBlock('02','Plan y autoridad','Qué estaba previsto, qué versión y quién podía decidir.',c.planning)}${chainBlock('03','Acompañamiento y hallazgos','Qué se observó y cómo se interpretó.',c.field)}${chainBlock('04','Actividad y ejecución','Qué estaba programado y cómo se cerró.',c.execution)}${chainBlock('05','Evidencia aportada','Qué prueba fue realmente registrada; expectativa ≠ evidencia.',c.proofs)}${chainBlock('06','Resultado productivo','Qué se obtuvo y con qué procedencia/calidad.',c.results)}${chainBlock('07','Procedencia económica','Qué costo/escenario existe y cómo está asignado; costo ≠ prueba agronómica.',c.economics)}</section>
+      <section class="grid two" style="margin-top:14px"><article class="card"><div class="card-head"><div><h2>Reglas de procedencia</h2><p>Evitan que una historia completa parezca más verificada de lo que realmente está.</p></div></div><div class="card-body"><div class="gate"><i>✓</i><div><strong>DEMO / AGROWAY</strong><p>Dato sintético estructurado dentro del producto.</p></div><span class="status">CONTEXTO</span></div><div class="gate"><i class="warn">!</i><div><strong>LOCAL_ONLY / NUBE DEMO</strong><p>Registro del usuario; sincronizar no lo convierte en ACK productivo.</p></div><span class="status warn">SANDBOX</span></div><div class="gate"><i class="warn">!</i><div><strong>BASELINE_DEMO ECONÓMICO</strong><p>Monto agregado de contexto; no se imputa retroactivamente a una actividad o ciclo.</p></div><span class="status warn">NO ITEMIZADO</span></div><div class="gate"><i class="blocked">×</i><div><strong>CAUSALIDAD / CONTABILIDAD / VERIFICACIÓN EXTERNA</strong><p>No se atribuyen por la existencia de registros operativos.</p></div><span class="status danger">NO ASUMIR</span></div></div></article><article class="card"><div class="card-head"><div><h2>Conexiones operativas</h2><p>Passport sirve como índice, no como silo.</p></div></div><div class="card-body"><div class="quick-grid" style="grid-template-columns:1fr 1fr"><button class="quick" data-view-link="plans"><strong>Abrir plan</strong><span>Versiones, fases y gates.</span></button><button class="quick" data-view-link="field"><strong>Abrir Campo</strong><span>Actividad, evidencia y cierre.</span></button><button class="quick" data-view-link="results"><strong>Abrir resultados</strong><span>Cosecha, calidad y procedencia.</span></button><button class="quick" data-view-link="economics"><strong>Abrir economía</strong><span>Costos, soportes y escenarios.</span></button></div></div></article></section>${footer()}`;
+  }
+
+  views.passport=passportOperational;
+  window.__SANA_PASSPORT_CHAIN__=Object.freeze({chainFor,integrityScore});
+
+  document.addEventListener('click',event=>{
+    const button=event.target.closest('[data-passport-lot]');
+    if(!button)return;
+    localStorage.setItem(PASSPORT_LOT_KEY,button.dataset.passportLot);
+    if(typeof render==='function')render();
+  });
+})();

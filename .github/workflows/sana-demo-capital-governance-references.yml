@@ -1,0 +1,66 @@
+name: SANA Demo Capital Governance References
+
+on:
+  push:
+    branches: [demo/sana-capital-v150]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  capital-governance-references:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Capital Governance References V150
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-capital-governance-references.js
+          node --check apps/control-web/public/sana-v3-sw.js
+          node scripts/validate-sana-capital-governance-references.mjs
+          grep -Fq "const VERSION='V150'" apps/control-web/public/sana-v3-capital-governance-references.js
+          grep -Fq 'LEGACY_REFERENCE_NOT_CAPTURED' apps/control-web/public/sana-v3-capital-governance-references.js
+          grep -Fq 'DECLARED_NON_CANONICAL_REFERENCE' apps/control-web/public/sana-v3-capital-governance-references.js
+          grep -Fq 'CROSS_SCOPE_REFERENCE' apps/control-web/public/sana-v3-capital-governance-references.js
+          grep -Fq 'CAPITAL_SUPPORT_REF' apps/control-web/public/sana-v3-capital-governance-references.js
+          grep -Fq 'COUNT_AND_KIND_ONLY · VALUE_NOT_EXPOSED' apps/control-web/public/sana-v3-capital-governance-references.js
+          grep -Fq 'REFERENCE_TARGET ≠ CASE_MEMBERSHIP' apps/control-web/public/sana-v3-capital-governance-references.js
+          grep -Fq 'COUNTERPARTY_REF_DECLARED ≠ VERIFIED_IDENTITY' apps/control-web/public/sana-v3-capital-governance-references.js
+          grep -Fq 'TERM_SHEET_REF_DECLARED ≠ SIGNED_OR_VERIFIED_TERM_SHEET' apps/control-web/public/sana-v3-capital-governance-references.js
+          grep -Fq 'COMMITMENT_REF_DECLARED ≠ VERIFIED_COMMITMENT_OR_FUNDING' apps/control-web/public/sana-v3-capital-governance-references.js
+          grep -Fq 'DOCUMENT_COMPLETENESS ≠ ELIGIBILITY ≠ CREDIT_SCORE' apps/control-web/public/sana-v3-capital-governance-references.js
+          grep -Fq 'REFERENCE ≠ OFFER ≠ SOLICITATION ≠ BROKERAGE ≠ CUSTODY ≠ INVESTMENT_RECOMMENDATION' apps/control-web/public/sana-v3-capital-governance-references.js
+          node - <<'NODE'
+          const fs=require('fs');
+          const html=fs.readFileSync('apps/control-web/public/sana-v3.html','utf8');
+          const sw=fs.readFileSync('apps/control-web/public/sana-v3-sw.js','utf8');
+          const g='/sana-v3-capital-governance.js',r='/sana-v3-capital-governance-references.js',h='/sana-v3-capital-review-ledger.js';
+          const gi=html.indexOf(g),ri=html.indexOf(r),hi=html.indexOf(h);
+          if(gi<0||ri<=gi||hi<=ri)throw new Error('Capital HTML order must remain Governance → V150 References → Human Review');
+          if((html.split(r).length-1)!==1)throw new Error('V150 HTML asset count invalid');
+          if((sw.match(/const CACHE='sana-v3-demo-shell-v150';/g)||[]).length!==1)throw new Error('v150 active cache marker must remain exactly once');
+          if(!sw.includes("if(false){\nconst CACHE='sana-v3-demo-shell-v149';\n}"))throw new Error('v149 historical cache marker missing');
+          if((sw.split(r).length-1)!==1)throw new Error('V150 SW asset count invalid');
+          if(!sw.includes('// v150 validates Capital Governance EVIDENCE.supports'))throw new Error('v150 provenance marker missing');
+          NODE
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|verifiedTermSheets[[:space:]]*=[[:space:]]*[1-9]|verifiedCommitments[[:space:]]*=[[:space:]]*[1-9]|legalClosingsVerified[[:space:]]*=[[:space:]]*[1-9]|fundingExecuted[[:space:]]*=[[:space:]]*[1-9]|custodyAmount[[:space:]]*=[[:space:]]*[1-9]|creditScore[[:space:]]*=[[:space:]]*[1-9]|eligibilityDecision[[:space:]]*=[[:space:]]*true|investmentRecommendation[[:space:]]*=[[:space:]]*true|automaticInvestmentActions[[:space:]]*=[[:space:]]*[1-9]' apps/control-web/public/sana-v3-capital-governance-references.js
+      - name: Validate V3 compatibility on V150 cut
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          files=(apps/control-web/public/sana-v3*.js)
+          test ${#files[@]} -gt 0
+          for file in "${files[@]}"; do node --check "$file"; done
+          node -e "JSON.parse(require('fs').readFileSync('apps/control-web/public/sana-v3-manifest.webmanifest','utf8'))"
+          node scripts/validate-sana-demo-auth.mjs
+          test -s apps/control-web/public/sana-v3.html
+          grep -q 'productionExecutionAvailable=false' apps/control-web/public/sana-v3-core.js
+          grep -q 'canonicalMutated=false' apps/control-web/public/sana-v3-core.js
+          grep -q 'D10=PENDING' apps/control-web/public/sana-v3-core.js
+          ! grep -Eiq 'productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true|investmentApproved[[:space:]]*=[[:space:]]*true|creditApproved[[:space:]]*=[[:space:]]*true' apps/control-web/public/sana-v3*.js

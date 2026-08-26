@@ -1,0 +1,14 @@
+name: Assemble SANA v64 Capital Human Review History
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  assemble-v64-retired:
+    if: ${{ false }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo 'v64 assembler retired after deterministic assembly; shell is certified separately.'

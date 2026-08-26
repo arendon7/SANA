@@ -1,0 +1,36 @@
+name: SANA Demo Data Room Review Workspace V109
+
+on:
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-dataroom-entry.js'
+      - 'apps/control-web/public/sana-v3-review-workspace.css'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-dataroom-review-workspace-v109.mjs'
+      - '.github/workflows/sana-demo-dataroom-review-workspace-v109.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  review-workspace-v109-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Preserve V87–V109 workspace contracts
+        run: |
+          node scripts/validate-sana-dataroom-review-workspace.mjs
+          for v in $(seq 88 109); do node scripts/validate-sana-dataroom-review-workspace-v${v}.mjs; done
+      - name: Assert V109 shell, focus continuity/live semantics and read-only boundary
+        run: |
+          grep -q "const CACHE='sana-v3-demo-shell-v109';" apps/control-web/public/sana-v3-sw.js
+          grep -q 'FOCUS_CONTINUITY ≠ REVIEW_PROGRESS' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -q 'LIVE_ANNOUNCEMENT ≠ REVIEW_OUTCOME' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -q 'ANNOUNCED_CONTEXT ≠ CONTEXT_VERIFICATION' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -q 'data-review-context-live' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -q 'aria-live="polite"' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -q 'focusReviewStage' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -q 'V109 · Focus continuity & live context' apps/control-web/public/sana-v3-review-workspace.css
+          ! grep -Eq 'rwLive|rwFocusReturn|rwAnnounce|localStorage\.(setItem|removeItem|clear)\s*\(|sessionStorage|fetch\s*\(|openModal\s*\(' apps/control-web/public/sana-v3-dataroom-entry.js

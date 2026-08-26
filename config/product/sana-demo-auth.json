@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "1.3.0",
+  "product": "SANA",
+  "mode": "DEMO",
+  "purpose": "Functional product demonstration with simple account creation, predefined sandbox personas and owner-scoped demo state.",
+  "baseRelease": {
+    "branch": "release/control-v022-initial-rc2",
+    "gitHeadSha": "7f2a47a99b7df6a1682a588d714aca9a18026a95",
+    "immutable": true
+  },
+  "authentication": {
+    "provider": "FIREBASE_AUTH",
+    "primaryMethod": "EMAIL_PASSWORD",
+    "firebaseProjectId": "sana-demo-web",
+    "firebaseAuthDomain": "sana-demo-web.firebaseapp.com",
+    "publicWebConfigBound": true,
+    "browserEnvironmentOverrides": [
+      "SANA_DEMO_FIREBASE_API_KEY",
+      "SANA_DEMO_FIREBASE_AUTH_DOMAIN",
+      "SANA_DEMO_FIREBASE_PROJECT_ID",
+      "SANA_DEMO_FIREBASE_STORAGE_BUCKET",
+      "SANA_DEMO_FIREBASE_MESSAGING_SENDER_ID",
+      "SANA_DEMO_FIREBASE_APP_ID",
+      "SANA_DEMO_FIREBASE_MEASUREMENT_ID"
+    ],
+    "forbiddenBrowserSecrets": [
+      "firebase_admin_private_key",
+      "firebase_service_account_json",
+      "google_application_credentials",
+      "database_password",
+      "postgres_password",
+      "oidc_client_secret"
+    ],
+    "allowLocalSandboxProfiles": true
+  },
+  "dataStore": {
+    "provider": "CLOUD_FIRESTORE",
+    "firebaseProjectId": "sana-demo-web",
+    "profileCollection": "demo_profiles",
+    "stateCollection": "demo_user_state",
+    "stateDocumentId": "AUTH_UID",
+    "stateSchemaVersion": "1.0.0",
+    "accessModel": "OWNER_UID_ONLY",
+    "roleStoredOutsideOperationalState": true,
+    "optimisticRevisionRequired": true,
+    "conflictPolicy": "NO_SILENT_OVERWRITE",
+    "localProfilesCloudSync": false,
+    "rulesPath": "infra/firebase-demo/firestore.rules"
+  },
+  "personas": [
+    {"id": "producer", "label": "Productor demo", "scope": "FIELD"},
+    {"id": "technical", "label": "Técnico demo", "scope": "FIELD_AND_MONITORING"},
+    {"id": "investor", "label": "Inversionista demo", "scope": "PORTFOLIO_READ_MODEL"},
+    {"id": "admin", "label": "Administrador demo", "scope": "DEMO_OVERVIEW"},
+    {"id": "visitor", "label": "Visitante demo", "scope": "GUIDED_EXPLORATION"},
+    {"id": "new_user", "label": "Usuario nuevo", "scope": "ONBOARDING_LIMITED"}
+  ],
+  "safetyBoundary": {
+    "sandbox": true,
+    "syntheticDataOnly": true,
+    "productionExecutionAvailable": false,
+    "productionActivationAllowed": false,
+    "d10HumanProductApproval": "PENDING",
+    "externalAckExecutionAvailable": false,
+    "canonicalWriteAvailable": false,
+    "financialMovementAvailable": false,
+    "canonicalMutated": false
+  },
+  "productionAuth": {
+    "auth0MfaRequiredLater": true,
+    "status": "OUT_OF_SCOPE_FOR_DEMO"
+  }
+}

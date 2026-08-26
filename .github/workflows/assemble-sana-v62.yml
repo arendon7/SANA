@@ -1,0 +1,14 @@
+name: Assemble SANA v62 Capital Governance History
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  assemble-v62-retired:
+    if: ${{ false }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo 'v62 assembler retired after deterministic assembly; shell is certified separately.'

@@ -1,0 +1,32 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+
+const entryPath='apps/control-web/public/sana-v3-dataroom-entry.js';
+const cssPath='apps/control-web/public/sana-v3-review-workspace.css';
+const swPath='apps/control-web/public/sana-v3-sw.js';
+const entry=fs.readFileSync(entryPath,'utf8'),css=fs.readFileSync(cssPath,'utf8'),sw=fs.readFileSync(swPath,'utf8');
+for(const marker of ['STRUCTURAL_DIAGNOSTIC ≠ DOCUMENT_FINDING','ISSUE_CODE ≠ SEVERITY','ISSUE_CODE ≠ REMEDIATION_INSTRUCTION','INVALID_CASE ≠ INVALID_EVIDENCE','CASE_INDEX ≠ SOURCE_IDENTITY','DIAGNOSTIC_DISCLOSURE ≠ PERSISTED_STATE','DIAGNOSTIC_PROJECTION ≠ RAW_PAYLOAD','REVIEW_V119_COMPAT','reviewStructuralDiagnostics','data-review-structural-diagnostics'])assert(entry.includes(marker),`missing V119 marker: ${marker}`);
+assert(css.includes('V119 · Structural case diagnostics'));
+assert(sw.includes("const CACHE='sana-v3-demo-shell-v119';"));assert(sw.includes("const CACHE='sana-v3-demo-shell-v118';"));
+assert(!/rwStructuralDiagnostic|rwDiagnostic|data-review-structural-diagnostics-state|localStorage\.(?:setItem|removeItem|clear)\s*\(|sessionStorage\s*(?:\.|\[)/.test(entry));
+
+const zeroAuthority={riskScores:0,dueDiligenceApprovals:0,investmentDecisions:0,externalActions:0};
+const rawInvalid={index:0,id:'BAD-CASE',issues:['EVENTS_NOT_ARRAY','CLOSURES_NOT_ARRAY'],privatePayload:'DO_NOT_PROJECT',secret:{token:'NOPE'}};
+const sources=[{stage:'CASE',label:'Expediente',state:'AVAILABLE',schemaState:'MATCH',payloadState:'PARTIAL_INVALID',caseCount:2,validCaseCount:1,invalidCaseCount:1,invalidCases:[rawInvalid]},{stage:'HANDOFF',label:'Handoff',state:'AVAILABLE',schemaState:'MATCH',payloadState:'VALID',caseCount:1,validCaseCount:1,invalidCaseCount:0,invalidCases:[]}];
+const state={chains:[],sources,summary:{...zeroAuthority,unavailableSources:0,sourceReadErrors:0,schemaMismatches:0,missingSourceSchemas:0,ambiguousStageReferences:0,invalidSourceCases:1,sourcesWithInvalidPayload:1}};
+const focus={capital:'ALL',lot:'ALL',focus:'ALL',stage:'ALL',event:'',ref:''};
+const context={requested:false,resolved:true,issues:[],chainKey:'',capitalKnown:true,lotKnown:true};
+const workspaceApi={state:()=>state,readFocus:()=>({...focus}),contextIntegrity:()=>({...context}),visibleChains:()=>[],sourcePanelTarget:stage=>`panel-${stage.toLowerCase()}`};
+const views={home:()=>'<header class="page-head"></header><main>HOME</main><footer class="footer"></footer>',dataroom:()=>'<header class="page-head"></header><section id="review-workspace" class="card review-workspace"><div class="card-head"><div><p class="kicker">DATA ROOM · REVIEW WORKSPACE V101</p><h2>Circuito de revisión, con navegación bidireccional al caso fuente</h2></div></div><div class="card-body"><div class="review-workspace-controls">FILTROS</div></div></section><footer class="footer"></footer>'};
+const calls={history:0,render:0};const document={addEventListener:()=>{},getElementById:()=>null,querySelector:()=>null};const location={href:'https://demo.test/sana-v3?foo=keep#dataroom',search:'?foo=keep'};
+const window={__SANA_DATAROOM_REVIEW_WORKSPACE__:workspaceApi,__SANA_ACCESS__:{role:'technical',canView:view=>view==='dataroom'}};window.window=window;
+const ctx={window,views,metric:(a,b,c)=>`<i>${a}:${b}:${c}</i>`,esc:v=>String(v),localStorage:{getItem:()=>null},URL,navigator:{clipboard:{writeText:async()=>{}}},location,history:{replaceState:()=>calls.history++},render:()=>calls.render++,document,queueMicrotask:fn=>fn(),console};
+vm.createContext(ctx);vm.runInContext(entry,ctx,{filename:entryPath});
+const api=window.__SANA_DATAROOM_REVIEW_CONTEXT_SUMMARY__;assert(api?.structuralDiagnostics);
+const projected=api.sourceIntegrity(state);assert.equal(projected.sources[0].invalidCases.length,1);assert.deepEqual({...projected.sources[0].invalidCases[0]},{index:0,id:'BAD-CASE',issues:['EVENTS_NOT_ARRAY','CLOSURES_NOT_ARRAY']});assert.equal('privatePayload' in projected.sources[0].invalidCases[0],false);assert.equal('secret' in projected.sources[0].invalidCases[0],false);
+const diagnostic=api.structuralDiagnostics(projected.sources[0]);assert.equal(diagnostic.cases.length,1);assert.equal(diagnostic.cases[0].id,'BAD-CASE');assert.deepEqual([...diagnostic.cases[0].issues],['EVENTS_NOT_ARRAY','CLOSURES_NOT_ARRAY']);
+const before=JSON.stringify(state),rendered=views.dataroom();assert(rendered.includes('DATA ROOM · REVIEW WORKSPACE V119'));assert(rendered.includes('DATA ROOM · REVIEW WORKSPACE V118'));assert(rendered.includes('data-review-structural-diagnostics="CASE"'));assert(rendered.includes('EVENTS_NOT_ARRAY'));assert(rendered.includes('CLOSURES_NOT_ARRAY'));assert(rendered.includes('ID · BAD-CASE'));assert(!rendered.includes('DO_NOT_PROJECT'));assert(!rendered.includes('NOPE'));
+const start=rendered.indexOf('<details data-review-structural-diagnostics="CASE"'),openTag=rendered.slice(start,rendered.indexOf('>',start)+1);assert(start>=0);assert(!/\sopen(?:\s|=|>)/.test(openTag));
+assert.equal(calls.history,0);assert.equal(calls.render,0);assert.equal(JSON.stringify(state),before);for(const k of Object.keys(zeroAuthority))assert.equal(state.summary[k],0);
+console.log('SANA Data Room review workspace v119 structural diagnostics validation: OK');

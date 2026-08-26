@@ -1,0 +1,65 @@
+name: SANA Demo Source Evidence Reference History
+
+on:
+  push:
+    branches: [demo/sana-source-evidence-v144]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  source-evidence-reference-history:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Source Evidence Reference History V144
+        run: |
+          set -euo pipefail
+          for f in \
+            apps/control-web/public/sana-v3-source-evidence-references.js \
+            apps/control-web/public/sana-v3-report-snapshot-source-evidence-references.js \
+            apps/control-web/public/sana-v3-dataroom-source-evidence-references.js \
+            apps/control-web/public/sana-v3-cycle-source-evidence-references.js \
+            apps/control-web/public/sana-v3-due-diligence-source-evidence-reference-gaps.js \
+            apps/control-web/public/sana-v3-sw.js; do node --check "$f"; done
+          node scripts/validate-sana-source-evidence-references.mjs
+          node scripts/validate-sana-source-evidence-reference-provenance.mjs
+          grep -Fq 'CONTENT_MINIMIZED' apps/control-web/public/sana-v3-report-snapshot-source-evidence-references.js
+          grep -Fq 'NO_LIVE_FALLBACK' apps/control-web/public/sana-v3-dataroom-source-evidence-references.js
+          grep -Fq 'NON_WEIGHTED' apps/control-web/public/sana-v3-cycle-source-evidence-references.js
+          grep -Fq 'NOT_CAPTURED_OR_LEGACY ≠ GAP' apps/control-web/public/sana-v3-due-diligence-source-evidence-reference-gaps.js
+          ! grep -Eq '__SANA_SOURCE_EVIDENCE_LEDGER__|storage\?\.records|localStorage' apps/control-web/public/sana-v3-dataroom-source-evidence-references.js apps/control-web/public/sana-v3-cycle-source-evidence-references.js apps/control-web/public/sana-v3-due-diligence-source-evidence-reference-gaps.js
+          node - <<'NODE'
+          const fs=require('fs');
+          const sw=fs.readFileSync('apps/control-web/public/sana-v3-sw.js','utf8');
+          const loader=fs.readFileSync('apps/control-web/public/sana-v3-source-evidence-references.js','utf8');
+          const assets=[
+            '/sana-v3-report-snapshot-source-evidence-references.js',
+            '/sana-v3-cycle-source-evidence-references.js',
+            '/sana-v3-due-diligence-source-evidence-reference-gaps.js',
+            '/sana-v3-dataroom-source-evidence-references.js'];
+          for(const a of assets){
+            if((sw.split(a).length-1)!==1)throw new Error(`SW asset count invalid: ${a}`);
+            if(!loader.includes(a))throw new Error(`V144 loader missing: ${a}`);
+          }
+          const positions=assets.map(a=>loader.indexOf(a));
+          if(positions.some(i=>i<0)||positions.some((v,i)=>i&&v<=positions[i-1]))throw new Error('V144 loader order must be Snapshot → Cycle → DD → Data Room');
+          if(!loader.includes("const VERSION='V144'"))throw new Error('V144 loader version missing');
+          if(!loader.includes("referenceVersion!=='V143'"))throw new Error('V143→V144 dependency missing');
+          if(!loader.includes('__SANA_SOURCE_EVIDENCE_REFERENCE_HISTORY_LOADER__'))throw new Error('V144 loader state missing');
+          if((sw.match(/const CACHE='sana-v3-demo-shell-v144';/g)||[]).length!==1)throw new Error('v144 cache marker must remain exactly once');
+          if(!sw.includes("if(false){\nconst CACHE='sana-v3-demo-shell-v143';\n}"))throw new Error('v143 historical marker missing');
+          if(!sw.includes('// v144 propagates Source Evidence reference integrity'))throw new Error('v144 provenance marker missing');
+          const lines=sw.split('\n');
+          const active=[];
+          for(let i=0;i<lines.length;i++){
+            const m=lines[i].match(/^const CACHE='sana-v3-demo-shell-v(\d+)';$/);
+            if(m&&lines[i-1]!=='if(false){')active.push(Number(m[1]));
+          }
+          if(active.length!==1||active[0]<144)throw new Error(`expected one active cache >= v144, got ${active.join(',')}`);
+          NODE
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|sourceVerified[[:space:]]*=[[:space:]]*true|hashVerified[[:space:]]*=[[:space:]]*true|contentIngested[[:space:]]*=[[:space:]]*true|accessPermissionVerified[[:space:]]*=[[:space:]]*true|creditApproved|investmentApproved|procurementApproved' apps/control-web/public/sana-v3-*source-evidence-reference*.js

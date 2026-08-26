@@ -1,0 +1,60 @@
+name: SANA Demo Due Diligence V74
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-dataroom-review-governance.js'
+      - 'apps/control-web/public/sana-v3-dataroom-review-governance-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-dataroom-review-governance-gaps.js'
+      - 'scripts/validate-sana-dataroom-review-governance-history.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - '.github/workflows/sana-demo-due-diligence-v74.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-dataroom-review-governance.js'
+      - 'apps/control-web/public/sana-v3-dataroom-review-governance-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-dataroom-review-governance-gaps.js'
+      - 'scripts/validate-sana-dataroom-review-governance-history.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+
+jobs:
+  composed-dd-v74:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate reviewer governance historical semantics
+        run: node scripts/validate-sana-dataroom-review-governance-history.mjs
+      - name: Validate DD order before remediation when assembled
+        run: |
+          html='apps/control-web/public/sana-v3.html'
+          if grep -q '/sana-v3-due-diligence-dataroom-review-governance-gaps.js' "$html"; then
+            grep -q '/sana-v3-due-diligence-dataroom-findings-gaps.js.*sana-v3-due-diligence-dataroom-review-governance-gaps.js.*sana-v3-due-diligence-remediation.js' "$html"
+          else
+            echo 'v74 staged before assembly; strict DD order deferred.'
+          fi
+      - name: Validate snapshot and Data Room order when assembled
+        run: |
+          html='apps/control-web/public/sana-v3.html'
+          if grep -q '/sana-v3-report-snapshot-dataroom-review-governance.js' "$html"; then
+            grep -q '/sana-v3-report-snapshot-dataroom-findings.js.*sana-v3-report-snapshot-dataroom-review-governance.js.*sana-v3-cycle-closure.js' "$html"
+            grep -q '/sana-v3-dataroom-findings-history.js.*sana-v3-dataroom-review-governance-history.js.*sana-v3-dataroom-entry.js' "$html"
+            grep -q "^const CACHE='sana-v3-demo-shell-v74';" apps/control-web/public/sana-v3-sw.js
+          else
+            echo 'v74 staged before assembly; strict shell validation deferred.'
+          fi
+      - name: Validate non-decisional boundaries
+        run: |
+          grep -q 'NO_GOVERNANCE_RECORD ≠ GAP' apps/control-web/public/sana-v3-due-diligence-dataroom-review-governance-gaps.js
+          grep -q 'NO_CONFLICT_DECLARED ≠ GAP ≠ VERIFIED_INDEPENDENCE' apps/control-web/public/sana-v3-due-diligence-dataroom-review-governance-gaps.js
+          grep -q 'CONFLICT_DECLARED ≠ GAP ≠ CONFLICT_FACT ≠ INVESTMENT_RISK ≠ DISQUALIFICATION' apps/control-web/public/sana-v3-due-diligence-dataroom-review-governance-gaps.js
+          grep -q 'RECUSAL_REFERENCE ≠ GAP ≠ FINDING_INVALIDITY' apps/control-web/public/sana-v3-due-diligence-dataroom-review-governance-gaps.js
+          grep -q 'GOVERNANCE_GAP ≠ INVESTMENT_RISK ≠ RISK_RATING ≠ RISK_SCORE ≠ ELIGIBILITY ≠ INVESTMENT_DECISION' apps/control-web/public/sana-v3-due-diligence-dataroom-review-governance-gaps.js
+          ! grep -Eq 'productionExecutionAvailable\s*=\s*true|productionActivationAllowed\s*=\s*true|canonicalMutated\s*=\s*true' apps/control-web/public/sana-v3-report-snapshot-dataroom-review-governance.js apps/control-web/public/sana-v3-dataroom-review-governance-history.js apps/control-web/public/sana-v3-due-diligence-dataroom-review-governance-gaps.js
+
+# v74 freeze certification trigger: assembled shell, snapshot-only reviewer governance provenance, no scoring or authority expansion.

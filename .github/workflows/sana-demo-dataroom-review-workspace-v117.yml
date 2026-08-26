@@ -1,0 +1,34 @@
+name: SANA Demo Data Room Review Workspace V117
+
+on:
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-dataroom-entry.js'
+      - 'apps/control-web/public/sana-v3-review-workspace.css'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-dataroom-review-workspace*.mjs'
+      - '.github/workflows/sana-demo-dataroom-review-workspace-v117.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  review-workspace-v117-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Preserve V87–V117 workspace contracts
+        run: |
+          node scripts/validate-sana-dataroom-review-workspace.mjs
+          for v in $(seq 88 117); do node scripts/validate-sana-dataroom-review-workspace-v${v}.mjs; done
+      - name: Assert V117 shell, glossary semantics and read-only boundary
+        run: |
+          grep -F "const CACHE='sana-v3-demo-shell-v117';" apps/control-web/public/sana-v3-sw.js
+          grep -F 'TECHNICAL_LABEL ≠ SEVERITY' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -F 'GLOSSARY_ENTRY ≠ REVIEW_FINDING' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -F 'STATE_DESCRIPTION ≠ REMEDIATION_INSTRUCTION' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -F 'STRUCTURAL_VALIDITY ≠ DOCUMENT_VERIFICATION' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -F 'data-review-technical-glossary' apps/control-web/public/sana-v3-dataroom-entry.js
+          ! grep -Eq 'rwGlossary|rwTechnicalState|data-review-technical-glossary-state|localStorage\.(setItem|removeItem|clear)|sessionStorage' apps/control-web/public/sana-v3-dataroom-entry.js

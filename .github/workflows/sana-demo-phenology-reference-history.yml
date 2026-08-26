@@ -1,0 +1,41 @@
+name: SANA Demo Phenology Reference History
+
+on:
+  push:
+    branches: [demo/sana-phenology-v134]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  phenology-reference-history:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate V134 reference provenance and assembly
+        run: |
+          set -euo pipefail
+          ref='apps/control-web/public/sana-v3-phenology-references.js'
+          sw='apps/control-web/public/sana-v3-sw.js'
+          for f in \
+            "$ref" \
+            apps/control-web/public/sana-v3-report-snapshot-phenology-references.js \
+            apps/control-web/public/sana-v3-dataroom-phenology-references.js \
+            apps/control-web/public/sana-v3-cycle-phenology-references.js \
+            apps/control-web/public/sana-v3-due-diligence-phenology-reference-gaps.js \
+            "$sw"; do node --check "$f"; done
+          node scripts/validate-sana-phenology-reference-provenance.mjs
+          grep -q '__SANA_PHENOLOGY_REFERENCE_HISTORY_LOADER__' "$ref"
+          grep -q "version:'V134'" "$ref"
+          for a in \
+            '/sana-v3-report-snapshot-phenology-references.js' \
+            '/sana-v3-cycle-phenology-references.js' \
+            '/sana-v3-due-diligence-phenology-reference-gaps.js' \
+            '/sana-v3-dataroom-phenology-references.js'; do grep -q "$a" "$ref"; grep -q "'$a'" "$sw"; done
+          grep -q "const CACHE='sana-v3-demo-shell-v133'" "$sw"
+          grep -q "^const CACHE='sana-v3-demo-shell-v134';" "$sw"
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|creditApproved|investmentApproved|automaticPhaseChange|autoIrrigation|autoFertigation' apps/control-web/public/sana-v3-*phenology-reference*.js "$ref"

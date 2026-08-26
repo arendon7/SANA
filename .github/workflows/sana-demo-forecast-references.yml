@@ -1,0 +1,33 @@
+name: SANA Demo Forecast References
+
+on:
+  push:
+    branches: [demo/sana-forecast-v139]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  forecast-references:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Forecast References V139
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-forecast-references.js
+          node --check apps/control-web/public/sana-v3-cycle-forecast-provenance.js
+          node --check apps/control-web/public/sana-v3-sw.js
+          node scripts/validate-sana-forecast-references.mjs
+          grep -Fq "/sana-v3-forecast-references.js" apps/control-web/public/sana-v3-cycle-forecast-provenance.js
+          grep -Fq "__SANA_FORECAST_LEDGER__" apps/control-web/public/sana-v3-cycle-forecast-provenance.js
+          grep -Fq "__SANA_NUTRITION_LEDGER__" apps/control-web/public/sana-v3-cycle-forecast-provenance.js
+          grep -Fq "__SANA_PLAN_FIELD_WORKFLOW__" apps/control-web/public/sana-v3-cycle-forecast-provenance.js
+          grep -Fq "const CACHE='sana-v3-demo-shell-v139';" apps/control-web/public/sana-v3-sw.js
+          grep -Fq "const CACHE='sana-v3-demo-shell-v138';" apps/control-web/public/sana-v3-sw.js
+          grep -Fq "'/sana-v3-forecast-references.js'" apps/control-web/public/sana-v3-sw.js
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|automaticProcurement|purchaseOrderCreated|paymentExecuted|creditApproved|investmentApproved' apps/control-web/public/sana-v3-forecast-references.js apps/control-web/public/sana-v3-cycle-forecast-provenance.js

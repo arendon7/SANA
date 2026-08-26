@@ -1,0 +1,61 @@
+name: SANA Demo Data Room Review Disposition History
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-dataroom-review-disposition.js'
+      - 'apps/control-web/public/sana-v3-dataroom-review-disposition-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-dataroom-review-disposition-gaps.js'
+      - 'scripts/validate-sana-dataroom-review-disposition-history.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - '.github/workflows/sana-demo-dataroom-review-disposition-history.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-dataroom-review-disposition.js'
+      - 'apps/control-web/public/sana-v3-dataroom-review-disposition-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-dataroom-review-disposition-gaps.js'
+      - 'scripts/validate-sana-dataroom-review-disposition-history.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+
+jobs:
+  review-disposition-history-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contracts
+        run: |
+          node --check apps/control-web/public/sana-v3-report-snapshot-dataroom-review-disposition.js
+          node --check apps/control-web/public/sana-v3-dataroom-review-disposition-history.js
+          node --check apps/control-web/public/sana-v3-due-diligence-dataroom-review-disposition-gaps.js
+          node scripts/validate-sana-dataroom-review-disposition-history.mjs
+      - name: Validate snapshot-only history
+        run: |
+          grep -q 'SNAPSHOT_DATAROOM_REVIEW_DISPOSITION_ONLY' apps/control-web/public/sana-v3-report-snapshot-dataroom-review-disposition.js
+          grep -q 'NO_LIVE_FALLBACK' apps/control-web/public/sana-v3-dataroom-review-disposition-history.js
+          grep -q 'LIVE_STATE ≠ SNAPSHOT ≠ HISTORICAL_EVIDENCE' apps/control-web/public/sana-v3-dataroom-review-disposition-history.js
+          ! grep -q '__SANA_DATAROOM_REVIEW_DISPOSITION__' apps/control-web/public/sana-v3-dataroom-review-disposition-history.js
+          ! grep -Eq '\bstorage\s*(\?\.|\.)' apps/control-web/public/sana-v3-dataroom-review-disposition-history.js
+      - name: Validate documentary gaps only
+        run: |
+          grep -q 'NO_REVIEW_DISPOSITION ≠ GAP' apps/control-web/public/sana-v3-due-diligence-dataroom-review-disposition-gaps.js
+          grep -q 'DISPOSITION_OPEN ≠ GAP' apps/control-web/public/sana-v3-due-diligence-dataroom-review-disposition-gaps.js
+          grep -q 'DISPOSITION_CLOSED ≠ GAP' apps/control-web/public/sana-v3-due-diligence-dataroom-review-disposition-gaps.js
+          grep -q 'NO_DISPOSITION_RECORDED ≠ GAP' apps/control-web/public/sana-v3-due-diligence-dataroom-review-disposition-gaps.js
+          grep -q 'DISPOSITION_GAP ≠ FINDING ≠ REMEDIATION_ITEM ≠ RISK_SCORE ≠ REVIEW_OUTCOME' apps/control-web/public/sana-v3-due-diligence-dataroom-review-disposition-gaps.js
+      - name: Validate assembly
+        run: |
+          node <<'NODE'
+          const fs=require('fs'),assert=require('assert');const html=fs.readFileSync('apps/control-web/public/sana-v3.html','utf8'),sw=fs.readFileSync('apps/control-web/public/sana-v3-sw.js','utf8');const files=['/sana-v3-report-snapshot-dataroom-review-disposition.js','/sana-v3-due-diligence-dataroom-review-disposition-gaps.js','/sana-v3-dataroom-review-disposition-history.js'];for(const f of files){assert(html.includes(f),`HTML missing ${f}`);assert(sw.includes(`'${f}'`),`PWA missing ${f}`)}const versions=[...sw.matchAll(/const CACHE='sana-v3-demo-shell-v(\d+)'/g)].map(m=>Number(m[1]));assert(versions.length&&Math.max(...versions)>=84,'shell must be v84 or newer');
+          NODE
+      - name: Assert review-only history
+        run: |
+          ! grep -Eq 'fetch\s*\(' apps/control-web/public/sana-v3-report-snapshot-dataroom-review-disposition.js apps/control-web/public/sana-v3-dataroom-review-disposition-history.js apps/control-web/public/sana-v3-due-diligence-dataroom-review-disposition-gaps.js
+          ! grep -Eq 'productionExecutionAvailable\s*=\s*true|productionActivationAllowed\s*=\s*true|canonicalMutated\s*=\s*true' apps/control-web/public/sana-v3-report-snapshot-dataroom-review-disposition.js apps/control-web/public/sana-v3-dataroom-review-disposition-history.js apps/control-web/public/sana-v3-due-diligence-dataroom-review-disposition-gaps.js
+
+# v84: snapshot-only Review Disposition provenance, documentary gaps only, no verification/resolution/outcome inference.

@@ -1,0 +1,53 @@
+name: SANA Demo Due Diligence V82
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-dataroom-review-response.js'
+      - 'apps/control-web/public/sana-v3-dataroom-review-response-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-dataroom-review-response-gaps.js'
+      - 'scripts/validate-sana-dataroom-review-response-history.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - '.github/workflows/sana-demo-due-diligence-v82.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-dataroom-review-response.js'
+      - 'apps/control-web/public/sana-v3-dataroom-review-response-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-dataroom-review-response-gaps.js'
+      - 'scripts/validate-sana-dataroom-review-response-history.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+
+jobs:
+  composed-dd-v82:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate review response historical semantics
+        run: node scripts/validate-sana-dataroom-review-response-history.mjs
+      - name: Validate DD order
+        run: |
+          html='apps/control-web/public/sana-v3.html'
+          grep -q '/sana-v3-due-diligence-dataroom-review-feedback-gaps.js.*sana-v3-due-diligence-dataroom-review-response-gaps.js.*sana-v3-due-diligence-remediation.js' "$html"
+      - name: Validate snapshot and history order
+        run: |
+          html='apps/control-web/public/sana-v3.html'
+          grep -q '/sana-v3-report-snapshot-dataroom-review-feedback.js.*sana-v3-report-snapshot-dataroom-review-response.js.*sana-v3-cycle-closure.js' "$html"
+          grep -q '/sana-v3-dataroom-review-feedback-history.js.*sana-v3-dataroom-review-response-history.js.*sana-v3-dataroom-entry.js' "$html"
+          grep -Eq "^const CACHE='sana-v3-demo-shell-v(8[2-9]|9[0-9]|[1-9][0-9]{2,})';" apps/control-web/public/sana-v3-sw.js
+      - name: Validate non-decisional boundaries
+        run: |
+          grep -q 'NO_REVIEW_RESPONSE ≠ GAP' apps/control-web/public/sana-v3-due-diligence-dataroom-review-response-gaps.js
+          grep -q 'NO_DOCUMENT_RESPONSE ≠ GAP' apps/control-web/public/sana-v3-due-diligence-dataroom-review-response-gaps.js
+          grep -q 'DOCUMENT_RESPONSE_REFERENCE ≠ VERIFIED_DOCUMENT ≠ ISSUE_RESOLVED' apps/control-web/public/sana-v3-due-diligence-dataroom-review-response-gaps.js
+          grep -q 'RESPONSE_GAP ≠ FINDING ≠ REMEDIATION_ITEM ≠ RISK_SCORE ≠ REVIEW_OUTCOME' apps/control-web/public/sana-v3-due-diligence-dataroom-review-response-gaps.js
+          grep -q 'LIVE_STATE ≠ SNAPSHOT ≠ HISTORICAL_EVIDENCE' apps/control-web/public/sana-v3-dataroom-review-response-history.js
+          ! grep -Eq 'fetch\s*\(' apps/control-web/public/sana-v3-report-snapshot-dataroom-review-response.js apps/control-web/public/sana-v3-dataroom-review-response-history.js apps/control-web/public/sana-v3-due-diligence-dataroom-review-response-gaps.js
+          ! grep -Eq 'productionExecutionAvailable\s*=\s*true|productionActivationAllowed\s*=\s*true|canonicalMutated\s*=\s*true' apps/control-web/public/sana-v3-report-snapshot-dataroom-review-response.js apps/control-web/public/sana-v3-dataroom-review-response-history.js apps/control-web/public/sana-v3-due-diligence-dataroom-review-response-gaps.js
+
+# v82 freeze: shell v82+, snapshot-only Review Response provenance, documentary gaps, no automatic issue resolution or review restart.

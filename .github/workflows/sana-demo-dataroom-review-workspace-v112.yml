@@ -1,0 +1,34 @@
+name: SANA Demo Data Room Review Workspace V112
+
+on:
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-dataroom-entry.js'
+      - 'apps/control-web/public/sana-v3-review-workspace.css'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-dataroom-review-workspace-v112.mjs'
+      - '.github/workflows/sana-demo-dataroom-review-workspace-v112.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  review-workspace-v112-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Preserve V87–V112 workspace contracts
+        run: |
+          node scripts/validate-sana-dataroom-review-workspace.mjs
+          for v in $(seq 88 112); do node scripts/validate-sana-dataroom-review-workspace-v${v}.mjs; done
+      - name: Assert V112 shell, empty-state semantics and read-only boundary
+        run: |
+          grep -q "const CACHE='sana-v3-demo-shell-v112';" apps/control-web/public/sana-v3-sw.js
+          grep -q 'EMPTY_VIEW ≠ EMPTY_EVIDENCE' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -q 'FILTER_EMPTY ≠ REVIEW_GAP' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -q 'SOURCE_INDETERMINATE ≠ SOURCE_ABSENT' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -q 'data-review-empty-recover' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -q 'V112 · Empty state and filter recovery' apps/control-web/public/sana-v3-review-workspace.css
+          ! grep -Eq 'rwEmpty|rwNoResults|localStorage\.(setItem|removeItem|clear)\s*\(|sessionStorage|fetch\s*\(|openModal\s*\(' apps/control-web/public/sana-v3-dataroom-entry.js

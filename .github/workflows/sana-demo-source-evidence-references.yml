@@ -1,0 +1,44 @@
+name: SANA Demo Source Evidence References
+
+on:
+  push:
+    branches: [demo/sana-source-evidence-v143]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  source-evidence-references:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Source Evidence References V143
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-source-evidence-references.js
+          node --check apps/control-web/public/sana-v3-cycle-source-provenance.js
+          node --check apps/control-web/public/sana-v3-sw.js
+          node scripts/validate-sana-source-evidence-references.mjs
+          grep -Fq 'LEGACY_REFERENCE_NOT_CAPTURED' apps/control-web/public/sana-v3-source-evidence-references.js
+          grep -Fq 'UNSUPPORTED_USE_TYPE' apps/control-web/public/sana-v3-source-evidence-references.js
+          grep -Fq 'TARGET_EXISTS ≠ SOURCE_CONTENT_CORRECT' apps/control-web/public/sana-v3-source-evidence-references.js
+          grep -Fq 'NO_EXTERNAL_FETCH' apps/control-web/public/sana-v3-source-evidence-references.js
+          grep -Fq 'NO_CERTIFICATION' apps/control-web/public/sana-v3-source-evidence-references.js
+          node - <<'NODE'
+          const fs=require('fs');
+          const sw=fs.readFileSync('apps/control-web/public/sana-v3-sw.js','utf8');
+          const loader=fs.readFileSync('apps/control-web/public/sana-v3-cycle-source-provenance.js','utf8');
+          if((sw.match(/const CACHE='sana-v3-demo-shell-v143';/g)||[]).length!==1)throw new Error('v143 cache marker must remain exactly once');
+          if((sw.split('/sana-v3-source-evidence-references.js').length-1)!==1)throw new Error('source evidence reference asset count invalid');
+          if(!loader.includes("s.src='/sana-v3-source-evidence-references.js'"))throw new Error('V143 loader asset missing');
+          if(!loader.includes('data-sana-source-evidence-references-v143')&&!loader.includes('sanaSourceEvidenceReferencesV143'))throw new Error('V143 loader marker missing');
+          if(!sw.includes('// v143 validates Source Evidence use/evidence targets'))throw new Error('v143 provenance marker missing');
+          const v143Active=sw.includes("if(false){\nconst CACHE='sana-v3-demo-shell-v142';\n}\nconst CACHE='sana-v3-demo-shell-v143';");
+          const v143Historical=sw.includes("if(false){\nconst CACHE='sana-v3-demo-shell-v143';\n}");
+          if(!v143Active&&!v143Historical)throw new Error('v143 must be active or preserved as a historical cache marker');
+          NODE
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|sourceVerified[[:space:]]*=[[:space:]]*true|hashVerified[[:space:]]*=[[:space:]]*true|contentIngested[[:space:]]*=[[:space:]]*true|accessPermissionVerified[[:space:]]*=[[:space:]]*true|creditApproved|investmentApproved' apps/control-web/public/sana-v3-source-evidence-references.js apps/control-web/public/sana-v3-cycle-source-provenance.js

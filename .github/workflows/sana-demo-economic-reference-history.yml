@@ -1,0 +1,52 @@
+name: SANA Demo Economic Reference History
+
+on:
+  push:
+    branches: [demo/sana-economic-v146]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  economic-reference-history:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Economic Reference History V146
+        run: |
+          set -euo pipefail
+          for f in \
+            apps/control-web/public/sana-v3-report-snapshot-economic-references.js \
+            apps/control-web/public/sana-v3-dataroom-economic-references.js \
+            apps/control-web/public/sana-v3-cycle-economic-references.js \
+            apps/control-web/public/sana-v3-due-diligence-economic-reference-gaps.js \
+            apps/control-web/public/sana-v3-cycle-economic-reconciliation.js \
+            apps/control-web/public/sana-v3-economic-references.js \
+            apps/control-web/public/sana-v3-sw.js; do node --check "$f"; done
+          node scripts/validate-sana-economic-references.mjs
+          node scripts/validate-sana-economic-reference-provenance.mjs
+          grep -Fq 'CONTENT_MINIMIZED' apps/control-web/public/sana-v3-report-snapshot-economic-references.js
+          grep -Fq 'NO_ACCOUNTING_PAYLOAD' apps/control-web/public/sana-v3-report-snapshot-economic-references.js
+          grep -Fq 'NO_LIVE_FALLBACK' apps/control-web/public/sana-v3-dataroom-economic-references.js
+          grep -Fq 'NON_WEIGHTED' apps/control-web/public/sana-v3-cycle-economic-references.js
+          grep -Fq 'NOT_CAPTURED_OR_LEGACY ≠ GAP' apps/control-web/public/sana-v3-due-diligence-economic-reference-gaps.js
+          grep -Fq 'DECLARED_NON_CANONICAL_REFERENCE ≠ GAP' apps/control-web/public/sana-v3-due-diligence-economic-reference-gaps.js
+          ! grep -Eq '__SANA_ECONOMIC_RECONCILIATION__|storage\?\.records|localStorage' apps/control-web/public/sana-v3-dataroom-economic-references.js apps/control-web/public/sana-v3-cycle-economic-references.js apps/control-web/public/sana-v3-due-diligence-economic-reference-gaps.js
+          node - <<'NODE'
+          const fs=require('fs');
+          const loader=fs.readFileSync('apps/control-web/public/sana-v3-cycle-economic-reconciliation.js','utf8');
+          const sw=fs.readFileSync('apps/control-web/public/sana-v3-sw.js','utf8');
+          const assets=['/sana-v3-report-snapshot-economic-references.js','/sana-v3-cycle-economic-references.js','/sana-v3-due-diligence-economic-reference-gaps.js','/sana-v3-dataroom-economic-references.js'];
+          if(!loader.includes("const VERSION='V146'"))throw new Error('V146 loader version missing');
+          let last=-1;for(const a of assets){const i=loader.indexOf(a);if(i<0||i<=last)throw new Error(`V146 loader asset/order invalid: ${a}`);last=i;}
+          if(!loader.includes('__SANA_ECONOMIC_REFERENCE_HISTORY_LOADER__'))throw new Error('V146 loader state missing');
+          if((sw.match(/const CACHE='sana-v3-demo-shell-v146';/g)||[]).length!==1)throw new Error('v146 cache marker must remain exactly once');
+          if(!sw.includes("if(false){\nconst CACHE='sana-v3-demo-shell-v145';\n}"))throw new Error('v145 historical cache marker missing');
+          for(const a of assets)if((sw.split(a).length-1)!==1)throw new Error(`V146 SW asset count invalid: ${a}`);
+          if(!sw.includes('// v146 propagates Economic Reference integrity'))throw new Error('v146 provenance marker missing');
+          NODE
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|accountingEntr(y|ies)[[:space:]]*=[[:space:]]*[1-9]|invoiceVerified[[:space:]]*=[[:space:]]*true|paymentExecuted[[:space:]]*=[[:space:]]*true|saleVerified[[:space:]]*=[[:space:]]*true|cashReceived[[:space:]]*=[[:space:]]*true|creditApproved|investmentApproved|procurementApproved' apps/control-web/public/sana-v3-*economic-reference*.js apps/control-web/public/sana-v3-cycle-economic-reconciliation.js

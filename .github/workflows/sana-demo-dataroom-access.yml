@@ -1,0 +1,58 @@
+name: SANA Demo Data Room Access Governance
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-dataroom-access-ledger.js'
+      - 'scripts/validate-sana-dataroom-access.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - '.github/workflows/sana-demo-dataroom-access.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-dataroom-access-ledger.js'
+      - 'scripts/validate-sana-dataroom-access.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+
+jobs:
+  dataroom-access-governance-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contracts
+        run: |
+          node --check apps/control-web/public/sana-v3-dataroom-access-ledger.js
+          node scripts/validate-sana-dataroom-access.mjs
+      - name: Validate access governance boundaries
+        run: |
+          grep -q 'ROLE_ACCESS ≠ COUNTERPARTY_GRANT' apps/control-web/public/sana-v3-dataroom-access-ledger.js
+          grep -q 'ACCESS_REQUESTED ≠ ACCESS_GRANTED' apps/control-web/public/sana-v3-dataroom-access-ledger.js
+          grep -q 'CONSENT_REFERENCE ≠ VERIFIED_CONSENT' apps/control-web/public/sana-v3-dataroom-access-ledger.js
+          grep -q 'ACCESS_GRANTED ≠ INVESTMENT_OFFER' apps/control-web/public/sana-v3-dataroom-access-ledger.js
+          grep -q 'DOCUMENT_SCOPE_SHARED ≠ DOCUMENT_READ' apps/control-web/public/sana-v3-dataroom-access-ledger.js
+          grep -q 'DOCUMENT_VIEW_REFERENCE ≠ VERIFIED_READ ≠ DUE_DILIGENCE_APPROVAL' apps/control-web/public/sana-v3-dataroom-access-ledger.js
+          grep -q 'ACCESS_REVOKED ≠ INVESTMENT_REJECTION' apps/control-web/public/sana-v3-dataroom-access-ledger.js
+          grep -q 'EXPIRY_DATE ≠ EXPIRED_EVENT' apps/control-web/public/sana-v3-dataroom-access-ledger.js
+      - name: Validate v65+ assembly
+        run: |
+          html='apps/control-web/public/sana-v3.html'
+          sw='apps/control-web/public/sana-v3-sw.js'
+          if grep -q '/sana-v3-dataroom-access-ledger.js' "$html"; then
+            grep -q '/sana-v3-dataroom-360.js.*sana-v3-dataroom-access-ledger.js.*sana-v3-dataroom-impact-history.js' "$html"
+            grep -Eq "^const CACHE='sana-v3-demo-shell-v(6[5-9]|[7-9][0-9]|[1-9][0-9]{2,})';" "$sw"
+            grep -q '/sana-v3-dataroom-360.js.*sana-v3-dataroom-access-ledger.js.*sana-v3-dataroom-impact-history.js' "$sw"
+          else
+            echo 'v65 staged before assembly; strict shell validation deferred to assembly commit.'
+          fi
+      - name: Assert no scoring, offer or financial execution authority
+        run: |
+          ! grep -Eq 'productionExecutionAvailable\s*=\s*true|productionActivationAllowed\s*=\s*true|canonicalMutated\s*=\s*true' apps/control-web/public/sana-v3-dataroom-access-ledger.js
+          ! grep -Eq 'investmentOffers\s*:\s*[1-9]|dueDiligenceApprovals\s*:\s*[1-9]|fundingExecuted\s*:\s*[1-9]' apps/control-web/public/sana-v3-dataroom-access-ledger.js
+          ! grep -Eq 'fetch\s*\(' apps/control-web/public/sana-v3-dataroom-access-ledger.js
+
+# v65+ certification trigger: assembled shell order only; no offer, approval, scoring or financial authority.

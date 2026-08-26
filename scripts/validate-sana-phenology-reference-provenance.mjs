@@ -1,0 +1,17 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+const files={snapshot:'apps/control-web/public/sana-v3-report-snapshot-phenology-references.js',dataroom:'apps/control-web/public/sana-v3-dataroom-phenology-references.js',cycle:'apps/control-web/public/sana-v3-cycle-phenology-references.js',dd:'apps/control-web/public/sana-v3-due-diligence-phenology-reference-gaps.js'};
+const S=Object.fromEntries(Object.entries(files).map(([k,p])=>[k,fs.readFileSync(p,'utf8')]));
+for(const t of ['referenceGranularity','referenceRows','NO_LIVE_FALLBACK','NO_RETROACTIVE_REFERENCE_FILL'])assert.ok(S.snapshot.includes(t),`snapshot ${t}`);
+for(const t of ['SNAPSHOT_PHENOLOGY_REFERENCES_ONLY','NO_LIVE_FALLBACK','NO_RETROACTIVE_REFERENCE_FILL','REFERENCE_CHANGE ≠ PHENOLOGICAL_CHANGE'])assert.ok(S.dataroom.includes(t),`dataroom ${t}`);
+for(const t of ['READ_ONLY','NON_WEIGHTED','No modifica completeness ni readyForArchive','PHENOLOGY_REFERENCE_PROVENANCE ≠ PLAN_PHASE ≠ CYCLE_GATE'])assert.ok(S.cycle.includes(t),`cycle ${t}`);
+for(const t of ['LEGACY_REFERENCE_NOT_CAPTURED ≠ GAP','REFERENCE_ISSUE ≠ PHENOLOGICAL_PERFORMANCE','NO_LIVE_FALLBACK'])assert.ok(S.dd.includes(t),`dd ${t}`);
+globalThis.window={};vm.runInThisContext(S.dd);const api=window.__SANA_DD_PHENOLOGY_REFERENCE_GAPS__;
+const old={manifest:{schema:'SANA_DUE_DILIGENCE_SNAPSHOT_V1',phenology:{lots:[{lotId:'L1',referenceIssueCount:9}]}}};
+assert.equal(api.derive(old).length,0);
+const good={manifest:{schema:'SANA_DUE_DILIGENCE_SNAPSHOT_V1',phenology:{referenceGranularity:'ADDITIVE_V2',lots:[{lotId:'L1',referenceIssueCount:0}]}}};
+assert.equal(api.derive(good).length,0);
+const bad={manifest:{schema:'SANA_DUE_DILIGENCE_SNAPSHOT_V1',phenology:{referenceGranularity:'ADDITIVE_V2',lots:[{lotId:'L1',referenceIssueCount:2}]}}};
+assert.equal(api.derive(bad).length,1);assert.equal(api.derive(bad)[0].severity,'MEDIA');
+console.log('SANA phenology reference provenance V134: OK');

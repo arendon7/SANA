@@ -1,0 +1,36 @@
+(() => {
+  'use strict';
+  const INTEGRITY='COMMERCIAL_PROVENANCE ≠ CYCLE_GATE · HARVEST_AVAILABLE ≠ OFFER · BUYER_INTEREST ≠ OFFTAKE_AGREEMENT · OFFTAKE_AGREEMENT_REFERENCE ≠ VERIFIED_CONTRACT · AGREEMENT ≠ DELIVERY · DELIVERY ≠ INVOICE · PAYMENT_STATUS_DECLARED ≠ PAYMENT_EXECUTED · CASH_RECEIPT_DECLARATION ≠ BANK_SETTLEMENT · OFFTAKE_REFERENCE ≠ GUARANTEED_REVENUE · NO_SCORING · NO_FINANCIAL_EXECUTION';
+  function closure(){return window.__SANA_CYCLE_CLOSURE__}
+  function ledger(){return window.__SANA_COMMERCIAL_LEDGER__}
+  function selected(){const plan=closure()?.selectedPlan?.();if(!plan)return {valid:false,plan:null,cases:[],integrity:INTEGRITY};const cases=(ledger()?.forLot?.(plan.lot)||[]).map(c=>({caseId:c.id,lot:c.lot,buyerRefs:[...(c.buyerRefs||[])],offers:c.offers.length,buyerInterests:c.interests.length,agreementReferences:c.agreements.length,deliveryCommitments:c.commitments.length,deliveries:c.deliveries.length,buyerAcceptances:c.acceptances.length,invoiceReferences:c.invoices.length,paymentStatusDeclarations:c.paymentStates.length,cashReceiptDeclarations:c.cashReceipts.length,crossDomainReferences:c.crossDomainRefs.length,verifiedContracts:0,verifiedInvoices:0,paymentsExecuted:0,bankSettlementsVerified:0,guaranteedRevenue:0,interestWithoutAgreement:Boolean(c.semantics?.interestWithoutAgreement)}));return {valid:true,plan:{id:plan.id,version:plan.version,lot:plan.lot},cases,summary:{cases:cases.length,agreementReferences:cases.reduce((n,c)=>n+c.agreementReferences,0),deliveries:cases.reduce((n,c)=>n+c.deliveries,0),verifiedContracts:0,paymentsExecuted:0,bankSettlementsVerified:0,guaranteedRevenue:0},integrity:INTEGRITY}}
+  function insert(html,section){const markers=['<footer class="footer-note">','<footer class="footer">'];for(const marker of markers){const at=html.lastIndexOf(marker);if(at>=0)return html.slice(0,at)+section+html.slice(at)}return html+section}
+  const baseCycle=views.cycle;if(baseCycle)views.cycle=()=>{const s=selected();if(!s.valid||!s.cases.length)return baseCycle();const p=`<section class="card" style="margin-top:14px"><div class="card-head"><div><p class="kicker">CIERRE · COMMERCIAL PROVENANCE</p><h2>Interés, acuerdo y entrega · ${esc(s.plan.lot)}</h2><p>Proyección read-only/no ponderada. No modifica completitud, archivo, elegibilidad ni decisiones financieras.</p></div><span class="status warn">NO CYCLE GATE</span></div><div class="card-body"><div class="grid metrics">${metric('Casos',s.summary.cases,'commercial provenance')}${metric('Acuerdos ref',s.summary.agreementReferences,'≠ verified contract')}${metric('Entregas',s.summary.deliveries,'declaradas')}${metric('Pagos ejecutados','0','sin autoridad','good')}</div>${s.cases.map(c=>`<div class="gate"><i>${c.agreementReferences?'✓':'·'}</i><div><strong>${esc(c.caseId)} · ${esc(c.buyerRefs.join(' · ')||'sin comprador')}</strong><p>${c.buyerInterests} interés(es) · ${c.agreementReferences} acuerdo(s) ref · ${c.deliveries} entrega(s) · ${c.crossDomainReferences} ref(s) cruzada(s)</p></div><span class="status warn">READ-ONLY</span></div>`).join('')}<div class="section-note" style="margin-top:12px">${esc(INTEGRITY)}</div></div></section>`;return insert(baseCycle(),p)};
+  window.__SANA_CYCLE_COMMERCIAL__=Object.freeze({selected,integrity:INTEGRITY});
+})();
+
+// V147 loader: explicit internal/cross-domain commercial references only; no identity, contract, order or payment authority.
+(() => {
+  'use strict';
+  if(typeof window==='undefined'||typeof document==='undefined'||typeof document.createElement!=='function')return;
+  const VERSION='V147',SRC='/sana-v3-commercial-references.js';
+  const state={version:VERSION,status:'WAITING',attempts:0,integrity:'REFERENCE_VALIDATION ≠ BUYER_IDENTITY/CONTRACT/ORDER/PAYMENT VERIFICATION · NO GUARANTEED_REVENUE/CREDIT/INVESTMENT_AUTHORITY'};
+  function expose(){window.__SANA_COMMERCIAL_REFERENCES_LOADER__=Object.freeze({...state})}
+  function ready(){return window.__SANA_COMMERCIAL_LEDGER__?.schema==='SANA_COMMERCIAL_OFFTAKE_LEDGER_V1'&&window.__SANA_HARVEST_LEDGER__?.cases&&window.__SANA_ECONOMIC_RECONCILIATION__?.cases}
+  function start(){state.attempts++;expose();if(window.__SANA_COMMERCIAL_LEDGER__?.referenceVersion===VERSION){state.status='READY';expose();return}if(!ready()){if(state.attempts<25){state.status='WAITING_DEPENDENCIES';expose();setTimeout(start,40);return}state.status='BLOCKED_DEPENDENCIES';expose();return}if(document.querySelector?.('script[data-sana-commercial-references-v147]'))return;state.status='LOADING';expose();const s=document.createElement('script');s.src=SRC;s.defer=true;s.dataset.sanaCommercialReferencesV147='1';s.onload=()=>{state.status=window.__SANA_COMMERCIAL_LEDGER__?.referenceVersion===VERSION?'READY':'FAILED_CONTRACT';expose()};s.onerror=()=>{state.status='FAILED';expose()};document.head.appendChild(s)}
+  expose();if(document.readyState==='complete')queueMicrotask(start);else window.addEventListener('load',start,{once:true});
+})();
+
+// V148 loader: snapshot-only commercial reference history; no identity, contract, order, payment, credit or investment authority.
+(() => {
+  'use strict';
+  if(typeof window==='undefined'||typeof document==='undefined'||typeof document.createElement!=='function'||typeof window.addEventListener!=='function')return;
+  const VERSION='V148';
+  const ASSETS=['/sana-v3-report-snapshot-commercial-references.js','/sana-v3-cycle-commercial-references.js','/sana-v3-due-diligence-commercial-reference-gaps.js','/sana-v3-dataroom-commercial-references.js'];
+  const state={version:VERSION,status:'WAITING',index:0,attempts:0,integrity:'SNAPSHOT_ONLY · CONTENT_MINIMIZED · NON_WEIGHTED · NO_BUYER_IDENTITY/CONTRACT/ORDER/PAYMENT/GUARANTEED_REVENUE/CREDIT/INVESTMENT_AUTHORITY'};
+  function expose(){window.__SANA_COMMERCIAL_REFERENCE_HISTORY_LOADER__=Object.freeze({...state})}
+  function v147Ready(){return window.__SANA_COMMERCIAL_LEDGER__?.referenceVersion==='V147'&&window.__SANA_COMMERCIAL_REFERENCES_LOADER__?.status==='READY'}
+  function loadNext(){if(state.index>=ASSETS.length){state.status='READY';expose();return}const src=ASSETS[state.index];if(document.querySelector?.(`script[src="${src}"]`)){state.index++;expose();queueMicrotask(loadNext);return}state.status='LOADING';expose();const s=document.createElement('script');s.src=src;s.defer=true;s.dataset.sanaCommercialReferenceHistoryV148=String(state.index+1);s.onload=()=>{state.index++;expose();loadNext()};s.onerror=()=>{state.status='FAILED';expose()};document.head.appendChild(s)}
+  function start(){state.attempts++;expose();if(!v147Ready()){if(state.attempts<25){state.status='WAITING_V147';expose();setTimeout(start,40);return}state.status='BLOCKED_V147';expose();return}loadNext()}
+  expose();if(document.readyState==='complete')queueMicrotask(start);else window.addEventListener('load',start,{once:true});
+})();

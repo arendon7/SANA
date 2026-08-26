@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#15392d">
+  <meta name="description" content="SANA + AGROWAY · Ecosistema de inteligencia, trazabilidad e impacto para agricultura regenerativa.">
+  <title>SANA · Inteligencia para cultivar mejor</title>
+  <link rel="stylesheet" href="/sana-demo.css">
+</head>
+<body>
+  <div class="product-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="sana-brand" aria-label="SANA">
+        <div class="sana-wordmark">SANA</div>
+        <div class="sana-tagline">Inteligencia para cultivar mejor</div>
+      </div>
+      <div class="agroway-lockup">
+        <img src="/assets/agroway-logo.png" alt="AGROWAY">
+        <div><b>by SANA</b><span>La memoria digital del cultivo</span></div>
+      </div>
+      <nav class="product-nav" id="product-nav" aria-label="Módulos SANA">
+        <button class="nav-item active" data-view="overview"><span class="nav-icon" data-icon="home"></span><span>Resumen</span></button>
+        <div class="nav-label">OPERACIÓN · AGROWAY</div>
+        <button class="nav-item" data-view="crops"><span class="nav-icon" data-icon="leaf"></span><span>Cultivos y lotes</span><b class="nav-count">5</b></button>
+        <button class="nav-item" data-view="plans"><span class="nav-icon" data-icon="calendar"></span><span>Planes y tareas</span><b class="nav-count warn">7</b></button>
+        <button class="nav-item" data-view="nutrition"><span class="nav-icon" data-icon="droplet"></span><span>Nutrición y fertirriego</span></button>
+        <button class="nav-item" data-view="health"><span class="nav-icon" data-icon="shield"></span><span>Sanidad vegetal</span><b class="nav-count danger">2</b></button>
+        <button class="nav-item" data-view="inventory"><span class="nav-icon" data-icon="box"></span><span>Inventario</span></button>
+        <button class="nav-item" data-view="iot"><span class="nav-icon" data-icon="activity"></span><span>IoT y variables</span></button>
+        <button class="nav-item" data-view="team"><span class="nav-icon" data-icon="users"></span><span>Equipo y productividad</span></button>
+        <div class="nav-label">CAPAS SANA</div>
+        <button class="nav-item" data-view="passport"><span class="nav-icon" data-icon="route"></span><span>Passport</span></button>
+        <button class="nav-item" data-view="intelligence"><span class="nav-icon" data-icon="spark"></span><span>SANA Intelligence</span></button>
+        <button class="nav-item" data-view="impact"><span class="nav-icon" data-icon="impact"></span><span>SANA Impact</span></button>
+        <button class="nav-item" data-view="capital"><span class="nav-icon" data-icon="capital"></span><span>Capital readiness</span></button>
+        <div class="nav-label">GOBERNANZA</div>
+        <button class="nav-item" data-view="control"><span class="nav-icon" data-icon="control"></span><span>CONTROL avanzado</span></button>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="demo-trust"><span></span><div><b>DEMO AISLADA</b><small>Datos simulados · sin producción</small></div></div>
+        <p>Producto en revisión. Sin dinero real, custodia, D10 ni mutación canónica.</p>
+      </div>
+    </aside>
+    <section class="main-shell">
+      <header class="topbar">
+        <button id="menu-toggle" class="icon-button mobile-only" aria-label="Abrir navegación"><span class="nav-icon" data-icon="menu"></span></button>
+        <div class="context-switcher">
+          <span class="context-label">UNIDAD DEMO</span>
+          <button id="farm-switcher" class="farm-switcher" type="button"><span class="farm-avatar">LE</span><span><b>Finca La Esperanza</b><small>Támesis · Antioquia</small></span><span class="chevron">⌄</span></button>
+        </div>
+        <div class="top-actions">
+          <button class="search-button" id="global-search"><span class="nav-icon" data-icon="search"></span><span>Buscar en la operación</span><kbd>⌘ K</kbd></button>
+          <button class="icon-button" id="notifications" aria-label="Notificaciones"><span class="nav-icon" data-icon="bell"></span><i>3</i></button>
+          <div class="role-chip" id="role-chip"><span class="role-dot"></span><div><b>Administrador demo</b><small>Vista integral</small></div></div>
+        </div>
+      </header>
+      <main class="content" id="app-content" tabindex="-1"></main>
+    </section>
+  </div>
+  <div class="toast-stack" id="toast-stack" aria-live="polite"></div>
+  <dialog class="modal" id="action-modal"><form method="dialog" class="modal-card" id="modal-form"><div class="modal-head"><div><p class="eyebrow">REGISTRO DEMO</p><h3 id="modal-title">Nueva observación de campo</h3></div><button value="cancel" class="icon-button" aria-label="Cerrar">×</button></div><div id="modal-body"></div><div class="modal-actions"><button value="cancel" class="btn secondary">Cancelar</button><button value="default" class="btn primary" id="modal-save">Guardar en sandbox</button></div></form></dialog>
+  <div class="command-palette" id="command-palette" hidden><button class="palette-backdrop" data-close-palette aria-label="Cerrar búsqueda"></button><section class="palette-card"><div class="palette-input"><span class="nav-icon" data-icon="search"></span><input id="palette-query" placeholder="Buscar lote, tarea, alerta, insumo…" autocomplete="off"><kbd>ESC</kbd></div><div class="palette-results" id="palette-results"></div></section></div>
+  <script src="/demo-config.js"></script>
+  <script type="module" src="/demo-session.js"></script>
+  <script type="module" src="/sana-demo.js"></script>
+</body>
+</html>

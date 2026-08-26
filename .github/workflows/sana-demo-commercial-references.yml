@@ -1,0 +1,61 @@
+name: SANA Demo Commercial References
+
+on:
+  push:
+    branches: [demo/sana-commercial-v147]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  commercial-references:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Commercial References V147
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-commercial-references.js
+          node --check apps/control-web/public/sana-v3-cycle-commercial-provenance.js
+          node --check apps/control-web/public/sana-v3-sw.js
+          node scripts/validate-sana-commercial-references.mjs
+          grep -Fq 'LEGACY_REFERENCE_NOT_CAPTURED' apps/control-web/public/sana-v3-commercial-references.js
+          grep -Fq 'DECLARED_NON_CANONICAL_REFERENCE' apps/control-web/public/sana-v3-commercial-references.js
+          grep -Fq 'COMMERCIAL_SUPPORT_REF' apps/control-web/public/sana-v3-commercial-references.js
+          grep -Fq 'HARVEST_DELIVERY_REF' apps/control-web/public/sana-v3-commercial-references.js
+          grep -Fq 'CROSS_DOMAIN_REF' apps/control-web/public/sana-v3-commercial-references.js
+          grep -Fq 'BUYER_REF ≠ BUYER_IDENTITY_VERIFIED' apps/control-web/public/sana-v3-commercial-references.js
+          grep -Fq 'AGREEMENT_REFERENCE_DECLARED ≠ VERIFIED_CONTRACT' apps/control-web/public/sana-v3-commercial-references.js
+          grep -Fq 'PAYMENT_STATUS_DECLARED ≠ PAYMENT_EXECUTED' apps/control-web/public/sana-v3-commercial-references.js
+          grep -Fq 'REFERENCE ≠ GUARANTEED_REVENUE ≠ CREDIT_RISK ≠ ELIGIBILITY ≠ INVESTMENT_SIGNAL' apps/control-web/public/sana-v3-commercial-references.js
+          node - <<'NODE'
+          const fs=require('fs');
+          const loader=fs.readFileSync('apps/control-web/public/sana-v3-cycle-commercial-provenance.js','utf8');
+          const sw=fs.readFileSync('apps/control-web/public/sana-v3-sw.js','utf8');
+          if(!loader.includes("const VERSION='V147',SRC='/sana-v3-commercial-references.js'"))throw new Error('V147 loader contract missing');
+          if(!loader.includes('__SANA_COMMERCIAL_REFERENCES_LOADER__'))throw new Error('V147 loader state missing');
+          if((sw.match(/const CACHE='sana-v3-demo-shell-v147';/g)||[]).length!==1)throw new Error('v147 cache marker must remain exactly once');
+          if(!sw.includes("if(false){\nconst CACHE='sana-v3-demo-shell-v146';\n}"))throw new Error('v146 historical marker missing');
+          if((sw.split('/sana-v3-commercial-references.js').length-1)!==1)throw new Error('V147 SW asset count invalid');
+          if(!sw.includes('// v147 validates Commercial/Offtake internal and cross-domain references'))throw new Error('V147 provenance marker missing');
+          NODE
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|verifiedContracts[[:space:]]*=[[:space:]]*[1-9]|verifiedInvoices[[:space:]]*=[[:space:]]*[1-9]|paymentsExecuted[[:space:]]*=[[:space:]]*[1-9]|bankSettlementsVerified[[:space:]]*=[[:space:]]*[1-9]|guaranteedRevenue[[:space:]]*=[[:space:]]*[1-9]|creditApproved|investmentApproved|orderExecuted|buyerIdentityVerified[[:space:]]*=[[:space:]]*true' apps/control-web/public/sana-v3-commercial-references.js apps/control-web/public/sana-v3-cycle-commercial-provenance.js
+      - name: Validate V3 compatibility on V147 cut
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          files=(apps/control-web/public/sana-v3*.js)
+          test ${#files[@]} -gt 0
+          for file in "${files[@]}"; do node --check "$file"; done
+          node -e "JSON.parse(require('fs').readFileSync('apps/control-web/public/sana-v3-manifest.webmanifest','utf8'))"
+          node scripts/validate-sana-demo-auth.mjs
+          test -s apps/control-web/public/sana-v3.html
+          grep -q 'productionExecutionAvailable=false' apps/control-web/public/sana-v3-core.js
+          grep -q 'canonicalMutated=false' apps/control-web/public/sana-v3-core.js
+          grep -q 'D10=PENDING' apps/control-web/public/sana-v3-core.js
+          ! grep -Eiq 'productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true|investmentApproved[[:space:]]*=[[:space:]]*true|creditApproved[[:space:]]*=[[:space:]]*true|buyerIdentityVerified[[:space:]]*=[[:space:]]*true' apps/control-web/public/sana-v3*.js

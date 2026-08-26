@@ -1,0 +1,77 @@
+name: SANA Demo Nutrition V2 History Assembly
+
+on:
+  push:
+    branches: [demo/sana-nutrition-v2-v130]
+    paths:
+      - 'apps/control-web/public/sana-v3-nutrition-references.js'
+      - 'apps/control-web/public/sana-v3-report-snapshot-nutrition-v2.js'
+      - 'apps/control-web/public/sana-v3-dataroom-nutrition-v2-history.js'
+      - 'apps/control-web/public/sana-v3-cycle-nutrition-v2-provenance.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-nutrition-v2-gaps.js'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - '.github/workflows/sana-demo-nutrition-v2-history-assembly.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-nutrition-references.js'
+      - 'apps/control-web/public/sana-v3-report-snapshot-nutrition-v2.js'
+      - 'apps/control-web/public/sana-v3-dataroom-nutrition-v2-history.js'
+      - 'apps/control-web/public/sana-v3-cycle-nutrition-v2-provenance.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-nutrition-v2-gaps.js'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - '.github/workflows/sana-demo-nutrition-v2-history-assembly.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  nutrition-v2-history-assembly:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate all V130 JavaScript
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-nutrition-references.js
+          node --check apps/control-web/public/sana-v3-report-snapshot-nutrition-v2.js
+          node --check apps/control-web/public/sana-v3-dataroom-nutrition-v2-history.js
+          node --check apps/control-web/public/sana-v3-cycle-nutrition-v2-provenance.js
+          node --check apps/control-web/public/sana-v3-due-diligence-nutrition-v2-gaps.js
+          node --check apps/control-web/public/sana-v3-sw.js
+      - name: Validate deferred ordered loader
+        shell: bash
+        run: |
+          set -euo pipefail
+          loader='apps/control-web/public/sana-v3-nutrition-references.js'
+          grep -q "version:'V130'" "$loader"
+          grep -q "window.addEventListener('load'" "$loader"
+          grep -q "script.async=false" "$loader"
+          grep -q "'/sana-v3-report-snapshot-nutrition-v2.js'" "$loader"
+          grep -q "'/sana-v3-cycle-nutrition-v2-provenance.js'" "$loader"
+          grep -q "'/sana-v3-due-diligence-nutrition-v2-gaps.js'" "$loader"
+          grep -q "'/sana-v3-dataroom-nutrition-v2-history.js'" "$loader"
+          grep -q '__SANA_NUTRITION_V2_HISTORY_LOADER__' "$loader"
+      - name: Validate v130 offline shell
+        shell: bash
+        run: |
+          set -euo pipefail
+          sw='apps/control-web/public/sana-v3-sw.js'
+          grep -q "const CACHE='sana-v3-demo-shell-v129'" "$sw"
+          grep -q "^const CACHE='sana-v3-demo-shell-v130';" "$sw"
+          grep -q "'/sana-v3-nutrition-references.js'" "$sw"
+          grep -q "'/sana-v3-report-snapshot-nutrition-v2.js'" "$sw"
+          grep -q "'/sana-v3-cycle-nutrition-v2-provenance.js'" "$sw"
+          grep -q "'/sana-v3-due-diligence-nutrition-v2-gaps.js'" "$sw"
+          grep -q "'/sana-v3-dataroom-nutrition-v2-history.js'" "$sw"
+          grep -q 'v130 propagates Nutrition/Fertigation V2 chain' "$sw"
+      - name: Assert no authority introduced by loader or overlays
+        shell: bash
+        run: |
+          set -euo pipefail
+          files='apps/control-web/public/sana-v3-nutrition-references.js apps/control-web/public/sana-v3-report-snapshot-nutrition-v2.js apps/control-web/public/sana-v3-dataroom-nutrition-v2-history.js apps/control-web/public/sana-v3-cycle-nutrition-v2-provenance.js apps/control-web/public/sana-v3-due-diligence-nutrition-v2-gaps.js'
+          ! grep -Eiq 'productionExecutionAvailable[[:space:]]*=[[:space:]]*true|canonicalMutated[[:space:]]*=[[:space:]]*true|creditApproved|investmentApproved' $files
+          ! grep -Eiq 'purchaseOrder|executePayment|authorizePayment|autoPurchase|autoDispatch|verifiedExternal[[:space:]]*=[[:space:]]*true' $files

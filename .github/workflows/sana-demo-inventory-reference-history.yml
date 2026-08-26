@@ -1,0 +1,42 @@
+name: SANA Demo Inventory Reference History
+
+on:
+  push:
+    branches: [demo/sana-inventory-v138]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  inventory-reference-history:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate V138 reference provenance and assembly
+        run: |
+          set -euo pipefail
+          ref='apps/control-web/public/sana-v3-inventory-references.js'
+          sw='apps/control-web/public/sana-v3-sw.js'
+          for f in \
+            "$ref" \
+            apps/control-web/public/sana-v3-report-snapshot-inventory-references.js \
+            apps/control-web/public/sana-v3-dataroom-inventory-references.js \
+            apps/control-web/public/sana-v3-cycle-inventory-references.js \
+            apps/control-web/public/sana-v3-due-diligence-inventory-reference-gaps.js \
+            "$sw"; do node --check "$f"; done
+          node scripts/validate-sana-inventory-reference-provenance.mjs
+          grep -q '__SANA_INVENTORY_REFERENCE_HISTORY_LOADER__' "$ref"
+          grep -q "version:'V138'" "$ref"
+          for a in \
+            '/sana-v3-report-snapshot-inventory-references.js' \
+            '/sana-v3-cycle-inventory-references.js' \
+            '/sana-v3-due-diligence-inventory-reference-gaps.js' \
+            '/sana-v3-dataroom-inventory-references.js'; do grep -q "$a" "$ref"; grep -q "'$a'" "$sw"; done
+          grep -q "const CACHE='sana-v3-demo-shell-v137'" "$sw"
+          grep -q "^const CACHE='sana-v3-demo-shell-v138';" "$sw"
+          grep -q "'/sana-v3-due-diligence-dataroom-exchange-gaps.js'" "$sw"
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|automaticConsumption|automaticProcurement|paymentExecuted|creditApproved|investmentApproved' apps/control-web/public/sana-v3-*inventory-reference*.js "$ref"

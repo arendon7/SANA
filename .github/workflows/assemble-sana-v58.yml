@@ -1,0 +1,71 @@
+name: Assemble SANA v58 Economic Reconciliation History
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-economic-reconciliation.js'
+      - 'apps/control-web/public/sana-v3-dataroom-economic-reconciliation-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-economic-reconciliation-gaps.js'
+      - 'scripts/validate-sana-economic-reconciliation-history.mjs'
+      - '.github/workflows/sana-demo-economic-reconciliation-history.yml'
+      - '.github/workflows/sana-demo-due-diligence-v58.yml'
+      - '.github/workflows/assemble-sana-v58.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  assemble-v58:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: demo/sana-functional-auth-v1
+          fetch-depth: 0
+      - name: Assemble HTML and service worker deterministically
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          hp=Path('apps/control-web/public/sana-v3.html'); sp=Path('apps/control-web/public/sana-v3-sw.js')
+          html=hp.read_text(); sw=sp.read_text()
+          repl=[
+            ('<script src="/sana-v3-report-snapshot-source-evidence.js"></script><script src="/sana-v3-cycle-closure.js"></script>',
+             '<script src="/sana-v3-report-snapshot-source-evidence.js"></script><script src="/sana-v3-report-snapshot-economic-reconciliation.js"></script><script src="/sana-v3-cycle-closure.js"></script>'),
+            ('<script src="/sana-v3-due-diligence-source-evidence-gaps.js"></script><script src="/sana-v3-due-diligence-remediation.js"></script>',
+             '<script src="/sana-v3-due-diligence-source-evidence-gaps.js"></script><script src="/sana-v3-due-diligence-economic-reconciliation-gaps.js"></script><script src="/sana-v3-due-diligence-remediation.js"></script>'),
+            ('<script src="/sana-v3-dataroom-source-evidence-history.js"></script><script src="/sana-v3-dataroom-entry.js"></script>',
+             '<script src="/sana-v3-dataroom-source-evidence-history.js"></script><script src="/sana-v3-dataroom-economic-reconciliation-history.js"></script><script src="/sana-v3-dataroom-entry.js"></script>')]
+          for old,new in repl:
+              if html.count(old)!=1: raise SystemExit(f'HTML anchor count {html.count(old)}: {old}')
+              html=html.replace(old,new,1)
+          old="const CACHE='sana-v3-demo-shell-v57';"
+          new="if(false){\nconst CACHE='sana-v3-demo-shell-v57';\n}\nconst CACHE='sana-v3-demo-shell-v58';"
+          if sw.count(old)!=1: raise SystemExit(f'SW v57 anchor count {sw.count(old)}')
+          sw=sw.replace(old,new,1)
+          srep=[
+            ("'/sana-v3-report-snapshot-source-evidence.js','/sana-v3-cycle-closure.js'","'/sana-v3-report-snapshot-source-evidence.js','/sana-v3-report-snapshot-economic-reconciliation.js','/sana-v3-cycle-closure.js'"),
+            ("'/sana-v3-due-diligence-source-evidence-gaps.js','/sana-v3-due-diligence-remediation.js'","'/sana-v3-due-diligence-source-evidence-gaps.js','/sana-v3-due-diligence-economic-reconciliation-gaps.js','/sana-v3-due-diligence-remediation.js'"),
+            ("'/sana-v3-dataroom-source-evidence-history.js','/sana-v3-dataroom-entry.js'","'/sana-v3-dataroom-source-evidence-history.js','/sana-v3-dataroom-economic-reconciliation-history.js','/sana-v3-dataroom-entry.js'")]
+          for old,new in srep:
+              if sw.count(old)!=1: raise SystemExit(f'SW anchor count {sw.count(old)}: {old}')
+              sw=sw.replace(old,new,1)
+          hp.write_text(html); sp.write_text(sw)
+          PY
+          grep -q '/sana-v3-report-snapshot-source-evidence.js.*sana-v3-report-snapshot-economic-reconciliation.js.*sana-v3-cycle-closure.js' apps/control-web/public/sana-v3.html
+          grep -q '/sana-v3-due-diligence-source-evidence-gaps.js.*sana-v3-due-diligence-economic-reconciliation-gaps.js.*sana-v3-due-diligence-remediation.js' apps/control-web/public/sana-v3.html
+          grep -q '/sana-v3-dataroom-source-evidence-history.js.*sana-v3-dataroom-economic-reconciliation-history.js.*sana-v3-dataroom-entry.js' apps/control-web/public/sana-v3.html
+          grep -q "^const CACHE='sana-v3-demo-shell-v58';" apps/control-web/public/sana-v3-sw.js
+      - name: Commit assembled v58
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/control-web/public/sana-v3.html apps/control-web/public/sana-v3-sw.js
+          git diff --cached --quiet && exit 0
+          git commit -m 'build(demo): assemble economic reconciliation history shell v58'
+          git push origin HEAD:demo/sana-functional-auth-v1

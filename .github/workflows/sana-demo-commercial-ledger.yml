@@ -1,0 +1,53 @@
+name: SANA Demo Commercial Offtake Ledger
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-commercial-ledger.js'
+      - 'apps/control-web/public/sana-v3-cycle-commercial-provenance.js'
+      - 'scripts/validate-sana-commercial-ledger.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - '.github/workflows/sana-demo-commercial-ledger.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-commercial-ledger.js'
+      - 'apps/control-web/public/sana-v3-cycle-commercial-provenance.js'
+      - 'scripts/validate-sana-commercial-ledger.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+
+jobs:
+  commercial-offtake-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contracts
+        run: |
+          node --check apps/control-web/public/sana-v3-commercial-ledger.js
+          node --check apps/control-web/public/sana-v3-cycle-commercial-provenance.js
+          node scripts/validate-sana-commercial-ledger.mjs
+      - name: Validate commercial boundaries
+        run: |
+          grep -q 'BUYER_INTEREST ≠ OFFTAKE_AGREEMENT' apps/control-web/public/sana-v3-commercial-ledger.js
+          grep -q 'OFFTAKE_AGREEMENT_REFERENCE ≠ VERIFIED_CONTRACT' apps/control-web/public/sana-v3-commercial-ledger.js
+          grep -q 'PAYMENT_STATUS_DECLARED ≠ PAYMENT_EXECUTED' apps/control-web/public/sana-v3-commercial-ledger.js
+          grep -q 'OFFTAKE_REFERENCE ≠ GUARANTEED_REVENUE' apps/control-web/public/sana-v3-commercial-ledger.js
+      - name: Validate cycle projection is read-only and non-weighted
+        run: |
+          grep -q 'COMMERCIAL_PROVENANCE ≠ CYCLE_GATE' apps/control-web/public/sana-v3-cycle-commercial-provenance.js
+          ! grep -q 'completeness:' apps/control-web/public/sana-v3-cycle-commercial-provenance.js
+          ! grep -q 'readyForArchive:' apps/control-web/public/sana-v3-cycle-commercial-provenance.js
+      - name: Validate assembly and active v59 shell
+        run: |
+          grep -q '/sana-v3-economics-ledger.js.*sana-v3-commercial-ledger.js.*sana-v3-material-chain.js' apps/control-web/public/sana-v3.html
+          grep -q '/sana-v3-cycle-economic-reconciliation.js.*sana-v3-cycle-commercial-provenance.js.*sana-v3-cycle-labor-provenance.js' apps/control-web/public/sana-v3.html
+          grep -q "^const CACHE='sana-v3-demo-shell-v59';" apps/control-web/public/sana-v3-sw.js
+      - name: Assert no commercial or financial execution authority
+        run: |
+          ! grep -Eq 'fetch\s*\(' apps/control-web/public/sana-v3-commercial-ledger.js apps/control-web/public/sana-v3-cycle-commercial-provenance.js
+          ! grep -Eq 'productionExecutionAvailable\s*=\s*true|productionActivationAllowed\s*=\s*true|canonicalMutated\s*=\s*true' apps/control-web/public/sana-v3-commercial-ledger.js apps/control-web/public/sana-v3-cycle-commercial-provenance.js

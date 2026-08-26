@@ -1,0 +1,58 @@
+name: SANA Demo Due Diligence V54
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-due-diligence-capture-sync-gaps.js'
+      - 'apps/control-web/public/sana-v3-dataroom-capture-sync-history.js'
+      - 'apps/control-web/public/sana-v3-report-snapshot-capture-sync.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-remediation.js'
+      - 'apps/control-web/public/sana-v3-dd-next-cut.js'
+      - 'apps/control-web/public/sana-v3-dataroom-entry.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'scripts/validate-sana-capture-sync-history.mjs'
+      - '.github/workflows/sana-demo-due-diligence-v54.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-due-diligence-capture-sync-gaps.js'
+      - 'apps/control-web/public/sana-v3-dataroom-capture-sync-history.js'
+      - 'apps/control-web/public/sana-v3-report-snapshot-capture-sync.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-remediation.js'
+      - 'apps/control-web/public/sana-v3-dd-next-cut.js'
+      - 'apps/control-web/public/sana-v3-dataroom-entry.js'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'scripts/validate-sana-capture-sync-history.mjs'
+      - '.github/workflows/sana-demo-due-diligence-v54.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  composed-dd-v54:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate capture sync historical semantics
+        run: node scripts/validate-sana-capture-sync-history.mjs
+      - name: Validate Capture Sync is composed before remediation
+        shell: bash
+        run: |
+          set -euo pipefail
+          html='apps/control-web/public/sana-v3.html'
+          grep -q '/sana-v3-due-diligence-forecast-gaps.js.*sana-v3-due-diligence-capture-sync-gaps.js.*sana-v3-due-diligence-remediation.js.*sana-v3-dd-next-cut.js' "$html"
+          grep -q '/sana-v3-dataroom-forecast-history.js.*sana-v3-dataroom-capture-sync-history.js.*sana-v3-dataroom-entry.js' "$html"
+      - name: Validate no live fallback or system/investment inference
+        shell: bash
+        run: |
+          set -euo pipefail
+          hist='apps/control-web/public/sana-v3-dataroom-capture-sync-history.js'; gaps='apps/control-web/public/sana-v3-due-diligence-capture-sync-gaps.js'
+          ! grep -q '__SANA_CAPTURE_SYNC_LEDGER__' "$hist"
+          ! grep -q 'storage\.' "$hist"
+          grep -q 'PENDING_SERVER ≠ GAP' "$gaps"
+          grep -q 'NO_RECORD_ACK ≠ GAP' "$gaps"
+          grep -q 'CONFLICT_REVIEW_REQUIRED ≠ GAP' "$gaps"
+          ! grep -Eiq 'creditScore|investmentScore|investmentRecommendation[[:space:]]*=[[:space:]]*true|systemFailure[[:space:]]*=[[:space:]]*true' "$hist" "$gaps"

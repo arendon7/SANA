@@ -1,0 +1,61 @@
+name: SANA Demo Commercial Offtake History
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-commercial.js'
+      - 'apps/control-web/public/sana-v3-dataroom-commercial-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-commercial-gaps.js'
+      - 'scripts/validate-sana-commercial-history.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - '.github/workflows/sana-demo-commercial-history.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-report-snapshot-commercial.js'
+      - 'apps/control-web/public/sana-v3-dataroom-commercial-history.js'
+      - 'apps/control-web/public/sana-v3-due-diligence-commercial-gaps.js'
+      - 'scripts/validate-sana-commercial-history.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+
+jobs:
+  commercial-history-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contracts
+        run: |
+          node --check apps/control-web/public/sana-v3-report-snapshot-commercial.js
+          node --check apps/control-web/public/sana-v3-dataroom-commercial-history.js
+          node --check apps/control-web/public/sana-v3-due-diligence-commercial-gaps.js
+          node scripts/validate-sana-commercial-history.mjs
+      - name: Validate snapshot-only historical boundary
+        run: |
+          grep -q 'NO_LIVE_FALLBACK' apps/control-web/public/sana-v3-report-snapshot-commercial.js
+          grep -q 'BUYER_REF_ONLY' apps/control-web/public/sana-v3-report-snapshot-commercial.js
+          grep -q 'NO_LIVE_FALLBACK' apps/control-web/public/sana-v3-dataroom-commercial-history.js
+          ! grep -q '__SANA_COMMERCIAL_LEDGER__' apps/control-web/public/sana-v3-dataroom-commercial-history.js
+          ! grep -q '__SANA_HARVEST_LEDGER__' apps/control-web/public/sana-v3-dataroom-commercial-history.js
+          ! grep -q '__SANA_ECONOMIC_RECONCILIATION__' apps/control-web/public/sana-v3-dataroom-commercial-history.js
+          ! grep -q 'storage\.' apps/control-web/public/sana-v3-dataroom-commercial-history.js
+      - name: Validate documentary gaps only
+        run: |
+          grep -q 'NO_BUYER_INTEREST ≠ GAP' apps/control-web/public/sana-v3-due-diligence-commercial-gaps.js
+          grep -q 'NO_AGREEMENT ≠ GAP' apps/control-web/public/sana-v3-due-diligence-commercial-gaps.js
+          grep -q 'BUYER_INTEREST_WITHOUT_AGREEMENT ≠ GAP' apps/control-web/public/sana-v3-due-diligence-commercial-gaps.js
+          grep -q 'COMMERCIAL_GAP ≠ MARKET_DEMAND' apps/control-web/public/sana-v3-due-diligence-commercial-gaps.js
+      - name: Validate assembly and active v60 shell
+        run: |
+          grep -q '/sana-v3-report-snapshot-economic-reconciliation.js.*sana-v3-report-snapshot-commercial.js.*sana-v3-cycle-closure.js' apps/control-web/public/sana-v3.html
+          grep -q '/sana-v3-due-diligence-economic-reconciliation-gaps.js.*sana-v3-due-diligence-commercial-gaps.js.*sana-v3-due-diligence-remediation.js' apps/control-web/public/sana-v3.html
+          grep -q '/sana-v3-dataroom-economic-reconciliation-history.js.*sana-v3-dataroom-commercial-history.js.*sana-v3-dataroom-entry.js' apps/control-web/public/sana-v3.html
+          grep -q "^const CACHE='sana-v3-demo-shell-v60';" apps/control-web/public/sana-v3-sw.js
+      - name: Assert no contract, payment, production or investment authority
+        run: |
+          ! grep -Eq 'fetch\s*\(' apps/control-web/public/sana-v3-report-snapshot-commercial.js apps/control-web/public/sana-v3-dataroom-commercial-history.js apps/control-web/public/sana-v3-due-diligence-commercial-gaps.js
+          ! grep -Eq 'productionExecutionAvailable\s*=\s*true|productionActivationAllowed\s*=\s*true|canonicalMutated\s*=\s*true' apps/control-web/public/sana-v3-report-snapshot-commercial.js apps/control-web/public/sana-v3-dataroom-commercial-history.js apps/control-web/public/sana-v3-due-diligence-commercial-gaps.js

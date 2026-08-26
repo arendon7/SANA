@@ -1,0 +1,50 @@
+name: SANA Demo Data Room Review Disposition
+
+on:
+  push:
+    branches: [demo/sana-functional-auth-v1]
+    paths:
+      - 'apps/control-web/public/sana-v3-dataroom-review-disposition.js'
+      - 'scripts/validate-sana-dataroom-review-disposition.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - '.github/workflows/sana-demo-dataroom-review-disposition.yml'
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-dataroom-review-disposition.js'
+      - 'scripts/validate-sana-dataroom-review-disposition.mjs'
+      - 'apps/control-web/public/sana-v3.html'
+      - 'apps/control-web/public/sana-v3-sw.js'
+
+jobs:
+  dataroom-review-disposition-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate syntax and semantic contracts
+        run: |
+          node --check apps/control-web/public/sana-v3-dataroom-review-disposition.js
+          node scripts/validate-sana-dataroom-review-disposition.mjs
+      - name: Validate disposition boundaries
+        run: |
+          grep -q 'HUMAN_REVIEW_NOTE_REFERENCE ≠ OBJECTIVE_FACT' apps/control-web/public/sana-v3-dataroom-review-disposition.js
+          grep -q 'REQUEST_DISPOSITION_RECORDED ≠ VERIFIED_DOCUMENT ≠ ISSUE_RESOLVED' apps/control-web/public/sana-v3-dataroom-review-disposition.js
+          grep -q 'MORE_INFORMATION_REFERENCE_ONLY ≠ DOCUMENT_DEFICIENCY ≠ FINDING' apps/control-web/public/sana-v3-dataroom-review-disposition.js
+          grep -q 'SUFFICIENT_FOR_REQUEST_REFERENCE_ONLY ≠ DUE_DILIGENCE_APPROVAL ≠ CAPITAL_REVIEW_OUTCOME' apps/control-web/public/sana-v3-dataroom-review-disposition.js
+          grep -q 'FOLLOW_UP_REQUEST_REFERENCE_LINKED ≠ AUTOMATIC_REOPEN' apps/control-web/public/sana-v3-dataroom-review-disposition.js
+          grep -q 'DISPOSITION_CASE_CLOSED ≠ REVIEW_COMPLETED ≠ INVESTMENT_DECISION' apps/control-web/public/sana-v3-dataroom-review-disposition.js
+      - name: Validate assembly
+        run: |
+          node <<'NODE'
+          const fs=require('fs'),assert=require('assert');const html=fs.readFileSync('apps/control-web/public/sana-v3.html','utf8'),sw=fs.readFileSync('apps/control-web/public/sana-v3-sw.js','utf8');const response='/sana-v3-dataroom-review-response.js',disposition='/sana-v3-dataroom-review-disposition.js',impact='/sana-v3-dataroom-impact-history.js';for(const f of [response,disposition,impact]){assert(html.includes(f),`HTML missing ${f}`);assert(sw.includes(`'${f}'`),`PWA missing ${f}`)}assert(html.indexOf(response)<html.indexOf(disposition));assert(html.indexOf(disposition)<html.indexOf(impact));const versions=[...sw.matchAll(/const CACHE='sana-v3-demo-shell-v(\d+)'/g)].map(m=>Number(m[1]));assert(versions.length&&Math.max(...versions)>=83,'shell must be v83 or newer');
+          NODE
+      - name: Assert review-only runtime
+        run: |
+          ! grep -Eq 'fetch\s*\(' apps/control-web/public/sana-v3-dataroom-review-disposition.js
+          ! grep -Eq 'productionExecutionAvailable\s*=\s*true|productionActivationAllowed\s*=\s*true|canonicalMutated\s*=\s*true' apps/control-web/public/sana-v3-dataroom-review-disposition.js
+          ! grep -Eq 'resolvedIssues\s*:\s*[1-9]|automaticFindings\s*:\s*[1-9]|automaticRemediations\s*:\s*[1-9]|automaticReopens\s*:\s*[1-9]|automaticReviewTriggers\s*:\s*[1-9]|reviewsCompletedByDisposition\s*:\s*[1-9]|dueDiligenceApprovals\s*:\s*[1-9]|investmentDecisions\s*:\s*[1-9]' apps/control-web/public/sana-v3-dataroom-review-disposition.js
+
+# v83: human disposition per request/response remains distinct from verification, global review outcome and approval.

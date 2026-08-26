@@ -1,0 +1,35 @@
+name: SANA Demo Data Room Review Workspace V111
+
+on:
+  pull_request:
+    paths:
+      - 'apps/control-web/public/sana-v3-dataroom-entry.js'
+      - 'apps/control-web/public/sana-v3-review-workspace.css'
+      - 'apps/control-web/public/sana-v3-sw.js'
+      - 'scripts/validate-sana-dataroom-review-workspace-v111.mjs'
+      - '.github/workflows/sana-demo-dataroom-review-workspace-v111.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  review-workspace-v111-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Preserve V87–V111 workspace contracts
+        run: |
+          node scripts/validate-sana-dataroom-review-workspace.mjs
+          for v in $(seq 88 111); do node scripts/validate-sana-dataroom-review-workspace-v${v}.mjs; done
+      - name: Assert V111 shell, recovery preview semantics and read-only boundary
+        run: |
+          grep -q "const CACHE='sana-v3-demo-shell-v111';" apps/control-web/public/sana-v3-sw.js
+          grep -q 'RECOVERY_PREVIEW ≠ RECOVERY_EXECUTION' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -q 'PREVIEW_PATH ≠ SOURCE_STATE' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -q 'DETAILS_OPEN ≠ REVIEW_DECISION' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -q 'reviewRecoveryPreview' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -q 'data-review-context-recovery-preview' apps/control-web/public/sana-v3-dataroom-entry.js
+          grep -q 'V111 · Recovery preview' apps/control-web/public/sana-v3-review-workspace.css
+          ! grep -Eq 'rwPreview|rwRecoveryPreview|localStorage\.(setItem|removeItem|clear)\s*\(|sessionStorage|fetch\s*\(|openModal\s*\(' apps/control-web/public/sana-v3-dataroom-entry.js

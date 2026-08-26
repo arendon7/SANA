@@ -1,0 +1,33 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+
+const path='apps/control-web/public/sana-v3-capture-sync-runtime-bridge.js';
+const code=fs.readFileSync(path,'utf8');
+let persistCalls=0;
+const storage={records:[],queue:[{id:'Q-LEGACY',type:'Legacy',lot:'RES-01',created:'13 ago'}]};
+const context={window:{},storage,persist:()=>{persistCalls++},console};
+context.window.window=context.window;
+context.window.saveModal=()=>{
+  const record={id:'REC-NEW',type:'fieldRecord',lot:'CAF-A1',createdAt:'2026-08-17T23:00:00-05:00',localOnly:true};
+  storage.records.push(record);
+  storage.queue.push({id:'Q-NEW',type:'Actividad ejecutada',lot:'CAF-A1',created:'Ahora'});
+  return 'saved';
+};
+vm.createContext(context);
+vm.runInContext(code,context,{filename:path});
+const bridge=context.window.__SANA_CAPTURE_SYNC_RUNTIME_BRIDGE__;
+assert(bridge,'runtime bridge API missing');
+assert.equal(bridge.active,true);
+assert.equal(context.window.saveModal(),'saved');
+assert.equal(storage.queue[0].recordId,undefined,'legacy queue must remain untouched');
+assert.equal(storage.queue[1].recordId,'REC-NEW','new queue must link to newly created record');
+assert.equal(storage.queue[1].state,'PENDING_SERVER');
+assert.equal(storage.queue[1].createdAt,'2026-08-17T23:00:00-05:00');
+assert.equal(storage.queue[1].provenance,'CAPTURE_SYNC_RUNTIME_BRIDGE_V1');
+assert.equal(persistCalls,1);
+assert.match(bridge.integrity,/LEGACY_QUEUE_UNCHANGED/);
+assert.match(bridge.integrity,/LOCAL_CAPTURE ≠ SERVER_ACK/);
+assert(!/fetch\s*\(/.test(code));
+assert(!/canonicalMutated\s*=\s*true/.test(code));
+console.log('SANA capture sync runtime bridge v53 validation: OK');

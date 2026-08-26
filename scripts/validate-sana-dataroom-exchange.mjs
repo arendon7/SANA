@@ -1,0 +1,25 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+
+const path='apps/control-web/public/sana-v3-dataroom-exchange-ledger.js';
+const code=fs.readFileSync(path,'utf8');
+const context={window:{__SANA_ACCESS__:{role:'admin'}},storage:{records:[]},DEMO:{lots:[{id:'CAF-A1',crop:'Café'},{id:'AGU-A2',crop:'Aguacate'},{id:'CAC-B1',crop:'Cacao'}]},views:{dataroom:()=>'<footer class="footer"></footer>',capital:()=>'<footer class="footer"></footer>'},metric:()=>'',esc:v=>String(v),openModal:()=>{},document:{addEventListener:()=>{}},console};
+context.window.window=context.window;
+vm.createContext(context);vm.runInContext(code,context,{filename:path});
+const api=context.window.__SANA_DATAROOM_EXCHANGE__;
+assert(api,'Data Room document exchange API missing');
+assert.equal(api.schema,'SANA_DATAROOM_DOCUMENT_EXCHANGE_V1');
+const caf=api.cases().find(c=>c.id==='DX-CAF-01'),agu=api.cases().find(c=>c.id==='DX-AGU-01'),cac=api.cases().find(c=>c.id==='DX-CAC-01');
+assert(caf&&agu&&cac,'baseline exchange cases missing');
+assert.equal(caf.requests.length,1);assert.equal(caf.provided.length,1);assert.equal(caf.versions.length,1);assert.equal(caf.acks.length,1);assert.equal(caf.closures.length,1);assert.equal(caf.openRequestRefs.length,0);
+assert.equal(caf.verifiedDocuments,0);assert.equal(caf.verifiedReceipts,0);assert.equal(caf.resolvedIssues,0);assert.equal(caf.dueDiligenceApprovals,0);assert.equal(caf.investmentOffers,0);assert.equal(caf.executionActions,0);assert.equal(caf.fundingExecuted,0);
+assert.deepEqual([...caf.semantics.providedWithoutRequest],[]);assert.deepEqual([...caf.semantics.versionWithoutProvided],[]);assert.deepEqual([...caf.semantics.ackWithoutProvided],[]);assert.deepEqual([...caf.semantics.closedWithoutRequest],[]);
+assert.equal(agu.requests.length,1);assert.equal(agu.provided.length,0,'request must not become provided document');assert.equal(agu.openRequestRefs.length,1);assert.equal(agu.dueDiligenceApprovals,0);
+assert.equal(cac.provided.length,1);assert.equal(cac.superseded.length,1);assert.equal(cac.expiries.length,1);assert.deepEqual([...cac.semantics.supersededWithoutProvided],[]);assert.deepEqual([...cac.semantics.expiryWithoutProvided],['DX-CAC-X1'],'expiry ref for superseding document must remain unresolved until that document is explicitly provided');assert.equal(cac.currentValidDocuments,0,'expiry/version references must not infer current validity');
+const s=api.summary();assert.equal(s.requests,3);assert.equal(s.openRequests,2);assert.equal(s.providedReferences,2);assert.equal(s.verifiedDocuments,0);assert.equal(s.verifiedReceipts,0);assert.equal(s.resolvedIssues,0);assert.equal(s.dueDiligenceApprovals,0);assert.equal(s.investmentOffers,0);assert.equal(s.fundingExecuted,0);
+for(const re of [/ACCESS_GRANTED ≠ DOCUMENT_REQUEST/,/DOCUMENT_REQUESTED ≠ DOCUMENT_PROVIDED/,/DOCUMENT_PROVIDED_REFERENCE ≠ VERIFIED_DOCUMENT/,/VERSION_DECLARED ≠ CURRENT_VALIDITY/,/ACK_REFERENCE ≠ VERIFIED_RECEIPT/,/SUPERSEDED_REFERENCE ≠ DOCUMENT_INVALIDITY/,/EXPIRY_REFERENCE ≠ EXPIRED_FACT/,/REQUEST_CLOSED ≠ ISSUE_RESOLVED ≠ DUE_DILIGENCE_APPROVAL/,/DOCUMENT_EXCHANGE ≠ INVESTMENT_OFFER/])assert.match(api.integrity,re);
+context.storage.records.push({id:'LOCAL-PROVIDED',type:'dataroom-document-exchange',lot:'CAF-A1',createdAt:'2026-08-18',values:{caseId:'DX-LOCAL-BAD',capitalCaseRef:'CAP-CAF-01',accessCaseRef:'DA-CAF-01',lot:'CAF-A1',snapshotRef:'SNAP-X',kind:'DOCUMENT_PROVIDED_REFERENCE',observedAt:'2026-08-18T10:00',counterpartyRef:'CP-X',providerRef:'PROV-X',requestRef:'REQ-MISSING',documentRef:'DOC-X',providedState:'REFERENCE_ONLY'}});
+const bad=api.cases().find(c=>c.id==='DX-LOCAL-BAD');assert.deepEqual([...bad.semantics.providedWithoutRequest],['LOCAL-PROVIDED']);assert.deepEqual([...bad.semantics.unsupportedProvided],['LOCAL-PROVIDED']);assert.equal(bad.verifiedDocuments,0);assert.equal(bad.dueDiligenceApprovals,0);assert.equal(bad.investmentOffers,0);
+assert(!/fetch\s*\(/.test(code));assert(!/productionExecutionAvailable\s*=\s*true/.test(code));assert(!/productionActivationAllowed\s*=\s*true/.test(code));assert(!/canonicalMutated\s*=\s*true/.test(code));assert(!/verifiedDocuments\s*:\s*[1-9]/.test(code));assert(!/dueDiligenceApprovals\s*:\s*[1-9]/.test(code));assert(!/investmentOffers\s*:\s*[1-9]/.test(code));assert(!/fundingExecuted\s*:\s*[1-9]/.test(code));
+console.log('SANA Data Room document exchange v67 validation: OK');

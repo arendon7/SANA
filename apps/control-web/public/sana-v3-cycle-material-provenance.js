@@ -1,0 +1,39 @@
+(() => {
+  'use strict';
+  const materialApi=()=>window.__SANA_MATERIAL_CHAIN__;
+  const cycleApi=()=>window.__SANA_CYCLE_CLOSURE__;
+  function forPlan(planId){
+    const plan=DEMO.plans.find(p=>p.id===planId);
+    if(!plan)return {valid:false,chains:[]};
+    const chains=(materialApi()?.forLot?.(plan.lot)||[]).map(c=>({materialId:c.identity?.id||'',species:c.identity?.species||'',origin:c.identity?.origin||'',stageCoverage:c.stageCoverage?.percent??0,explicitEvents:c.quantities?.explicitEvents??0,legacyEvents:c.quantities?.legacyEvents??0,declaredLoss:c.quantities?.declaredLoss??0,survival:c.quantities?.latestSurvivalRate??null,mismatch:c.quantities?.mismatches??0,evidence:c.evidence?.coverage??0,costCount:c.relations?.costCount??0,inventoryCount:c.relations?.inventoryCount??0}));
+    return {valid:true,plan:{id:plan.id,version:plan.version,lot:plan.lot},chains,integrity:'LIVE_MATERIAL_PROVENANCE_DEMO · NOT_CYCLE_GATE · NO_EXTERNAL_CERTIFICATION'};
+  }
+  function selected(){const plan=cycleApi()?.selectedPlan?.();return plan?forPlan(plan.id):{valid:false,chains:[]}}
+  function panel(){
+    const s=selected();if(!s.valid)return '';
+    if(!s.chains.length)return `<section class="card" style="margin-top:14px"><div class="card-head"><div><p class="kicker">CIERRE · MATERIAL VEGETAL</p><h2>Sin procedencia vegetal vinculada</h2><p>Esta capa no modifica los gates existentes del cierre.</p></div><span class="status warn">NO CAPTURADO</span></div></section>`;
+    const avgStage=Math.round(s.chains.reduce((n,c)=>n+c.stageCoverage,0)/s.chains.length);const avgEvidence=Math.round(s.chains.reduce((n,c)=>n+c.evidence,0)/s.chains.length);const mismatches=s.chains.reduce((n,c)=>n+c.mismatch,0);
+    return `<section class="card" style="margin-top:14px"><div class="card-head"><div><p class="kicker">CIERRE · MATERIAL VEGETAL</p><h2>Procedencia vegetal del ciclo</h2><p>${esc(s.plan.id)} v${s.plan.version} · lote ${esc(s.plan.lot)} · lectura DEMO separada de completitud.</p></div><span class="status ${mismatches?'danger':'teal'}">${s.chains.length} CADENA(S)</span></div><div class="card-body"><div class="grid metrics">${metric('Cobertura media',`${avgStage}%`,'etapas documentadas · no desempeño')}${metric('Evidencia media',`${avgEvidence}%`,'cadena vegetal DEMO')}${metric('Supervivencia explícita',s.chains.filter(c=>c.survival!==null).length,'solo conteos V1')}${metric('Count mismatch',mismatches,'revisión humana',mismatches?'warn':'good')}</div><div class="table-wrap" style="margin-top:12px"><table class="table"><thead><tr><th>Material</th><th>Origen</th><th>Etapas</th><th>Conteos</th><th>Evidencia</th><th>Relaciones</th></tr></thead><tbody>${s.chains.map(c=>`<tr><td><strong>${esc(c.materialId)}</strong><br><small>${esc(c.species)}</small></td><td>${esc(c.origin||'—')}</td><td>${c.stageCoverage}%</td><td>${c.survival===null?'Supervivencia no capturada':`Supervivencia ${c.survival}%`}<br><small>${c.explicitEvents} explícitos · ${c.legacyEvents} legacy · pérdida declarada ${c.declaredLoss}</small></td><td>${c.evidence}%</td><td>${c.costCount} costo(s) · ${c.inventoryCount} mov.</td></tr>`).join('')}</tbody></table></div><div class="section-note" style="margin-top:12px">MATERIAL_PROVENANCE ≠ CYCLE_GATE ≠ PERFORMANCE ≠ EXTERNAL_CERTIFICATION. DECLARED_LOSS ≠ FAILURE. No modifica completeness ni readyForArchive.</div></div></section>`;
+  }
+  function insert(html,section){const marker='<footer class="footer">';const at=html.lastIndexOf(marker);return at<0?html+section:html.slice(0,at)+section+html.slice(at)}
+  const base=views.cycle;if(base)views.cycle=()=>insert(base(),panel());
+  window.__SANA_CYCLE_MATERIAL__=Object.freeze({forPlan,selected,integrity:'LIVE_MATERIAL_PROVENANCE_DEMO · MATERIAL_PROVENANCE ≠ CYCLE_GATE ≠ PERFORMANCE ≠ EXTERNAL_CERTIFICATION'});
+})();
+
+// V156 loader: explicit Material Chain reference integrity only; no certification, mutation or decision authority.
+(() => {
+  'use strict';
+  if(typeof window==='undefined'||typeof document==='undefined'||typeof document.createElement!=='function')return;
+  const VERSION='V156',SRC='/sana-v3-material-references.js';
+  const state={version:VERSION,status:'WAITING',attempts:0,integrity:'MATERIAL_REFERENCE_VALIDATION ≠ MATERIAL/GENETIC/PHYTOSANITARY/ICA_CERTIFICATION · NO_INVENTORY_OR_ACCOUNTING_EXECUTION · NO_CREDIT/ELIGIBILITY/INVESTMENT_AUTHORITY'};
+  function expose(){window.__SANA_MATERIAL_REFERENCES_LOADER__=Object.freeze({...state})}
+  function ready(){return window.__SANA_MATERIAL_CHAIN__?.schema==='SANA_MATERIAL_CHAIN_V1'&&Array.isArray(window.DEMO?.material)&&Array.isArray(window.DEMO?.lots)}
+  function start(){
+    state.attempts++;expose();
+    if(window.__SANA_MATERIAL_CHAIN__?.referenceVersion===VERSION){state.status='READY';expose();return}
+    if(!ready()){if(state.attempts<25){state.status='WAITING_DEPENDENCIES';expose();setTimeout(start,40);return}state.status='BLOCKED_DEPENDENCIES';expose();return}
+    if(document.querySelector?.('script[data-sana-material-references-v156]'))return;
+    state.status='LOADING';expose();const s=document.createElement('script');s.src=SRC;s.defer=true;s.dataset.sanaMaterialReferencesV156='1';s.onload=()=>{state.status=window.__SANA_MATERIAL_CHAIN__?.referenceVersion===VERSION?'READY':'FAILED_CONTRACT';expose()};s.onerror=()=>{state.status='FAILED';expose()};document.head.appendChild(s);
+  }
+  expose();if(document.readyState==='complete')queueMicrotask(start);else window.addEventListener('load',start,{once:true});
+})();

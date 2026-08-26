@@ -1,0 +1,14 @@
+name: Assemble SANA v66 Data Room Access History
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  assemble-v66-retired:
+    if: ${{ false }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo 'v66 assembler retired after deterministic assembly; shell is certified separately.'

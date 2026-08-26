@@ -1,0 +1,49 @@
+name: SANA Demo Material References
+
+on:
+  push:
+    branches: [demo/sana-material-v156]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  material-references:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Material References V156
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-material-references.js
+          node --check apps/control-web/public/sana-v3-cycle-material-provenance.js
+          node --check apps/control-web/public/sana-v3-sw.js
+          node scripts/validate-sana-material-references.mjs
+          grep -Fq 'LEGACY_REFERENCE_NOT_CAPTURED' apps/control-web/public/sana-v3-material-references.js
+          grep -Fq 'DECLARED_NON_CANONICAL_REFERENCE' apps/control-web/public/sana-v3-material-references.js
+          grep -Fq 'DESTINATION_LOT_REF' apps/control-web/public/sana-v3-material-references.js
+          grep -Fq 'COST_MATERIAL_EVENT_REF' apps/control-web/public/sana-v3-material-references.js
+          grep -Fq 'INVENTORY_MATERIAL_EVENT_REF' apps/control-web/public/sana-v3-material-references.js
+          grep -Fq 'CROSS_MATERIAL_REFERENCE' apps/control-web/public/sana-v3-material-references.js
+          grep -Fq 'SOURCE_MATERIAL_MISSING' apps/control-web/public/sana-v3-material-references.js
+          grep -Fq 'orphanSourceCount' apps/control-web/public/sana-v3-material-references.js
+          grep -Fq 'FORWARD_REFERENCE' apps/control-web/public/sana-v3-material-references.js
+          grep -Fq 'SOURCE_REFERENCE_DECLARED ≠ ORIGIN_VERIFIED' apps/control-web/public/sana-v3-material-references.js
+          grep -Fq 'EVIDENCE_REFERENCE_DECLARED ≠ EVIDENCE_VERIFIED' apps/control-web/public/sana-v3-material-references.js
+          grep -Fq 'REFERENCE ≠ GENETIC_QUALITY ≠ PHYTOSANITARY_STATUS ≠ ICA_CERTIFICATION ≠ CREDIT_RISK ≠ ELIGIBILITY ≠ INVESTMENT_SIGNAL' apps/control-web/public/sana-v3-material-references.js
+          node - <<'NODE'
+          const fs=require('fs');
+          const loader=fs.readFileSync('apps/control-web/public/sana-v3-cycle-material-provenance.js','utf8');
+          const sw=fs.readFileSync('apps/control-web/public/sana-v3-sw.js','utf8');
+          if(!loader.includes("const VERSION='V156',SRC='/sana-v3-material-references.js'"))throw new Error('V156 loader contract missing');
+          if(!loader.includes('__SANA_MATERIAL_REFERENCES_LOADER__'))throw new Error('V156 loader state missing');
+          if((sw.match(/const CACHE='sana-v3-demo-shell-v156';/g)||[]).length!==1)throw new Error('v156 cache marker must remain exactly once');
+          if(!sw.includes("if(false){\nconst CACHE='sana-v3-demo-shell-v155';\n}"))throw new Error('v155 historical cache marker missing');
+          if((sw.split('/sana-v3-material-references.js').length-1)!==1)throw new Error('V156 SW asset count invalid');
+          if(!sw.includes('// v156 validates explicit Material Chain destination/material/event references'))throw new Error('v156 provenance marker missing');
+          NODE
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|geneticIdentityVerified[[:space:]]*=[[:space:]]*true|phytosanitaryVerified[[:space:]]*=[[:space:]]*true|icaCertified[[:space:]]*=[[:space:]]*true|creditApproved|investmentApproved|inventoryExecuted|accountingEntryCreated' apps/control-web/public/sana-v3-material-references.js apps/control-web/public/sana-v3-cycle-material-provenance.js
