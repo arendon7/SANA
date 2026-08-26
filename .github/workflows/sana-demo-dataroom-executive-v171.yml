@@ -1,0 +1,45 @@
+name: SANA Demo Data Room Executive V171
+
+on:
+  push:
+    branches: [demo/sana-dataroom-executive-v171]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-v171:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax
+        run: node --check apps/control-web/public/sana-v3-dataroom-executive-v171.js
+      - name: V170 regression
+        run: node scripts/validate-sana-dataroom-executive-v170.mjs
+      - name: V171 typed source registry
+        run: node scripts/validate-sana-dataroom-executive-v171.mjs
+      - name: V171 read-only surface
+        shell: bash
+        run: |
+          set -euo pipefail
+          file=apps/control-web/public/sana-v3-dataroom-executive-v171.html
+          test -f "$file"
+          grep -Fq 'Cobertura de fuentes' "$file"
+          grep -Fq 'NOT WEIGHTED' "$file"
+          ! grep -Fqi '<form' "$file"
+          ! grep -Fq 'fetch(' "$file"
+          ! grep -Fq 'XMLHttpRequest' "$file"
+          ! grep -Fq 'localStorage.setItem' "$file"
+          ! grep -Fq 'sessionStorage.setItem' "$file"
+      - name: Preserve authority boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq 'canonicalMutationAvailable:false' apps/control-web/public/sana-v3-dataroom-executive-v171.js
+          grep -Fq 'financialMutationAvailable:false' apps/control-web/public/sana-v3-dataroom-executive-v171.js
+          grep -Fq "aiAuthority:'ADVISORY_ONLY'" apps/control-web/public/sana-v3-dataroom-executive-v171.js
+          ! grep -Eiq 'canonicalMutationAvailable[[:space:]]*:[[:space:]]*true|financialMutationAvailable[[:space:]]*:[[:space:]]*true|riskScore[[:space:]]*:|investmentScore[[:space:]]*:|overallScore[[:space:]]*:' apps/control-web/public/sana-v3-dataroom-executive-v171.js
