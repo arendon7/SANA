@@ -1,0 +1,35 @@
+name: SANA Demo Capital Review References V160
+
+on:
+  push:
+    branches: [demo/sana-capital-review-v160]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  capital-review-references:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Capital Review References V160
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-capital-review-references.js
+          node scripts/validate-sana-capital-review-references.mjs
+          grep -Fq 'CAPTURED_V160' apps/control-web/public/sana-v3-capital-review-references.js
+          grep -Fq 'LEGACY_REFERENCE_NOT_CAPTURED' apps/control-web/public/sana-v3-capital-review-references.js
+          grep -Fq 'CAPITAL_CASE_REF' apps/control-web/public/sana-v3-capital-review-references.js
+          grep -Fq 'SNAPSHOT_REF' apps/control-web/public/sana-v3-capital-review-references.js
+          grep -Fq 'REVIEW_SUPPORT_REF' apps/control-web/public/sana-v3-capital-review-references.js
+          grep -Fq 'DECLARED_NON_CANONICAL_REFERENCE' apps/control-web/public/sana-v3-capital-review-references.js
+          grep -Fq 'SNAPSHOT_REFERENCE ≠ CONTENT_CORRECTNESS ≠ LIVE_STATE' apps/control-web/public/sana-v3-capital-review-references.js
+          grep -Fq 'REVIEWER_REF_DECLARED ≠ VERIFIED_IDENTITY' apps/control-web/public/sana-v3-capital-review-references.js
+          grep -Fq 'ASSESSMENT_REF_DECLARED ≠ CREDIT_SCORE ≠ INVESTMENT_RECOMMENDATION' apps/control-web/public/sana-v3-capital-review-references.js
+          grep -Fq 'REFERENCE ≠ OFFER ≠ SOLICITATION ≠ BROKERAGE ≠ CUSTODY ≠ DISBURSEMENT' apps/control-web/public/sana-v3-capital-review-references.js
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|reviewerIdentitiesVerified[[:space:]]*=[[:space:]]*[1-9]|approvalsVerified[[:space:]]*=[[:space:]]*[1-9]|creditScore[[:space:]]*=[[:space:]]*[1-9]|investmentRecommendation[[:space:]]*=[[:space:]]*true|eligibilityDecision[[:space:]]*=[[:space:]]*true|fundingExecuted[[:space:]]*=[[:space:]]*[1-9]|disbursementExecuted|offerCreated|solicitationCreated' apps/control-web/public/sana-v3-capital-review-references.js
