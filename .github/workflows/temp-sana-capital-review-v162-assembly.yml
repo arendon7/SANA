@@ -1,15 +1,15 @@
-# explicit second-push trigger for V162 assembly
 name: TEMP SANA Capital Review V162 Assembly
 
 on:
-  push:
-    branches: [demo/sana-capital-review-v162]
+  pull_request:
+    branches: [demo/sana-functional-auth-v1]
 
 permissions:
   contents: write
 
 jobs:
   assemble:
+    if: github.event.pull_request.head.ref == 'demo/sana-capital-review-v162'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
