@@ -57,3 +57,26 @@
   document.addEventListener('click',e=>{const b=e.target.closest('[data-data-trust-ref]');if(b)openReference(b.dataset.dataTrustRef)});
   window.__SANA_DATA_TRUST__=Object.freeze({...base,referenceVersion:VERSION,referenceSemanticsVersion:VERSION,rows,forLot,forReading:rowFor,summary,integrity:`${base.integrity} · ${INTEGRITY}`});
 })();
+
+// V161 loader: historical Data Trust reference provenance only; no live fallback or authority expansion.
+(() => {
+  'use strict';
+  if(typeof window==='undefined'||typeof document==='undefined'||typeof document.createElement!=='function')return;
+  const VERSION='V161';
+  const ASSETS=['/sana-v3-report-snapshot-data-trust-references.js','/sana-v3-cycle-data-trust-references.js','/sana-v3-due-diligence-data-trust-reference-gaps.js','/sana-v3-dataroom-data-trust-references.js'];
+  const state={version:VERSION,status:'WAITING',loaded:0,integrity:'SNAPSHOT_ONLY_HISTORY · REFERENCE_IDENTIFIERS_NOT_COPIED · NO_LIVE_FALLBACK · NON_WEIGHTED · NO_DATA_QUALITY/AGRONOMIC/CREDIT/ELIGIBILITY/INVESTMENT_AUTHORITY'};
+  function expose(){window.__SANA_DATA_TRUST_REFERENCE_HISTORY_LOADER__=Object.freeze({...state,assets:[...ASSETS]})}
+  function loadAt(i){
+    if(i>=ASSETS.length){state.status='READY';state.loaded=ASSETS.length;expose();return}
+    const src=ASSETS[i];const key=`data-sana-data-trust-reference-history-${i}`;
+    if(document.querySelector?.(`script[${key}]`)){state.loaded=i+1;expose();loadAt(i+1);return}
+    state.status='LOADING';expose();const s=document.createElement('script');s.src=src;s.defer=true;s.setAttribute(key,'1');
+    s.onload=()=>{state.loaded=i+1;expose();loadAt(i+1)};s.onerror=()=>{state.status='FAILED';state.failedAsset=src;expose()};document.head.appendChild(s);
+  }
+  function start(){
+    expose();
+    if(window.__SANA_DATA_TRUST__?.referenceVersion!=='V160'){state.status='BLOCKED_DEPENDENCIES';expose();return}
+    loadAt(0);
+  }
+  expose();queueMicrotask(start);
+})();
