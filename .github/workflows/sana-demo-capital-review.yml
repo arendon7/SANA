@@ -5,17 +5,24 @@ on:
     branches: [demo/sana-functional-auth-v1]
     paths:
       - 'apps/control-web/public/sana-v3-capital-review-ledger.js'
+      - 'apps/control-web/public/sana-v3-capital-review-references.js'
       - 'scripts/validate-sana-capital-review.mjs'
+      - 'scripts/validate-sana-capital-review-references-v162.mjs'
       - 'apps/control-web/public/sana-v3.html'
       - 'apps/control-web/public/sana-v3-sw.js'
       - '.github/workflows/sana-demo-capital-review.yml'
   pull_request:
     paths:
       - 'apps/control-web/public/sana-v3-capital-review-ledger.js'
+      - 'apps/control-web/public/sana-v3-capital-review-references.js'
       - 'scripts/validate-sana-capital-review.mjs'
+      - 'scripts/validate-sana-capital-review-references-v162.mjs'
       - 'apps/control-web/public/sana-v3.html'
       - 'apps/control-web/public/sana-v3-sw.js'
       - '.github/workflows/sana-demo-capital-review.yml'
+
+permissions:
+  contents: read
 
 jobs:
   capital-human-review-safety:
@@ -26,9 +33,15 @@ jobs:
         with:
           node-version: '22'
       - name: Validate syntax and semantic contracts
+        shell: bash
         run: |
+          set -euo pipefail
           node --check apps/control-web/public/sana-v3-capital-review-ledger.js
           node scripts/validate-sana-capital-review.mjs
+          if [[ -f apps/control-web/public/sana-v3-capital-review-references.js ]]; then
+            node --check apps/control-web/public/sana-v3-capital-review-references.js
+            node scripts/validate-sana-capital-review-references-v162.mjs
+          fi
       - name: Validate human review boundaries
         run: |
           grep -q 'REVIEW_COMPLETED ≠ APPROVAL' apps/control-web/public/sana-v3-capital-review-ledger.js
@@ -38,6 +51,19 @@ jobs:
           grep -q 'REVIEWER_REF ≠ VERIFIED_IDENTITY' apps/control-web/public/sana-v3-capital-review-ledger.js
           grep -q 'NO_CUSTODY' apps/control-web/public/sana-v3-capital-review-ledger.js
           grep -q 'NO_DISBURSEMENT' apps/control-web/public/sana-v3-capital-review-ledger.js
+      - name: Validate V162 reference boundaries when present
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='apps/control-web/public/sana-v3-capital-review-references.js'
+          if [[ ! -f "$f" ]]; then exit 0; fi
+          grep -Fq 'LEGACY_REFERENCE_NOT_CAPTURED' "$f"
+          grep -Fq 'REVIEW_REFERENCE ≠ APPROVAL' "$f"
+          grep -Fq 'GAP_REFERENCE ≠ GAP_RESOLUTION' "$f"
+          grep -Fq 'METHODOLOGY_SUPPORT_REFERENCE ≠ EXTERNAL_VALIDATION' "$f"
+          grep -Fq 'REMEDIATION_REFERENCE ≠ EFFECTIVENESS' "$f"
+          grep -Fq 'REVIEW ≠ SCORE ≠ CREDIT_RISK ≠ ELIGIBILITY ≠ INVESTMENT_RECOMMENDATION' "$f"
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|creditApproved|investmentApproved|fundingExecuted[[:space:]]*[:=][[:space:]]*[1-9]|approvalsVerified[[:space:]]*[:=][[:space:]]*[1-9]' "$f"
       - name: Validate Human Review assembly forward-compatible
         shell: bash
         run: |
