@@ -3,6 +3,7 @@ name: TEMP SANA Capital Review V162 Assembly
 on:
   push:
     branches: [demo/sana-capital-review-v162]
+  pull_request:
 
 permissions:
   contents: write
