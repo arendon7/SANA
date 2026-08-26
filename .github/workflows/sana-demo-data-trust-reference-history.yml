@@ -1,0 +1,36 @@
+name: SANA Demo Data Trust Reference History
+
+on:
+  push:
+    branches: [demo/sana-data-trust-v161]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  data-trust-reference-history:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Data Trust Reference History V161
+        run: |
+          set -euo pipefail
+          for f in \
+            apps/control-web/public/sana-v3-report-snapshot-data-trust-references.js \
+            apps/control-web/public/sana-v3-cycle-data-trust-references.js \
+            apps/control-web/public/sana-v3-due-diligence-data-trust-reference-gaps.js \
+            apps/control-web/public/sana-v3-dataroom-data-trust-references.js; do node --check "$f"; done
+          node scripts/validate-sana-data-trust-reference-provenance.mjs
+          grep -Fq 'CONTENT_MINIMIZED' apps/control-web/public/sana-v3-report-snapshot-data-trust-references.js
+          grep -Fq 'NO_SOURCE/ACK/CANDIDATE_VALUES' apps/control-web/public/sana-v3-report-snapshot-data-trust-references.js
+          grep -Fq 'referenceIdentifierCaptured:false' apps/control-web/public/sana-v3-report-snapshot-data-trust-references.js
+          grep -Fq 'NO_LIVE_FALLBACK' apps/control-web/public/sana-v3-dataroom-data-trust-references.js
+          grep -Fq 'NON_WEIGHTED' apps/control-web/public/sana-v3-cycle-data-trust-references.js
+          grep -Fq 'NOT_CAPTURED_OR_LEGACY ≠ GAP' apps/control-web/public/sana-v3-due-diligence-data-trust-reference-gaps.js
+          grep -Fq 'DECLARED_NON_CANONICAL_REFERENCE ≠ GAP' apps/control-web/public/sana-v3-due-diligence-data-trust-reference-gaps.js
+          ! grep -Eq '__SANA_DATA_TRUST__|__SANA_CAPTURE_SYNC_LEDGER__|localStorage|storage\?\.|storage\.records' apps/control-web/public/sana-v3-dataroom-data-trust-references.js apps/control-web/public/sana-v3-cycle-data-trust-references.js apps/control-web/public/sana-v3-due-diligence-data-trust-reference-gaps.js
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|serverVerified[[:space:]]*=[[:space:]]*true|sourceVerified[[:space:]]*=[[:space:]]*true|measurementValidated[[:space:]]*=[[:space:]]*true|dataQualityScore|creditApproved|investmentApproved|eligibilityApproved' apps/control-web/public/sana-v3-*data-trust-reference*.js
