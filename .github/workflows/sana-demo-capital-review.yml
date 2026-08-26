@@ -21,10 +21,11 @@ on:
       - 'apps/control-web/public/sana-v3-sw.js'
       - '.github/workflows/sana-demo-capital-review.yml'
 
+permissions:
+  contents: read
+
 jobs:
   capital-human-review-safety:
-    permissions:
-      contents: read
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -42,7 +43,9 @@ jobs:
             node scripts/validate-sana-capital-review-references-v162.mjs
           fi
       - name: Validate human review boundaries
+        shell: bash
         run: |
+          set -euo pipefail
           grep -q 'REVIEW_COMPLETED ≠ APPROVAL' apps/control-web/public/sana-v3-capital-review-ledger.js
           grep -q 'ASSESSMENT_REFERENCE ≠ CREDIT_SCORE ≠ INVESTMENT_RECOMMENDATION' apps/control-web/public/sana-v3-capital-review-ledger.js
           grep -q 'HUMAN_DECISION_REFERENCE ≠ EXECUTION' apps/control-web/public/sana-v3-capital-review-ledger.js
@@ -75,6 +78,7 @@ jobs:
           const governance='/sana-v3-capital-governance.js';
           const references='/sana-v3-capital-governance-references.js';
           const review='/sana-v3-capital-review-ledger.js';
+          const reviewRefs='/sana-v3-capital-review-references.js';
           const integration='/sana-v3-integration-bridge.js';
           if(!html.includes(review)){console.log('Human Review staged before assembly; shell validation deferred.');process.exit(0)}
           const g=html.indexOf(governance),r=html.indexOf(review),i=html.indexOf(integration),x=html.indexOf(references);
@@ -85,92 +89,21 @@ jobs:
           if(sg<0||sr<=sg||si<=sr)throw new Error('Human Review SW order must preserve Governance < Review < Integration');
           if(sx>=0&&!(sg<sx&&sx<sr))throw new Error('Capital reference SW asset must remain between Governance and Human Review');
           for(const asset of [governance,review,integration])if((sw.split(asset).length-1)!==1)throw new Error(`${asset} SW count must remain one`);
+          if(sw.includes("const CACHE='sana-v3-demo-shell-v162';")){
+            if(!sw.includes("if(false){\nconst CACHE='sana-v3-demo-shell-v161';\n}"))throw new Error('v161 historical marker missing after V162 assembly');
+            if((sw.split(reviewRefs).length-1)!==1)throw new Error('V162 reference asset must appear exactly once');
+            if(!sw.includes("const VERSION='V162',SRC='/sana-v3-capital-review-references.js'")){
+              const ledger=fs.readFileSync('apps/control-web/public/sana-v3-capital-review-ledger.js','utf8');
+              if(!ledger.includes("const VERSION='V162',SRC='/sana-v3-capital-review-references.js'"))throw new Error('V162 loader missing');
+            }
+          }
           const v63=(sw.match(/const CACHE='sana-v3-demo-shell-v63';/g)||[]).length;
           if(v63!==1)throw new Error('v63 cache provenance marker must remain exactly once');
-          const v63Historical=sw.includes("if(false){\nconst CACHE='sana-v3-demo-shell-v63';\n}");
-          const v63Active=(sw.match(/^const CACHE='sana-v3-demo-shell-v63';$/gm)||[]).length===1&&!v63Historical;
-          if(!v63Historical&&!v63Active)throw new Error('v63 must remain active or historical');
           NODE
       - name: Assert no scoring, financial or production execution authority
+        shell: bash
         run: |
+          set -euo pipefail
           ! grep -Eq 'fetch\s*\(' apps/control-web/public/sana-v3-capital-review-ledger.js
           ! grep -Eq 'productionExecutionAvailable\s*=\s*true|productionActivationAllowed\s*=\s*true|canonicalMutated\s*=\s*true' apps/control-web/public/sana-v3-capital-review-ledger.js
           ! grep -Eq 'approvalsVerified\s*:\s*[1-9]|fundingExecuted\s*:\s*[1-9]' apps/control-web/public/sana-v3-capital-review-ledger.js
-
-  assemble-v162:
-    if: github.event_name == 'pull_request' && github.head_ref == 'demo/sana-capital-review-v162' && github.event.pull_request.head.repo.full_name == github.repository
-    needs: capital-human-review-safety
-    permissions:
-      contents: write
-      pull-requests: read
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: demo/sana-capital-review-v162
-      - name: Assemble V162 loader and shell idempotently
-        shell: bash
-        run: |
-          set -euo pipefail
-          python - <<'PY'
-          from pathlib import Path
-          ledger=Path('apps/control-web/public/sana-v3-capital-review-ledger.js')
-          s=ledger.read_text()
-          marker='// V162 loader: Capital Human Review internal reference integrity only; no approval, eligibility, credit, investment or execution authority.'
-          if marker not in s:
-              loader=r'''
-
-// V162 loader: Capital Human Review internal reference integrity only; no approval, eligibility, credit, investment or execution authority.
-(() => {
-  'use strict';
-  if(typeof window==='undefined'||typeof document==='undefined'||typeof document.createElement!=='function')return;
-  const VERSION='V162',SRC='/sana-v3-capital-review-references.js';
-  const state={version:VERSION,status:'WAITING',attempts:0,integrity:'CAPITAL_CASE/SNAPSHOT/SUPPORT REFERENCES ONLY · SNAPSHOT_REFERENCE ≠ CONTENT_CORRECTNESS · REVIEWER_REF ≠ VERIFIED_IDENTITY · NO_APPROVAL/ELIGIBILITY/CREDIT/INVESTMENT/EXECUTION_AUTHORITY'};
-  function expose(){window.__SANA_CAPITAL_REVIEW_REFERENCES_LOADER__=Object.freeze({...state})}
-  function ready(){return window.__SANA_CAPITAL_REVIEW__?.schema==='SANA_CAPITAL_HUMAN_REVIEW_LEDGER_V1'&&window.__SANA_CAPITAL_GOVERNANCE__?.referenceVersion==='V150'&&window.__SANA_DUE_DILIGENCE_SNAPSHOT__?.snapshots}
-  function start(){
-    state.attempts++;expose();
-    if(window.__SANA_CAPITAL_REVIEW__?.referenceVersion===VERSION){state.status='READY';expose();return}
-    if(!ready()){if(state.attempts<50){state.status='WAITING_DEPENDENCIES';expose();setTimeout(start,50);return}state.status='BLOCKED_DEPENDENCIES';expose();return}
-    if(document.querySelector?.('script[data-sana-capital-review-v162]'))return;
-    state.status='LOADING';expose();const el=document.createElement('script');el.src=SRC;el.defer=true;el.dataset.sanaCapitalReviewV162='1';el.onload=()=>{state.status=window.__SANA_CAPITAL_REVIEW__?.referenceVersion===VERSION?'READY':'FAILED_CONTRACT';expose()};el.onerror=()=>{state.status='FAILED';expose()};document.head.appendChild(el);
-  }
-  expose();if(document.readyState==='complete')queueMicrotask(start);else window.addEventListener('load',start,{once:true});
-})();
-'''
-              ledger.write_text(s.rstrip()+loader)
-          sw=Path('apps/control-web/public/sana-v3-sw.js')
-          s=sw.read_text()
-          if "const CACHE='sana-v3-demo-shell-v162';" not in s:
-              old="const CACHE='sana-v3-demo-shell-v161';"
-              new="if(false){\nconst CACHE='sana-v3-demo-shell-v161';\n}\nconst CACHE='sana-v3-demo-shell-v162';"
-              assert s.count(old)==1, 'expected exactly one active v161 marker'
-              s=s.replace(old,new,1)
-          anchor="'/sana-v3-capital-review-ledger.js',"
-          assets="'/sana-v3-capital-review-ledger.js','/sana-v3-capital-review-references.js',"
-          if '/sana-v3-capital-review-references.js' not in s:
-              assert s.count(anchor)==1, 'capital review ledger asset anchor missing/duplicated'
-              s=s.replace(anchor,assets,1)
-          comment='// v162 validates Capital Human Review capital-case, snapshot and support references without identity, approval, eligibility, credit, investment or execution authority.'
-          if comment not in s:
-              anchor_comment='// v161 propagates content-minimized Data Trust reference provenance through Snapshot, Cycle, Due Diligence and Data Room without live fallback, weighting, source/measurement verification, credit, eligibility or investment authority.'
-              assert s.count(anchor_comment)==1, 'v161 comment anchor missing/duplicated'
-              s=s.replace(anchor_comment,anchor_comment+'\n'+comment,1)
-          sw.write_text(s)
-          PY
-          node --check apps/control-web/public/sana-v3-capital-review-ledger.js
-          node --check apps/control-web/public/sana-v3-sw.js
-          grep -Fq "const VERSION='V162',SRC='/sana-v3-capital-review-references.js'" apps/control-web/public/sana-v3-capital-review-ledger.js
-          grep -q "^const CACHE='sana-v3-demo-shell-v162';$" apps/control-web/public/sana-v3-sw.js
-          test "$(grep -c "const CACHE='sana-v3-demo-shell-v161';" apps/control-web/public/sana-v3-sw.js)" -eq 1
-          test "$(grep -o '/sana-v3-capital-review-references.js' apps/control-web/public/sana-v3-sw.js | wc -l)" -eq 1
-      - name: Commit V162 assembly if changed
-        shell: bash
-        run: |
-          set -euo pipefail
-          if git diff --quiet; then exit 0; fi
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add apps/control-web/public/sana-v3-capital-review-ledger.js apps/control-web/public/sana-v3-sw.js
-          git commit -m 'chore(sana): assemble capital review shell v162'
-          git push origin HEAD:demo/sana-capital-review-v162
