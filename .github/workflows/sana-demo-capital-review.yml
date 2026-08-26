@@ -2,7 +2,7 @@ name: SANA Demo Capital Human Review
 
 on:
   push:
-    branches: [demo/sana-functional-auth-v1, demo/sana-capital-review-v162]
+    branches: [demo/sana-functional-auth-v1]
     paths:
       - 'apps/control-web/public/sana-v3-capital-review-ledger.js'
       - 'apps/control-web/public/sana-v3-capital-review-references.js'
@@ -98,10 +98,11 @@ jobs:
           ! grep -Eq 'approvalsVerified\s*:\s*[1-9]|fundingExecuted\s*:\s*[1-9]' apps/control-web/public/sana-v3-capital-review-ledger.js
 
   assemble-v162:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/demo/sana-capital-review-v162'
+    if: github.event_name == 'pull_request' && github.head_ref == 'demo/sana-capital-review-v162' && github.event.pull_request.head.repo.full_name == github.repository
     needs: capital-human-review-safety
     permissions:
       contents: write
+      pull-requests: read
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
