@@ -6,9 +6,17 @@ const runtimePath='apps/control-web/public/sana-v3-dataroom-executive-v171.js';
 const src=fs.readFileSync(runtimePath,'utf8');
 const html=fs.readFileSync('apps/control-web/public/sana-v3.html','utf8');
 
-for(const token of [
-  "const VERSION='V171'","const SCHEMA='SANA_DATAROOM_EXECUTIVE_SOURCE_COVERAGE_V1'",'LOT_EXACT','SNAPSHOT_GLOBAL','REFERENCE_CASE','API_PRESENT_WITHOUT_EXPECTED_ACCESSOR','COUNTS_ONLY · NOT_WEIGHTED · NOT_SCORE','lensChangesAuthority:false','financialMutationAvailable:false',"aiAuthority:'ADVISORY_ONLY'"
-])assert.ok(src.includes(token),`missing V171 invariant: ${token}`);
+const semanticPatterns=[
+  [/\bVERSION\s*=\s*['"]V171['"]/, 'VERSION=V171'],
+  [/\bSCHEMA\s*=\s*['"]SANA_DATAROOM_EXECUTIVE_SOURCE_COVERAGE_V1['"]/, 'V171 schema'],
+  [/LOT_EXACT/, 'LOT_EXACT'],[/SNAPSHOT_GLOBAL/, 'SNAPSHOT_GLOBAL'],[/REFERENCE_CASE/, 'REFERENCE_CASE'],
+  [/API_PRESENT_WITHOUT_EXPECTED_ACCESSOR/, 'missing accessor fail-closed'],
+  [/COUNTS_ONLY · NOT_WEIGHTED · NOT_SCORE/, 'count-only coverage'],
+  [/lensChangesAuthority\s*:\s*false/, 'lens authority false'],
+  [/financialMutationAvailable\s*:\s*false/, 'financial mutation false'],
+  [/aiAuthority\s*:\s*['"]ADVISORY_ONLY['"]/, 'AI advisory only']
+];
+for(const [pattern,label] of semanticPatterns)assert.ok(pattern.test(src),`missing V171 semantic invariant: ${label}`);
 for(const forbidden of ['fetch(','XMLHttpRequest','localStorage.setItem','sessionStorage.setItem','indexedDB.open','canonicalMutationAvailable:true','financialMutationAvailable:true','riskScore:','investmentScore:','overallScore:'])assert.ok(!src.includes(forbidden),`forbidden V171 token: ${forbidden}`);
 
 const context={window:{},structuredClone,console};context.globalThis=context;
@@ -31,8 +39,8 @@ for(const def of registry.filter(x=>x.materialized)){
   const text=fs.readFileSync(def.file,'utf8');
   assert.ok(text.includes(def.globalName),`global export not found in ${def.file}: ${def.globalName}`);
   if(def.strategy==='STATE')assert.ok(/\bstate\s*:/.test(text),`STATE adapter not evidenced in ${def.file}`);
-  if(def.strategy==='SNAPSHOTS')assert.ok(/\bsnapshots\b/.test(text),`SNAPSHOTS adapter not evidenced in ${def.file}`);
-  if(def.strategy==='CURRENT')assert.ok(/\bcurrent\b/.test(text),`CURRENT adapter not evidenced in ${def.file}`);
+  if(def.strategy==='SNAPSHOTS')assert.ok(/\bsnapshots\s*:|\bsnapshots\s*\(/.test(text),`SNAPSHOTS adapter not evidenced in ${def.file}`);
+  if(def.strategy==='CURRENT')assert.ok(/\bcurrent\s*:|\bcurrent\s*\(/.test(text),`CURRENT adapter not evidenced in ${def.file}`);
   if(def.strategy==='FOR_LOT_CASES')assert.ok(/\bforLot\b/.test(text)&&/\bcases\b/.test(text),`FOR_LOT_CASES adapter not evidenced in ${def.file}`);
   if(def.strategy==='CASES_EVENTS')assert.ok(/\bcases\b/.test(text),`CASES_EVENTS adapter not evidenced in ${def.file}`);
   assert.ok(def.view&&typeof def.view==='string','source view missing');
