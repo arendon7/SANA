@@ -28,3 +28,20 @@
   document.addEventListener('click',e=>{if(e.target.closest('[data-capital-review-event]'))openEvent()});
   window.__SANA_CAPITAL_REVIEW__=Object.freeze({schema:SCHEMA,cases:()=>cases().map(c=>({...c,events:c.events.map(e=>({...e,supports:e.supports?[...e.supports]:undefined}))})),forLot,summary,events:allEvents,integrity:INTEGRITY});
 })();
+// V162 loader: Capital Human Review internal reference integrity only; no approval, eligibility, credit, investment or execution authority.
+(() => {
+  'use strict';
+  if(typeof window==='undefined'||typeof document==='undefined'||typeof document.createElement!=='function')return;
+  const VERSION='V162',SRC='/sana-v3-capital-review-references.js';
+  const state={version:VERSION,status:'WAITING',attempts:0,integrity:'CAPITAL_CASE/SNAPSHOT/SUPPORT REFERENCES ONLY · SNAPSHOT_REFERENCE ≠ CONTENT_CORRECTNESS · REVIEWER_REF ≠ VERIFIED_IDENTITY · NO_APPROVAL/ELIGIBILITY/CREDIT/INVESTMENT/EXECUTION_AUTHORITY'};
+  function expose(){window.__SANA_CAPITAL_REVIEW_REFERENCES_LOADER__=Object.freeze({...state})}
+  function ready(){return window.__SANA_CAPITAL_REVIEW__?.schema==='SANA_CAPITAL_HUMAN_REVIEW_LEDGER_V1'&&window.__SANA_CAPITAL_GOVERNANCE__?.referenceVersion==='V150'&&window.__SANA_DUE_DILIGENCE_SNAPSHOT__?.snapshots}
+  function start(){
+    state.attempts++;expose();
+    if(window.__SANA_CAPITAL_REVIEW__?.referenceVersion===VERSION){state.status='READY';expose();return}
+    if(!ready()){if(state.attempts<50){state.status='WAITING_DEPENDENCIES';expose();setTimeout(start,50);return}state.status='BLOCKED_DEPENDENCIES';expose();return}
+    if(document.querySelector?.('script[data-sana-capital-review-v162]'))return;
+    state.status='LOADING';expose();const el=document.createElement('script');el.src=SRC;el.defer=true;el.dataset.sanaCapitalReviewV162='1';el.onload=()=>{state.status=window.__SANA_CAPITAL_REVIEW__?.referenceVersion===VERSION?'READY':'FAILED_CONTRACT';expose()};el.onerror=()=>{state.status='FAILED';expose()};document.head.appendChild(el);
+  }
+  expose();if(document.readyState==='complete')queueMicrotask(start);else window.addEventListener('load',start,{once:true});
+})();
