@@ -1,0 +1,79 @@
+name: TEMP SANA Data Trust V160 Assembly
+
+on:
+  push:
+    branches: [demo/sana-data-trust-v160]
+
+permissions:
+  contents: write
+
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: demo/sana-data-trust-v160
+      - name: Assemble Data Trust V160
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          data=Path('apps/control-web/public/sana-v3-data-trust.js')
+          s=data.read_text()
+          marker='__SANA_DATA_TRUST_REFERENCES_LOADER__'
+          if marker not in s:
+              loader=r'''
+
+// V160 loader: Data Trust reference coherence only; no server/source/hardware/measurement authority.
+(() => {
+  'use strict';
+  if(typeof window==='undefined'||typeof document==='undefined'||typeof document.createElement!=='function')return;
+  const VERSION='V160',SRC='/sana-v3-data-trust-references.js';
+  const state={version:VERSION,status:'WAITING',attempts:0,integrity:'INTERNAL_COHERENCE ≠ VERIFIED_SYNC/SOURCE/HARDWARE/MEASUREMENT · NO_CANONICAL_WRITE · NO_AGRONOMIC/CREDIT/ELIGIBILITY/INVESTMENT_AUTHORITY'};
+  function expose(){window.__SANA_DATA_TRUST_REFERENCES_LOADER__=Object.freeze({...state})}
+  function ready(){return window.__SANA_DATA_TRUST__?.schema==='SANA_DATA_TRUST_V1'&&window.__SANA_DATA_TRUST__?.rows&&window.__SANA_CAPTURE_SYNC_LEDGER__?.schema==='SANA_CAPTURE_SYNC_LEDGER_V1'&&window.__SANA_CAPTURE_SYNC_LEDGER__?.referenceVersion==='V152'&&window.__SANA_CAPTURE_SYNC_LEDGER__?.cases}
+  function start(){
+    state.attempts++;expose();
+    if(window.__SANA_DATA_TRUST__?.referenceVersion===VERSION){state.status='READY';expose();return}
+    if(!ready()){if(state.attempts<80){state.status='WAITING_DEPENDENCIES';expose();setTimeout(start,50);return}state.status='BLOCKED_DEPENDENCIES';expose();return}
+    if(document.querySelector?.('script[data-sana-data-trust-references-v160]'))return;
+    state.status='LOADING';expose();const x=document.createElement('script');x.src=SRC;x.defer=true;x.dataset.sanaDataTrustReferencesV160='1';
+    x.onload=()=>{state.status=window.__SANA_DATA_TRUST__?.referenceVersion===VERSION?'READY':'FAILED_CONTRACT';expose()};
+    x.onerror=()=>{state.status='FAILED';expose()};document.head.appendChild(x);
+  }
+  expose();if(document.readyState==='complete')queueMicrotask(start);else window.addEventListener('load',start,{once:true});
+})();
+'''
+              data.write_text(s+loader)
+
+          sw=Path('apps/control-web/public/sana-v3-sw.js')
+          s=sw.read_text()
+          active="const CACHE='sana-v3-demo-shell-v159';"
+          if "const CACHE='sana-v3-demo-shell-v160';" not in s:
+              assert s.count(active)==1, 'expected exactly one active v159 marker'
+              s=s.replace(active,"if(false){\nconst CACHE='sana-v3-demo-shell-v159';\n}\nconst CACHE='sana-v3-demo-shell-v160';",1)
+          asset="'/sana-v3-data-trust-references.js'"
+          if asset not in s:
+              anchor="'/sana-v3-data-trust.js',"
+              assert s.count(anchor)==1, 'data trust asset anchor missing/duplicated'
+              s=s.replace(anchor,anchor+asset+',',1)
+          comment='// v160 validates Data Trust ACK/conflict-candidate coherence against Capture/Sync without server/source/hardware/measurement, credit, eligibility or investment authority.'
+          if comment not in s:s+='\n'+comment+'\n'
+          sw.write_text(s)
+          PY
+          node --check apps/control-web/public/sana-v3-data-trust.js
+          node --check apps/control-web/public/sana-v3-sw.js
+          grep -Fq '__SANA_DATA_TRUST_REFERENCES_LOADER__' apps/control-web/public/sana-v3-data-trust.js
+          grep -q "^const CACHE='sana-v3-demo-shell-v160';$" apps/control-web/public/sana-v3-sw.js
+          grep -Fq "if(false){" apps/control-web/public/sana-v3-sw.js
+          test "$(grep -c "const CACHE='sana-v3-demo-shell-v159';" apps/control-web/public/sana-v3-sw.js)" -eq 1
+          test "$(grep -o "/sana-v3-data-trust-references.js" apps/control-web/public/sana-v3-sw.js | wc -l)" -eq 1
+      - name: Commit assembly if changed
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/control-web/public/sana-v3-data-trust.js apps/control-web/public/sana-v3-sw.js
+          git commit -m 'chore(sana): assemble data trust shell v160'
+          git push origin HEAD:demo/sana-data-trust-v160
