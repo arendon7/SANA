@@ -1,0 +1,31 @@
+name: SANA Demo Data Trust References
+
+on:
+  push:
+    branches: [demo/sana-data-trust-v160]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  data-trust-references:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Data Trust References V160
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-data-trust-references.js
+          node scripts/validate-sana-data-trust-references.mjs
+          grep -Fq 'LEGACY_REFERENCE_NOT_CAPTURED' apps/control-web/public/sana-v3-data-trust-references.js
+          grep -Fq 'ACK_COHERENCE_REF' apps/control-web/public/sana-v3-data-trust-references.js
+          grep -Fq 'CONFLICT_CANDIDATE_COHERENCE_REF' apps/control-web/public/sana-v3-data-trust-references.js
+          grep -Fq 'SOURCE_REF_DECLARED' apps/control-web/public/sana-v3-data-trust-references.js
+          grep -Fq 'ACK_COHERENCE ≠ SERVER_VERIFICATION' apps/control-web/public/sana-v3-data-trust-references.js
+          grep -Fq 'CONFLICT_CANDIDATE_COHERENCE ≠ SOURCE_AUTHENTICITY ≠ TRUTH' apps/control-web/public/sana-v3-data-trust-references.js
+          grep -Fq 'REFERENCE ≠ DATA_QUALITY_SCORE ≠ AGRONOMIC_DECISION ≠ CREDIT_RISK ≠ ELIGIBILITY ≠ INVESTMENT_SIGNAL' apps/control-web/public/sana-v3-data-trust-references.js
+          ! grep -Eiq 'canonicalMutated[[:space:]]*=[[:space:]]*true|productionExecutionAvailable[[:space:]]*=[[:space:]]*true|serverVerified[[:space:]]*=[[:space:]]*true|sourceVerified[[:space:]]*=[[:space:]]*true|hardwareVerified[[:space:]]*=[[:space:]]*true|measurementValidated[[:space:]]*=[[:space:]]*true|creditApproved|investmentApproved|eligibilityApproved' apps/control-web/public/sana-v3-data-trust-references.js
