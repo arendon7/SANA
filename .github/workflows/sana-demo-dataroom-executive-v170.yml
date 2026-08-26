@@ -1,0 +1,38 @@
+name: SANA Demo Data Room Executive V170
+
+on:
+  push:
+    branches: [demo/sana-data-room-360-v170]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-v170:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax
+        run: node --check apps/control-web/public/sana-v3-dataroom-executive-v170.js
+      - name: V170 adversarial contract
+        run: node scripts/validate-sana-dataroom-executive-v170.mjs
+      - name: V170 HTML trust boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f apps/control-web/public/sana-v3-dataroom-executive-v170.html
+          grep -Fq 'Expediente ejecutivo' apps/control-web/public/sana-v3-dataroom-executive-v170.html
+          grep -Fq 'READ_ONLY' apps/control-web/public/sana-v3-dataroom-executive-v170.html
+          ! grep -Eiq '<form|method=["'"']post|fetch\(|XMLHttpRequest|localStorage\.setItem|sessionStorage\.setItem' apps/control-web/public/sana-v3-dataroom-executive-v170.html
+      - name: Preserve V162 Capital Review boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check apps/control-web/public/sana-v3-capital-review-references.js
+          grep -Fq "const VERSION='V162'" apps/control-web/public/sana-v3-capital-review-references.js
+          grep -Fq 'REFERENCE ≠ OFFER ≠ SOLICITATION ≠ BROKERAGE ≠ CUSTODY ≠ DISBURSEMENT' apps/control-web/public/sana-v3-capital-review-references.js
+          ! grep -Eiq 'canonicalMutationAvailable[[:space:]]*:[[:space:]]*true|financialMutationAvailable[[:space:]]*:[[:space:]]*true|investmentRecommendation[[:space:]]*:[[:space:]]*true|fundingExecuted[[:space:]]*:[[:space:]]*[1-9]' apps/control-web/public/sana-v3-dataroom-executive-v170.js
