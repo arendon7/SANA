@@ -1,0 +1,107 @@
+name: SANA Demo Data Room Executive V182
+
+on:
+  push:
+    branches: [demo/sana-dataroom-executive-v182]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-v182:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax source contract
+        run: node --check apps/control-web/public/sana-v3-dataroom-claim-pointer-transition-governance-v182.js
+      - name: Syntax executive adapter
+        run: node --check apps/control-web/public/sana-v3-dataroom-executive-v182.js
+      - name: V170 regression
+        run: node scripts/validate-sana-dataroom-executive-v170.mjs
+      - name: V171 regression
+        run: node scripts/validate-sana-dataroom-executive-v171.mjs
+      - name: V172 regression
+        run: node scripts/validate-sana-dataroom-executive-v172.mjs
+      - name: V173 regression
+        run: node scripts/validate-sana-dataroom-executive-v173.mjs
+      - name: V174 regression
+        run: node scripts/validate-sana-dataroom-executive-v174.mjs
+      - name: V175 regression
+        run: node scripts/validate-sana-dataroom-executive-v175.mjs
+      - name: V176 regression
+        run: node scripts/validate-sana-dataroom-executive-v176.mjs
+      - name: V177 regression
+        run: node scripts/validate-sana-dataroom-executive-v177.mjs
+      - name: V178 regression
+        run: node scripts/validate-sana-dataroom-executive-v178.mjs
+      - name: V179 regression
+        run: node scripts/validate-sana-dataroom-executive-v179.mjs
+      - name: V180 regression
+        run: node scripts/validate-sana-dataroom-executive-v180.mjs
+      - name: V181 regression
+        run: node scripts/validate-sana-dataroom-executive-v181.mjs
+      - name: V182 governance coverage adversarial validation
+        run: node scripts/validate-sana-dataroom-executive-v182.mjs
+      - name: V182 read-only surface
+        shell: bash
+        run: |
+          set -euo pipefail
+          file=apps/control-web/public/sana-v3-dataroom-executive-v182.html
+          test -f "$file"
+          grep -Fq 'Pointer transition governance reference coverage' "$file"
+          grep -Fq 'Complete' "$file"
+          grep -Fq 'authorizationInference=false' "$file"
+          grep -Fq 'complianceInference=false' "$file"
+          grep -Fq 'legalEffectInference=false' "$file"
+          grep -Fq 'GOVERNANCE REFERENCE ≠ VERIFIED GOVERNANCE CASE ≠ AUTHORIZATION' "$file"
+          ! grep -Fqi '<form' "$file"
+          ! grep -Fq 'fetch(' "$file"
+          ! grep -Fq 'XMLHttpRequest' "$file"
+          ! grep -Fq 'localStorage.setItem' "$file"
+          ! grep -Fq 'sessionStorage.setItem' "$file"
+      - name: Preserve V182 source-contract boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_file=apps/control-web/public/sana-v3-dataroom-claim-pointer-transition-governance-v182.js
+          grep -Fq 'SANA_DATAROOM_CLAIM_POINTER_TRANSITION_GOVERNANCE_REFERENCE_V1' "$source_file"
+          grep -Fq 'GOVERNANCE_REFERENCE_ONLY' "$source_file"
+          grep -Fq 'SELF_POINTER_TRANSITION_NOT_ALLOWED' "$source_file"
+          grep -Fq 'DUPLICATE_GOVERNANCE_REF' "$source_file"
+          grep -Fq 'DUPLICATE_TRANSITION_GOVERNANCE_REFERENCE' "$source_file"
+          grep -Fq 'governanceCaseReferenceVerified:false' "$source_file"
+          grep -Fq 'dispositionReferenceVerified:false' "$source_file"
+          grep -Fq 'transitionAuthorized:false' "$source_file"
+          grep -Fq 'transitionApproved:false' "$source_file"
+          grep -Fq 'complianceDetermined:false' "$source_file"
+          grep -Fq 'legalEffectDetermined:false' "$source_file"
+          ! grep -Fq 'fetch(' "$source_file"
+          ! grep -Fq 'XMLHttpRequest' "$source_file"
+          ! grep -Fq 'localStorage.setItem' "$source_file"
+          ! grep -Fq 'sessionStorage.setItem' "$source_file"
+      - name: Preserve V182 exact-transition and authority boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          js=apps/control-web/public/sana-v3-dataroom-executive-v182.js
+          grep -Fq 'CLAIM_POINTER_TRANSITION_GOVERNANCE_EXACT_V1' "$js"
+          grep -Fq 'EXACT_V181_PREDECESSOR_TO_SUCCESSOR_EDGE' "$js"
+          grep -Fq 'CATEGORICAL_REFERENCE_COVERAGE_ONLY' "$js"
+          grep -Fq 'NO_AUTHORIZATION_INFERENCE' "$js"
+          grep -Fq 'COMPLETE_TRANSITION_REFERENCE_COVERAGE ≠ ADEQUATE_GOVERNANCE ≠ COMPLIANCE' "$js"
+          grep -Fq 'governanceAuthority:false' "$js"
+          grep -Fq 'transitionAuthorizationAuthority:false' "$js"
+          grep -Fq 'transitionApprovalAuthority:false' "$js"
+          grep -Fq 'complianceAuthority:false' "$js"
+          grep -Fq 'legalEffectAuthority:false' "$js"
+          grep -Fq 'supersessionAuthority:false' "$js"
+          grep -Fq 'chronologyAuthority:false' "$js"
+          grep -Fq 'dueDiligenceApprovalAuthority:false' "$js"
+          grep -Fq 'eligibilityAuthority:false' "$js"
+          grep -Fq 'financingApprovalAuthority:false' "$js"
+          grep -Fq 'decisionAuthority:false' "$js"
+          ! grep -Eiq 'canonicalMutationAvailable[[:space:]]*:[[:space:]]*true|financialMutationAvailable[[:space:]]*:[[:space:]]*true|governanceAuthority[[:space:]]*:[[:space:]]*true|transitionAuthorizationAuthority[[:space:]]*:[[:space:]]*true|transitionApprovalAuthority[[:space:]]*:[[:space:]]*true|complianceAuthority[[:space:]]*:[[:space:]]*true|legalEffectAuthority[[:space:]]*:[[:space:]]*true|supersessionAuthority[[:space:]]*:[[:space:]]*true|chronologyAuthority[[:space:]]*:[[:space:]]*true|dueDiligenceApprovalAuthority[[:space:]]*:[[:space:]]*true|eligibilityAuthority[[:space:]]*:[[:space:]]*true|financingApprovalAuthority[[:space:]]*:[[:space:]]*true|decisionAuthority[[:space:]]*:[[:space:]]*true|coverageRatio[[:space:]]*:|coveragePercentage[[:space:]]*:|riskScore[[:space:]]*:|creditScore[[:space:]]*:|investmentScore[[:space:]]*:|projectScore[[:space:]]*:|overallScore[[:space:]]*:' "$js"
