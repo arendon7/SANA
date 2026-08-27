@@ -1,0 +1,37 @@
+(() => {
+  'use strict';
+
+  const VERSION='V178';
+  const SCHEMA='SANA_DATAROOM_CLAIM_EVIDENCE_HANDOFF_V1';
+  const KINDS=Object.freeze(['EVIDENCE_REQUEST_REFERENCE_ONLY','EVIDENCE_RESPONSE_REFERENCE_ONLY']);
+  const AUTHORITY=Object.freeze({claimTruthAuthority:false,evidenceAcceptanceAuthority:false,evidentiarySufficiencyAuthority:false,findingResolutionAuthority:false,reviewerIdentityAuthority:false,recipientIdentityAuthority:false,responseProviderIdentityAuthority:false,certificationAuthority:false,dueDiligenceApprovalAuthority:false,eligibilityAuthority:false,financingApprovalAuthority:false,investmentDecisionAuthority:false,canonicalMutationAvailable:false,financialMutationAvailable:false,custodyAuthority:false,paymentAuthority:false,disbursementAuthority:false});
+  const INTEGRITY='EVIDENCE_REQUEST_REFERENCE ≠ TASK_ASSIGNMENT ≠ RESPONSIBILITY_VERIFICATION · DECLARED_DUE_AT ≠ DEADLINE_ENFORCEMENT · EVIDENCE_RESPONSE_REFERENCE ≠ EVIDENCE_ACCEPTED ≠ REQUEST_COMPLETE ≠ SUFFICIENT_EVIDENCE ≠ FINDING_RESOLVED · REQUEST_RESPONSE_PAIR ≠ CLAIM_TRUTH · RECIPIENT_OR_PROVIDER_REFERENCE ≠ VERIFIED_IDENTITY_OR_RESPONSIBILITY · HANDOFF ≠ CERTIFICATION ≠ DUE_DILIGENCE_APPROVAL ≠ ELIGIBILITY ≠ FINANCING_APPROVAL ≠ INVESTMENT_DECISION · ZERO_BASELINE_RECORDS · REFERENCE_ONLY · NO_STORAGE_WRITE · NO_NETWORK · NO_FINANCIAL_MUTATION';
+
+  function deepFreeze(value,seen=new WeakSet()){if(!value||typeof value!=='object'||seen.has(value))return value;seen.add(value);for(const k of Object.getOwnPropertyNames(value))deepFreeze(value[k],seen);return Object.freeze(value);}
+  function text(v){return v===undefined||v===null?'':String(v).trim()}
+  function uniq(values){return [...new Set((Array.isArray(values)?values:[]).map(text).filter(Boolean))].sort()}
+  function normalize(raw,index){
+    if(!raw||typeof raw!=='object')return {valid:false,index,reason:'RECORD_NOT_OBJECT'};
+    const eventRef=text(raw.eventRef),requestRef=text(raw.requestRef),claimId=text(raw.claimId),claimEnvelopeRef=text(raw.claimEnvelopeRef),kind=text(raw.kind),responseRef=text(raw.responseRef)||null,requestedEvidenceRefs=uniq(raw.requestedEvidenceRefs),responseEvidenceRefs=uniq(raw.responseEvidenceRefs);
+    if(!eventRef)return {valid:false,index,reason:'EVENT_REF_REQUIRED'};if(!requestRef)return {valid:false,index,reason:'REQUEST_REF_REQUIRED'};if(!claimId)return {valid:false,index,reason:'CLAIM_ID_REQUIRED'};if(!claimEnvelopeRef)return {valid:false,index,reason:'CLAIM_ENVELOPE_REF_REQUIRED'};if(claimEnvelopeRef!==`ENV::${claimId}`)return {valid:false,index,reason:'CLAIM_ENVELOPE_REF_MISMATCH'};if(!KINDS.includes(kind))return {valid:false,index,reason:'EVIDENCE_HANDOFF_KIND_NOT_ALLOWED'};
+    if(kind==='EVIDENCE_REQUEST_REFERENCE_ONLY'&&!requestedEvidenceRefs.length)return {valid:false,index,reason:'REQUESTED_EVIDENCE_REFS_REQUIRED'};
+    if(kind==='EVIDENCE_RESPONSE_REFERENCE_ONLY'&&!responseRef)return {valid:false,index,reason:'RESPONSE_REF_REQUIRED'};
+    if(kind==='EVIDENCE_RESPONSE_REFERENCE_ONLY'&&!responseEvidenceRefs.length)return {valid:false,index,reason:'RESPONSE_EVIDENCE_REFS_REQUIRED'};
+    return {valid:true,index,record:deepFreeze({schema:SCHEMA,version:VERSION,eventRef,requestRef,responseRef,claimId,claimEnvelopeRef,kind,locatorKeys:Object.freeze(uniq(raw.locatorKeys)),lotId:text(raw.lotId)||null,reviewRef:text(raw.reviewRef)||null,reviewerRef:text(raw.reviewerRef)||null,requestRecipientRef:text(raw.requestRecipientRef)||null,responseProviderRef:text(raw.responseProviderRef)||null,requestedEvidenceRefs:Object.freeze(requestedEvidenceRefs),responseEvidenceRefs:Object.freeze(responseEvidenceRefs),declaredDueAt:text(raw.declaredDueAt)||null,observedAt:text(raw.observedAt)||null,provenance:text(raw.provenance)||'EXPLICIT_REFERENCE_INPUT',referenceOnly:true,claimTruthVerified:false,evidenceAccepted:false,evidentiarySufficiencyDetermined:false,findingResolved:false,reviewerIdentityVerified:false,recipientIdentityVerified:false,responseProviderIdentityVerified:false,certificationValidityVerified:false,dueDiligenceApproved:false,eligible:false,financingApproved:false,decisionAuthority:false,authority:AUTHORITY,integrity:INTEGRITY})};
+  }
+  function create(records=[]){
+    const input=Array.isArray(records)?records:[],normalized=[],rejected=[];input.forEach((raw,index)=>{const r=normalize(raw,index);if(r.valid)normalized.push(r.record);else rejected.push(Object.freeze({index:r.index,reason:r.reason}));});
+    const duplicateEvents=new Set(),seenEvents=new Set();for(const r of normalized){if(seenEvents.has(r.eventRef))duplicateEvents.add(r.eventRef);seenEvents.add(r.eventRef)}
+    let accepted=normalized.filter(r=>!duplicateEvents.has(r.eventRef));for(const ref of duplicateEvents)rejected.push(Object.freeze({index:null,reason:'DUPLICATE_EVENT_REF',eventRef:ref}));
+    const requestCounts=new Map();for(const r of accepted.filter(x=>x.kind==='EVIDENCE_REQUEST_REFERENCE_ONLY')){const key=`${r.claimEnvelopeRef}::${r.requestRef}`;requestCounts.set(key,(requestCounts.get(key)||0)+1)}
+    const duplicateRequests=new Set([...requestCounts.entries()].filter(([,n])=>n>1).map(([k])=>k));if(duplicateRequests.size){accepted=accepted.filter(r=>!duplicateRequests.has(`${r.claimEnvelopeRef}::${r.requestRef}`));for(const key of duplicateRequests)rejected.push(Object.freeze({index:null,reason:'DUPLICATE_REQUEST_REF',requestKey:key}));}
+    const requestKeys=new Set(accepted.filter(x=>x.kind==='EVIDENCE_REQUEST_REFERENCE_ONLY').map(r=>`${r.claimEnvelopeRef}::${r.requestRef}`));const finalRecords=[];for(const r of accepted){if(r.kind==='EVIDENCE_RESPONSE_REFERENCE_ONLY'&&!requestKeys.has(`${r.claimEnvelopeRef}::${r.requestRef}`)){rejected.push(Object.freeze({index:null,reason:'RESPONSE_REQUEST_REF_NOT_FOUND',eventRef:r.eventRef,requestRef:r.requestRef}));continue}finalRecords.push(r)}
+    const frozenRecords=Object.freeze(finalRecords),rejectedFrozen=Object.freeze(rejected);
+    function forClaim(claimId){const id=text(claimId);return Object.freeze(frozenRecords.filter(r=>r.claimId===id))}
+    function summary(){const requests=frozenRecords.filter(r=>r.kind==='EVIDENCE_REQUEST_REFERENCE_ONLY').length,responses=frozenRecords.filter(r=>r.kind==='EVIDENCE_RESPONSE_REFERENCE_ONLY').length;return deepFreeze({schema:SCHEMA,version:VERSION,events:frozenRecords.length,rejected:rejectedFrozen.length,requestReferences:requests,responseReferences:responses,evidenceAccepted:0,evidentiarySufficiencyDetermined:0,findingResolved:0,dueDiligenceApprovals:0,eligibilityDecisions:0,financingApprovals:0,decisionAuthority:0,semantics:'HANDOFF_REFERENCE_COUNTS_ONLY · NOT_WEIGHTED · NOT_PERCENTAGE · NOT_SCORE'})}
+    return deepFreeze({schema:SCHEMA,version:VERSION,kinds:KINDS,records:()=>frozenRecords,forClaim,diagnostics:()=>rejectedFrozen,summary,authority:AUTHORITY,integrity:INTEGRITY});
+  }
+  const factory=deepFreeze({schema:SCHEMA,version:VERSION,kinds:KINDS,create,authority:AUTHORITY,integrity:INTEGRITY});const baseline=create([]);
+  if(typeof window!=='undefined'){window.__SANA_DATAROOM_CLAIM_EVIDENCE_HANDOFF_V178_FACTORY__=factory;if(!window.__SANA_DATAROOM_CLAIM_EVIDENCE_HANDOFF__)window.__SANA_DATAROOM_CLAIM_EVIDENCE_HANDOFF__=baseline;}
+  if(typeof globalThis!=='undefined'){globalThis.__SANA_DATAROOM_CLAIM_EVIDENCE_HANDOFF_V178_FACTORY__=factory;if(!globalThis.__SANA_DATAROOM_CLAIM_EVIDENCE_HANDOFF__)globalThis.__SANA_DATAROOM_CLAIM_EVIDENCE_HANDOFF__=baseline;}
+})();
