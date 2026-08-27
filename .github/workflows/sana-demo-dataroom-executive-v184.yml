@@ -1,0 +1,91 @@
+name: SANA Demo Data Room Executive V184
+
+on:
+  push:
+    branches: [demo/sana-dataroom-executive-v184]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-v184:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax executive adapter
+        run: node --check apps/control-web/public/sana-v3-dataroom-executive-v184.js
+      - name: V170 regression
+        run: node scripts/validate-sana-dataroom-executive-v170.mjs
+      - name: V171 regression
+        run: node scripts/validate-sana-dataroom-executive-v171.mjs
+      - name: V172 regression
+        run: node scripts/validate-sana-dataroom-executive-v172.mjs
+      - name: V173 regression
+        run: node scripts/validate-sana-dataroom-executive-v173.mjs
+      - name: V174 regression
+        run: node scripts/validate-sana-dataroom-executive-v174.mjs
+      - name: V175 regression
+        run: node scripts/validate-sana-dataroom-executive-v175.mjs
+      - name: V176 regression
+        run: node scripts/validate-sana-dataroom-executive-v176.mjs
+      - name: V177 regression
+        run: node scripts/validate-sana-dataroom-executive-v177.mjs
+      - name: V178 regression
+        run: node scripts/validate-sana-dataroom-executive-v178.mjs
+      - name: V179 regression
+        run: node scripts/validate-sana-dataroom-executive-v179.mjs
+      - name: V180 regression
+        run: node scripts/validate-sana-dataroom-executive-v180.mjs
+      - name: V181 regression
+        run: node scripts/validate-sana-dataroom-executive-v181.mjs
+      - name: V182 regression
+        run: node scripts/validate-sana-dataroom-executive-v182.mjs
+      - name: V183 regression
+        run: node scripts/validate-sana-dataroom-executive-v183.mjs
+      - name: V184 structural consistency adversarial validation
+        run: node scripts/validate-sana-dataroom-executive-v184.mjs
+      - name: V184 read-only surface
+        shell: bash
+        run: |
+          set -euo pipefail
+          file=apps/control-web/public/sana-v3-dataroom-executive-v184.html
+          test -f "$file"
+          grep -Fq 'Governance cross-source structural consistency' "$file"
+          grep -Fq 'Structural consistency ≠ truth ≠ verification ≠ validity ≠ authorization' "$file"
+          grep -Fq 'structuralTruthVerification=false' "$file"
+          grep -Fq 'referenceVerification=false' "$file"
+          grep -Fq 'authorizationInference=false' "$file"
+          grep -Fq 'complianceInference=false' "$file"
+          grep -Fq 'legalEffectInference=false' "$file"
+          ! grep -Fqi '<form' "$file"
+          ! grep -Fq 'fetch(' "$file"
+          ! grep -Fq 'XMLHttpRequest' "$file"
+          ! grep -Fq 'localStorage.setItem' "$file"
+          ! grep -Fq 'sessionStorage.setItem' "$file"
+      - name: Preserve V184 structural and authority boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          js=apps/control-web/public/sana-v3-dataroom-executive-v184.js
+          grep -Fq 'SANA_DATAROOM_EXECUTIVE_EXACT_GOVERNANCE_STRUCTURAL_CONSISTENCY_V1' "$js"
+          grep -Fq 'GOVERNANCE_CROSS_SOURCE_STRUCTURAL_CONSISTENCY_EXACT_V1' "$js"
+          grep -Fq 'EXACT_CAPITAL_CASE_REF_IF_BOTH_DECLARED' "$js"
+          grep -Fq 'EXACT_DISPOSITION_CASE_ID_MEMBER_OF_ROUND_DISPOSITION_CASE_REFS' "$js"
+          grep -Fq 'MISSING_FIELD_POLICY' "$js" || grep -Fq 'missingFieldPolicy' "$js"
+          grep -Fq 'STRUCTURAL_CONSISTENCY ≠ SOURCE_TRUTH ≠ REFERENCE_VERIFICATION ≠ CASE_VALIDITY' "$js"
+          grep -Fq 'structuralTruthAuthority:false' "$js"
+          grep -Fq 'referenceVerificationAuthority:false' "$js"
+          grep -Fq 'caseValidityAuthority:false' "$js"
+          grep -Fq 'transitionAuthorizationAuthority:false' "$js"
+          grep -Fq 'transitionApprovalAuthority:false' "$js"
+          grep -Fq 'complianceAuthority:false' "$js"
+          grep -Fq 'legalEffectAuthority:false' "$js"
+          grep -Fq 'dueDiligenceApprovalAuthority:false' "$js"
+          grep -Fq 'eligibilityAuthority:false' "$js"
+          grep -Fq 'financingApprovalAuthority:false' "$js"
+          grep -Fq 'decisionAuthority:false' "$js"
+          ! grep -Eiq 'canonicalMutationAvailable[[:space:]]*:[[:space:]]*true|financialMutationAvailable[[:space:]]*:[[:space:]]*true|structuralTruthAuthority[[:space:]]*:[[:space:]]*true|referenceVerificationAuthority[[:space:]]*:[[:space:]]*true|caseValidityAuthority[[:space:]]*:[[:space:]]*true|governanceAuthority[[:space:]]*:[[:space:]]*true|transitionAuthorizationAuthority[[:space:]]*:[[:space:]]*true|transitionApprovalAuthority[[:space:]]*:[[:space:]]*true|complianceAuthority[[:space:]]*:[[:space:]]*true|legalEffectAuthority[[:space:]]*:[[:space:]]*true|dueDiligenceApprovalAuthority[[:space:]]*:[[:space:]]*true|eligibilityAuthority[[:space:]]*:[[:space:]]*true|financingApprovalAuthority[[:space:]]*:[[:space:]]*true|decisionAuthority[[:space:]]*:[[:space:]]*true|structuralScore[[:space:]]*:|consistencyRatio[[:space:]]*:|consistencyPercentage[[:space:]]*:|riskScore[[:space:]]*:|investmentScore[[:space:]]*:|overallScore[[:space:]]*:' "$js"
