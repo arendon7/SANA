@@ -1,0 +1,92 @@
+name: SANA Demo Data Room Executive V176
+
+on:
+  push:
+    branches: [demo/sana-dataroom-executive-v176]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-v176:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax source contract
+        run: node --check apps/control-web/public/sana-v3-dataroom-claim-external-verification-v176.js
+      - name: Syntax executive adapter
+        run: node --check apps/control-web/public/sana-v3-dataroom-executive-v176.js
+      - name: V170 regression
+        run: node scripts/validate-sana-dataroom-executive-v170.mjs
+      - name: V171 regression
+        run: node scripts/validate-sana-dataroom-executive-v171.mjs
+      - name: V172 regression
+        run: node scripts/validate-sana-dataroom-executive-v172.mjs
+      - name: V173 regression
+        run: node scripts/validate-sana-dataroom-executive-v173.mjs
+      - name: V174 regression
+        run: node scripts/validate-sana-dataroom-executive-v174.mjs
+      - name: V175 regression
+        run: node scripts/validate-sana-dataroom-executive-v175.mjs
+      - name: V176 external verification adversarial validation
+        run: node scripts/validate-sana-dataroom-executive-v176.mjs
+      - name: V176 read-only surface
+        shell: bash
+        run: |
+          set -euo pipefail
+          file=apps/control-web/public/sana-v3-dataroom-executive-v176.html
+          test -f "$file"
+          grep -Fq 'External verification references' "$file"
+          grep -Fq 'EXTERNAL_VERIFICATION_REFERENCE_ONLY ≠ VERIFIED RESULT' "$file"
+          grep -Fq 'EXPLICITLY_NOT_VERIFIED_AT_SOURCE ≠ NEGATIVE PROJECT CONCLUSION' "$file"
+          grep -Fq 'NO VERIFIED STATE' "$file"
+          ! grep -Fqi '<form' "$file"
+          ! grep -Fq 'fetch(' "$file"
+          ! grep -Fq 'XMLHttpRequest' "$file"
+          ! grep -Fq 'localStorage.setItem' "$file"
+          ! grep -Fq 'sessionStorage.setItem' "$file"
+      - name: Preserve V176 source-contract boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_file=apps/control-web/public/sana-v3-dataroom-claim-external-verification-v176.js
+          grep -Fq 'SANA_DATAROOM_CLAIM_EXTERNAL_VERIFICATION_REFERENCE_V1' "$source_file"
+          grep -Fq "RESULT_REFERENCE_ONLY" "$source_file"
+          grep -Fq "EXPLICITLY_NOT_VERIFIED" "$source_file"
+          grep -Fq "EXTERNAL_VERIFICATION_STATE_NOT_ALLOWED" "$source_file"
+          grep -Fq "RESULT_REF_REQUIRED_FOR_RESULT_REFERENCE" "$source_file"
+          grep -Fq "NO_VERIFIED_STATE" "$source_file"
+          grep -Fq "ZERO_BASELINE_RECORDS" "$source_file"
+          grep -Fq "resultVerificationAuthority:false" "$source_file"
+          grep -Fq "providerAccreditationAuthority:false" "$source_file"
+          ! grep -Eiq "['\"]VERIFIED['\"]" "$source_file"
+          ! grep -Fq 'fetch(' "$source_file"
+          ! grep -Fq 'XMLHttpRequest' "$source_file"
+          ! grep -Fq 'localStorage.setItem' "$source_file"
+          ! grep -Fq 'sessionStorage.setItem' "$source_file"
+      - name: Preserve V176 authority and exact-link boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          js=apps/control-web/public/sana-v3-dataroom-executive-v176.js
+          grep -Fq "CLAIM_EXTERNAL_VERIFICATION_EXACT_V1" "$js"
+          grep -Fq "EXACT_CLAIM_ID" "$js"
+          grep -Fq "EXACT_ENVELOPE_ID" "$js"
+          grep -Fq "DECLARED_LOCATORS_MUST_BE_SUBSET" "$js"
+          grep -Fq "DECLARED_LOT_MUST_EQUAL_SELECTED_LOT" "$js"
+          grep -Fq "ALL_EXACT_CLAIM_CANDIDATES_MUST_USE_ONE_STATE" "$js"
+          grep -Fq "CONFLICT_FAILS_CLOSED" "$js"
+          grep -Fq "NO_HEURISTIC_LINKING" "$js"
+          grep -Fq "externalVerificationAuthority:false" "$js"
+          grep -Fq "resultVerificationAuthority:false" "$js"
+          grep -Fq "claimTruthAuthority:false" "$js"
+          grep -Fq "providerIdentityAuthority:false" "$js"
+          grep -Fq "providerQualificationAuthority:false" "$js"
+          grep -Fq "providerAccreditationAuthority:false" "$js"
+          grep -Fq "certificationAuthority:false" "$js"
+          grep -Fq "decisionAuthority:false" "$js"
+          ! grep -Eiq 'canonicalMutationAvailable[[:space:]]*:[[:space:]]*true|financialMutationAvailable[[:space:]]*:[[:space:]]*true|externalVerificationAuthority[[:space:]]*:[[:space:]]*true|resultVerificationAuthority[[:space:]]*:[[:space:]]*true|claimTruthAuthority[[:space:]]*:[[:space:]]*true|certificationAuthority[[:space:]]*:[[:space:]]*true|decisionAuthority[[:space:]]*:[[:space:]]*true|riskScore[[:space:]]*:|creditScore[[:space:]]*:|investmentScore[[:space:]]*:|projectScore[[:space:]]*:|overallScore[[:space:]]*:' "$js"
