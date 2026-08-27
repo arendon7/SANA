@@ -1,0 +1,108 @@
+name: SANA Demo Data Room Executive V188
+
+on:
+  push:
+    branches: [demo/sana-dataroom-executive-v188]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-v188:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax executive review hub
+        run: node --check apps/control-web/public/sana-v3-dataroom-executive-v188.js
+      - name: V170 regression
+        run: node scripts/validate-sana-dataroom-executive-v170.mjs
+      - name: V171 regression
+        run: node scripts/validate-sana-dataroom-executive-v171.mjs
+      - name: V172 regression
+        run: node scripts/validate-sana-dataroom-executive-v172.mjs
+      - name: V173 regression
+        run: node scripts/validate-sana-dataroom-executive-v173.mjs
+      - name: V174 regression
+        run: node scripts/validate-sana-dataroom-executive-v174.mjs
+      - name: V175 regression
+        run: node scripts/validate-sana-dataroom-executive-v175.mjs
+      - name: V176 regression
+        run: node scripts/validate-sana-dataroom-executive-v176.mjs
+      - name: V177 regression
+        run: node scripts/validate-sana-dataroom-executive-v177.mjs
+      - name: V178 regression
+        run: node scripts/validate-sana-dataroom-executive-v178.mjs
+      - name: V179 regression
+        run: node scripts/validate-sana-dataroom-executive-v179.mjs
+      - name: V180 regression
+        run: node scripts/validate-sana-dataroom-executive-v180.mjs
+      - name: V181 regression
+        run: node scripts/validate-sana-dataroom-executive-v181.mjs
+      - name: V182 regression
+        run: node scripts/validate-sana-dataroom-executive-v182.mjs
+      - name: V183 regression
+        run: node scripts/validate-sana-dataroom-executive-v183.mjs
+      - name: V184 regression
+        run: node scripts/validate-sana-dataroom-executive-v184.mjs
+      - name: V185 regression
+        run: node scripts/validate-sana-dataroom-executive-v185.mjs
+      - name: V186 regression
+        run: node scripts/validate-sana-dataroom-executive-v186.mjs
+      - name: V187 regression
+        run: node scripts/validate-sana-dataroom-executive-v187.mjs
+      - name: V188 review hub adversarial validation
+        run: node scripts/validate-sana-dataroom-executive-v188.mjs
+      - name: V188 read-only hub surface
+        shell: bash
+        run: |
+          set -euo pipefail
+          file=apps/control-web/public/sana-v3-dataroom-executive-v188.html
+          test -f "$file"
+          grep -Fq 'Executive Review Hub' "$file"
+          grep -Fq 'REVIEW HUB ≠ SOURCE OF TRUTH' "$file"
+          grep -Fq 'WORKLIST COUNT ≠ RISK' "$file"
+          grep -Fq 'ACKNOWLEDGMENT COUNT ≠ REVIEW COMPLETION' "$file"
+          grep -Fq 'NAVIGATION ORDER ≠ PRIORITY' "$file"
+          grep -Fq 'NO AGGREGATE REVIEW STATUS' "$file"
+          ! grep -Fqi '<form' "$file"
+          ! grep -Fq 'fetch(' "$file"
+          ! grep -Fq 'XMLHttpRequest' "$file"
+          ! grep -Fq 'localStorage.setItem' "$file"
+          ! grep -Fq 'sessionStorage.setItem' "$file"
+      - name: Preserve V188 composition and authority boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          js=apps/control-web/public/sana-v3-dataroom-executive-v188.js
+          grep -Fq 'SANA_DATAROOM_EXECUTIVE_REVIEW_HUB_V1' "$js"
+          grep -Fq "PARENT_SHA='bdaacaf43ea836d84dcd41b236da66eefea8c337'" "$js"
+          grep -Fq 'CLAIM_CAPSULES' "$js"
+          grep -Fq 'EXCEPTION_WORKLIST' "$js"
+          grep -Fq 'ACKNOWLEDGMENT_REFERENCES' "$js"
+          grep -Fq 'CAPSULE_IDENTITY_MISMATCH_ACROSS_MODELS' "$js"
+          grep -Fq 'WORKLIST_IDENTITY_MISMATCH_V186_V187' "$js"
+          grep -Fq 'compositionOnly:true' "$js"
+          grep -Fq 'newSourceContract:false' "$js"
+          grep -Fq 'parentStateReevaluation:false' "$js"
+          grep -Fq 'fuzzyReconciliation:false' "$js"
+          grep -Fq 'aggregateReviewStatus:false' "$js"
+          grep -Fq 'priorityInference:false' "$js"
+          grep -Fq 'assignmentInference:false' "$js"
+          grep -Fq 'recommendationInference:false' "$js"
+          grep -Fq 'percentage:false' "$js"
+          grep -Fq 'ratio:false' "$js"
+          grep -Fq 'weighting:false' "$js"
+          grep -Fq 'scoring:false' "$js"
+          grep -Fq 'aggregateReviewAuthority:false' "$js"
+          grep -Fq 'reviewStatusAuthority:false' "$js"
+          grep -Fq 'priorityAuthority:false' "$js"
+          grep -Fq 'assignmentAuthority:false' "$js"
+          grep -Fq 'dueDiligenceApprovalAuthority:false' "$js"
+          grep -Fq 'eligibilityAuthority:false' "$js"
+          grep -Fq 'financingApprovalAuthority:false' "$js"
+          grep -Fq 'decisionAuthority:false' "$js"
+          ! grep -Eiq 'reviewComplete[[:space:]]*:|reviewReady[[:space:]]*:|priority[[:space:]]*:|severity[[:space:]]*:|urgency[[:space:]]*:|sla[[:space:]]*:|assignee[[:space:]]*:|recommendedAction[[:space:]]*:|completionPercentage[[:space:]]*:|acknowledgmentRate[[:space:]]*:|reviewCoverageRatio[[:space:]]*:|overallScore[[:space:]]*:|riskScore[[:space:]]*:|creditScore[[:space:]]*:|investmentScore[[:space:]]*:|projectScore[[:space:]]*:|aggregateReviewAuthority[[:space:]]*:[[:space:]]*true|reviewStatusAuthority[[:space:]]*:[[:space:]]*true|priorityAuthority[[:space:]]*:[[:space:]]*true|assignmentAuthority[[:space:]]*:[[:space:]]*true|dueDiligenceApprovalAuthority[[:space:]]*:[[:space:]]*true|eligibilityAuthority[[:space:]]*:[[:space:]]*true|financingApprovalAuthority[[:space:]]*:[[:space:]]*true|decisionAuthority[[:space:]]*:[[:space:]]*true' "$js"
