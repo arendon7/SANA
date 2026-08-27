@@ -1,0 +1,103 @@
+name: SANA Demo Data Room Executive V179
+
+on:
+  push:
+    branches: [demo/sana-dataroom-executive-v179]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-v179:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax source contract
+        run: node --check apps/control-web/public/sana-v3-dataroom-claim-evidence-remediation-round-v179.js
+      - name: Syntax executive adapter
+        run: node --check apps/control-web/public/sana-v3-dataroom-executive-v179.js
+      - name: V170 regression
+        run: node scripts/validate-sana-dataroom-executive-v170.mjs
+      - name: V171 regression
+        run: node scripts/validate-sana-dataroom-executive-v171.mjs
+      - name: V172 regression
+        run: node scripts/validate-sana-dataroom-executive-v172.mjs
+      - name: V173 regression
+        run: node scripts/validate-sana-dataroom-executive-v173.mjs
+      - name: V174 regression
+        run: node scripts/validate-sana-dataroom-executive-v174.mjs
+      - name: V175 regression
+        run: node scripts/validate-sana-dataroom-executive-v175.mjs
+      - name: V176 regression
+        run: node scripts/validate-sana-dataroom-executive-v176.mjs
+      - name: V177 regression
+        run: node scripts/validate-sana-dataroom-executive-v177.mjs
+      - name: V178 regression
+        run: node scripts/validate-sana-dataroom-executive-v178.mjs
+      - name: V179 remediation round history adversarial validation
+        run: node scripts/validate-sana-dataroom-executive-v179.mjs
+      - name: V179 read-only surface
+        shell: bash
+        run: |
+          set -euo pipefail
+          file=apps/control-web/public/sana-v3-dataroom-executive-v179.html
+          test -f "$file"
+          grep -Fq 'Evidence remediation round history' "$file"
+          grep -Fq 'No determina ronda actual ni última ronda' "$file"
+          grep -Fq 'REMEDIATION ROUND REFERENCE ≠ CURRENT/LATEST ROUND' "$file"
+          grep -Fq 'currentRoundInference=false' "$file"
+          grep -Fq 'latestRoundInference=false' "$file"
+          grep -Fq 'chronologyInference=false' "$file"
+          ! grep -Fqi '<form' "$file"
+          ! grep -Fq 'fetch(' "$file"
+          ! grep -Fq 'XMLHttpRequest' "$file"
+          ! grep -Fq 'localStorage.setItem' "$file"
+          ! grep -Fq 'sessionStorage.setItem' "$file"
+      - name: Preserve V179 source-contract boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_file=apps/control-web/public/sana-v3-dataroom-claim-evidence-remediation-round-v179.js
+          grep -Fq 'SANA_DATAROOM_CLAIM_EVIDENCE_REMEDIATION_ROUND_V1' "$source_file"
+          grep -Fq 'OPENING_REVIEW_REF_REQUIRED' "$source_file"
+          grep -Fq 'REQUEST_REF_REQUIRED' "$source_file"
+          grep -Fq 'FOLLOWUP_REVIEW_REQUIRES_RESPONSE_REF' "$source_file"
+          grep -Fq 'FOLLOWUP_REVIEW_MUST_DIFFER_FROM_OPENING' "$source_file"
+          grep -Fq 'DUPLICATE_ROUND_REF' "$source_file"
+          grep -Fq 'DUPLICATE_ROUND_BINDING' "$source_file"
+          grep -Fq 'NO_CURRENT_OR_LATEST_INFERENCE' "$source_file"
+          grep -Fq 'currentRoundAuthority:false' "$source_file"
+          grep -Fq 'latestRoundAuthority:false' "$source_file"
+          grep -Fq 'chronologyAuthority:false' "$source_file"
+          ! grep -Fq 'fetch(' "$source_file"
+          ! grep -Fq 'XMLHttpRequest' "$source_file"
+          ! grep -Fq 'localStorage.setItem' "$source_file"
+          ! grep -Fq 'sessionStorage.setItem' "$source_file"
+      - name: Preserve V179 authority and exact-history boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          js=apps/control-web/public/sana-v3-dataroom-executive-v179.js
+          grep -Fq 'CLAIM_EVIDENCE_REMEDIATION_ROUND_EXACT_V1' "$js"
+          grep -Fq 'EXACT_REVIEW_REF_AND_ADDITIONAL_EVIDENCE_STATE' "$js"
+          grep -Fq 'EXACT_REQUEST_REF' "$js"
+          grep -Fq 'EXACT_RESPONSE_REF_UNDER_REQUEST' "$js"
+          grep -Fq 'NO_TIMESTAMP_SOURCE_ORDER_OR_REF_ORDER_INFERENCE' "$js"
+          grep -Fq 'NOT_DETERMINED_WITHOUT_EXPLICIT_POINTER_CONTRACT' "$js"
+          grep -Fq 'MULTIPLE_ROUNDS ≠ LATEST_ROUND_DETERMINED' "$js"
+          grep -Fq 'currentRoundAuthority:false' "$js"
+          grep -Fq 'latestRoundAuthority:false' "$js"
+          grep -Fq 'chronologyAuthority:false' "$js"
+          grep -Fq 'claimTruthAuthority:false' "$js"
+          grep -Fq 'evidenceAcceptanceAuthority:false' "$js"
+          grep -Fq 'evidentiarySufficiencyAuthority:false' "$js"
+          grep -Fq 'findingResolutionAuthority:false' "$js"
+          grep -Fq 'dueDiligenceApprovalAuthority:false' "$js"
+          grep -Fq 'eligibilityAuthority:false' "$js"
+          grep -Fq 'financingApprovalAuthority:false' "$js"
+          grep -Fq 'decisionAuthority:false' "$js"
+          ! grep -Eiq 'canonicalMutationAvailable[[:space:]]*:[[:space:]]*true|financialMutationAvailable[[:space:]]*:[[:space:]]*true|currentRoundAuthority[[:space:]]*:[[:space:]]*true|latestRoundAuthority[[:space:]]*:[[:space:]]*true|chronologyAuthority[[:space:]]*:[[:space:]]*true|claimTruthAuthority[[:space:]]*:[[:space:]]*true|evidenceAcceptanceAuthority[[:space:]]*:[[:space:]]*true|evidentiarySufficiencyAuthority[[:space:]]*:[[:space:]]*true|findingResolutionAuthority[[:space:]]*:[[:space:]]*true|dueDiligenceApprovalAuthority[[:space:]]*:[[:space:]]*true|eligibilityAuthority[[:space:]]*:[[:space:]]*true|financingApprovalAuthority[[:space:]]*:[[:space:]]*true|decisionAuthority[[:space:]]*:[[:space:]]*true|riskScore[[:space:]]*:|creditScore[[:space:]]*:|investmentScore[[:space:]]*:|projectScore[[:space:]]*:|overallScore[[:space:]]*:' "$js"
