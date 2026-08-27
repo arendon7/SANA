@@ -1,0 +1,120 @@
+name: SANA Demo Data Room Executive V187
+
+on:
+  push:
+    branches: [demo/sana-dataroom-executive-v187]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-v187:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax acknowledgment source contract
+        run: node --check apps/control-web/public/sana-v3-dataroom-claim-exception-acknowledgment-v187.js
+      - name: Syntax executive adapter
+        run: node --check apps/control-web/public/sana-v3-dataroom-executive-v187.js
+      - name: V170 regression
+        run: node scripts/validate-sana-dataroom-executive-v170.mjs
+      - name: V171 regression
+        run: node scripts/validate-sana-dataroom-executive-v171.mjs
+      - name: V172 regression
+        run: node scripts/validate-sana-dataroom-executive-v172.mjs
+      - name: V173 regression
+        run: node scripts/validate-sana-dataroom-executive-v173.mjs
+      - name: V174 regression
+        run: node scripts/validate-sana-dataroom-executive-v174.mjs
+      - name: V175 regression
+        run: node scripts/validate-sana-dataroom-executive-v175.mjs
+      - name: V176 regression
+        run: node scripts/validate-sana-dataroom-executive-v176.mjs
+      - name: V177 regression
+        run: node scripts/validate-sana-dataroom-executive-v177.mjs
+      - name: V178 regression
+        run: node scripts/validate-sana-dataroom-executive-v178.mjs
+      - name: V179 regression
+        run: node scripts/validate-sana-dataroom-executive-v179.mjs
+      - name: V180 regression
+        run: node scripts/validate-sana-dataroom-executive-v180.mjs
+      - name: V181 regression
+        run: node scripts/validate-sana-dataroom-executive-v181.mjs
+      - name: V182 regression
+        run: node scripts/validate-sana-dataroom-executive-v182.mjs
+      - name: V183 regression
+        run: node scripts/validate-sana-dataroom-executive-v183.mjs
+      - name: V184 regression
+        run: node scripts/validate-sana-dataroom-executive-v184.mjs
+      - name: V185 regression
+        run: node scripts/validate-sana-dataroom-executive-v185.mjs
+      - name: V186 regression
+        run: node scripts/validate-sana-dataroom-executive-v186.mjs
+      - name: V187 acknowledgment adversarial validation
+        run: node scripts/validate-sana-dataroom-executive-v187.mjs
+      - name: V187 read-only surface
+        shell: bash
+        run: |
+          set -euo pipefail
+          file=apps/control-web/public/sana-v3-dataroom-executive-v187.html
+          test -f "$file"
+          grep -Fq 'Human acknowledgment references' "$file"
+          grep -Fq 'ACKNOWLEDGMENT REFERENCE ≠ VERIFIED REVIEWER' "$file"
+          grep -Fq 'REVIEW COMPLETED' "$file"
+          grep -Fq 'EXCEPTION RESOLVED/CLEARED' "$file"
+          grep -Fq 'NO SCORE' "$file"
+          ! grep -Fqi '<form' "$file"
+          ! grep -Fq 'fetch(' "$file"
+          ! grep -Fq 'XMLHttpRequest' "$file"
+          ! grep -Fq 'localStorage.setItem' "$file"
+          ! grep -Fq 'sessionStorage.setItem' "$file"
+      - name: Preserve V187 source-contract boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          src=apps/control-web/public/sana-v3-dataroom-claim-exception-acknowledgment-v187.js
+          grep -Fq 'SANA_DATAROOM_CLAIM_EXCEPTION_ACKNOWLEDGMENT_REFERENCE_V1' "$src"
+          grep -Fq 'ACKNOWLEDGED_REFERENCE_ONLY' "$src"
+          grep -Fq 'ZERO_BASELINE_RECORDS' "$src"
+          grep -Fq 'reviewerIdentityVerified:false' "$src"
+          grep -Fq 'reviewCompleted:false' "$src"
+          grep -Fq 'exceptionResolved:false' "$src"
+          grep -Fq 'exceptionCleared:false' "$src"
+          grep -Fq 'evidenceAccepted:false' "$src"
+          grep -Fq 'remediationCompleted:false' "$src"
+          grep -Fq 'priorityDetermined:false' "$src"
+          grep -Fq 'decisionAuthority:false' "$src"
+          ! grep -Fq 'fetch(' "$src"
+          ! grep -Fq 'XMLHttpRequest' "$src"
+          ! grep -Fq 'localStorage.setItem' "$src"
+          ! grep -Fq 'sessionStorage.setItem' "$src"
+      - name: Preserve V187 exact-link and authority boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          js=apps/control-web/public/sana-v3-dataroom-executive-v187.js
+          grep -Fq 'CLAIM_EXCEPTION_ACKNOWLEDGMENT_EXACT_V1' "$js"
+          grep -Fq 'EXACT_V186_EXCEPTION_FLAG' "$js"
+          grep -Fq 'ALL_LINKED_REFS_MUST_BE_SUBSET_OF_V186_ENTRY_REFS' "$js"
+          grep -Fq 'EXACTLY_ONE_CANDIDATE_PER_CLAIM_ENVELOPE_FLAG' "$js"
+          grep -Fq 'heuristicLinking:false' "$js"
+          grep -Fq 'exceptionResolutionInference:false' "$js"
+          grep -Fq 'reviewCompletionInference:false' "$js"
+          grep -Fq 'remediationInference:false' "$js"
+          grep -Fq 'priorityInference:false' "$js"
+          grep -Fq 'scoring:false' "$js"
+          grep -Fq 'acknowledgmentAuthority:false' "$js"
+          grep -Fq 'reviewCompletionAuthority:false' "$js"
+          grep -Fq 'exceptionResolutionAuthority:false' "$js"
+          grep -Fq 'exceptionClearanceAuthority:false' "$js"
+          grep -Fq 'evidenceAcceptanceAuthority:false' "$js"
+          grep -Fq 'remediationAuthority:false' "$js"
+          grep -Fq 'dueDiligenceApprovalAuthority:false' "$js"
+          grep -Fq 'eligibilityAuthority:false' "$js"
+          grep -Fq 'financingApprovalAuthority:false' "$js"
+          grep -Fq 'decisionAuthority:false' "$js"
+          ! grep -Eiq 'reviewerIdentityVerified[[:space:]]*:[[:space:]]*true|reviewCompleted[[:space:]]*:[[:space:]]*true|exceptionResolved[[:space:]]*:[[:space:]]*true|exceptionCleared[[:space:]]*:[[:space:]]*true|evidenceAccepted[[:space:]]*:[[:space:]]*true|evidentiarySufficiencyDetermined[[:space:]]*:[[:space:]]*true|remediationCompleted[[:space:]]*:[[:space:]]*true|priorityDetermined[[:space:]]*:[[:space:]]*true|dueDiligenceApproved[[:space:]]*:[[:space:]]*true|eligible[[:space:]]*:[[:space:]]*true|financingApproved[[:space:]]*:[[:space:]]*true|decisionAuthority[[:space:]]*:[[:space:]]*true|riskScore[[:space:]]*:|creditScore[[:space:]]*:|investmentScore[[:space:]]*:|projectScore[[:space:]]*:|overallScore[[:space:]]*:' "$js"
