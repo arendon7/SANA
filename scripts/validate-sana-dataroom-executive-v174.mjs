@@ -23,7 +23,7 @@ assert.ok(/const LINK_RULES=Object\.freeze\(\[\]\)/.test(src),'V174 must not mat
 const context={window:{},structuredClone,console};context.globalThis=context;
 vm.runInNewContext(s171,context,{filename:p171});vm.runInNewContext(s172,context,{filename:p172});vm.runInNewContext(s173,context,{filename:p173});vm.runInNewContext(src,context,{filename:p174});
 const factory=context.window.__SANA_DATAROOM_EXECUTIVE_V174_FACTORY__;
-assert.ok(factory?.create,'V174 factory missing');assert.equal(factory.schema,'SANA_DATAROOM_EXECUTIVE_CLAIM_ENVELOPE_V1');assert.equal(factory.version,'V174');assert.equal(factory.linkRules.length,0);
+assert.ok(factory?.create,'V174 factory missing');assert.equal(factory.schema,'SANA_DATAROOM_EXECUTIVE_CLAIM_ENVELOPE_V1');assert.equal(factory.version,'V174');
 
 const targetClaimId='CLM::CAPITAL_REVIEW::SOURCE_REFERENCE_PRESENT::LOT-A';
 const data={
@@ -47,6 +47,7 @@ const host={
 };
 
 const api=factory.create(host),result=api.build({lot:'LOT-A'}),parent=context.window.__SANA_DATAROOM_EXECUTIVE_V173_FACTORY__.create(host).build({lot:'LOT-A'});
+assert.equal(api.linkRules.length,0,'created V174 API must expose an empty typed link-rule set');
 assert.equal(result.scope.lot,'LOT-A');assert.equal(result.parent,'V173');assert.equal(result.parentSha,'0ff67fe5c768c4e1aa50760eef683ce88bcb1d33');assert.equal(result.provenance.parentSchema,'SANA_DATAROOM_EXECUTIVE_CLAIMS_V1');assert.equal(result.provenance.linkRules,'NONE_MATERIALIZED_AT_V174');
 assert.equal(result.envelopes.length,parent.claims.length,'V174 must envelope each parent claim exactly once');assert.equal(new Set(result.envelopes.map(e=>e.envelopeId)).size,result.envelopes.length,'envelope IDs must be unique');
 for(let i=0;i<result.envelopes.length;i++){
