@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#15392d">
+  <meta name="description" content="Demostración sintética de SANA: explora un proyecto y simula una solicitud de información.">
+  <title>SANA · Proyecto de muestra</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./app.mjs"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Saltar al contenido</a>
+  <header class="app-header">
+    <a class="brand" href="./" aria-label="SANA, inicio de la demostración">
+      <span class="wordmark">SANA</span>
+      <span class="brand-descriptor">Ecosistema digital y productivo</span>
+    </a>
+    <div class="header-context">
+      <span class="demo-state"><span aria-hidden="true"></span>Demostración · datos ficticios</span>
+      <span class="institution">GREENATICS</span>
+    </div>
+  </header>
+
+  <main id="main-content" class="page-shell">
+    <nav class="journey" aria-label="Recorrido del proyecto">
+      <span class="journey-step is-active" data-step="project" aria-current="step">Proyecto</span>
+      <span class="journey-rule" aria-hidden="true"></span>
+      <span class="journey-step" data-step="interest">Interés simulado</span>
+    </nav>
+
+    <section id="project-view" aria-labelledby="project-title">
+      <div class="page-heading">
+        <div class="heading-copy">
+          <h1 id="project-title">Cacao · ciclo demostrativo</h1>
+          <p>Explora una ficha de proyecto y su seguimiento agrícola. Todo lo que aparece en esta pantalla es sintético; no representa una oportunidad real ni una oferta de inversión.</p>
+        </div>
+        <button id="open-interest" class="button button-primary" type="button">Simular interés</button>
+      </div>
+
+      <div class="project-layout">
+        <div class="project-content">
+          <section class="project-story" aria-labelledby="project-context-title">
+            <h2 id="project-context-title">Un proyecto, con su contexto</h2>
+            <p>Esta muestra enseña cómo SANA puede reunir la estructura de un proyecto y una lectura agrícola autorizada, manteniendo cada herramienta y su información bajo su propia operación.</p>
+            <dl class="project-facts">
+              <div><dt>Enfoque</dt><dd>Cultivo de cacao · ejemplo</dd></div>
+              <div><dt>Etapa de esta muestra</dt><dd>Seguimiento de un ciclo ficticio</dd></div>
+              <div><dt>Ubicación</dt><dd>No definida en la demostración</dd></div>
+            </dl>
+          </section>
+
+          <section class="field-update" aria-labelledby="field-update-title">
+            <div class="section-heading">
+              <div>
+                <h2 id="field-update-title">Seguimiento agrícola</h2>
+                <p>Lectura sintética de AgroWay, aprobada únicamente para esta demostración.</p>
+              </div>
+              <span id="source-status" class="source-status" data-state="loading">Cargando muestra</span>
+            </div>
+            <div id="read-loading" class="read-message" role="status">Validando el resumen de demostración…</div>
+            <div id="read-error" class="read-message read-error" role="alert" hidden>
+              No se pudo validar la lectura sintética. Puedes seguir explorando la ficha o recargar para intentarlo otra vez.
+            </div>
+            <div id="read-content" hidden>
+              <dl class="read-summary">
+                <div><dt>Tareas completadas</dt><dd id="tasks-done">—</dd></div>
+                <div><dt>Alertas abiertas</dt><dd id="alerts-open">—</dd></div>
+                <div><dt>Cosecha registrada</dt><dd id="harvest-summary">—</dd></div>
+              </dl>
+              <div class="milestone-area">
+                <h3>Hitos incluidos en la muestra</h3>
+                <ol id="milestones-list" class="milestones"></ol>
+              </div>
+              <p id="source-provenance" class="provenance"></p>
+            </div>
+          </section>
+        </div>
+
+        <aside class="project-aside" aria-label="Límites y siguiente paso">
+          <div class="aside-section">
+            <span class="aside-label">En esta pantalla</span>
+            <p>Un ejemplo de proyecto, una lectura AgroWay de solo lectura y un paso de interés que no contacta a nadie.</p>
+          </div>
+          <div class="aside-section aside-boundary">
+            <span class="aside-label">Límite de la demo</span>
+            <p>No hay inversión, compromiso, transferencia, reserva ni registro real. Los pagos, cuando correspondan a un proceso real, ocurren por canales externos y requieren revisión humana.</p>
+          </div>
+          <button class="text-button" type="button" id="open-interest-secondary">Continuar a la simulación <svg class="nav-arrow" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h13M10 4l6 6-6 6"/></svg></button>
+        </aside>
+      </div>
+    </section>
+
+    <section id="interest-view" aria-labelledby="interest-title" hidden>
+      <div class="form-heading">
+        <button class="back-button" type="button" id="back-to-project"><svg class="nav-arrow" viewBox="0 0 20 20" aria-hidden="true"><path d="M17 10H4m6 6-6-6 6-6"/></svg><span>Volver al proyecto</span></button>
+        <h1 id="interest-title" tabindex="-1">¿Qué te gustaría conocer?</h1>
+        <p>Elige un motivo para completar el recorrido ficticio. Esta acción solo cambia esta pantalla: no se envían ni se guardan datos.</p>
+      </div>
+      <form id="interest-form" novalidate>
+        <fieldset id="intent-fieldset" class="intent-fieldset">
+          <legend>Motivo de interés</legend>
+          <label class="intent-option">
+            <input type="radio" name="interest-intent" value="project-structure">
+            <span><strong>Conocer cómo se estructura</strong><small>Entender las etapas y responsabilidades del proyecto.</small></span>
+          </label>
+          <label class="intent-option">
+            <input type="radio" name="interest-intent" value="agricultural-follow-up">
+            <span><strong>Explorar su seguimiento agrícola</strong><small>Ver cómo se consultarían hitos autorizados de AgroWay.</small></span>
+          </label>
+          <label class="intent-option">
+            <input type="radio" name="interest-intent" value="human-conversation">
+            <span><strong>Solicitar una conversación de ejemplo</strong><small>Mostrar el paso de revisión humana, sin iniciar un contacto real.</small></span>
+          </label>
+        </fieldset>
+        <p id="form-error" class="form-error" role="alert" hidden>Selecciona un motivo para continuar.</p>
+        <label class="demo-acknowledgment">
+          <input id="demo-acknowledgment" type="checkbox">
+          <span>Entiendo que estoy probando una demostración ficticia, sin inversión ni envío de información.</span>
+        </label>
+        <p id="ack-error" class="form-error" role="alert" hidden>Confirma que se trata solo de una demostración para continuar.</p>
+        <div class="form-actions">
+          <button class="button button-secondary" type="button" id="cancel-interest">Cancelar</button>
+          <button class="button button-primary" type="submit">Registrar interés simulado</button>
+        </div>
+        <p class="privacy-note">Este formulario no pide nombre, correo, documentos ni datos financieros. Nada se transmite a un servidor y la selección se pierde al cerrar o recargar esta página.</p>
+      </form>
+    </section>
+
+    <section id="confirmation-view" class="confirmation-view" aria-labelledby="confirmation-title" hidden>
+      <span class="confirmation-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></span>
+      <h1 id="confirmation-title" tabindex="-1">Interés simulado</h1>
+      <p>El siguiente estado del recorrido es una revisión humana. No se envió una solicitud, no se creó un compromiso y no hubo movimiento de dinero.</p>
+      <div class="confirmation-detail">
+        <span>Motivo elegido</span>
+        <strong id="confirmed-intent">—</strong>
+      </div>
+      <button class="button button-primary" id="restart-demo" type="button">Volver a explorar el proyecto</button>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <span>SANA · GREENATICS</span>
+    <p>Demostración local con datos sintéticos. No usar para decisiones de inversión ni operación agrícola.</p>
+  </footer>
+</body>
+</html>
