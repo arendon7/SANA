@@ -41,6 +41,10 @@ La persona primero compara proyectos y revisa su expediente; la demo deja ensaya
 - El sistema GREENATICS pertenece a la marca matriz y no es una plantilla obligatoria para SANA.
 - La palabra-marca SANA está autorizada como texto; no hay un logo independiente validado para esta demo.
 
+## Revisión previa a una decisión
+
+La ficha incorpora seis áreas de debida diligencia: productor y organización; predio, agua y permisos; plan agronómico; presupuesto y producción; comercialización y logística; gobierno y condiciones. Cada una identifica una pregunta y ejemplos de evidencia que habría que solicitar. La demo mantiene todos los estados en Sin evaluar porque sus casos son ficticios y no incluyen soportes verificables. AgroWay puede aportar lecturas de campo autorizadas; esas lecturas no sustituyen la validación agronómica, documental o jurídica. No se calculan puntajes ni niveles de riesgo.
+
 ## Evidence on Hand
 
 - La demo sintética del proyecto vive en esta aplicación y se acompaña de `DESIGN.md`, `project-dossier-v1.json`, `project-dossier-002-v1.json`, `project-projection-v1.json`, `project-projection-002-v1.json` y contratos de lectura AgroWay.

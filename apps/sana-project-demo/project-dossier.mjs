@@ -79,3 +79,27 @@ export function displayProjectEstimate(field, fallback) {
   const amount = displayProjectField(field, fallback);
   return [amount, field.period].filter(Boolean).join(' · ');
 }
+
+
+const dueDiligenceTopics = [
+  { id: 'promoter-and-organization', title: 'Productor y organización', question: '¿Quién propone el proyecto y quién puede representarlo?', evidenceNeeded: 'Identidad y autorización de las personas responsables; estructura del grupo y consentimiento para compartir información.' },
+  { id: 'land-and-water', title: 'Predio, agua y permisos', question: '¿El área, el uso del suelo y el acceso al agua corresponden al proyecto?', evidenceNeeded: 'Soporte de tenencia o uso, ubicación verificable, disponibilidad de agua y permisos aplicables.' },
+  { id: 'agronomic-plan', title: 'Plan agronómico', question: '¿El cultivo y sus actividades responden a condiciones observadas del predio?', evidenceNeeded: 'Diagnóstico y plan por ciclo, densidad y estado de plantas, necesidades de suelo y agua, y revisión técnica. AgroWay aportaría registros de campo autorizados; estos no sustituyen esa revisión.' },
+  { id: 'budget-and-production', title: 'Presupuesto y producción', question: '¿Las necesidades y los supuestos pueden reconstruirse con fuentes y periodos claros?', evidenceNeeded: 'Presupuesto por actividad, cotizaciones, costos completos, base del rendimiento estimado y escenarios que expliquen variaciones.' },
+  { id: 'market-and-operations', title: 'Comercialización y logística', question: '¿Cómo se recibiría, acondicionaría y vendería la producción?', evidenceNeeded: 'Canal comercial, requisitos de calidad, volúmenes, transporte, almacenamiento y fuente de los precios asumidos.' },
+  { id: 'governance-and-terms', title: 'Gobierno y condiciones', question: '¿Cómo se revisarían los recursos, las decisiones y los derechos de cada parte?', evidenceNeeded: 'Estructura jurídica y financiera, responsabilidades, controles de uso, manejo de cambios y mecanismos de atención de desacuerdos.' },
+];
+
+export function createSyntheticDueDiligence(projectRef) {
+  if (typeof projectRef !== 'string' || !/^sana-demo-project-\d{3}$/.test(projectRef)) {
+    throw new TypeError('PROJECT_REF_INVALID');
+  }
+  const topics = dueDiligenceTopics.map((topic) => Object.freeze({ ...topic, status: 'NOT_ASSESSED' }));
+  return Object.freeze({
+    schema: 'sana.due-diligence/1.0.0',
+    projectRef,
+    status: 'SYNTHETIC',
+    overallStatus: 'NOT_ASSESSED',
+    topics: Object.freeze(topics),
+  });
+}

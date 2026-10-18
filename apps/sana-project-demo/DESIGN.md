@@ -46,10 +46,14 @@ La interfaz de SANA no debe copiar la forma de una oferta financiera habilitada:
 - Ocultar los indicadores agrícolas vencidos o no disponibles; conservar los valores ausentes como desconocidos, sin convertirlos en cero. Nombrar AgroWay como fuente de solo lectura.
 - El interés, revisión de muestra y compromiso ficticio permanecen en memoria de la pestaña, no solicitan datos personales, no llegan a un servidor y no modifican AgroWay. Cada transición indica que nadie recibió la selección, que no hay contrato o pago y que la sesión desaparece al recargar.
 
+## Revisión transparente del proyecto
+
+La ficha añade un tramo editorial de evidencia pendiente antes de la lectura AgroWay: seis temas con pregunta, documentos por solicitar y estado textual Sin evaluar. La cuadrícula conserva una jerarquía común y pasa a una columna en pantallas estrechas. No se emplean semáforos de aprobación ni puntajes: el color acompaña la etiqueta explícita. El aviso aclara que la lista es una guía y no constituye evaluación o recomendación.
+
 ## Interacción y accesibilidad
 
 - Mantener rutas reconocibles en la URL, foco visible, orden de títulos, etiqueta persistente, errores junto a la acción, y área táctil de al menos 44 px.
-- La navegación de la ficha permite llegar a proyecto, capital, lectura agrícola y seguimiento personal; los encabezados tienen margen frente a la navegación fija.
+- La navegación de la ficha permite llegar a proyecto, capital, evidencia pendiente, lectura agrícola y seguimiento personal; los encabezados tienen margen frente a la navegación fija.
 - Reordenar el contenido en móvil sin ocultar el proyecto, la fuente, las limitaciones ni la acción principal.
 - Respetar prefers-reduced-motion. Usar formato es-CO para cifras y fechas.
 - No incluir logos GREENATICS ni presentar SANA como una extensión visual de la web institucional.

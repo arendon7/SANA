@@ -5,7 +5,7 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { validateProjection } from '../sana-project-read/reader-v1.mjs';
 import { createInterestFlow, openInterest, resetInterestFlow, submitInterest } from './interest-flow.mjs';
-import { displayProjectField, validateDossier } from './project-dossier.mjs';
+import { createSyntheticDueDiligence, displayProjectField, validateDossier } from './project-dossier.mjs';
 import { projectionDisplayPolicy } from './presentation-policy.mjs';
 import { clearParticipantSession, createParticipantSession, recordSimulatedCommitment, recordSimulatedInterest, simulateHumanReview } from './participant-session.mjs';
 import { createParticipantFieldReading } from './participant-field-reading.mjs';
@@ -50,6 +50,23 @@ test('project dossier presents a fully synthetic, arithmetically consistent case
   assert.equal(dossier.netUtilityEstimate.amount, null);
   assert.equal(displayProjectField(dossier.productionEstimate, 'Sin modelo validado'), '1.530 kg de cacao seco/año');
   assert.equal(dossier.portfolio.status, 'PLANNED');
+});
+
+test('synthetic due diligence lists evidence to request without scoring or implying review', () => {
+  for (const projectRef of ['sana-demo-project-001', 'sana-demo-project-002']) {
+    const checklist = createSyntheticDueDiligence(projectRef);
+    assert.equal(checklist.projectRef, projectRef);
+    assert.equal(checklist.status, 'SYNTHETIC');
+    assert.equal(checklist.overallStatus, 'NOT_ASSESSED');
+    assert.equal(checklist.topics.length, 6);
+    assert.equal(new Set(checklist.topics.map(({ id }) => id)).size, checklist.topics.length);
+    assert.ok(checklist.topics.every((topic) => topic.status === 'NOT_ASSESSED'));
+    assert.ok(checklist.topics.every((topic) => topic.question && topic.evidenceNeeded));
+    assert.doesNotMatch(JSON.stringify(checklist), /score|riskRating|mitigation|approved/i);
+    assert.equal(Object.isFrozen(checklist), true);
+    assert.equal(Object.isFrozen(checklist.topics), true);
+  }
+  assert.throws(() => createSyntheticDueDiligence('../private-project'), /PROJECT_REF_INVALID/);
 });
 
 test('catalog binds each synthetic project to its own dossier and approved AgroWay projection', async () => {
@@ -282,7 +299,7 @@ test('accessible screen states avoid real contact fields and disclose the synthe
   assert.match(html, /Conoce el proyecto detrás de cada cultivo/);
   assert.match(html, /Explorar proyectos de muestra/);
   assert.match(html, /aria-label="Recorrido de la ficha del proyecto"/);
-  for (const anchor of ['project-structure', 'capital-model', 'field-reading', 'participant-space']) {
+  for (const anchor of ['project-structure', 'capital-model', 'due-diligence', 'field-reading', 'participant-space']) {
     assert.match(html, new RegExp(`href="#${anchor}"`));
     assert.match(html, new RegExp(`id="${anchor}"`));
   }
@@ -314,6 +331,11 @@ test('accessible screen states avoid real contact fields and disclose the synthe
   assert.doesNotMatch(html, /type="(?:email|password|file)"|name="(?:email|full-name|phone|document)"/i);
   assert.match(html, /mi selección no equivale a una solicitud o inversión/i);
   assert.match(html, /no llega a un servidor/i);
+  assert.match(html, /Qué falta comprobar antes de decidir/);
+  assert.match(html, /seis áreas permanecen sin evaluar/);
+  assert.match(app, /createSyntheticDueDiligence/);
+  assert.match(app, /Evidencia por solicitar/);
+  assert.match(styles, /data-state--unassessed/);
   assert.match(html, /En qué se usaría y qué podría producir/);
   assert.match(html, /no un pronóstico ni una promesa/i);
   assert.match(html, /Excedente operativo/);

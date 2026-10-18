@@ -1,6 +1,6 @@
 import { validateProjection } from '../sana-project-read/reader-v1.mjs';
 import { createInterestFlow, openInterest, resetInterestFlow, submitInterest } from './interest-flow.mjs';
-import { displayProjectField, validateDossier } from './project-dossier.mjs';
+import { createSyntheticDueDiligence, displayProjectField, validateDossier } from './project-dossier.mjs';
 import { projectionDisplayPolicy } from './presentation-policy.mjs';
 import { clearParticipantSession, createParticipantSession, recordSimulatedInterest, recordSimulatedCommitment, simulateHumanReview } from './participant-session.mjs';
 import { createParticipantFieldReading } from './participant-field-reading.mjs';
@@ -346,6 +346,36 @@ function formatDate(value, { dateOnly = false } = {}) {
   }).format(date);
 }
 
+function renderDueDiligence(projectRef) {
+  const model = createSyntheticDueDiligence(projectRef);
+  const list = document.querySelector('#due-diligence-list');
+  list.replaceChildren();
+  model.topics.forEach((topic, index) => {
+    const item = document.createElement('li');
+    item.className = 'due-diligence-item';
+    const heading = document.createElement('div');
+    heading.className = 'due-diligence-item__heading';
+    const title = document.createElement('h3');
+    title.textContent = String(index + 1).padStart(2, '0') + ' · ' + topic.title;
+    const status = document.createElement('span');
+    status.className = 'data-state data-state--unassessed';
+    status.textContent = 'Sin evaluar';
+    heading.append(title, status);
+    const question = document.createElement('p');
+    question.className = 'due-diligence-item__question';
+    question.textContent = topic.question;
+    const evidence = document.createElement('p');
+    evidence.className = 'due-diligence-item__evidence';
+    const evidenceLabel = document.createElement('strong');
+    evidenceLabel.textContent = 'Evidencia por solicitar';
+    const evidenceText = document.createElement('span');
+    evidenceText.textContent = topic.evidenceNeeded;
+    evidence.append(evidenceLabel, evidenceText);
+    item.append(heading, question, evidence);
+    list.append(item);
+  });
+}
+
 function renderDossier(profile) {
   const projectCode = profile.projectRef.replace('sana-demo-project-', 'SANA-DEM-');
   const crop = displayProjectField(profile.crop, 'Cultivo no informado');
@@ -416,6 +446,7 @@ function renderDossier(profile) {
     item.append(label, amount, track);
     fundsList.append(item);
   });
+  renderDueDiligence(profile.projectRef);
 }
 
 function renderProjectShelf(activeRef) {

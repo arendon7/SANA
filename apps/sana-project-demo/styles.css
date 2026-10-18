@@ -1012,3 +1012,20 @@ h1, h2, h3 { color: var(--route-dark); }
   .sample-document-list small { text-align: left; }
   .commitment-choice select { width: 100%; }
 }
+
+
+.due-diligence-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 23px 0 0; padding: 0; list-style: none; }
+.due-diligence-item { display: grid; align-content: start; gap: 10px; min-width: 0; padding: 17px; border: 1px solid var(--line); border-radius: 8px; background: #fbfaf6; }
+.due-diligence-item__heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.due-diligence-item__heading h3 { margin: 0; color: var(--forest-deep); font-size: 17px; line-height: 1.35; }
+.data-state--unassessed { flex: 0 0 auto; border: 1px solid #d6c8aa; background: #f6efdf; color: #614c2e; }
+.due-diligence-item__question, .due-diligence-item__evidence { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.55; }
+.due-diligence-item__question { color: var(--forest-deep); font-weight: 650; }
+.due-diligence-item__evidence { display: grid; gap: 4px; padding-top: 10px; border-top: 1px solid var(--line); }
+.due-diligence-item__evidence strong { color: var(--forest-deep); font-size: 12px; letter-spacing: .03em; text-transform: uppercase; }
+.due-diligence-disclosure { max-width: 76ch; margin: 17px 0 0; padding: 12px 15px; border-left: 3px solid #c69a5c; background: #f6f1e6; color: #574c3a; font-size: 15px; line-height: 1.55; }
+@media (max-width: 680px) {
+  .due-diligence-list { grid-template-columns: 1fr; }
+  .due-diligence-item { padding: 15px; }
+  .due-diligence-item__heading h3 { font-size: 16px; }
+}
