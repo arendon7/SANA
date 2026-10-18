@@ -1,32 +1,38 @@
-# SANA project dossier — design proposal
+# SANA · diseño de exploración de proyectos
 
-**Status:** proposed direction for the synthetic project demo. This is not an approved corporate identity or a production financial interface.
+**Estado:** dirección visual provisional para una demo sintética. No es una identidad corporativa aprobada ni una interfaz financiera de producción.
 
-## Product and audience
+## Producto y audiencia
 
-SANA helps a prospective participant understand a productive project before expressing interest. This route presents one fictional cacao project. It must explain the project, its agricultural context, the information that is missing, and the human review step without implying that the visitor can invest here.
+SANA hace visibles proyectos productivos para que una persona pueda entender quién los impulsa, dónde se desarrollarían, qué escala tienen, qué capital requieren y cómo se informaría su avance. El primer recorrido enseña una ficha agrícola ficticia de cacao y permite simular interés para revisión humana.
 
-## Visual direction
+## Dirección visual
 
-- Build an editorial project dossier with a strong project title, a useful crop illustration, and a compact project navigator. Group facts by project context, capital structure, production assumptions, and agricultural follow-up.
-- Keep SANA visually independent. Do not inherit GREENATICS website layouts, its “bitácora” treatment, or the parent logo as the page's visual identity. Use a typographic SANA wordmark until a dedicated logo is validated.
-- The SANA / AGROWAY product canon names Forest, Earth, Ivory, Growth, and Signal, with Sofia Pro and Merriweather as type directions. The exact official colors and font files are not available in this source. Existing prototype values may be used only as provisional demo tokens; do not describe them as approved brand values.
-- The illustration is a diagram, not a photograph or a representation of a real farm. Keep it clearly captioned and useful for orientation.
+- Construir una experiencia SANA propia, con un catálogo editorial y una ficha de proyecto organizada por identidad, escala, uso del capital, escenario productivo y lectura agrícola.
+- Do not inherit GREENATICS website layouts. GREENATICS puede aparecer como afiliación institucional discreta cuando haga falta; no gobierna la identidad de esta interfaz.
+- Usar SANA como marca tipográfica hasta encontrar un logo independiente aprobado. No se encontró un activo autónomo validado; no se inventa un símbolo oficial.
+- Basar la composición en contexto y procedencia: ilustración vectorial de cultivo, datos agrupados y estados escritos. No usar fotos de archivo, geolocalizaciones, métricas de popularidad, testimonios ni progreso de financiación que no existan en los fixtures.
+- El canon SANA/AgroWay nombra Forest, Earth, Ivory, Growth y Signal, y orienta hacia Sofia Pro y Merriweather. Los valores CSS y las fuentes de sistema de esta demo son provisionales; no representan activos ni tokens aprobados.
+- Tomar como referencia de arquitectura de información las fichas de proyectos agrícolas de Farm Fractions e iGrow: contexto del predio/cultivo, tamaño, capital, calendario y seguimiento. No trasladar rentabilidades, términos, porcentajes o promesas de otros servicios.
 
-## Information and state
+## Información y estados
 
-- Separate project data from the AgroWay read projection. The dossier fixture and field projection have distinct schemas, owners, and provenance.
-- Label project, farmer, area, plants, capital need, production estimate, and utility estimate according to the supplied status. Unknown values remain unknown; do not derive them from unrelated field records.
-- Distinguish observed field records, model assumptions, projections, and missing data through text and state labels, never color alone.
-- The interest flow is an in-memory demonstration only. It does not create a real request or capture identity/contact/financial data.
-- The future participant space is described as planned. Do not show fabricated accounts, investments, commitments, or returns.
+- La demo abre en explorar proyectos; solo expone un caso sintético para no fingir una oferta o catálogo real.
+- Separar los datos de proyecto del resumen agrícola AgroWay. Cada fixture conserva esquema, responsable y procedencia propios.
+- Mantener separados valores observados, supuestos, proyecciones, valores ausentes y alcance futuro con texto y etiquetas, nunca solo con color.
+- No calcular utilidad neta, dividendo ni retorno cuando falten costos, estructura contractual y revisión humana.
+- La lectura de AgroWay es de solo lectura, versionada y aprobada solo para la demostración. Una lectura caducada, no aprobada o mal mapeada se oculta.
+- “Mi espacio” es una vista vacía de producto previsto. No mostrar cuentas, posiciones, aportes o resultados ficticios.
+- El interés simulado permanece en memoria, no solicita datos personales, no llega a un servidor y no modifica AgroWay.
 
-## Interaction and accessibility
+## Interacción y accesibilidad
 
-- Keep the project navigator predictable and usable with keyboard and touch; anchor links must account for the sticky header.
-- Preserve the read-only, versioned AgroWay contract and fail closed on a stale, unapproved, or mismapped projection.
-- Maintain visible focus, persistent labels, recoverable errors, mobile reflow, sufficient contrast, and reduced-motion support.
+- Mantener rutas reconocibles en la URL, foco visible, orden de títulos, etiqueta persistente, errores junto a la acción, y área táctil de al menos 44 px.
+- La navegación de la ficha permite llegar a proyecto, capital, lectura agrícola y seguimiento personal; los encabezados tienen margen frente a la navegación fija.
+- Reordenar el contenido en móvil sin ocultar el proyecto, la fuente, las limitaciones ni la acción principal.
+- Respetar prefers-reduced-motion. Usar formato es-CO para cifras y fechas.
+- No incluir logos GREENATICS ni presentar SANA como una extensión visual de la web institucional.
 
-## Provisional demo tokens
+## Tokens provisionales de la demo
 
-The demo uses white for the page canvas and retains the prototype choices forest `#15392d`, forest soft `#214b3b`, ivory `#f6f2e9`, ink `#1d2823`, muted `#52625a`, growth `#8fbb57`, and signal `#d9a441` for content accents. Revisit these with validated SANA assets before calling them official.
+La página usa papel cálido, tinta oscura, Forest, Earth, Clay y Signal como acentos. Los valores exactos viven en styles.css y .impeccable/design.json y solo describen esta propuesta local. No llamarlos colores oficiales.

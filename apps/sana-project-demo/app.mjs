@@ -5,10 +5,16 @@ import { projectionDisplayPolicy } from './presentation-policy.mjs';
 
 const PROJECT_REF = 'sana-demo-project-001';
 const elements = {
+  catalog: document.querySelector('#explore-view'),
   project: document.querySelector('#project-view'),
+  participant: document.querySelector('#participant-view'),
   interest: document.querySelector('#interest-view'),
   confirmation: document.querySelector('#confirmation-view'),
+  navExplore: document.querySelector('#nav-explore'),
+  navSpace: document.querySelector('#nav-space'),
   projectTitle: document.querySelector('#project-title'),
+  exploreTitle: document.querySelector('#explore-title'),
+  spaceTitle: document.querySelector('#space-title'),
   interestTitle: document.querySelector('#interest-title'),
   confirmationTitle: document.querySelector('#confirmation-title'),
   projectProfileStatus: document.querySelector('#project-profile-status'),
@@ -24,17 +30,34 @@ const elements = {
 };
 let flow = createInterestFlow();
 
-function showView(step, { focus = false } = {}) {
-  elements.project.hidden = step !== 'project';
-  elements.interest.hidden = step !== 'interest';
-  elements.confirmation.hidden = step !== 'confirmation';
+function showView(step, { focus = false, historyAction = 'push' } = {}) {
+  const views = {
+    catalog: elements.catalog,
+    project: elements.project,
+    participant: elements.participant,
+    interest: elements.interest,
+    confirmation: elements.confirmation,
+  };
+  if (!Object.hasOwn(views, step)) step = 'catalog';
+  Object.entries(views).forEach(([name, view]) => { view.hidden = name !== step; });
+  elements.navExplore.setAttribute('aria-current', ['catalog', 'project', 'interest', 'confirmation'].includes(step) ? 'page' : 'false');
+  elements.navSpace.setAttribute('aria-current', step === 'participant' ? 'page' : 'false');
+  if (historyAction !== 'none') {
+    const url = new URL(window.location.href);
+    url.searchParams.set('view', step);
+    url.hash = '';
+    if (historyAction === 'replace') window.history.replaceState({ sanaView: step }, '', url);
+    else window.history.pushState({ sanaView: step }, '', url);
+  }
   if (focus) {
-    const heading = step === 'interest'
-      ? elements.interestTitle
-      : step === 'confirmation'
-        ? elements.confirmationTitle
-        : elements.projectTitle;
-    heading.focus();
+    const heading = ({
+      catalog: elements.exploreTitle,
+      project: elements.projectTitle,
+      participant: elements.spaceTitle,
+      interest: elements.interestTitle,
+      confirmation: elements.confirmationTitle,
+    })[step];
+    heading?.focus();
   }
   window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
 }
@@ -66,19 +89,33 @@ function renderDossier(profile) {
   elements.projectTitle.textContent = profile.title;
   document.querySelector('#profile-title').textContent = profile.title;
   document.querySelector('#project-summary').textContent = profile.summary;
+  document.querySelector('#catalog-title').textContent = profile.title;
+  document.querySelector('#catalog-summary').textContent = profile.summary;
+  document.querySelector('#catalog-promoter').textContent = displayProjectField(profile.promoter, 'Dato no incluido');
+  document.querySelector('#catalog-property').textContent = displayProjectField(profile.property, 'Predio no informado');
   document.querySelector('#profile-promoter').textContent = displayProjectField(profile.promoter, 'Dato no incluido');
   document.querySelector('#profile-property').textContent = displayProjectField(profile.property, 'Predio no informado');
   document.querySelector('#profile-location').textContent = displayProjectField(profile.location, 'No informada');
   document.querySelector('#profile-area').textContent = displayProjectField(profile.areaHa, 'No aportada');
   document.querySelector('#profile-plants').textContent = displayProjectField(profile.plantCount, 'No informadas');
+  document.querySelectorAll('.profile-area-copy').forEach((node) => { node.textContent = displayProjectField(profile.areaHa, 'No aportada'); });
+  document.querySelectorAll('.profile-plants-copy').forEach((node) => { node.textContent = displayProjectField(profile.plantCount, 'No informadas'); });
+  const scale = [displayProjectField(profile.areaHa, 'Área no aportada'), displayProjectField(profile.plantCount, 'Plantas no informadas')].join(' · ');
+  document.querySelector('#catalog-scale').textContent = scale;
 
   const capital = profile.capitalNeed;
   const production = profile.productionEstimate;
   const economics = profile.economicScenario;
-  document.querySelector('#profile-capital').textContent = formatCop(capital.amount);
-  document.querySelector('#panel-capital').textContent = formatCop(capital.amount);
+  const formattedCapital = formatCop(capital.amount);
+  document.querySelector('#profile-capital').textContent = formattedCapital;
+  document.querySelector('#panel-capital').textContent = formattedCapital;
+  document.querySelector('#panel-capital-copy').textContent = formattedCapital;
+  document.querySelector('#catalog-capital').textContent = formattedCapital;
   document.querySelector('#capital-period').textContent = capital.period;
-  document.querySelector('#profile-production').textContent = `${formatCount(production.quantity)} ${production.unit} · ${production.period}`;
+  document.querySelector('#capital-period-copy').textContent = capital.period;
+  const formattedProduction = `${formatCount(production.quantity)} ${production.unit} · ${production.period}`;
+  document.querySelector('#profile-production').textContent = formattedProduction;
+  document.querySelector('#catalog-production').textContent = `${formatCount(production.quantity)} ${production.unit}`;
   document.querySelector('#production-basis').textContent = `${new Intl.NumberFormat('es-CO').format(production.basis.areaHa)} ha × ${new Intl.NumberFormat('es-CO').format(production.basis.yieldKgPerHa)} kg/ha/año = ${formatCount(production.quantity)} kg/año · supuesto didáctico`;
   document.querySelector('#price-per-kg').textContent = `${formatCop(economics.pricePerKg)}/kg`;
   document.querySelector('#gross-sales').textContent = `${formatCop(economics.grossSales)}/año`;
@@ -91,10 +128,19 @@ function renderDossier(profile) {
   capital.useOfFunds.forEach((allocation) => {
     const item = document.createElement('li');
     const label = document.createElement('span');
+    label.className = 'allocation-label';
     label.textContent = allocation.label;
     const amount = document.createElement('strong');
+    amount.className = 'allocation-amount';
     amount.textContent = formatCop(allocation.amount);
-    item.append(label, amount);
+    const track = document.createElement('span');
+    track.className = 'allocation-track';
+    track.setAttribute('aria-hidden', 'true');
+    const fill = document.createElement('span');
+    const ratio = capital.amount > 0 ? (allocation.amount / capital.amount) * 100 : 0;
+    fill.style.setProperty('--allocation-width', `${Math.max(0, Math.min(100, ratio))}%`);
+    track.append(fill);
+    item.append(label, amount, track);
     fundsList.append(item);
   });
 }
@@ -203,6 +249,15 @@ function intentLabel(value) {
 }
 
 document.querySelectorAll('#open-interest, #open-interest-secondary, #open-interest-panel').forEach((button) => button.addEventListener('click', openInterestView));
+document.querySelector('#open-project-card').addEventListener('click', () => showView('project', { focus: true }));
+document.querySelectorAll('[data-view-link]').forEach((link) => link.addEventListener('click', (event) => {
+  event.preventDefault();
+  showView(link.dataset.viewLink, { focus: true });
+}));
+document.querySelector('#back-to-catalog').addEventListener('click', () => showView('catalog', { focus: true }));
+document.querySelector('#back-to-catalog-space').addEventListener('click', () => showView('catalog', { focus: true }));
+document.querySelector('#back-to-projects-empty').addEventListener('click', () => showView('catalog', { focus: true }));
+document.querySelector('#open-participant-space').addEventListener('click', () => showView('participant', { focus: true }));
 document.querySelectorAll('#back-to-project, #cancel-interest').forEach((button) => button.addEventListener('click', () => showView('project', { focus: true })));
 document.querySelector('#interest-form').addEventListener('change', (event) => {
   if (event.target.name === 'interest-intent') elements.formError.hidden = true;
@@ -228,8 +283,16 @@ document.querySelector('#restart-demo').addEventListener('click', () => {
   document.querySelector('#interest-form').reset();
   elements.formError.hidden = true;
   elements.ackError.hidden = true;
-  showView('project', { focus: true });
+  showView('catalog', { focus: true });
+});
+
+window.addEventListener('popstate', () => {
+  const requested = new URLSearchParams(window.location.search).get('view');
+  const allowed = ['catalog', 'project', 'participant'];
+  showView(allowed.includes(requested) ? requested : 'catalog', { focus: true, historyAction: 'none' });
 });
 
 loadDossier();
 loadProjection();
+const requestedView = new URLSearchParams(window.location.search).get('view');
+showView(['project', 'participant'].includes(requestedView) ? requestedView : 'catalog', { historyAction: 'replace' });

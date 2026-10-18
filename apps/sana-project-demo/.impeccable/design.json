@@ -1,28 +1,77 @@
 {
   "product": "SANA",
-  "surface": "synthetic-project-dossier",
-  "version": "0.1.0-proposed",
+  "surface": "synthetic-project-marketplace-and-dossier",
+  "version": "0.2.0-proposed",
   "status": "PROVISIONAL_DEMO_DIRECTION",
   "identity": {
-    "wordmark": "SANA as typographic text; no unverified logo",
-    "parentBrand": "GREENATICS may appear only as a discreet institutional affiliation when context requires it; it does not govern this surface"
+    "wordmark": "SANA as a typographic wordmark; no validated standalone logo found",
+    "parentBrand": "GREENATICS is an optional institutional affiliation only; it does not govern the product surface"
   },
   "palette": {
-    "forest": { "value": "#15392d", "status": "prototype-only" },
-    "forestSoft": { "value": "#214b3b", "status": "prototype-only" },
-    "growth": { "value": "#8fbb57", "status": "prototype-only" },
-    "growthPale": { "value": "#eaf1dc", "status": "prototype-only" },
-    "ivory": { "value": "#f6f2e9", "status": "prototype-only" },
-    "paper": { "value": "#ffffff", "status": "proposed-canvas" },
-    "ink": { "value": "#1d2823", "status": "prototype-only" },
-    "muted": { "value": "#52625a", "status": "prototype-only" },
-    "signal": { "value": "#d9a441", "status": "prototype-only" }
+    "forest": {
+      "value": "#344b3b",
+      "status": "prototype-only"
+    },
+    "forestDeep": {
+      "value": "#263b31",
+      "status": "prototype-only"
+    },
+    "earth": {
+      "value": "#8d6849",
+      "status": "prototype-only"
+    },
+    "clay": {
+      "value": "#a35f36",
+      "status": "prototype-only"
+    },
+    "signal": {
+      "value": "#d9b36f",
+      "status": "prototype-only"
+    },
+    "paper": {
+      "value": "#f8f5ed",
+      "status": "prototype-only"
+    },
+    "surface": {
+      "value": "#fffdf8",
+      "status": "prototype-only"
+    },
+    "ink": {
+      "value": "#20251f",
+      "status": "prototype-only"
+    },
+    "muted": {
+      "value": "#5f6860",
+      "status": "prototype-only"
+    },
+    "line": {
+      "value": "#d9d5ca",
+      "status": "prototype-only"
+    }
   },
   "typography": {
     "primaryDirection": "Sofia Pro",
     "secondaryDirection": "Merriweather",
     "assetStatus": "font binaries not present; local system fallbacks remain provisional"
   },
-  "composition": "Editorial project dossier: project identity and purpose, structured project facts, capital and production assumptions, approved AgroWay field reading, then a simulated human-review step.",
-  "stateVocabulary": ["synthetic", "observed", "projected", "not provided", "not modeled", "not calculated", "planned"]
+  "composition": "SANA product catalogue leading into a project dossier with promoter/property identity, agricultural scale, capital allocation, production assumptions and approved AgroWay progress; participant space empty state; in-memory simulated interest followed by human review.",
+  "stateVocabulary": [
+    "synthetic",
+    "observed",
+    "projected",
+    "not provided",
+    "not modeled",
+    "not calculated",
+    "planned"
+  ],
+  "referencePatterns": [
+    "Farm Fractions project property/scale/capital context",
+    "iGrow crop/location/duration project discovery"
+  ],
+  "excludedPatterns": [
+    "unverified testimonials",
+    "invented funding progress",
+    "unverified investment returns",
+    "GREENATICS editorial/bitacora visual inheritance"
+  ]
 }

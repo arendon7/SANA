@@ -4,168 +4,271 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="light">
-  <meta name="theme-color" content="#ffffff">
-  <meta name="description" content="Explora una ficha ficticia de proyecto productivo en SANA y consulta una lectura agrícola sintética de AgroWay.">
-  <title>SANA · Cacao bajo sombra</title>
+  <meta name="theme-color" content="#f8f5ed">
+  <meta name="description" content="Explora un proyecto agrícola ficticio, revisa sus supuestos y conoce cómo SANA puede acompañar su seguimiento.">
+  <title>SANA · proyectos productivos</title>
   <link rel="stylesheet" href="./styles.css">
   <script type="module" src="./app.mjs"></script>
 </head>
 <body>
   <a class="skip-link" href="#main-content">Saltar al contenido</a>
   <header class="site-header">
-    <a class="wordmark" href="#project-overview" aria-label="SANA, inicio de la demo">SANA<span class="wordmark-dot" aria-hidden="true">.</span></a>
+    <a class="wordmark" id="home-link" href="?view=catalog" data-view-link="catalog" aria-label="SANA, proyectos productivos">SANA</a>
     <nav class="global-nav" aria-label="Navegación principal">
-      <a class="global-nav__active" href="#project-overview" aria-current="page">Proyectos</a>
-      <a href="#capital-model">Cómo se estructura</a>
+      <a id="nav-explore" href="?view=catalog" data-view-link="catalog" aria-current="page">Proyectos</a>
+      <a id="nav-space" href="?view=participant" data-view-link="participant">Mi espacio</a>
     </nav>
     <div class="header-actions">
-      <span class="demo-badge"><span aria-hidden="true"></span>Demo ficticia</span>
-      <button id="open-interest" class="button button-primary" type="button">Simular interés</button>
+      <span class="demo-badge"><span aria-hidden="true"></span>Demostración ficticia</span>
     </div>
   </header>
 
   <main id="main-content" class="page-shell">
-    <section id="project-view" aria-labelledby="project-title">
-      <section id="project-overview" class="project-hero">
-        <div class="project-hero__copy">
-          <p class="breadcrumb"><a href="#project-overview">Proyectos</a><span aria-hidden="true">/</span>Ficha de muestra</p>
-          <span id="project-profile-status" class="project-status" role="status" aria-live="polite"><span class="status-mark" aria-hidden="true"></span>Proyecto de demostración · sin oferta de inversión</span>
-          <h1 id="project-title">Cacao bajo sombra</h1>
-          <p id="project-summary" class="project-lead">Una ficha para entender cómo SANA puede conectar la historia de un proyecto, su estructura productiva y el avance agrícola que AgroWay autorice compartir.</p>
-          <div class="hero-actions">
-            <button class="button button-primary" type="button" id="open-interest-secondary">Conocer el proyecto <svg class="arrow-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h13M10 4l6 6-6 6"/></svg></button>
-            <a class="quiet-link" href="#field-reading">Ver seguimiento agrícola</a>
-          </div>
-          <p class="hero-note">Proyecto ficticio creado para explicar la interfaz; no existe una oportunidad de inversión asociada.</p>
+    <section id="explore-view" class="explore-view" aria-labelledby="explore-title">
+      <div class="explore-intro">
+        <div class="explore-intro__copy">
+          <p class="eyebrow">SANA <span aria-hidden="true">/</span> Proyectos productivos</p>
+          <h1 id="explore-title">Proyectos con origen, escala y seguimiento.</h1>
+          <p class="explore-lead">Cada ficha reúne quién impulsa la iniciativa, el predio, su escala, el uso del capital y el avance agrícola que AgroWay autorice compartir.</p>
         </div>
-        <figure class="project-illustration">
-          <svg viewBox="0 0 520 390" role="img" aria-labelledby="cacao-title cacao-desc">
-            <title id="cacao-title">Ilustración de cacao y cultivo bajo sombra</title>
-            <desc id="cacao-desc">Composición vectorial conceptual de hojas, una mazorca y líneas de cultivo, sin escala ni predio asociado.</desc>
-            <rect x="0" y="0" width="520" height="390" rx="4" fill="#214b3b"/>
-            <path d="M24 310C102 256 117 235 170 197M73 360C156 282 201 277 253 236M240 390C281 319 317 279 359 243M408 380C405 324 436 295 497 260" fill="none" stroke="#73906c" stroke-width="1.2" opacity=".72"/>
-            <path d="M15 284C109 235 138 218 190 181M102 380C181 304 218 298 275 252M291 390C319 322 351 286 398 253M454 362C452 322 478 297 515 281" fill="none" stroke="#73906c" stroke-width="1.2" opacity=".52"/>
-            <g fill="none" stroke="#d6dfc8" stroke-width="1.4" opacity=".82">
-              <path d="M71 146c31-44 69-46 106-15-34 42-71 49-106 15Z"/>
-              <path d="M177 131c-31 6-61 22-91 45M334 91c40-23 75-10 97 30-42 24-76 16-97-30Z"/>
-              <path d="M341 115c28 1 55 9 81 22M93 216c-4-42 22-68 66-72 5 45-18 69-66 72Z"/>
-              <path d="M106 205c18-25 35-42 54-55M377 215c22-42 59-50 98-21-23 44-57 53-98 21Z"/>
-              <path d="M390 208c25-6 50-9 76-6"/>
+        <aside class="explore-note" aria-label="Alcance de esta demostración">
+          <span class="note-index">01 <i aria-hidden="true"></i> 01</span>
+          <strong>Un proyecto para explorar</strong>
+          <p>Esta experiencia usa un caso completamente ficticio. No hay una convocatoria abierta ni una inversión disponible.</p>
+          <a href="?view=participant" data-view-link="participant">Así se vería Mi espacio <span aria-hidden="true">↗</span></a>
+        </aside>
+      </div>
+
+      <div class="section-label">
+        <div><p class="eyebrow">Selección de muestra</p><h2>Proyecto destacado</h2></div>
+        <span class="section-count">01 <span aria-hidden="true">/</span> 01 · Ficticio</span>
+      </div>
+
+      <article class="featured-project">
+        <div class="featured-art">
+          <svg viewBox="0 0 640 470" role="img" aria-labelledby="catalog-art-title catalog-art-desc">
+            <title id="catalog-art-title">Diagrama conceptual de un cultivo de cacao</title>
+            <desc id="catalog-art-desc">Vista ilustrativa de hileras de cultivo y sombra, sin representar un predio real ni estar a escala.</desc>
+            <rect width="640" height="470" fill="#344b3b"/>
+            <circle cx="492" cy="102" r="46" fill="#d9b36f"/>
+            <path d="M0 300 640 174v296H0Z" fill="#8d6c48"/>
+            <path d="M0 333 640 205M0 378 640 252M0 423 640 299" fill="none" stroke="#d6c39f" stroke-width="2" opacity=".5"/>
+            <g fill="none" stroke="#e2d4b8" stroke-width="2" opacity=".7">
+              <path d="M98 256v-91m0 42c-31-5-48-25-48-51 28-5 47 10 48 51Zm0-22c27-8 42-29 38-54-27-2-42 15-38 54Z"/>
+              <path d="M236 231v-87m0 39c-30-4-44-22-43-45 27-5 43 9 43 45Zm0-19c26-7 39-26 36-49-25-1-39 13-36 49Z"/>
+              <path d="M395 202v-89m0 38c-28-5-43-22-42-45 25-5 41 10 42 45Zm0-18c25-7 38-25 35-47-25-1-38 13-35 47Z"/>
             </g>
-            <g transform="translate(238 100) rotate(18) scale(.84)">
-              <path d="M58 4c40 0 70 24 74 65 5 48-20 111-49 161-12 20-23 35-31 45-13-17-29-45-43-78C-11 158-29 101-18 59-9 22 19 4 58 4Z" fill="#d8a46a" stroke="#f0d3a5" stroke-width="2"/>
-              <path d="M58 10c-4 54 5 149-6 254M39 16c-17 34-17 75-5 113 9 30 20 71 19 116M78 15c17 37 16 77 3 114-10 29-24 69-29 116M12 42c16 19 25 46 28 76M105 39c-16 20-25 47-29 77M-10 89c23 15 41 37 52 65M125 87c-24 16-42 39-53 67M1 145c19 10 33 27 42 49M111 144c-19 12-34 29-43 51" fill="none" stroke="#714b35" stroke-width="2" opacity=".84"/>
-              <path d="M52 5c-1-16 3-25 13-34" fill="none" stroke="#d6dfc8" stroke-width="2"/>
+            <g fill="#dca268" stroke="#f2d09b" stroke-width="2">
+              <path d="M327 163c27-8 50 5 56 34 7 33-10 75-29 108-9 15-18 27-24 34-9-13-20-34-29-58-14-38-24-77-15-103 7-23 22-35 41-15Z"/>
             </g>
-            <g fill="#d6dfc8" font-family="Arial, sans-serif" font-size="11" letter-spacing="1.4">
-              <text x="27" y="34">SANA / PROYECTO DE MUESTRA</text>
-              <text x="27" y="365">CULTIVO · CONTEXTO · SEGUIMIENTO</text>
+            <path d="M328 171c-2 42 5 118-3 164m-20-139c14 17 21 42 22 68m29-78c-14 19-21 43-23 70m-30-13c12 8 21 20 27 35m39-47c-12 9-21 21-27 36" fill="none" stroke="#765237" stroke-width="2"/>
+            <g fill="#f8f5ed" font-family="Arial, sans-serif" font-size="11" letter-spacing="2">
+              <text x="30" y="38">SANA · PROYECTO 001</text>
+              <text x="30" y="441">DIAGRAMA ILUSTRATIVO · SIN ESCALA</text>
             </g>
           </svg>
-          <figcaption>Ilustración conceptual de cacao, sin referencia a una finca específica.</figcaption>
+          <div class="art-caption"><span>Predio de muestra</span><span>Colombia · ubicación ilustrativa</span></div>
+        </div>
+
+        <div class="featured-copy">
+          <div class="project-tags">
+            <span class="tag tag--accent">Cacao</span>
+            <span class="tag">Datos sintéticos</span>
+          </div>
+          <p class="eyebrow">Ficha SANA · <span id="catalog-project-ref">SANA-DEM-001</span></p>
+          <h3 id="catalog-title">Cacao bajo sombra</h3>
+          <p id="catalog-summary" class="featured-summary">Caso didáctico para explorar la estructura de un proyecto productivo y su seguimiento agrícola autorizado.</p>
+
+          <dl class="featured-facts">
+            <div><dt>Productora</dt><dd id="catalog-promoter">Elena Ríos · personaje ficticio</dd></div>
+            <div><dt>Predio</dt><dd id="catalog-property">Finca La Esperanza · predio ficticio</dd></div>
+            <div><dt>Escala de muestra</dt><dd id="catalog-scale">1,8 ha · 1.980 plantas</dd></div>
+            <div><dt>Capital estructurado</dt><dd id="catalog-capital">COP 48.000.000</dd></div>
+          </dl>
+
+          <div class="featured-bottom">
+            <p><strong id="catalog-production">1.530 kg de cacao seco/año</strong><span>Escenario ilustrativo · año 5</span></p>
+            <button class="button button-primary" id="open-project-card" type="button">Explorar proyecto <span aria-hidden="true">↗</span></button>
+          </div>
+        </div>
+      </article>
+
+      <div class="explore-steps" aria-label="Cómo recorrer la ficha">
+        <div><span>01</span><p><strong>Conoce el origen</strong>Productor, predio, cultivo y área.</p></div>
+        <div><span>02</span><p><strong>Entiende el escenario</strong>Necesidades y supuestos explícitos.</p></div>
+        <div><span>03</span><p><strong>Revisa el avance</strong>Lecturas sintéticas de AgroWay.</p></div>
+      </div>
+      <p class="demo-disclosure">Todos los nombres y valores de esta tarjeta son ficticios. No representan un productor, predio, necesidad de financiación ni oferta real.</p>
+    </section>
+
+    <section id="project-view" aria-labelledby="project-title" hidden>
+      <div class="page-kicker">
+        <button class="text-button" id="back-to-catalog" type="button"><span aria-hidden="true">←</span> Todos los proyectos</button>
+        <span>Ficha de demostración <span aria-hidden="true">·</span> SANA-DEM-001</span>
+      </div>
+
+      <section id="project-overview" class="project-hero">
+        <div class="project-hero__copy">
+          <p class="eyebrow">Cacao <span aria-hidden="true">/</span> Caso didáctico</p>
+          <span id="project-profile-status" class="project-status" role="status" aria-live="polite"><span class="status-mark" aria-hidden="true"></span>Proyecto ficticio · sin oferta de inversión</span>
+          <h1 id="project-title" tabindex="-1">Cacao bajo sombra</h1>
+          <p id="project-summary" class="project-lead">Una ficha didáctica para entender quién impulsa el proyecto, cómo se organiza su producción y qué avance agrícola autoriza compartir.</p>
+          <div class="project-byline">
+            <div><span>Impulsa</span><strong id="profile-promoter">Elena Ríos · personaje ficticio</strong></div>
+            <div><span>Predio</span><strong id="profile-property">Finca La Esperanza · predio ficticio</strong></div>
+          </div>
+          <div class="hero-actions">
+            <button class="button button-primary" type="button" id="open-interest-secondary">Simular interés <span aria-hidden="true">↗</span></button>
+            <a class="quiet-link" href="#field-reading">Ver avance agrícola</a>
+          </div>
+          <p class="hero-note">Los datos no describen una finca ni una oportunidad disponible. La información agrícola es una proyección sintética autorizada solo para la demo.</p>
+        </div>
+        <figure class="project-illustration">
+          <svg viewBox="0 0 560 420" role="img" aria-labelledby="detail-art-title detail-art-desc">
+            <title id="detail-art-title">Cultivo de cacao bajo sombra, ilustración conceptual</title>
+            <desc id="detail-art-desc">Diagrama vectorial de una mazorca, hojas y líneas de cultivo; no es una fotografía ni una representación de la finca.</desc>
+            <rect width="560" height="420" fill="#344b3b"/>
+            <path d="M0 310 560 222M0 355 560 267M0 400 560 312" fill="none" stroke="#d6c39f" stroke-width="1.4" opacity=".55"/>
+            <g fill="none" stroke="#e2d4b8" stroke-width="2">
+              <path d="M70 178c24-37 58-38 87-12-26 35-58 40-87 12Zm15 3c20-20 42-32 64-39M358 112c31-19 59-9 76 23-32 19-59 13-76-23Zm9 20c22-1 42 5 62 16M104 240c-4-34 17-54 53-57 4 36-15 56-53 57Z"/>
+              <path d="M111 232c14-20 28-34 43-45M400 230c18-34 47-40 78-17-18 35-45 42-78 17Z"/>
+            </g>
+            <g transform="translate(226 111) rotate(15) scale(.78)">
+              <path d="M58 4c40 0 70 24 74 65 5 48-20 111-49 161-12 20-23 35-31 45-13-17-29-45-43-78C-11 158-29 101-18 59-9 22 19 4 58 4Z" fill="#dca268" stroke="#f2d09b" stroke-width="2"/>
+              <path d="M58 10c-4 54 5 149-6 254M39 16c-17 34-17 75-5 113 9 30 20 71 19 116M78 15c17 37 16 77 3 114-10 29-24 69-29 116M12 42c16 19 25 46 28 76M105 39c-16 20-25 47-29 77M-10 89c23 15 41 37 52 65M125 87c-24 16-42 39-53 67" fill="none" stroke="#765237" stroke-width="2"/>
+            </g>
+            <g fill="#f8f5ed" font-family="Arial, sans-serif" font-size="10" letter-spacing="1.6">
+              <text x="25" y="30">SANA / CULTIVO ILUSTRATIVO</text>
+              <text x="25" y="396">SIN GEOREFERENCIA · SIN ESCALA</text>
+            </g>
+          </svg>
+          <figcaption>Ilustración original de la demo; no corresponde a imágenes ni coordenadas de un predio real.</figcaption>
         </figure>
       </section>
 
+      <div class="project-summary-grid" aria-label="Datos rápidos del proyecto ficticio">
+        <article><span>Área productiva</span><strong id="profile-area">1,8 ha</strong><small>Supuesto de la ficha SANA</small></article>
+        <article><span>Plantas asociadas</span><strong id="profile-plants">1.980 plantas</strong><small>No es inventario de AgroWay</small></article>
+        <article><span>Necesidad de capital</span><strong id="profile-capital">COP 48.000.000</strong><small id="capital-period">Primeros 24 meses · supuesto ficticio</small></article>
+      </div>
+
       <nav class="project-nav" aria-label="Secciones de la ficha del proyecto">
-        <a href="#project-structure">El proyecto</a>
+        <a href="#project-structure">Proyecto</a>
         <a href="#capital-model">Capital y producción</a>
-        <a href="#field-reading">Avance agrícola</a>
-        <a href="#participant-space">Seguimiento personal</a>
+        <a href="#field-reading">Avance AgroWay</a>
+        <a href="#participant-space">Seguimiento</a>
       </nav>
 
       <div class="content-layout">
         <div class="main-column">
           <section id="project-structure" class="content-section project-story" aria-labelledby="structure-title">
             <div class="section-heading">
-              <div>
-                <h2 id="structure-title">La oportunidad empieza por entender el proyecto.</h2>
-              </div>
-              <span class="data-state data-state--synthetic">Datos sintéticos</span>
+              <div><p class="eyebrow">01 · Identidad y escala</p><h2 id="structure-title">El proyecto empieza por conocer a quien lo impulsa.</h2></div>
+              <span class="data-state data-state--synthetic">Datos ficticios</span>
             </div>
-            <p class="section-intro">SANA reúne quién impulsa el proyecto, el predio, la escala productiva y las etapas por financiar. Esta persona, finca y todas las cifras son ficticias: sirven para recorrer la experiencia, no describen una oferta disponible.</p>
+            <p class="section-intro">La ficha organiza la información que una persona necesita para entender una iniciativa agrícola. Productora, predio y ubicación están inventados para esta demostración.</p>
             <dl class="project-profile">
-              <div><dt>Proyecto</dt><dd id="profile-title">Cacao bajo sombra</dd><small>Identificador SANA de muestra</small></div>
-              <div><dt>Responsable</dt><dd id="profile-promoter">Personaje ficticio</dd><small>Identidad creada para la demostración</small></div>
-              <div><dt>Predio</dt><dd id="profile-property">Predio ficticio</dd><small>No corresponde a una finca real</small></div>
-              <div><dt>Ubicación</dt><dd id="profile-location">Zona ilustrativa</dd><small>Localización de muestra, no georreferenciada</small></div>
+              <div><dt>Proyecto</dt><dd id="profile-title">Cacao bajo sombra</dd><small>Identificador de muestra</small></div>
+              <div><dt>Productora</dt><dd>Elena Ríos</dd><small>Personaje ficticio</small></div>
+              <div><dt>Predio</dt><dd>Finca La Esperanza</dd><small>Predio de muestra, sin registro real</small></div>
+              <div><dt>Ubicación</dt><dd id="profile-location">Vereda ilustrativa · Colombia</dd><small>Sin georreferencia</small></div>
               <div><dt>Cultivo</dt><dd id="profile-crop">Cacao</dd><small>Según el ciclo agrícola sintético</small></div>
             </dl>
-            <div class="crop-schematic" aria-label="Resumen del cultivo">
-              <div class="crop-schematic__label"><span>Escala productiva del ejemplo</span><span class="data-state data-state--synthetic">Supuesto didáctico</span></div>
-              <div class="crop-schematic__row"><span>Área productiva</span><strong id="profile-area">1,8 ha</strong><small>Cifra ficticia de la ficha SANA</small></div>
-              <div class="crop-schematic__row"><span>Plantas asociadas</span><strong id="profile-plants">1.980 plantas</strong><small>Supuesto SANA; no es inventario reportado por AgroWay</small></div>
-              <div class="crop-schematic__row"><span>Ciclo de referencia</span><strong id="cycle-label">Ciclo de cacao de muestra</strong><small>El resumen agrícola aparece abajo</small></div>
+            <div class="crop-schematic" aria-label="Escala productiva de muestra">
+              <div class="crop-schematic__label"><span>Escala del cultivo</span><span class="data-state data-state--synthetic">Supuesto SANA</span></div>
+              <div class="crop-schematic__row"><span>Área productiva</span><strong class="profile-area-copy">1,8 ha</strong><small>Valor ficticio de la ficha</small></div>
+              <div class="crop-schematic__row"><span>Plantas asociadas</span><strong class="profile-plants-copy">1.980 plantas</strong><small>Supuesto de densidad; no es conteo de campo</small></div>
+              <div class="crop-schematic__row"><span>Ciclo de referencia</span><strong id="cycle-label">Ciclo de cacao de muestra</strong><small>El avance aprobado aparece más abajo</small></div>
             </div>
           </section>
 
           <section id="capital-model" class="content-section capital-section" aria-labelledby="capital-title">
             <div class="section-heading">
-              <div>
-                <h2 id="capital-title">Capital, producción y utilidad.</h2>
-              </div>
-                <span class="data-state data-state--synthetic">Supuestos ficticios</span>
+              <div><p class="eyebrow">02 · Necesidad y escenario</p><h2 id="capital-title">Capital, producción y límites del modelo.</h2></div>
+              <span class="data-state data-state--synthetic">Supuestos ficticios</span>
             </div>
-            <p class="section-intro">El caso permite ver cómo SANA presentaría el uso del capital y un escenario productivo. Área, densidad, precio, producción y costos son valores creados para la interfaz; no son parámetros técnicos validados ni una promesa de resultado.</p>
+            <p class="section-intro">Las cifras muestran cómo SANA podría explicar una estructura productiva antes de abrir una conversación. No son parámetros técnicos validados ni una promesa de resultado.</p>
+            <div class="capital-highlight"><span>Necesidad estructurada para la muestra</span><strong id="panel-capital">COP 48.000.000</strong><small id="capital-period-copy">Primeros 24 meses · presupuesto ficticio</small></div>
+            <div class="funds-breakdown">
+              <div class="funds-heading"><div><h3>Uso propuesto del capital</h3><p>Distribución didáctica · suma verificada en la ficha</p></div><span>100% <span class="sr-only">del presupuesto ficticio</span></span></div>
+              <ul id="capital-use-list" aria-label="Usos ficticios del capital"></ul>
+            </div>
             <div class="model-ledger" aria-label="Escenario económico sintético">
-              <div class="model-row"><div><strong>Necesidad de capital</strong><span id="capital-period">Primeros 24 meses · presupuesto ficticio</span></div><b id="profile-capital">COP 48.000.000</b></div>
               <div class="model-row"><div><strong>Producción estimada</strong><span id="production-basis">1,8 ha × 850 kg/ha/año · escenario ilustrativo</span></div><b id="profile-production">1.530 kg de cacao seco/año</b></div>
               <div class="model-row"><div><strong>Ventas brutas del escenario</strong><span><span id="price-per-kg">COP 15.000/kg</span> · precio supuesto, no cotización</span></div><b id="gross-sales">COP 22.950.000/año</b></div>
-              <div class="model-row"><div><strong>Costos operativos del escenario</strong><span>Presupuesto anual ficticio para esta maqueta</span></div><b id="operating-costs">COP 12.000.000/año</b></div>
-              <div class="model-row model-row--result"><div><strong>Excedente operativo ilustrativo</strong><span>Ventas brutas menos costos operativos · antes de financiación, impuestos, pérdidas, logística y distribución</span></div><b id="operating-surplus">COP 10.950.000/año</b></div>
+              <div class="model-row"><div><strong>Costos operativos ilustrativos</strong><span>Presupuesto anual ficticio</span></div><b id="operating-costs">COP 12.000.000/año</b></div>
+              <div class="model-row model-row--result"><div><strong>Excedente operativo</strong><span>Ventas menos costos operativos, antes de otros egresos</span></div><b id="operating-surplus">COP 10.950.000/año</b></div>
               <div class="model-row"><div><strong>Utilidad neta / retorno participante</strong><span>Requiere costos completos, estructura jurídica y revisión humana</span></div><b id="profile-utility">No calculada</b></div>
             </div>
-            <div class="funds-breakdown"><h3>En qué se distribuiría el capital del ejemplo</h3><ul id="capital-use-list" aria-label="Usos ficticios del capital"></ul></div>
-            <p id="model-note" class="model-note"><strong>Importante:</strong> el excedente no es utilidad neta, dividendos, tasa de retorno ni monto a recibir por una persona. La cosecha de 12 kg que aparece abajo es un evento observado en otro fixture de demostración; no valida ni alimenta este escenario de producción.</p>
+            <p id="model-note" class="model-note"><strong>Alcance:</strong> el excedente no es utilidad neta, dividendo, tasa de retorno ni monto a recibir. La cosecha de 12 kg que aparece abajo es un evento sintético separado; no valida ni alimenta este escenario.</p>
           </section>
 
           <section id="field-reading" class="content-section field-section" aria-labelledby="field-title">
             <div class="section-heading">
-              <div>
-                <h2 id="field-title">Lo que AgroWay registra en el ciclo.</h2>
-              </div>
-              <span id="source-status" class="data-state data-state--loading" data-state="loading" role="status" aria-live="polite">Validando la lectura</span>
+              <div><p class="eyebrow">03 · Seguimiento independiente</p><h2 id="field-title">AgroWay conserva la historia de campo.</h2></div>
+              <span id="source-status" class="data-state data-state--loading" data-state="loading" role="status" aria-live="polite">Validando lectura…</span>
             </div>
-            <p class="section-intro">AgroWay conserva la verdad del trabajo agrícola. SANA recibe un resumen aprobado para este proyecto y lo presenta con su fuente y fecha.</p>
+            <p class="section-intro">SANA solo recibe un resumen aprobado para esta ficha. Los registros permanecen en AgroWay y la lectura no permite modificar labores ni datos agrícolas.</p>
             <div id="read-loading" class="read-message" role="status">Validando la proyección sintética de AgroWay…</div>
-            <div id="read-error" class="read-message read-error" role="alert" hidden>
-              No se pudo validar la lectura de AgroWay. La ficha sigue disponible; intenta recargar la demostración para volver a consultar el ejemplo.
-            </div>
+            <div id="read-error" class="read-message read-error" role="alert" hidden>No se pudo validar la lectura de AgroWay. La ficha sigue disponible; recarga esta demostración para volver a consultar el ejemplo.</div>
             <div id="read-content" hidden>
               <div class="field-summary">
-                <div><span>Tareas completadas</span><strong id="tasks-done">—</strong><small>En el fixture aprobado</small></div>
-                <div><span>Alertas abiertas</span><strong id="alerts-open">—</strong><small>Requieren seguimiento operativo</small></div>
-                <div><span>Cosecha registrada</span><strong id="harvest-summary">—</strong><small>Registro observado en la muestra</small></div>
+                <div><span>Tareas completadas</span><strong id="tasks-done">—</strong><small>En la proyección aprobada</small></div>
+                <div><span>Alertas abiertas</span><strong id="alerts-open">—</strong><small>Seguimiento operativo</small></div>
+                <div><span>Cosecha registrada</span><strong id="harvest-summary">—</strong><small>Evento separado del modelo</small></div>
               </div>
-              <div class="timeline-heading"><h3>Hitos recibidos</h3><p>Eventos del ciclo incluidos en la proyección de demostración.</p></div>
+              <div class="timeline-heading"><div><p class="eyebrow">Lectura recibida</p><h3>Hitos del ciclo</h3></div><p>Eventos aprobados incluidos en la proyección sintética.</p></div>
               <ol id="milestones-list" class="milestones"></ol>
               <p id="source-provenance" class="provenance"></p>
             </div>
           </section>
 
           <section id="participant-space" class="content-section participant-section" aria-labelledby="participant-title">
-            <div class="participant-copy">
-              <h2 id="participant-title">Cada proyecto, con un seguimiento propio.</h2>
-              <p>Cuando exista una participación real y validada, la persona podrá consultar sus proyectos, los compromisos acordados, los aportes conciliados, documentos e hitos agrícolas que AgroWay haya autorizado compartir.</p>
+            <div class="section-heading">
+              <div><p class="eyebrow">04 · Próximo paso del producto</p><h2 id="participant-title">Una relación que continúa más allá del aporte.</h2></div>
+              <span class="planned-tag">Diseño previsto</span>
             </div>
-            <div class="participant-status"><span class="status-mark" aria-hidden="true"></span><div><strong>Módulo proyectado</strong><small>Esta demo no crea cuentas ni contiene inversiones.</small></div></div>
+            <p>Un espacio personal podría reunir proyectos asociados, compromisos revisados, aportes conciliados y novedades agrícolas que AgroWay autorice compartir. La demo no crea cuentas ni inversiones.</p>
+            <button class="text-button" id="open-participant-space" type="button">Ver el espacio de seguimiento <span aria-hidden="true">↗</span></button>
           </section>
         </div>
 
-        <aside class="participation-panel" aria-label="Interés en el proyecto">
-          <h2>Interés en el proyecto</h2>
-          <p>Una oportunidad real requiere ficha completa y revisión humana; el dinero se gestionaría por canales externos definidos para cada proyecto.</p>
-          <div class="panel-detail"><span>Necesidad de capital</span><strong id="panel-capital">En estructuración</strong></div>
-          <div class="panel-detail"><span>Estado del ejemplo</span><strong>Solo demostración</strong></div>
-          <button class="button button-light" type="button" id="open-interest-panel">Simular interés <svg class="arrow-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h13M10 4l6 6-6 6"/></svg></button>
-          <p class="panel-footnote">La prueba termina en esta página y no inicia un proceso real.</p>
+        <aside class="participation-panel" aria-label="Estado de participación del proyecto">
+          <p class="eyebrow">Ficha SANA · SANA-DEM-001</p>
+          <h2>Un proyecto para conocer.</h2>
+          <p>Esta demostración no recibe aportes ni acepta inversiones. Una oportunidad real requeriría validación del proyecto, revisión humana y condiciones definidas fuera de esta pantalla.</p>
+          <div class="panel-detail"><span>Necesidad de capital</span><strong id="panel-capital-copy">COP 48.000.000</strong></div>
+          <div class="panel-detail"><span>Estado</span><strong>Sin oferta abierta</strong></div>
+          <button class="button button-light" type="button" id="open-interest-panel">Simular interés <span aria-hidden="true">↗</span></button>
+          <p class="panel-footnote">La selección se descarta al recargar y no llega a un servidor.</p>
         </aside>
       </div>
     </section>
 
+    <section id="participant-view" class="participant-view" aria-labelledby="space-title" hidden>
+      <div class="page-kicker"><button class="text-button" id="back-to-catalog-space" type="button"><span aria-hidden="true">←</span> Explorar proyectos</button><span>Mi espacio · vista de producto prevista</span></div>
+      <div class="space-intro">
+        <div><p class="eyebrow">SANA <span aria-hidden="true">/</span> Mi espacio</p><h1 id="space-title" tabindex="-1">Tus proyectos, con seguimiento claro.</h1><p class="explore-lead">La experiencia completa podrá reunir el avance productivo, los acuerdos y la información financiera de cada proyecto asociado a una persona.</p></div>
+        <div class="space-stamp"><span>Diseño de producto</span><strong>En construcción</strong><small>Esta demo no crea usuarios ni posiciones.</small></div>
+      </div>
+      <section class="empty-space" aria-labelledby="empty-space-title">
+        <div class="empty-space__mark" aria-hidden="true"><span></span><span></span><span></span></div>
+        <p class="eyebrow">Sin proyectos asociados</p>
+        <h2 id="empty-space-title">Aquí verías lo que has decidido acompañar.</h2>
+        <p>Cuando exista un acuerdo real revisado por las personas responsables, cada proyecto podrá mostrar sus hitos, documentos, compromisos y aportes conciliados. La lectura agronómica llegaría desde AgroWay con su fuente, fecha y autorización.</p>
+        <button class="button button-secondary" id="back-to-projects-empty" type="button">Volver a los proyectos</button>
+      </section>
+      <div class="space-features">
+        <article><span class="feature-index">01</span><p class="eyebrow">Acuerdos</p><h3>Compromisos revisados</h3><p>Separados de los aportes efectivamente registrados.</p><span class="planned-tag">Previsto</span></article>
+        <article><span class="feature-index">02</span><p class="eyebrow">Conciliación</p><h3>Aportes confirmados</h3><p>Con fecha, soporte y validación humana.</p><span class="planned-tag">Previsto</span></article>
+        <article><span class="feature-index">03</span><p class="eyebrow">Campo</p><h3>Lecturas autorizadas</h3><p>Hitos aprobados desde AgroWay, en modo de solo lectura.</p><span class="planned-tag">Previsto</span></article>
+      </div>
+    </section>
+
     <section id="interest-view" class="journey-view" aria-labelledby="interest-title" hidden>
-      <div class="journey-progress" aria-label="Recorrido de la demostración"><span class="journey-progress__active">Proyecto</span><span aria-hidden="true"></span><span aria-current="step">Interés simulado</span></div>
-      <button class="back-button" type="button" id="back-to-project"><svg class="arrow-icon arrow-icon--back" viewBox="0 0 20 20" aria-hidden="true"><path d="M17 10H4m6 6-6-6 6-6"/></svg>Volver a la ficha</button>
-      <div class="journey-heading"><h1 id="interest-title" tabindex="-1">¿Qué te gustaría conocer del proyecto?</h1><p>Elige una opción para ver cómo podría empezar una conversación. Tu selección solo vive en esta sesión de demostración.</p></div>
+      <div class="journey-progress" aria-label="Recorrido de la demostración"><span>Proyecto</span><span aria-hidden="true"></span><span aria-current="step">Interés simulado</span></div>
+      <button class="text-button" type="button" id="back-to-project"><span aria-hidden="true">←</span> Volver a la ficha</button>
+      <div class="journey-heading"><p class="eyebrow">Paso 2 · Interés</p><h1 id="interest-title" tabindex="-1">¿Qué te gustaría conocer del proyecto?</h1><p>Elige una opción para ver cómo podría empezar una conversación. Tu selección solo vive en esta sesión de demostración.</p></div>
       <form id="interest-form" novalidate>
         <fieldset id="intent-fieldset" class="intent-fieldset">
           <legend>Quiero conocer…</legend>
@@ -177,22 +280,23 @@
         <label class="demo-acknowledgment"><input id="demo-acknowledgment" type="checkbox"><span>Confirmo que es una demostración ficticia y que mi selección no equivale a una solicitud o inversión.</span></label>
         <p id="ack-error" class="form-error" role="alert" hidden>Confirma que se trata solo de una demostración.</p>
         <div class="form-actions"><button class="button button-secondary" type="button" id="cancel-interest">Cancelar</button><button class="button button-primary" type="submit">Ver confirmación simulada</button></div>
-        <p class="privacy-note">El formulario está libre de datos personales y financieros. La selección queda en esta sesión, se descarta al recargar y no llega a un servidor.</p>
+        <p class="privacy-note">No solicitamos datos personales ni financieros. La selección queda en esta sesión, se descarta al recargar y no llega a un servidor.</p>
       </form>
     </section>
 
     <section id="confirmation-view" class="confirmation-view" aria-labelledby="confirmation-title" hidden>
       <div class="confirmation-rule" aria-hidden="true"></div>
-      <h1 id="confirmation-title" tabindex="-1">Interés simulado</h1>
-      <p>El recorrido termina aquí. En un proceso real, el equipo revisaría el proyecto antes de iniciar una conversación o mover dinero.</p>
-      <div class="confirmation-detail"><span>Lo que elegiste conocer</span><strong id="confirmed-intent">—</strong></div>
-      <button class="button button-primary" id="restart-demo" type="button">Volver a la ficha del proyecto</button>
+      <p class="eyebrow">SANA · Demo</p>
+      <h1 id="confirmation-title" tabindex="-1">Siguiente paso: revisión humana.</h1>
+      <p>La selección fue simulada y no se guardó. En una experiencia real, el equipo revisaría el proyecto antes de iniciar una conversación o gestionar cualquier aporte.</p>
+      <div class="confirmation-detail"><span>Te gustaría conocer</span><strong id="confirmed-intent">—</strong></div>
+      <button class="button button-primary" id="restart-demo" type="button">Volver a explorar proyectos</button>
     </section>
   </main>
 
   <footer class="site-footer">
-    <a class="wordmark wordmark--footer" href="#project-overview">SANA<span class="wordmark-dot" aria-hidden="true">.</span></a>
-    <p>Datos ficticios para explorar la interfaz; no deben guiar decisiones de inversión ni de operación agrícola.</p>
+    <a class="wordmark wordmark--footer" href="?view=catalog">SANA</a>
+    <p>Demo local con nombres y cifras ficticias. No constituye una invitación, recomendación u oferta de inversión.</p>
   </footer>
 </body>
 </html>

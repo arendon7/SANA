@@ -1,21 +1,32 @@
-# SANA project dossier demo
+# SANA · proyectos productivos
 
-A local-only synthetic experience for the first SANA journey: explore a fictional productive project, review its land, plants, capital allocation and illustrative production model, read an approved-for-demo AgroWay progress projection, and simulate interest for human review.
+Demo local para recorrer la primera experiencia propia de SANA: explorar un proyecto ficticio, abrir una ficha con predio y escala, revisar la necesidad de capital y el modelo productivo, consultar una lectura AgroWay sintética y simular interés para revisión humana.
 
-## Run locally
+## Recorrido
 
-From the repository root, run:
+1. Explorar un caso de muestra en el catálogo.
+2. Revisar productora, predio, cultivo, área y número de plantas.
+3. Ver uso del capital, supuestos de producción y valores aún no calculados.
+4. Consultar la procedencia y vigencia de la lectura aprobada de AgroWay.
+5. Simular una intención y terminar en una revisión humana.
+6. Abrir “Mi espacio” para conocer la vista futura de seguimiento, sin inventar cuentas o inversiones.
+
+## Ejecutar localmente
+
+Desde la raíz del repositorio:
 
 ```sh
 node apps/sana-project-demo/server.mjs
 ```
 
-Open `http://127.0.0.1:4175/`. The built-in Node server binds to loopback and exposes only this demo's files plus the SANA read-only projection validator. It has no external packages, product backend, persistence, analytics, authentication, real projects, or real user data.
+Abrir `http://127.0.0.1:4175/`. El servidor Node integrado se vincula a loopback y solo expone los archivos de esta demo junto con el validador de lectura. No usa dependencias externas, backend de producto, persistencia, analítica, autenticación ni datos de usuarios.
 
-## Data and limits
+## Datos y límites
 
-`project-dossier-v1.json` contains a fully fictional SANA case with an invented farmer and property, area, plant count, capital uses, and an illustrative year-five production/economic scenario. These numbers only demonstrate how a dossier can show its assumptions and arithmetic. They are not agronomic benchmarks, a real budget, validated forecast, investment offer, net profit, dividend, or participant return. `netUtilityEstimate` is deliberately uncalculated because the sample does not model all costs and terms. `project-projection-v1.json` is a separate synthetic AgroWay fixture validated by `apps/sana-project-read/reader-v1.mjs`; stale or unmapped readings stay hidden. The 12 kg example is a recorded synthetic harvest, not a yield projection and does not feed the year-five model. The interest flow is held in memory, requests no contact details, sends no network request, and is discarded on reload. The confirmation illustrates a human-review step; it does not create a request, commitment, investment, payment, or field update.
+`project-dossier-v1.json` contiene una productora y un predio ficticios, área, cantidad de plantas, usos de capital y un escenario ilustrativo. Las cifras demuestran cómo una ficha puede mostrar supuestos y su aritmética; no son benchmarks agronómicos, presupuestos reales, pronósticos validados, oferta de inversión, utilidad neta, dividendos ni retorno para participantes. `netUtilityEstimate` no se calcula porque la muestra no modela todos los costos ni términos.
 
-The participant portfolio is a planned module described in the interface. No account, holdings, commitments, or returns are shown in this demo. `DESIGN.md` and `.impeccable/design.json` document a provisional SANA-specific direction; their palette and local font fallbacks are not approved brand tokens.
+`project-projection-v1.json` es un fixture AgroWay separado y sintético que valida `apps/sana-project-read/reader-v1.mjs`; las lecturas vencidas o mal mapeadas se ocultan. La cosecha sintética de 12 kg no alimenta el escenario del año cinco. La intención simulada se descarta al recargar, no solicita datos personales o financieros, no crea una solicitud ni llama a servicios. “Mi espacio” describe capacidades previstas y permanece sin posiciones.
 
-This is a candidate demo, not a production application or deployment. A hosting destination, audience, authentication, and real-data access have not been approved for this app.
+`DESIGN.md` y `.impeccable/design.json` documentan una dirección específica de SANA, independiente de la identidad GREENATICS. El wordmark tipográfico es provisional; no se encontró un logo autónomo validado. La paleta y las fuentes de respaldo tampoco están aprobadas.
+
+Esta entrega es una demo candidata, no una aplicación productiva ni un despliegue. No habilita audiencia, cuentas, inversiones, pagos, datos reales o servicios adicionales.
