@@ -9,7 +9,7 @@ Demo local para recorrer la primera experiencia propia de SANA: comparar dos pro
 3. Ver uso del capital, supuestos de producción y valores aún no calculados.
 4. Consultar la procedencia y vigencia de la lectura aprobada de AgroWay.
 5. Simular una intención y terminar en una revisión humana.
-6. Abrir “Mi espacio”: primero muestra el estado vacío y, después de simular interés por uno o más proyectos, reúne tarjetas efímeras por proyecto. Cada una puede mostrar el resumen AgroWay sintético aprobado de su propio ciclo —labores, alertas y cosecha— con su fecha de corte. Si la lectura vence o no está disponible, se ocultan sus indicadores; los valores ausentes no se convierten en cero.
+6. Abrir “Mi espacio”: estado vacío, resumen de intereses de la sesión y una tarjeta por proyecto. Cada tarjeta separa su ficha (cultivo, escala y necesidad ficticios) de la lectura AgroWay aprobada para ese mismo proyecto. Las lecturas vencidas o no disponibles no presentan cifras; acuerdos y aportes permanecen deshabilitados.
 
 ## Ejecutar localmente
 

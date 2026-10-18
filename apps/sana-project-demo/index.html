@@ -232,11 +232,11 @@
 
           <section id="participant-space" class="content-section participant-section" aria-labelledby="participant-title">
             <div class="section-heading">
-              <div><p class="eyebrow">04 · Próximo paso del producto</p><h2 id="participant-title">Una relación que continúa más allá del aporte.</h2></div>
-              <span class="planned-tag">Diseño previsto</span>
+              <div><p class="eyebrow">04 · Seguimiento por proyecto</p><h2 id="participant-title">La historia agrícola sigue en AgroWay.</h2></div>
+              <span class="planned-tag">Roadmap</span>
             </div>
-            <p>Un espacio personal podría reunir proyectos asociados, compromisos revisados, aportes conciliados y novedades agrícolas que AgroWay autorice compartir. La demo no crea cuentas ni inversiones.</p>
-            <button class="text-button" id="open-participant-space" type="button">Ver el espacio de seguimiento <span aria-hidden="true">↗</span></button>
+            <p>Un espacio personal reunirá cada proyecto por separado: documentos y acuerdos revisados por personas responsables, aportes conciliados y lecturas de campo autorizadas desde AgroWay. Esta demo solo muestra datos sintéticos y no crea cuentas ni inversiones.</p>
+            <button class="text-button" id="open-participant-space" type="button">Ver Mi espacio de demostración <span aria-hidden="true">↗</span></button>
           </section>
         </div>
 
@@ -253,27 +253,38 @@
     </section>
 
     <section id="participant-view" class="participant-view" aria-labelledby="space-title" hidden>
-      <div class="page-kicker"><button class="text-button" id="back-to-catalog-space" type="button"><span aria-hidden="true">←</span> Explorar proyectos</button><span>Mi espacio · vista de producto prevista</span></div>
+      <div class="page-kicker"><button class="text-button" id="back-to-catalog-space" type="button"><span aria-hidden="true">←</span> Explorar proyectos</button><span>Mi espacio <span aria-hidden="true">·</span> demo</span></div>
       <div class="space-intro">
-        <div><p class="eyebrow">SANA <span aria-hidden="true">/</span> Mi espacio</p><h1 id="space-title" tabindex="-1">Tus proyectos, con seguimiento claro.</h1><p class="explore-lead">La experiencia completa podrá reunir el avance productivo, los acuerdos y la información financiera de cada proyecto asociado a una persona.</p></div>
-        <div class="space-stamp"><span>Diseño de producto</span><strong>En construcción</strong><small>Esta demo no crea usuarios ni posiciones.</small></div>
+        <div><p class="eyebrow">SANA <span aria-hidden="true">/</span> Tu seguimiento</p><h1 id="space-title" tabindex="-1">Proyectos que sigues, en un solo lugar.</h1><p class="explore-lead">En una experiencia completa, cada proyecto tendría su propio historial de acuerdos, aportes conciliados y novedades del campo. Esta demo solo reúne intereses de muestra dentro de esta pestaña.</p></div>
+        <div class="space-stamp" aria-label="Límites de esta demostración"><span>Estado de esta demo</span><strong>Sin inversiones registradas</strong><small>No hay cuenta, pagos ni datos persistentes.</small></div>
       </div>
       <section id="empty-space" class="empty-space" aria-labelledby="empty-space-title">
         <div class="empty-space__mark" aria-hidden="true"><span></span><span></span><span></span></div>
-        <p class="eyebrow">Sin proyectos asociados</p>
-        <h2 id="empty-space-title">Aquí verías lo que has decidido acompañar.</h2>
-        <p>Cuando exista un acuerdo real revisado por las personas responsables, cada proyecto podrá mostrar sus hitos, documentos, compromisos y aportes conciliados. La lectura agronómica llegaría desde AgroWay con su fuente, fecha y autorización.</p>
-        <button class="button button-secondary" id="back-to-projects-empty" type="button">Volver a los proyectos</button>
+        <p class="eyebrow">Tu espacio está vacío</p>
+        <h2 id="empty-space-title">Empieza por conocer un proyecto.</h2>
+        <p>Explora una ficha y prueba el interés simulado. En una futura versión, los acuerdos y aportes solo aparecerían después de una revisión humana; el avance agrícola llegaría desde AgroWay con su fuente, fecha y autorización.</p>
+        <button class="button button-secondary" id="back-to-projects-empty" type="button">Explorar proyectos de muestra</button>
       </section>
       <section id="session-space" class="session-space" aria-labelledby="session-space-title" hidden>
-        <div class="session-space__heading"><div><p class="eyebrow">Recorrido de esta sesión</p><h2 id="session-space-title">Intereses de demostración</h2></div><div class="session-space__actions"><span class="data-state data-state--synthetic">Temporal · no enviado</span><button class="text-button" id="restart-demo" type="button">Borrar esta demo</button></div></div>
+        <div class="session-space__heading"><div><p class="eyebrow">Actividad de esta pestaña</p><h2 id="session-space-title">Proyectos que sigues</h2><p>Las selecciones son ficticias y desaparecen al recargar.</p></div><div class="session-space__actions"><span class="data-state data-state--synthetic">Interés simulado · no enviado</span><button class="text-button" id="restart-demo" type="button">Reiniciar demo</button></div></div>
+        <section id="session-overview" class="session-overview" aria-labelledby="session-overview-title" hidden>
+          <div class="session-overview__heading"><p class="eyebrow">Resumen de la sesión</p><h3 id="session-overview-title">Una ficha por proyecto, con su propia lectura agrícola.</h3></div>
+          <dl class="session-overview__metrics">
+            <div><dt>Proyectos seguidos</dt><dd id="session-project-count">0</dd><small>Intereses locales de muestra</small></div>
+            <div><dt>Lecturas vigentes</dt><dd id="session-reading-count">0 de 0</dd><small>Proyecciones AgroWay aprobadas</small></div>
+            <div><dt>Acuerdos y aportes</dt><dd>No habilitados</dd><small>La demo no registra inversiones</small></div>
+          </dl>
+        </section>
         <div id="session-space-list" class="session-space__list" aria-live="polite"></div>
       </section>
-      <div class="space-features">
-        <article><span class="feature-index">01</span><p class="eyebrow">Acuerdos</p><h3>Compromisos revisados</h3><p>Separados de los aportes efectivamente registrados.</p><span class="planned-tag">Previsto</span></article>
-        <article><span class="feature-index">02</span><p class="eyebrow">Conciliación</p><h3>Aportes confirmados</h3><p>Con fecha, soporte y validación humana.</p><span class="planned-tag">Previsto</span></article>
-        <article><span class="feature-index">03</span><p class="eyebrow">Campo</p><h3>Lecturas autorizadas</h3><p>Hitos aprobados desde AgroWay, en modo de solo lectura.</p><span class="planned-tag">Previsto</span></article>
-      </div>
+      <section class="space-journey" aria-labelledby="space-journey-title">
+        <div class="space-journey__heading"><div><p class="eyebrow">Cómo se construiría la relación</p><h2 id="space-journey-title">Del proyecto a su seguimiento.</h2></div><p>Las etapas reales dependen de validaciones, acuerdos y datos autorizados; la demo no las activa.</p></div>
+        <ol class="space-journey__steps">
+          <li><span class="space-journey__number">01</span><div><strong>Conocer</strong><p>Persona, predio, cultivo, escala y necesidad.</p><span class="planned-tag">Visible en demo</span></div></li>
+          <li><span class="space-journey__number">02</span><div><strong>Revisar</strong><p>Validación humana y documentos del proyecto.</p><span class="planned-tag">Etapa futura</span></div></li>
+          <li><span class="space-journey__number">03</span><div><strong>Acompañar</strong><p>Acuerdos, aportes conciliados y avance autorizado de AgroWay.</p><span class="planned-tag">Etapa futura</span></div></li>
+        </ol>
+      </section>
     </section>
 
     <section id="interest-view" class="journey-view" aria-labelledby="interest-title" hidden>

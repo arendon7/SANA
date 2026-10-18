@@ -78,8 +78,14 @@ function renderParticipantSpace() {
   const empty = document.querySelector('#empty-space');
   const sessionSpace = document.querySelector('#session-space');
   const list = document.querySelector('#session-space-list');
+  const overview = document.querySelector('#session-overview');
+  const readings = items.map((item) => participantFieldReadings.get(item.projectRef));
+  const freshReadings = readings.filter((reading) => reading?.state === 'FRESH' && reading.summary).length;
   empty.hidden = items.length > 0;
   sessionSpace.hidden = items.length === 0;
+  overview.hidden = items.length === 0;
+  document.querySelector('#session-project-count').textContent = formatCount(items.length);
+  document.querySelector('#session-reading-count').textContent = formatCount(freshReadings) + ' de ' + formatCount(items.length);
   list.replaceChildren();
   items.forEach((item) => {
     const card = document.createElement('article');
@@ -95,7 +101,7 @@ function renderParticipantSpace() {
     copy.append(eyebrow, title);
     const status = document.createElement('span');
     status.className = 'data-state data-state--synthetic';
-    status.textContent = 'Interés simulado';
+    status.textContent = 'Interés ficticio · no enviado';
     heading.append(copy, status);
     const details = document.createElement('dl');
     details.className = 'session-interest-card__details';
@@ -109,19 +115,36 @@ function renderParticipantSpace() {
     const stageLabel = document.createElement('dt');
     stageLabel.textContent = 'Etapa representada';
     const stageValue = document.createElement('dd');
-    stageValue.textContent = 'Revisión humana antes de cualquier contacto';
+    stageValue.textContent = 'Revisión humana prevista · no iniciada';
     stage.append(stageLabel, stageValue);
     details.append(reason, stage);
+    const profile = projectProfiles.find(({ entry }) => entry.projectRef === item.projectRef)?.profile;
+    const projectFacts = document.createElement('dl');
+    projectFacts.className = 'session-project-facts';
+    const facts = [
+      ['Cultivo', displayProjectField(profile?.crop, 'No informado')],
+      ['Escala de muestra', displayProjectField(profile?.areaHa, 'Área no aportada') + ' · ' + displayProjectField(profile?.plantCount, 'Plantas no informadas')],
+      ['Necesidad de muestra', formatCop(profile?.capitalNeed?.amount ?? null)],
+    ];
+    facts.forEach(([label, value]) => {
+      const row = document.createElement('div');
+      const term = document.createElement('dt');
+      term.textContent = label;
+      const detail = document.createElement('dd');
+      detail.textContent = value;
+      row.append(term, detail);
+      projectFacts.append(row);
+    });
     const fieldReading = renderParticipantFieldReading(participantFieldReadings.get(item.projectRef), item.projectRef);
     const disclosure = document.createElement('p');
     disclosure.className = 'session-interest-card__disclosure';
-    disclosure.textContent = 'No hay una solicitud real, un compromiso ni aportes. Nadie recibió esta selección; se borrará al recargar o cerrar la demo.';
+    disclosure.textContent = 'Esta selección no crea solicitud ni compromiso. Nadie la recibió; se borra al recargar o cerrar la demo.';
     const openProject = document.createElement('button');
     openProject.className = 'text-button';
     openProject.type = 'button';
-    openProject.textContent = 'Volver a la ficha del proyecto ↗';
+    openProject.textContent = 'Abrir ficha completa ↗';
     openProject.addEventListener('click', () => selectProject(item.projectRef, 'project'));
-    card.append(heading, details, fieldReading, disclosure, openProject);
+    card.append(heading, projectFacts, details, fieldReading, disclosure, openProject);
     list.append(card);
   });
 }
@@ -193,7 +216,14 @@ function renderParticipantFieldReading(reading, projectRef) {
   return section;
 }
 
+function resetInterestForm() {
+  document.querySelector('#interest-form').reset();
+  elements.formError.hidden = true;
+  elements.ackError.hidden = true;
+}
+
 function openInterestView() {
+  resetInterestForm();
   flow = openInterest(resetInterestFlow());
   showView('interest', { focus: true });
 }
@@ -461,6 +491,7 @@ async function selectProject(projectRef, view = 'project', { historyAction = 'pu
   renderProjectShelf(projectRef);
   await loadProjection(entry);
   if (view === 'interest') {
+    resetInterestForm();
     flow = openInterest(resetInterestFlow());
   }
   showView(view, { focus: true, historyAction });
@@ -558,9 +589,7 @@ document.querySelector('#continue-exploring').addEventListener('click', () => sh
 document.querySelector('#restart-demo').addEventListener('click', () => {
   flow = resetInterestFlow();
   participantSession = clearParticipantSession();
-  document.querySelector('#interest-form').reset();
-  elements.formError.hidden = true;
-  elements.ackError.hidden = true;
+  resetInterestForm();
   showView('catalog', { focus: true });
 });
 
