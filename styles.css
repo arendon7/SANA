@@ -736,6 +736,8 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 .session-interest-card__disclosure, .session-field-reading__source { font-size: 12px; }
 .session-overview__metrics dd, .session-project-facts dd,
 .session-field-reading__facts dd { font-size: 13px; }
+.session-interest-card__details dt,
+.session-field-reading > p:not(.session-field-reading__source) { font-size: 12px; }
 @media (max-width: 760px) {
   .session-interest-card__heading .data-state { width: fit-content; }
 }
