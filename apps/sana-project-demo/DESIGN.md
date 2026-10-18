@@ -72,3 +72,7 @@ La página usa papel cálido, azul medianoche, océano, coral y señal dorada. L
 ## Revisión de esta iteración
 
 El recorrido del dossier usa cuatro pasos anclados a contenido visible: proyecto, capital y producción, lectura AgroWay y seguimiento. En “Mi espacio”, la demo permite avanzar la revisión y el compromiso por separado para que cada proyecto tenga su propia secuencia; los aportes siguen como externos y no registrados. Los estados permanecen temporales y separados de cualquier acuerdo o movimiento real.
+
+## Plan productivo de muestra (18 de octubre de 2026)
+
+El plan de cada proyecto aparece como una secuencia editorial dentro de su ficha: objetivo, tres fases con descripción y ventana de referencia, y una advertencia única de que todo es ilustrativo. Se usan líneas finas y numeración discreta en lugar de repetir tarjetas; al estrechar la pantalla, las fases pasan a una lista vertical con el mismo orden. Los eventos efectivamente registrados por AgroWay permanecen en su propia sección y nunca se deducen de estas fases.
