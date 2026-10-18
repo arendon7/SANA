@@ -65,10 +65,10 @@ test('project story shows a synthetic plan without implying completed field acti
   }
   const html = await read('index.html');
   const app = await read('app.mjs');
-  assert.match(html, /Qué haría el proyecto, paso a paso/);
+  assert.match(html, /Cómo se desarrollaría el proyecto/);
   assert.match(html, /no describen actividades realizadas/);
   assert.match(app, /renderProjectPlan\(profile\.projectPlan\)/);
-  assert.match(app, /status\.textContent = 'Fase ilustrativa'/);
+  assert.match(app, /timeframe\.textContent = phase\.timeframe/);
 });
 
 test('synthetic due diligence lists evidence to request without scoring or implying review', () => {
