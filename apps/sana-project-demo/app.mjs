@@ -5,6 +5,7 @@ import { projectionDisplayPolicy } from './presentation-policy.mjs';
 import { clearParticipantSession, createParticipantSession, recordSimulatedInterest, recordSimulatedCommitment, simulateHumanReview } from './participant-session.mjs';
 import { createParticipantFieldReading } from './participant-field-reading.mjs';
 import { validateProjectCatalog } from './project-catalog.mjs';
+import { matchesProjectSearch } from './catalog-search.mjs';
 
 const elements = {
   catalog: document.querySelector('#explore-view'),
@@ -21,6 +22,11 @@ const elements = {
   confirmationTitle: document.querySelector('#confirmation-title'),
   catalogCount: document.querySelector('#catalog-count'),
   catalogList: document.querySelector('#catalog-project-list'),
+  catalogGrid: document.querySelector('#catalog-projects-grid'),
+  catalogEmpty: document.querySelector('#catalog-empty'),
+  catalogSearch: document.querySelector('#project-search'),
+  catalogSearchStatus: document.querySelector('#catalog-results-status'),
+  clearCatalogSearch: document.querySelector('#clear-project-search'),
   projectProfileStatus: document.querySelector('#project-profile-status'),
   sourceStatus: document.querySelector('#source-status'),
   readLoading: document.querySelector('#read-loading'),
@@ -38,6 +44,7 @@ let catalog;
 let projectProfiles = [];
 const participantFieldReadings = new Map();
 let activeProject;
+let catalogQuery = '';
 
 const projectSections = [...document.querySelectorAll('.project-nav a')]
   .map((link) => ({ link, section: document.querySelector(link.getAttribute('href')) }))
@@ -508,8 +515,21 @@ function renderDossier(profile) {
 }
 
 function renderProjectShelf(activeRef) {
-  const alternatives = projectProfiles.filter(({ profile }) => profile.projectRef !== activeRef);
-  elements.catalogCount.textContent = `${projectProfiles.length} proyectos · Ficticios`;
+  const matches = projectProfiles.filter(({ profile }) => matchesProjectSearch(profile, catalogQuery));
+  const activeMatches = matches.some(({ profile }) => profile.projectRef === activeRef);
+  const alternatives = matches.filter(({ profile }) => profile.projectRef !== activeRef);
+  const resultCount = matches.length;
+  elements.catalogCount.textContent = `${resultCount} ${resultCount === 1 ? 'proyecto' : 'proyectos'} · Ficticios`;
+  elements.catalogSearchStatus.textContent = resultCount
+    ? `${resultCount} ${resultCount === 1 ? 'resultado' : 'resultados'} de muestra${catalogQuery ? ` para “${catalogQuery}”` : ''}.`
+    : `Sin resultados para “${catalogQuery}”.`;
+  elements.clearCatalogSearch.hidden = !catalogQuery;
+  elements.catalogGrid.hidden = resultCount === 0;
+  elements.catalogEmpty.hidden = resultCount !== 0;
+  document.querySelector('.featured-project').hidden = !activeMatches;
+  document.querySelector('.project-shelf').hidden = alternatives.length === 0;
+  const shelfTitle = document.querySelector('#project-shelf-title');
+  shelfTitle.textContent = catalogQuery ? 'Otros resultados' : 'Más proyectos de muestra';
   elements.catalogList.replaceChildren();
   alternatives.forEach(({ profile }) => {
     const projectCode = profile.projectRef.replace('sana-demo-project-', 'SANA-DEM-');
@@ -747,6 +767,18 @@ function intentLabel(value) {
 
 document.querySelectorAll('#open-interest, #open-interest-secondary, #open-interest-panel').forEach((button) => button.addEventListener('click', openInterestView));
 document.querySelector('#open-project-card').addEventListener('click', () => showView('project', { focus: true }));
+elements.catalogSearch.addEventListener('input', () => {
+  catalogQuery = elements.catalogSearch.value;
+  renderProjectShelf(activeProject?.projectRef);
+});
+function clearCatalogSearch() {
+  catalogQuery = '';
+  elements.catalogSearch.value = '';
+  renderProjectShelf(activeProject?.projectRef);
+  elements.catalogSearch.focus();
+}
+elements.clearCatalogSearch.addEventListener('click', clearCatalogSearch);
+document.querySelector('#clear-project-search-empty').addEventListener('click', clearCatalogSearch);
 document.querySelectorAll('[data-view-link]').forEach((link) => link.addEventListener('click', (event) => {
   event.preventDefault();
   if (link.dataset.viewLink === 'participant') renderParticipantSpace();
