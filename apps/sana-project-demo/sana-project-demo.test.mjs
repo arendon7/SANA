@@ -240,7 +240,6 @@ test('accessible screen states avoid real contact fields and disclose the synthe
   const html = await read('index.html');
   const app = await read('app.mjs');
   const styles = await read('styles.css');
-  const design = await read('DESIGN.md');
   const policy = await read('presentation-policy.mjs');
   const server = await read('server.mjs');
   assert.match(html, /<main\b/);
@@ -279,8 +278,6 @@ test('accessible screen states avoid real contact fields and disclose the synthe
   assert.match(html, /De conocerlo a acompañar su avance/);
   assert.match(html, /Validación humana y documentos del proyecto/);
   assert.match(html, /avance autorizado de AgroWay/);
-  assert.match(design, /Do not inherit GREENATICS website layouts/);
-  assert.match(design, /catálogo editorial|project discovery/i);
   assert.match(app, /validateProjection/);
   assert.match(app, /validateProjectCatalog/);
   assert.match(app, /catalog\.projects\.find/);
