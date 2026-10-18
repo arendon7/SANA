@@ -16,6 +16,17 @@ function isFiniteNonNegative(value) {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0;
 }
 
+function validateProjectPlan(plan) {
+  if (!plan || plan.status !== 'SYNTHETIC_VALUE' || typeof plan.objective !== 'string' || !plan.objective.trim()) return false;
+  if (!Array.isArray(plan.phases) || plan.phases.length < 2 || plan.phases.length > 5) return false;
+  return plan.phases.every((phase) => (
+    phase
+    && typeof phase.name === 'string' && phase.name.trim()
+    && typeof phase.description === 'string' && phase.description.trim()
+    && typeof phase.timeframe === 'string' && phase.timeframe.trim()
+  ));
+}
+
 function validateSyntheticModel(model) {
   const hasSyntheticModel = model.capitalNeed.status === 'SYNTHETIC_VALUE'
     || model.productionEstimate.status === 'SYNTHETIC_VALUE'
@@ -59,6 +70,7 @@ export function validateDossier(input, expectedProjectRef) {
       if (!isFiniteNonNegative(value)) return { ok: false, reason: `SYNTHETIC_VALUE_INVALID:${name}` };
     }
   }
+  if (input.projectPlan !== undefined && !validateProjectPlan(input.projectPlan)) return { ok: false, reason: 'PROJECT_PLAN_INVALID' };
   if (!validateSyntheticModel(input)) return { ok: false, reason: 'SYNTHETIC_MODEL_INCONSISTENT' };
   if (input.portfolio?.status !== 'PLANNED' || typeof input.portfolio.description !== 'string') {
     return { ok: false, reason: 'PORTFOLIO_NOT_PLANNED' };
@@ -78,4 +90,28 @@ export function displayProjectEstimate(field, fallback) {
   if (!field || field.quantity === null || field.quantity === undefined) return fallback;
   const amount = displayProjectField(field, fallback);
   return [amount, field.period].filter(Boolean).join(' · ');
+}
+
+
+const dueDiligenceTopics = [
+  { id: 'promoter-and-organization', title: 'Productor y organización', question: '¿Quién propone el proyecto y quién puede representarlo?', evidenceNeeded: 'Identidad y autorización de las personas responsables; estructura del grupo y consentimiento para compartir información.' },
+  { id: 'land-and-water', title: 'Predio, agua y permisos', question: '¿El área, el uso del suelo y el acceso al agua corresponden al proyecto?', evidenceNeeded: 'Soporte de tenencia o uso, ubicación verificable, disponibilidad de agua y permisos aplicables.' },
+  { id: 'agronomic-plan', title: 'Plan agronómico', question: '¿El cultivo y sus actividades responden a condiciones observadas del predio?', evidenceNeeded: 'Diagnóstico y plan por ciclo, densidad y estado de plantas, necesidades de suelo y agua, y revisión técnica. AgroWay aportaría registros de campo autorizados; estos no sustituyen esa revisión.' },
+  { id: 'budget-and-production', title: 'Presupuesto y producción', question: '¿Las necesidades y los supuestos pueden reconstruirse con fuentes y periodos claros?', evidenceNeeded: 'Presupuesto por actividad, cotizaciones, costos completos, base del rendimiento estimado y escenarios que expliquen variaciones.' },
+  { id: 'market-and-operations', title: 'Comercialización y logística', question: '¿Cómo se recibiría, acondicionaría y vendería la producción?', evidenceNeeded: 'Canal comercial, requisitos de calidad, volúmenes, transporte, almacenamiento y fuente de los precios asumidos.' },
+  { id: 'governance-and-terms', title: 'Gobierno y condiciones', question: '¿Cómo se revisarían los recursos, las decisiones y los derechos de cada parte?', evidenceNeeded: 'Estructura jurídica y financiera, responsabilidades, controles de uso, manejo de cambios y mecanismos de atención de desacuerdos.' },
+];
+
+export function createSyntheticDueDiligence(projectRef) {
+  if (typeof projectRef !== 'string' || !/^sana-demo-project-\d{3}$/.test(projectRef)) {
+    throw new TypeError('PROJECT_REF_INVALID');
+  }
+  const topics = dueDiligenceTopics.map((topic) => Object.freeze({ ...topic, status: 'NOT_ASSESSED' }));
+  return Object.freeze({
+    schema: 'sana.due-diligence/1.0.0',
+    projectRef,
+    status: 'SYNTHETIC',
+    overallStatus: 'NOT_ASSESSED',
+    topics: Object.freeze(topics),
+  });
 }

@@ -1,10 +1,11 @@
 import { validateProjection } from '../sana-project-read/reader-v1.mjs';
 import { createInterestFlow, openInterest, resetInterestFlow, submitInterest } from './interest-flow.mjs';
-import { displayProjectField, validateDossier } from './project-dossier.mjs';
+import { createSyntheticDueDiligence, displayProjectField, validateDossier } from './project-dossier.mjs';
 import { projectionDisplayPolicy } from './presentation-policy.mjs';
-import { clearParticipantSession, createParticipantSession, recordSimulatedInterest } from './participant-session.mjs';
+import { clearParticipantSession, createParticipantSession, recordSimulatedInterest, recordSimulatedCommitment, simulateHumanReview } from './participant-session.mjs';
 import { createParticipantFieldReading } from './participant-field-reading.mjs';
 import { validateProjectCatalog } from './project-catalog.mjs';
+import { matchesProjectSearch } from './catalog-search.mjs';
 
 const elements = {
   catalog: document.querySelector('#explore-view'),
@@ -21,6 +22,11 @@ const elements = {
   confirmationTitle: document.querySelector('#confirmation-title'),
   catalogCount: document.querySelector('#catalog-count'),
   catalogList: document.querySelector('#catalog-project-list'),
+  catalogGrid: document.querySelector('#catalog-projects-grid'),
+  catalogEmpty: document.querySelector('#catalog-empty'),
+  catalogSearch: document.querySelector('#project-search'),
+  catalogSearchStatus: document.querySelector('#catalog-results-status'),
+  clearCatalogSearch: document.querySelector('#clear-project-search'),
   projectProfileStatus: document.querySelector('#project-profile-status'),
   sourceStatus: document.querySelector('#source-status'),
   readLoading: document.querySelector('#read-loading'),
@@ -38,6 +44,28 @@ let catalog;
 let projectProfiles = [];
 const participantFieldReadings = new Map();
 let activeProject;
+let catalogQuery = '';
+
+const projectSections = [...document.querySelectorAll('.project-nav a')]
+  .map((link) => ({ link, section: document.querySelector(link.getAttribute('href')) }))
+  .filter(({ section }) => section);
+const projectSectionObserver = 'IntersectionObserver' in window
+  ? new IntersectionObserver((entries) => {
+    const current = entries
+      .filter((entry) => entry.isIntersecting)
+      .sort((left, right) => left.boundingClientRect.top - right.boundingClientRect.top)[0];
+    if (!current) return;
+    projectSections.forEach(({ link, section }) => {
+      if (section === current.target) link.setAttribute('aria-current', 'location');
+      else link.removeAttribute('aria-current');
+    });
+  }, { rootMargin: '-120px 0px -62% 0px', threshold: 0 })
+  : null;
+projectSections.forEach(({ section }) => projectSectionObserver?.observe(section));
+projectSections.forEach(({ link }) => link.addEventListener('click', () => {
+  projectSections.forEach(({ link: candidate }) => candidate.removeAttribute('aria-current'));
+  link.setAttribute('aria-current', 'location');
+}));
 
 function showView(step, { focus = false, historyAction = 'push' } = {}) {
   const views = {
@@ -86,6 +114,7 @@ function renderParticipantSpace() {
   overview.hidden = items.length === 0;
   document.querySelector('#session-project-count').textContent = formatCount(items.length);
   document.querySelector('#session-reading-count').textContent = formatCount(freshReadings) + ' de ' + formatCount(items.length);
+  document.querySelector('#session-commitment-count').textContent = formatCount(items.filter((item) => item.commitment).length);
   list.replaceChildren();
   items.forEach((item) => {
     const card = document.createElement('article');
@@ -101,7 +130,11 @@ function renderParticipantSpace() {
     copy.append(eyebrow, title);
     const status = document.createElement('span');
     status.className = 'data-state data-state--synthetic';
-    status.textContent = 'Interés ficticio · no enviado';
+    status.textContent = item.commitment
+      ? 'Compromiso de muestra · sin efecto'
+      : item.reviewStatus === 'SIMULATED_CONTINUE'
+        ? 'Revisión simulada · sin efecto'
+        : 'Interés ficticio · no enviado';
     heading.append(copy, status);
     const details = document.createElement('dl');
     details.className = 'session-interest-card__details';
@@ -115,7 +148,11 @@ function renderParticipantSpace() {
     const stageLabel = document.createElement('dt');
     stageLabel.textContent = 'Etapa representada';
     const stageValue = document.createElement('dd');
-    stageValue.textContent = 'Revisión humana prevista · no iniciada';
+    stageValue.textContent = item.commitment
+      ? 'Escenario de compromiso ficticio · no vinculante'
+      : item.reviewStatus === 'SIMULATED_CONTINUE'
+        ? 'Revisión representada en la demo · no realizada por una persona'
+        : 'Revisión humana pendiente · no iniciada';
     stage.append(stageLabel, stageValue);
     details.append(reason, stage);
     const profile = projectProfiles.find(({ entry }) => entry.projectRef === item.projectRef)?.profile;
@@ -138,15 +175,106 @@ function renderParticipantSpace() {
     const fieldReading = renderParticipantFieldReading(participantFieldReadings.get(item.projectRef), item.projectRef);
     const disclosure = document.createElement('p');
     disclosure.className = 'session-interest-card__disclosure';
-    disclosure.textContent = 'Esta selección no crea solicitud ni compromiso. Nadie la recibió; se borra al recargar o cerrar la demo.';
+    disclosure.textContent = item.commitment
+      ? 'El monto y las etapas son solo una simulación local. No hay solicitud recibida, contrato, obligación, pago ni aporte registrado; al recargar se borra.'
+      : item.reviewStatus === 'SIMULATED_CONTINUE'
+        ? 'La revisión se simuló con un botón para mostrar el recorrido. Nadie evaluó el proyecto y aún no existe solicitud ni compromiso.'
+        : 'Esta selección no crea solicitud ni compromiso. Nadie la recibió; se borra al recargar o cerrar la demo.';
     const openProject = document.createElement('button');
     openProject.className = 'text-button';
     openProject.type = 'button';
     openProject.textContent = 'Abrir ficha completa ↗';
     openProject.addEventListener('click', () => selectProject(item.projectRef, 'project'));
-    card.append(heading, projectFacts, details, fieldReading, disclosure, openProject);
+    card.append(heading, projectFacts, details, fieldReading, renderParticipationStage(item), disclosure, openProject);
     list.append(card);
   });
+}
+
+function renderParticipationStage(item) {
+  const section = document.createElement('section');
+  section.className = 'participation-stage';
+  section.setAttribute('aria-label', `Etapa de participación de muestra para ${item.projectTitle}`);
+  const heading = document.createElement('h4');
+  heading.textContent = item.commitment ? 'Tu escenario de muestra' : 'Siguiente paso del recorrido';
+  section.append(heading);
+
+  if (!item.commitment && item.reviewStatus === 'PENDING') {
+    const copy = document.createElement('p');
+    copy.textContent = 'En una operación real, una persona revisaría la identidad del proyecto, su presupuesto y sus soportes antes de cualquier acuerdo. Aquí puedes recorrer una revisión ficticia.';
+    const review = document.createElement('button');
+    review.className = 'button button-secondary';
+    review.type = 'button';
+    review.dataset.simulationAction = 'review';
+    review.dataset.projectRef = item.projectRef;
+    review.textContent = 'Simular revisión humana';
+    section.append(copy, review);
+    return section;
+  }
+
+  if (!item.commitment) {
+    const copy = document.createElement('p');
+    copy.textContent = 'La revisión no ocurrió: esta acción solo avanza la demostración. Consulta el contenido disponible antes de ensayar un compromiso sin efecto.';
+    const documents = document.createElement('ul');
+    documents.className = 'sample-document-list';
+    [
+      ['Ficha del proyecto', 'Resumen, productor y predio ficticios.'],
+      ['Presupuesto y producción', 'Supuestos didácticos visibles en la ficha.'],
+      ['Acuerdo firmado', 'No disponible; exigiría estructura y revisión legal.'],
+    ].forEach(([name, detail]) => {
+      const row = document.createElement('li');
+      const strong = document.createElement('strong');
+      strong.textContent = name;
+      const small = document.createElement('small');
+      small.textContent = detail;
+      row.append(strong, small);
+      documents.append(row);
+    });
+    const label = document.createElement('label');
+    label.className = 'commitment-choice';
+    label.textContent = 'Monto hipotético para el ejercicio';
+    const select = document.createElement('select');
+    select.dataset.projectRef = item.projectRef;
+    select.setAttribute('aria-label', `Monto hipotético para ${item.projectTitle}`);
+    [500_000, 1_000_000, 2_500_000].forEach((amount) => {
+      const option = document.createElement('option');
+      option.value = String(amount);
+      option.textContent = formatCop(amount);
+      select.append(option);
+    });
+    label.append(select);
+    const commitment = document.createElement('button');
+    commitment.className = 'button button-primary';
+    commitment.type = 'button';
+    commitment.dataset.simulationAction = 'commitment';
+    commitment.dataset.projectRef = item.projectRef;
+    commitment.textContent = 'Simular compromiso ficticio';
+    section.append(copy, documents, label, commitment);
+    return section;
+  }
+
+  const amount = document.createElement('p');
+  amount.className = 'sample-commitment-amount';
+  amount.textContent = `${formatCop(item.commitment.amount)} · escenario elegido en la demo`;
+  const status = document.createElement('p');
+  status.className = 'contribution-status';
+  status.textContent = 'Aportes: no hay pago ni conciliación registrados. Si existieran en el futuro, se gestionarían por un canal externo y con revisión humana.';
+  const documents = document.createElement('ul');
+  documents.className = 'sample-document-list';
+  [
+    ['Ficha y presupuesto', 'Material representado en esta demo.'],
+    ['Acuerdo del proyecto', 'No disponible; no se ha generado ni firmado.'],
+    ['Aportes conciliados', 'Ninguno; esta aplicación no procesa pagos.'],
+  ].forEach(([name, detail]) => {
+    const row = document.createElement('li');
+    const strong = document.createElement('strong');
+    strong.textContent = name;
+    const small = document.createElement('small');
+    small.textContent = detail;
+    row.append(strong, small);
+    documents.append(row);
+  });
+  section.append(amount, status, documents);
+  return section;
 }
 
 function renderParticipantFieldReading(reading, projectRef) {
@@ -246,6 +374,71 @@ function formatDate(value, { dateOnly = false } = {}) {
   }).format(date);
 }
 
+function renderDueDiligence(projectRef) {
+  const model = createSyntheticDueDiligence(projectRef);
+  const list = document.querySelector('#due-diligence-list');
+  list.replaceChildren();
+  model.topics.forEach((topic, index) => {
+    const item = document.createElement('li');
+    item.className = 'due-diligence-item';
+    const details = document.createElement('details');
+    details.open = index === 0;
+    const heading = document.createElement('div');
+    heading.className = 'due-diligence-item__heading';
+    const title = document.createElement('h3');
+    title.textContent = topic.title;
+    const status = document.createElement('span');
+    status.className = 'data-state data-state--unassessed';
+    status.textContent = 'Sin evaluar';
+    heading.append(title, status);
+    const summary = document.createElement('summary');
+    summary.append(heading);
+    const question = document.createElement('p');
+    question.className = 'due-diligence-item__question';
+    question.textContent = topic.question;
+    const evidence = document.createElement('p');
+    evidence.className = 'due-diligence-item__evidence';
+    const evidenceLabel = document.createElement('strong');
+    evidenceLabel.textContent = 'Evidencia por solicitar';
+    const evidenceText = document.createElement('span');
+    evidenceText.textContent = topic.evidenceNeeded;
+    evidence.append(evidenceLabel, evidenceText);
+    const content = document.createElement('div');
+    content.className = 'due-diligence-item__content';
+    content.append(question, evidence);
+    details.append(summary, content);
+    item.append(details);
+    list.append(item);
+  });
+}
+
+function renderProjectPlan(plan) {
+  const objective = document.querySelector('#project-plan-objective');
+  const phases = document.querySelector('#project-plan-phases');
+  objective.textContent = plan?.objective ?? 'El plan productivo aún no está incluido en esta ficha.';
+  phases.replaceChildren();
+  if (!Array.isArray(plan?.phases)) return;
+
+  plan.phases.forEach((phase, index) => {
+    const item = document.createElement('li');
+    const number = document.createElement('span');
+    number.className = 'project-plan__number';
+    number.setAttribute('aria-hidden', 'true');
+    number.textContent = String(index + 1).padStart(2, '0');
+    const content = document.createElement('div');
+    content.className = 'project-plan__content';
+    const title = document.createElement('strong');
+    title.textContent = phase.name;
+    const description = document.createElement('p');
+    description.textContent = phase.description;
+    const timeframe = document.createElement('small');
+    timeframe.textContent = phase.timeframe;
+    content.append(title, description, timeframe);
+    item.append(number, content);
+    phases.append(item);
+  });
+}
+
 function renderDossier(profile) {
   const projectCode = profile.projectRef.replace('sana-demo-project-', 'SANA-DEM-');
   const crop = displayProjectField(profile.crop, 'Cultivo no informado');
@@ -273,6 +466,7 @@ function renderDossier(profile) {
   document.querySelectorAll('.profile-plants-copy').forEach((node) => { node.textContent = displayProjectField(profile.plantCount, 'No informadas'); });
   const scale = [displayProjectField(profile.areaHa, 'Área no aportada'), displayProjectField(profile.plantCount, 'Plantas no informadas')].join(' · ');
   document.querySelector('#catalog-scale').textContent = scale;
+  renderProjectPlan(profile.projectPlan);
 
   const capital = profile.capitalNeed;
   const production = profile.productionEstimate;
@@ -286,9 +480,10 @@ function renderDossier(profile) {
   document.querySelector('#capital-period-copy').textContent = capital.period;
   const formattedProduction = `${formatCount(production.quantity)} ${production.unit} · ${production.period}`;
   document.querySelector('#profile-production').textContent = formattedProduction;
+  document.querySelector('#profile-production-quick').textContent = `${formatCount(production.quantity)} ${production.unit}`;
   document.querySelector('#catalog-production').textContent = `${formatCount(production.quantity)} ${production.unit}`;
   document.querySelector('#catalog-production-period').textContent = production.period;
-  document.querySelector('#production-basis').textContent = `${new Intl.NumberFormat('es-CO').format(production.basis.areaHa)} ha × ${new Intl.NumberFormat('es-CO').format(production.basis.yieldKgPerHa)} kg/ha/año = ${formatCount(production.quantity)} kg/año · supuesto didáctico`;
+  document.querySelector('#catalog-surplus').textContent = `${formatCop(economics.operatingSurplus)}/año`;
   document.querySelector('#production-basis').textContent = `${new Intl.NumberFormat('es-CO').format(production.basis.areaHa)} ha × ${new Intl.NumberFormat('es-CO').format(production.basis.yieldKgPerHa)} kg/ha/año = ${formatCount(production.quantity)} kg/año · supuesto didáctico`;
   document.querySelector('#price-per-kg').textContent = `${formatCop(economics.pricePerKg)}/kg`;
   document.querySelector('#gross-sales').textContent = `${formatCop(economics.grossSales)}/año`;
@@ -316,32 +511,59 @@ function renderDossier(profile) {
     item.append(label, amount, track);
     fundsList.append(item);
   });
+  renderDueDiligence(profile.projectRef);
 }
 
 function renderProjectShelf(activeRef) {
-  const alternatives = projectProfiles.filter(({ profile }) => profile.projectRef !== activeRef);
-  elements.catalogCount.textContent = `${projectProfiles.length} proyectos · Ficticios`;
+  const matches = projectProfiles.filter(({ profile }) => matchesProjectSearch(profile, catalogQuery));
+  const activeMatches = matches.some(({ profile }) => profile.projectRef === activeRef);
+  const alternatives = matches.filter(({ profile }) => profile.projectRef !== activeRef);
+  const resultCount = matches.length;
+  elements.catalogCount.textContent = `${resultCount} ${resultCount === 1 ? 'proyecto' : 'proyectos'} · Ficticios`;
+  elements.catalogSearchStatus.textContent = resultCount
+    ? `${resultCount} ${resultCount === 1 ? 'resultado' : 'resultados'} de muestra${catalogQuery ? ` para “${catalogQuery}”` : ''}.`
+    : `Sin resultados para “${catalogQuery}”.`;
+  elements.clearCatalogSearch.hidden = !catalogQuery;
+  elements.catalogGrid.hidden = resultCount === 0;
+  elements.catalogEmpty.hidden = resultCount !== 0;
+  document.querySelector('.featured-project').hidden = !activeMatches;
+  document.querySelector('.project-shelf').hidden = alternatives.length === 0;
+  const shelfTitle = document.querySelector('#project-shelf-title');
+  shelfTitle.textContent = catalogQuery ? 'Otros resultados' : 'Más proyectos de muestra';
   elements.catalogList.replaceChildren();
   alternatives.forEach(({ profile }) => {
     const projectCode = profile.projectRef.replace('sana-demo-project-', 'SANA-DEM-');
     const row = document.createElement('article');
     row.className = 'project-shelf-row';
+    const art = document.createElement('div');
+    art.className = 'project-shelf-row__art';
+    art.setAttribute('aria-hidden', 'true');
+    const artCrop = document.createElement('span');
+    artCrop.textContent = displayProjectField(profile.crop, 'Cultivo');
+    const artCode = document.createElement('span');
+    artCode.textContent = projectCode;
+    art.append(artCrop, artCode);
     const copy = document.createElement('div');
     copy.className = 'project-shelf-row__copy';
     const eyebrow = document.createElement('p');
     eyebrow.className = 'eyebrow';
-    eyebrow.textContent = `FICHA SANA · ${projectCode} · ${displayProjectField(profile.crop, 'Cultivo')}`;
+    eyebrow.textContent = `PROYECTO DE MUESTRA · ${projectCode}`;
     const title = document.createElement('h3');
     title.textContent = profile.title;
     const description = document.createElement('p');
     description.textContent = profile.summary;
-    copy.append(eyebrow, title, description);
+    const promoter = document.createElement('p');
+    promoter.className = 'project-shelf-row__promoter';
+    promoter.textContent = `${displayProjectField(profile.promoter, 'Productor/a no informado')} · ${displayProjectField(profile.property, 'Predio no informado')}`;
+    copy.append(eyebrow, title, promoter, description);
     const facts = document.createElement('dl');
     facts.className = 'project-shelf-row__facts';
     [
-      ['Escala', `${displayProjectField(profile.areaHa, 'Sin dato')} · ${displayProjectField(profile.plantCount, 'Sin dato')}`],
+      ['Área productiva', displayProjectField(profile.areaHa, 'Sin dato')],
+      ['Plantas asociadas', displayProjectField(profile.plantCount, 'Sin dato')],
       ['Necesidad de muestra', formatCop(profile.capitalNeed.amount)],
-      ['Producción estimada', `${formatCount(profile.productionEstimate.quantity)} ${profile.productionEstimate.unit}`],
+      ['Producción estimada', `${formatCount(profile.productionEstimate.quantity)} ${profile.productionEstimate.unit} · ${profile.productionEstimate.period}`],
+      ['Excedente operativo', `${formatCop(profile.economicScenario.operatingSurplus)}/año · escenario didáctico`],
     ].forEach(([label, value]) => {
       const item = document.createElement('div');
       const term = document.createElement('dt');
@@ -354,10 +576,13 @@ function renderProjectShelf(activeRef) {
     const open = document.createElement('button');
     open.className = 'text-button project-shelf-row__open';
     open.type = 'button';
-    open.textContent = 'Abrir ficha';
+    open.textContent = 'Explorar proyecto ↗';
     open.setAttribute('aria-label', `Abrir ficha de ${profile.title}`);
     open.addEventListener('click', () => selectProject(profile.projectRef, 'project'));
-    row.append(copy, facts, open);
+    const disclosure = document.createElement('p');
+    disclosure.className = 'project-shelf-row__disclosure';
+    disclosure.textContent = 'Cifras ficticias. El excedente no es utilidad neta ni retorno; el resultado neto no está calculado.';
+    row.append(art, copy, facts, disclosure, open);
     elements.catalogList.append(row);
   });
   document.querySelector('#catalog-art-title').textContent = `Diagrama de un proyecto agrícola de muestra ${activeRef.slice(-3)}`;
@@ -542,6 +767,18 @@ function intentLabel(value) {
 
 document.querySelectorAll('#open-interest, #open-interest-secondary, #open-interest-panel').forEach((button) => button.addEventListener('click', openInterestView));
 document.querySelector('#open-project-card').addEventListener('click', () => showView('project', { focus: true }));
+elements.catalogSearch.addEventListener('input', () => {
+  catalogQuery = elements.catalogSearch.value;
+  renderProjectShelf(activeProject?.projectRef);
+});
+function clearCatalogSearch() {
+  catalogQuery = '';
+  elements.catalogSearch.value = '';
+  renderProjectShelf(activeProject?.projectRef);
+  elements.catalogSearch.focus();
+}
+elements.clearCatalogSearch.addEventListener('click', clearCatalogSearch);
+document.querySelector('#clear-project-search-empty').addEventListener('click', clearCatalogSearch);
 document.querySelectorAll('[data-view-link]').forEach((link) => link.addEventListener('click', (event) => {
   event.preventDefault();
   if (link.dataset.viewLink === 'participant') renderParticipantSpace();
@@ -551,6 +788,20 @@ document.querySelector('#back-to-catalog').addEventListener('click', () => showV
 document.querySelector('#back-to-catalog-space').addEventListener('click', () => showView('catalog', { focus: true }));
 document.querySelector('#back-to-projects-empty').addEventListener('click', () => showView('catalog', { focus: true }));
 document.querySelector('#open-participant-space').addEventListener('click', () => { renderParticipantSpace(); showView('participant', { focus: true }); });
+document.querySelector('#session-space-list').addEventListener('click', (event) => {
+  const button = event.target.closest('button[data-simulation-action]');
+  if (!button) return;
+  const projectRef = button.dataset.projectRef;
+  const result = button.dataset.simulationAction === 'review'
+    ? simulateHumanReview(participantSession, projectRef)
+    : recordSimulatedCommitment(participantSession, {
+      projectRef,
+      amount: Number(button.closest('.session-interest-card')?.querySelector('select')?.value),
+    });
+  if (!result.ok) return;
+  participantSession = result.state;
+  renderParticipantSpace();
+});
 document.querySelectorAll('#back-to-project, #cancel-interest').forEach((button) => button.addEventListener('click', () => showView('project', { focus: true })));
 document.querySelector('#interest-form').addEventListener('change', (event) => {
   if (event.target.name === 'interest-intent') elements.formError.hidden = true;
