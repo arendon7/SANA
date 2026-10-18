@@ -232,10 +232,10 @@
 
           <section id="participant-space" class="content-section participant-section" aria-labelledby="participant-title">
             <div class="section-heading">
-              <div><p class="eyebrow">04 · Tu espacio</p><h2 id="participant-title">Cada proyecto tendría su propio seguimiento.</h2></div>
-              <span class="planned-tag">Roadmap</span>
+              <div><p class="eyebrow">04 · Tu espacio</p><h2 id="participant-title">El seguimiento de cada proyecto vive aquí.</h2></div>
+              <span class="planned-tag">Demo por proyecto</span>
             </div>
-            <p>A futuro, aquí una persona podría consultar cada proyecto que acompaña: su estado, documentos revisados, aportes conciliados y lecturas autorizadas de AgroWay. Esta demo no crea cuentas, compromisos ni inversiones.</p>
+            <p>La demostración deja recorrer intereses, revisión representada, documentos disponibles y lectura AgroWay por separado. No hay cuenta, acuerdo, pago ni inversión real.</p>
             <button class="text-button" id="open-participant-space" type="button">Ver Mi espacio de demostración <span aria-hidden="true">↗</span></button>
           </section>
         </div>
@@ -255,34 +255,34 @@
     <section id="participant-view" class="participant-view" aria-labelledby="space-title" hidden>
       <div class="page-kicker"><button class="text-button" id="back-to-catalog-space" type="button"><span aria-hidden="true">←</span> Explorar proyectos</button><span>Mi espacio <span aria-hidden="true">·</span> demo</span></div>
       <div class="space-intro">
-        <div><p class="eyebrow">SANA <span aria-hidden="true">/</span> Tu seguimiento</p><h1 id="space-title" tabindex="-1">Los proyectos que sigues, organizados por iniciativa.</h1><p class="explore-lead">En una experiencia completa, cada proyecto tendría estado, documentos y novedades de campo propios. Por ahora esta demo conserva solo tus intereses de muestra en esta pestaña.</p></div>
+        <div><p class="eyebrow">SANA <span aria-hidden="true">/</span> Tu seguimiento</p><h1 id="space-title" tabindex="-1">Cada proyecto, su propio recorrido.</h1><p class="explore-lead">Ensaya cómo se ordenarían el interés, la revisión, los documentos y el seguimiento agrícola. Todo sucede localmente con datos ficticios y desaparece al recargar.</p></div>
         <div class="space-stamp" aria-label="Límites de esta demostración"><span>Estado de esta demo</span><strong>Sin inversiones registradas</strong><small>No hay cuenta, pagos ni datos persistentes.</small></div>
       </div>
       <section id="empty-space" class="empty-space" aria-labelledby="empty-space-title">
         <div class="empty-space__mark" aria-hidden="true"><span></span><span></span><span></span></div>
         <p class="eyebrow">Aquí empieza tu seguimiento</p>
         <h2 id="empty-space-title">Primero, explora una iniciativa.</h2>
-        <p>Explora una ficha y prueba el interés simulado. En una futura versión, los acuerdos y aportes solo aparecerían después de una revisión humana; el avance agrícola llegaría desde AgroWay con su fuente, fecha y autorización.</p>
+        <p>Explora una ficha y ensaya interés, revisión representada y un compromiso de muestra. En una operación real, los acuerdos requerirían revisión humana y cualquier aporte se registraría por un canal externo; el avance agrícola llegaría desde AgroWay con su fuente, fecha y autorización.</p>
         <button class="button button-secondary" id="back-to-projects-empty" type="button">Explorar proyectos de muestra</button>
       </section>
       <section id="session-space" class="session-space" aria-labelledby="session-space-title" hidden>
-        <div class="session-space__heading"><div><p class="eyebrow">Actividad de esta pestaña</p><h2 id="session-space-title">Proyectos que sigues</h2><p>Las selecciones son ficticias y desaparecen al recargar.</p></div><div class="session-space__actions"><span class="data-state data-state--synthetic">Interés simulado · no enviado</span><button class="text-button" id="restart-demo" type="button">Reiniciar demo</button></div></div>
+        <div class="session-space__heading"><div><p class="eyebrow">Actividad de esta pestaña</p><h2 id="session-space-title">Proyectos que sigues</h2><p>Todo es ficticio, temporal y desaparece al recargar.</p></div><div class="session-space__actions"><span class="data-state data-state--synthetic">Interés simulado · no enviado</span><button class="text-button" id="restart-demo" type="button">Reiniciar demo</button></div></div>
         <section id="session-overview" class="session-overview" aria-labelledby="session-overview-title" hidden>
           <div class="session-overview__heading"><p class="eyebrow">Resumen de la sesión</p><h3 id="session-overview-title">Una ficha por proyecto, con su propia lectura agrícola.</h3></div>
           <dl class="session-overview__metrics">
             <div><dt>Proyectos seguidos</dt><dd id="session-project-count">0</dd><small>Intereses locales de muestra</small></div>
             <div><dt>Lecturas vigentes</dt><dd id="session-reading-count">0 de 0</dd><small>Proyecciones AgroWay aprobadas</small></div>
-            <div><dt>Acuerdos y aportes</dt><dd>No habilitados</dd><small>La demo no registra inversiones</small></div>
+            <div><dt>Compromisos ficticios</dt><dd id="session-commitment-count">0</dd><small>No son acuerdos ni inversiones</small></div>
           </dl>
         </section>
         <div id="session-space-list" class="session-space__list" aria-live="polite"></div>
       </section>
       <section class="space-journey" aria-labelledby="space-journey-title">
-        <div class="space-journey__heading"><div><p class="eyebrow">Cómo se construiría la relación</p><h2 id="space-journey-title">De conocerlo a acompañar su avance.</h2></div><p>Las etapas reales dependen de validaciones, acuerdos y datos autorizados; la demo no las activa.</p></div>
+        <div class="space-journey__heading"><div><p class="eyebrow">Cómo se construiría la relación</p><h2 id="space-journey-title">De conocerlo a acompañar su avance.</h2></div><p>La demo solo representa las etapas. Los estados reales requieren validación humana, acuerdos y datos autorizados.</p></div>
         <ol class="space-journey__steps">
           <li><span class="space-journey__number">01</span><div><strong>Conocer</strong><p>Persona, predio, cultivo, escala y necesidad.</p><span class="planned-tag">Visible en demo</span></div></li>
-          <li><span class="space-journey__number">02</span><div><strong>Revisar</strong><p>Validación humana y documentos del proyecto.</p><span class="planned-tag">Etapa futura</span></div></li>
-          <li><span class="space-journey__number">03</span><div><strong>Acompañar</strong><p>Acuerdos, aportes conciliados y avance autorizado de AgroWay.</p><span class="planned-tag">Etapa futura</span></div></li>
+          <li><span class="space-journey__number">02</span><div><strong>Revisar</strong><p>Ensayo de revisión y consulta de material disponible.</p><span class="planned-tag">Simulación local</span></div></li>
+          <li><span class="space-journey__number">03</span><div><strong>Acompañar</strong><p>Escenario no vinculante y lectura AgroWay por proyecto.</p><span class="planned-tag">Sin pagos ni acuerdos</span></div></li>
         </ol>
       </section>
     </section>

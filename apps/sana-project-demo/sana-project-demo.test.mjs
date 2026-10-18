@@ -7,7 +7,7 @@ import { validateProjection } from '../sana-project-read/reader-v1.mjs';
 import { createInterestFlow, openInterest, resetInterestFlow, submitInterest } from './interest-flow.mjs';
 import { displayProjectField, validateDossier } from './project-dossier.mjs';
 import { projectionDisplayPolicy } from './presentation-policy.mjs';
-import { clearParticipantSession, createParticipantSession, recordSimulatedInterest } from './participant-session.mjs';
+import { clearParticipantSession, createParticipantSession, recordSimulatedCommitment, recordSimulatedInterest, simulateHumanReview } from './participant-session.mjs';
 import { createParticipantFieldReading } from './participant-field-reading.mjs';
 import { validateProjectCatalog } from './project-catalog.mjs';
 
@@ -236,6 +236,39 @@ test('simulated interest appears in Mi espacio only in volatile session state', 
   assert.deepEqual(clearParticipantSession().simulatedInterests, []);
 });
 
+test('SANA demo keeps review and commitment stages synthetic, ordered, and isolated by project', () => {
+  let session = createParticipantSession();
+  for (const [projectRef, projectTitle] of [
+    ['sana-demo-project-001', 'Cacao bajo sombra'],
+    ['sana-demo-project-002', 'Café de ladera y poscosecha comunitaria'],
+  ]) {
+    const result = recordSimulatedInterest(session, { projectRef, projectTitle, intent: 'project-structure' });
+    assert.equal(result.ok, true);
+    session = result.state;
+  }
+
+  const premature = recordSimulatedCommitment(session, { projectRef: 'sana-demo-project-001', amount: 1_000_000 });
+  assert.equal(premature.ok, false);
+  assert.equal(premature.reason, 'SIMULATED_REVIEW_REQUIRED');
+  assert.equal(simulateHumanReview(session, 'unknown-project').reason, 'PROJECT_NOT_TRACKED');
+
+  const reviewed = simulateHumanReview(session, 'sana-demo-project-001');
+  assert.equal(reviewed.ok, true);
+  assert.equal(reviewed.item.reviewStatus, 'SIMULATED_CONTINUE');
+  assert.equal(reviewed.state.simulatedInterests[1].reviewStatus, 'PENDING');
+  assert.equal(simulateHumanReview(reviewed.state, 'sana-demo-project-001').reason, 'REVIEW_ALREADY_SIMULATED');
+
+  const invalidAmount = recordSimulatedCommitment(reviewed.state, { projectRef: 'sana-demo-project-001', amount: 1 });
+  assert.equal(invalidAmount.reason, 'SAMPLE_AMOUNT_INVALID');
+  const committed = recordSimulatedCommitment(reviewed.state, { projectRef: 'sana-demo-project-001', amount: 1_000_000 });
+  assert.equal(committed.ok, true);
+  assert.deepEqual(committed.item.commitment, { amount: 1_000_000, currency: 'COP', status: 'SAMPLE_ONLY' });
+  assert.equal(committed.state.simulatedInterests[1].commitment, null);
+  assert.equal(Object.isFrozen(committed.state.simulatedInterests[0].commitment), true);
+  assert.equal(recordSimulatedCommitment(committed.state, { projectRef: 'sana-demo-project-001', amount: 1_000_000 }).reason, 'COMMITMENT_ALREADY_SIMULATED');
+  assert.deepEqual(clearParticipantSession().simulatedInterests, []);
+});
+
 test('accessible screen states avoid real contact fields and disclose the synthetic, non-persistent action', async () => {
   const html = await read('index.html');
   const app = await read('app.mjs');
@@ -258,6 +291,7 @@ test('accessible screen states avoid real contact fields and disclose the synthe
   assert.match(html, /persona productora, el predio asociado y la escala del cultivo/);
   assert.match(html, /No se envió al equipo, no crea una solicitud ni representa una inversión/);
   assert.match(html, /id="participant-view"[^>]*aria-labelledby="space-title"/);
+  assert.match(html, /El seguimiento de cada proyecto vive aquí/);
   assert.match(html, /Aquí empieza tu seguimiento/);
   assert.match(html, /id="empty-space"/);
   assert.match(html, /id="session-space"/);
@@ -266,7 +300,14 @@ test('accessible screen states avoid real contact fields and disclose the synthe
   assert.match(html, /id="session-overview"/);
   assert.match(html, /id="session-project-count"/);
   assert.match(html, /id="session-reading-count"/);
-  assert.match(html, /Acuerdos y aportes/);
+  assert.match(html, /id="session-commitment-count"/);
+  assert.match(html, /Compromisos ficticios/);
+  assert.match(app, /Simular revisión humana/);
+  assert.match(app, /Simular compromiso ficticio/);
+  assert.match(app, /no hay pago ni conciliación registrados/i);
+  assert.match(app, /simulateHumanReview/);
+  assert.match(app, /recordSimulatedCommitment/);
+  assert.doesNotMatch(app, /localStorage/);
   assert.match(html, /aria-live|role="alert"/);
   assert.match(html, /id="source-status"[^>]*aria-live="polite"/);
   assert.match(html, /name="interest-intent"/);
@@ -277,8 +318,8 @@ test('accessible screen states avoid real contact fields and disclose the synthe
   assert.match(html, /no un pronóstico ni una promesa/i);
   assert.match(html, /Excedente operativo/);
   assert.match(html, /De conocerlo a acompañar su avance/);
-  assert.match(html, /Validación humana y documentos del proyecto/);
-  assert.match(html, /avance autorizado de AgroWay/);
+  assert.match(html, /Ensayo de revisión y consulta de material disponible/);
+  assert.match(html, /lectura AgroWay por proyecto/);
   assert.match(design, /Do not inherit GREENATICS website layouts/);
   assert.match(design, /catálogo editorial|project discovery/i);
   assert.match(app, /validateProjection/);

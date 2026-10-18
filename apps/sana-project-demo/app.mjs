@@ -2,7 +2,7 @@ import { validateProjection } from '../sana-project-read/reader-v1.mjs';
 import { createInterestFlow, openInterest, resetInterestFlow, submitInterest } from './interest-flow.mjs';
 import { displayProjectField, validateDossier } from './project-dossier.mjs';
 import { projectionDisplayPolicy } from './presentation-policy.mjs';
-import { clearParticipantSession, createParticipantSession, recordSimulatedInterest } from './participant-session.mjs';
+import { clearParticipantSession, createParticipantSession, recordSimulatedInterest, recordSimulatedCommitment, simulateHumanReview } from './participant-session.mjs';
 import { createParticipantFieldReading } from './participant-field-reading.mjs';
 import { validateProjectCatalog } from './project-catalog.mjs';
 
@@ -86,6 +86,7 @@ function renderParticipantSpace() {
   overview.hidden = items.length === 0;
   document.querySelector('#session-project-count').textContent = formatCount(items.length);
   document.querySelector('#session-reading-count').textContent = formatCount(freshReadings) + ' de ' + formatCount(items.length);
+  document.querySelector('#session-commitment-count').textContent = formatCount(items.filter((item) => item.commitment).length);
   list.replaceChildren();
   items.forEach((item) => {
     const card = document.createElement('article');
@@ -101,7 +102,11 @@ function renderParticipantSpace() {
     copy.append(eyebrow, title);
     const status = document.createElement('span');
     status.className = 'data-state data-state--synthetic';
-    status.textContent = 'Interés ficticio · no enviado';
+    status.textContent = item.commitment
+      ? 'Compromiso de muestra · sin efecto'
+      : item.reviewStatus === 'SIMULATED_CONTINUE'
+        ? 'Revisión simulada · sin efecto'
+        : 'Interés ficticio · no enviado';
     heading.append(copy, status);
     const details = document.createElement('dl');
     details.className = 'session-interest-card__details';
@@ -115,7 +120,11 @@ function renderParticipantSpace() {
     const stageLabel = document.createElement('dt');
     stageLabel.textContent = 'Etapa representada';
     const stageValue = document.createElement('dd');
-    stageValue.textContent = 'Revisión humana prevista · no iniciada';
+    stageValue.textContent = item.commitment
+      ? 'Escenario de compromiso ficticio · no vinculante'
+      : item.reviewStatus === 'SIMULATED_CONTINUE'
+        ? 'Revisión representada en la demo · no realizada por una persona'
+        : 'Revisión humana pendiente · no iniciada';
     stage.append(stageLabel, stageValue);
     details.append(reason, stage);
     const profile = projectProfiles.find(({ entry }) => entry.projectRef === item.projectRef)?.profile;
@@ -138,15 +147,106 @@ function renderParticipantSpace() {
     const fieldReading = renderParticipantFieldReading(participantFieldReadings.get(item.projectRef), item.projectRef);
     const disclosure = document.createElement('p');
     disclosure.className = 'session-interest-card__disclosure';
-    disclosure.textContent = 'Esta selección no crea solicitud ni compromiso. Nadie la recibió; se borra al recargar o cerrar la demo.';
+    disclosure.textContent = item.commitment
+      ? 'El monto y las etapas son solo una simulación local. No hay solicitud recibida, contrato, obligación, pago ni aporte registrado; al recargar se borra.'
+      : item.reviewStatus === 'SIMULATED_CONTINUE'
+        ? 'La revisión se simuló con un botón para mostrar el recorrido. Nadie evaluó el proyecto y aún no existe solicitud ni compromiso.'
+        : 'Esta selección no crea solicitud ni compromiso. Nadie la recibió; se borra al recargar o cerrar la demo.';
     const openProject = document.createElement('button');
     openProject.className = 'text-button';
     openProject.type = 'button';
     openProject.textContent = 'Abrir ficha completa ↗';
     openProject.addEventListener('click', () => selectProject(item.projectRef, 'project'));
-    card.append(heading, projectFacts, details, fieldReading, disclosure, openProject);
+    card.append(heading, projectFacts, details, fieldReading, renderParticipationStage(item), disclosure, openProject);
     list.append(card);
   });
+}
+
+function renderParticipationStage(item) {
+  const section = document.createElement('section');
+  section.className = 'participation-stage';
+  section.setAttribute('aria-label', `Etapa de participación de muestra para ${item.projectTitle}`);
+  const heading = document.createElement('h4');
+  heading.textContent = item.commitment ? 'Tu escenario de muestra' : 'Siguiente paso del recorrido';
+  section.append(heading);
+
+  if (!item.commitment && item.reviewStatus === 'PENDING') {
+    const copy = document.createElement('p');
+    copy.textContent = 'En una operación real, una persona revisaría la identidad del proyecto, su presupuesto y sus soportes antes de cualquier acuerdo. Aquí puedes recorrer una revisión ficticia.';
+    const review = document.createElement('button');
+    review.className = 'button button-secondary';
+    review.type = 'button';
+    review.dataset.simulationAction = 'review';
+    review.dataset.projectRef = item.projectRef;
+    review.textContent = 'Simular revisión humana';
+    section.append(copy, review);
+    return section;
+  }
+
+  if (!item.commitment) {
+    const copy = document.createElement('p');
+    copy.textContent = 'La revisión no ocurrió: esta acción solo avanza la demostración. Consulta el contenido disponible antes de ensayar un compromiso sin efecto.';
+    const documents = document.createElement('ul');
+    documents.className = 'sample-document-list';
+    [
+      ['Ficha del proyecto', 'Resumen, productor y predio ficticios.'],
+      ['Presupuesto y producción', 'Supuestos didácticos visibles en la ficha.'],
+      ['Acuerdo firmado', 'No disponible; exigiría estructura y revisión legal.'],
+    ].forEach(([name, detail]) => {
+      const row = document.createElement('li');
+      const strong = document.createElement('strong');
+      strong.textContent = name;
+      const small = document.createElement('small');
+      small.textContent = detail;
+      row.append(strong, small);
+      documents.append(row);
+    });
+    const label = document.createElement('label');
+    label.className = 'commitment-choice';
+    label.textContent = 'Monto hipotético para el ejercicio';
+    const select = document.createElement('select');
+    select.dataset.projectRef = item.projectRef;
+    select.setAttribute('aria-label', `Monto hipotético para ${item.projectTitle}`);
+    [500_000, 1_000_000, 2_500_000].forEach((amount) => {
+      const option = document.createElement('option');
+      option.value = String(amount);
+      option.textContent = formatCop(amount);
+      select.append(option);
+    });
+    label.append(select);
+    const commitment = document.createElement('button');
+    commitment.className = 'button button-primary';
+    commitment.type = 'button';
+    commitment.dataset.simulationAction = 'commitment';
+    commitment.dataset.projectRef = item.projectRef;
+    commitment.textContent = 'Simular compromiso ficticio';
+    section.append(copy, documents, label, commitment);
+    return section;
+  }
+
+  const amount = document.createElement('p');
+  amount.className = 'sample-commitment-amount';
+  amount.textContent = `${formatCop(item.commitment.amount)} · escenario elegido en la demo`;
+  const status = document.createElement('p');
+  status.className = 'contribution-status';
+  status.textContent = 'Aportes: no hay pago ni conciliación registrados. Si existieran en el futuro, se gestionarían por un canal externo y con revisión humana.';
+  const documents = document.createElement('ul');
+  documents.className = 'sample-document-list';
+  [
+    ['Ficha y presupuesto', 'Material representado en esta demo.'],
+    ['Acuerdo del proyecto', 'No disponible; no se ha generado ni firmado.'],
+    ['Aportes conciliados', 'Ninguno; esta aplicación no procesa pagos.'],
+  ].forEach(([name, detail]) => {
+    const row = document.createElement('li');
+    const strong = document.createElement('strong');
+    strong.textContent = name;
+    const small = document.createElement('small');
+    small.textContent = detail;
+    row.append(strong, small);
+    documents.append(row);
+  });
+  section.append(amount, status, documents);
+  return section;
 }
 
 function renderParticipantFieldReading(reading, projectRef) {
@@ -551,6 +651,20 @@ document.querySelector('#back-to-catalog').addEventListener('click', () => showV
 document.querySelector('#back-to-catalog-space').addEventListener('click', () => showView('catalog', { focus: true }));
 document.querySelector('#back-to-projects-empty').addEventListener('click', () => showView('catalog', { focus: true }));
 document.querySelector('#open-participant-space').addEventListener('click', () => { renderParticipantSpace(); showView('participant', { focus: true }); });
+document.querySelector('#session-space-list').addEventListener('click', (event) => {
+  const button = event.target.closest('button[data-simulation-action]');
+  if (!button) return;
+  const projectRef = button.dataset.projectRef;
+  const result = button.dataset.simulationAction === 'review'
+    ? simulateHumanReview(participantSession, projectRef)
+    : recordSimulatedCommitment(participantSession, {
+      projectRef,
+      amount: Number(button.closest('.session-interest-card')?.querySelector('select')?.value),
+    });
+  if (!result.ok) return;
+  participantSession = result.state;
+  renderParticipantSpace();
+});
 document.querySelectorAll('#back-to-project, #cancel-interest').forEach((button) => button.addEventListener('click', () => showView('project', { focus: true })));
 document.querySelector('#interest-form').addEventListener('change', (event) => {
   if (event.target.name === 'interest-intent') elements.formError.hidden = true;

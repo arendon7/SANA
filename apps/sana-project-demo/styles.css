@@ -980,3 +980,35 @@ h1, h2, h3 { color: var(--route-dark); }
   :root { --header-height: calc(66px + env(safe-area-inset-top, 0px)); }
   .site-header { min-height: var(--header-height); }
 }
+.participation-stage { display: grid; gap: 11px; margin: 18px 0 15px; padding: 16px 0 15px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.participation-stage h4 { margin: 0; color: var(--forest-deep); font-size: 14px; font-weight: 750; }
+.participation-stage > p { max-width: 65ch; margin: 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
+.participation-stage .button { justify-self: start; min-height: 44px; }
+.sample-document-list { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
+.sample-document-list li { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+.sample-document-list strong { color: var(--forest-deep); font-size: 11px; }
+.sample-document-list small { color: var(--muted); font-size: 10px; line-height: 1.4; text-align: right; }
+.commitment-choice { display: grid; gap: 7px; color: var(--forest-deep); font-size: 11px; font-weight: 700; }
+.commitment-choice select { width: min(100%, 310px); min-height: 44px; padding: 9px 12px; border: 1px solid #9d9b8b; border-radius: 4px; background: #fffdf8; color: var(--forest-deep); font: inherit; }
+.commitment-choice select:focus-visible { outline: 3px solid #1c6a70; outline-offset: 2px; }
+.sample-commitment-amount { margin: 0; color: var(--forest-deep); font-size: 16px; font-weight: 750; font-variant-numeric: tabular-nums; }
+.contribution-status { margin: 0; padding: 12px 14px; background: #f1eee3; color: #51472f; font-size: 11px; line-height: 1.5; }
+.session-space__list > .session-interest-card:only-child { grid-column: 1 / -1; width: min(100%, 960px); margin-inline: auto; }
+.session-project-facts dt, .session-interest-card__details dt { font-size: 12px; }
+.session-project-facts dd, .session-interest-card__details dd { font-size: 14px; }
+.session-field-reading h4 { font-size: 16px; }
+.session-field-reading__source { font-size: 12px; }
+.session-field-reading__facts dt { font-size: 11px; }
+.session-field-reading__facts dd { font-size: 13px; }
+.session-interest-card__disclosure { font-size: 12px; }
+.participation-stage h4 { font-size: 17px; }
+.participation-stage > p, .contribution-status { font-size: 13px; }
+.sample-document-list strong { font-size: 13px; }
+.sample-document-list small { font-size: 12px; }
+.sample-commitment-amount { font-size: 18px; }
+@media (max-width: 680px) {
+  .participation-stage .button { width: 100%; justify-self: stretch; }
+  .sample-document-list li { align-items: flex-start; flex-direction: column; gap: 3px; }
+  .sample-document-list small { text-align: left; }
+  .commitment-choice select { width: 100%; }
+}

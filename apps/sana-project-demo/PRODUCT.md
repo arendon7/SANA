@@ -22,12 +22,15 @@ SANA presenta el contexto del productor y del predio, el cultivo, el área, la e
 
 ## Operating Context
 
-La persona primero compara proyectos y revisa su expediente; luego puede expresar interés para revisión humana. En una fase posterior, una cuenta personal podría reunir por proyecto su estado, documentos revisados, compromisos formalizados, aportes conciliados, lecturas AgroWay y resultados observados, con la procedencia y permisos propios de cada dato. Los pagos, si se habilitan en el futuro, ocurrirían inicialmente por canales externos.
+La persona primero compara proyectos y revisa su expediente; la demo deja ensayar interés, una etapa de revisión representada y un monto ficticio de compromiso. En una fase posterior, una cuenta personal podría reunir por proyecto su estado, documentos revisados, compromisos formalizados, aportes conciliados, lecturas AgroWay y resultados observados, con la procedencia y permisos propios de cada dato. Los pagos, si se habilitan en el futuro, ocurrirían inicialmente por canales externos.
 
 ## Capabilities and Constraints
 
 - La demo actual usa exclusivamente proyectos, personas, predios y cifras sintéticos.
-- El interés de la demo solo vive en la sesión local: no se envía, no solicita datos personales y no constituye una solicitud, compromiso, aporte, inversión u oferta.
+- Interés, revisión representada y compromiso de muestra viven solo en la sesión local: no se envían, no solicitan datos personales y no constituyen solicitudes, acuerdos, aportes, inversiones u ofertas.
+- La acción “Simular revisión humana” avanza una etapa didáctica y no significa que una persona haya revisado el expediente.
+- Los montos permitidos son ejemplos fijos para enseñar el recorrido; no equivalen a una oferta ni generan obligación. La demo no procesa pagos ni concilia aportes.
+- Los documentos visibles son contenido representado en la ficha. Contratos firmados, documentos del productor y soportes reales requieren revisión y autorización fuera de esta demo.
 - Diferenciar datos observados, supuestos de cálculo, proyecciones, datos desconocidos y etapas futuras. No presentar utilidad neta ni retorno personal sin estructura, costos y validación suficientes.
 - Las lecturas de AgroWay son versionadas, aprobadas y de solo lectura. SANA nunca escribe registros de campo.
 - No introducir cuentas reales, pagos, inversiones, ofertas al público, datos de productores ni infraestructura con costo durante la demo.

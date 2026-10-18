@@ -4,7 +4,7 @@
 
 ## Producto y audiencia
 
-SANA hace visibles proyectos productivos para que una persona pueda entender quién los impulsa, dónde se desarrollarían, qué escala tienen, qué capital requieren y cómo se informaría su avance. El recorrido de esta demo compara dos fichas agrícolas ficticias (cacao y café), permite explorar cada caso y simular interés para revisión humana. “Mi espacio” agrupa esos intereses por proyecto dentro de la sesión temporal.
+SANA hace visibles proyectos productivos para que una persona pueda entender quién los impulsa, dónde se desarrollarían, qué escala tienen, qué capital requieren y cómo se informaría su avance. El recorrido de esta demo compara dos fichas agrícolas ficticias (cacao y café), permite explorar cada caso y ensayar, por proyecto, interés, revisión representada y un escenario de compromiso. “Mi espacio” agrupa estas etapas y la lectura agrícola correspondiente durante la sesión temporal.
 
 ## Dirección visual
 
@@ -27,6 +27,14 @@ Revisión de sitios oficiales consultados el 17 de octubre de 2026, usada solo p
 
 Estos referentes no acreditan la situación jurídica de SANA ni recomiendan inversiones. La demo no recibe dinero, no muestra retornos para participantes y no crea ofertas. Cualquier operación real necesita una estructura y revisión propias antes de diseñar acciones de inversión.
 
+### Investigación para la ficha y el seguimiento (18 de octubre de 2026)
+
+- [Farm Fractions · proyecto San Vicente](https://www.farmfractions.com/projects/san-vicente) pone en la misma ficha cultivo, superficie, etapa productiva, equipo, trabajo por año, supuestos y riesgos. Tomamos la lectura por capas y la separación de proyección y hecho; no sus términos, cifras, retorno, financiación ni lenguaje de oferta.
+- [FarmTogether · ofertas agrícolas](https://cdn-cms.farmtogether.com/Farm_Together_Crowdfunded_Offerings_65b8bbe538.pdf) explica métricas proyectadas y remite a documentos de oferta, además de detallar riesgos, iliquidez y límites. Para SANA, esto refuerza que las cifras deben explicar periodo y fórmula, y que utilidad neta o retorno individual no aparecen sin estructura revisada y costos completos.
+- [AgriInvestment Malawi](https://agrinvestment.gov.mw/) separa descubrimiento de oportunidades, conexión entre actores y espacios para avanzar acuerdos. SANA adopta la claridad de etapas, pero su revisión de muestra no evalúa ni aprueba un proyecto.
+
+La interfaz de SANA no debe copiar la forma de una oferta financiera habilitada: el recorrido simulado deja visibles documentos que faltan, el estado real de los aportes (ninguno) y la lectura AgroWay de solo consulta. La persona puede avanzar el ejemplo, pero cada transición sigue marcada como ficticia y no vinculante.
+
 ## Información y estados
 
 - La demo abre en explorar proyectos y compara dos casos sintéticos. La lista es ilustrativa, no un catálogo abierto ni una convocatoria.
@@ -34,9 +42,9 @@ Estos referentes no acreditan la situación jurídica de SANA ni recomiendan inv
 - Mantener separados valores observados, supuestos, proyecciones, valores ausentes y alcance futuro con texto y etiquetas, nunca solo con color.
 - No calcular utilidad neta, dividendo ni retorno cuando falten costos, estructura contractual y revisión humana.
 - La lectura de AgroWay es de solo lectura, versionada y aprobada solo para la demostración. Una lectura caducada, no aprobada o mal mapeada se oculta.
-- “Mi espacio” separa intereses temporales del futuro historial personal. Muestra el resumen de sesión, escala de la ficha, lectura agrícola propia de cada proyecto y la fecha de corte. No llama “cartera” a una intención simulada ni presenta acuerdos o aportes como existentes.
+- “Mi espacio” permite distinguir interés, revisión representada y compromiso de muestra por proyecto. Muestra el resumen de sesión, escala de la ficha, lectura agrícola propia y su fecha de corte. No llama cartera real a la sesión ni presenta acuerdos o aportes como existentes.
 - Ocultar los indicadores agrícolas vencidos o no disponibles; conservar los valores ausentes como desconocidos, sin convertirlos en cero. Nombrar AgroWay como fuente de solo lectura.
-- El interés simulado permanece en memoria de la pestaña, no solicita datos personales, no llega a un servidor y no modifica AgroWay. La tarjeta explica que nadie recibió la selección y que desaparece al recargar.
+- El interés, revisión de muestra y compromiso ficticio permanecen en memoria de la pestaña, no solicitan datos personales, no llegan a un servidor y no modifican AgroWay. Cada transición indica que nadie recibió la selección, que no hay contrato o pago y que la sesión desaparece al recargar.
 
 ## Interacción y accesibilidad
 
@@ -53,4 +61,4 @@ La página usa papel cálido, azul medianoche, océano, coral y señal dorada. L
 
 ## Revisión de esta iteración
 
-El recorrido del dossier usa cuatro pasos anclados a contenido visible: proyecto, capital y producción, lectura AgroWay y seguimiento. El resumen de proyecto, la atribución de la lectura y los estados ficticios se mantienen visibles. Los intereses permanecen temporales y separados de cualquier compromiso o aporte.
+El recorrido del dossier usa cuatro pasos anclados a contenido visible: proyecto, capital y producción, lectura AgroWay y seguimiento. En “Mi espacio”, la demo permite avanzar la revisión y el compromiso por separado para que cada proyecto tenga su propia secuencia; los aportes siguen como externos y no registrados. Los estados permanecen temporales y separados de cualquier acuerdo o movimiento real.
