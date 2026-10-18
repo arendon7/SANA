@@ -52,6 +52,25 @@ test('project dossier presents a fully synthetic, arithmetically consistent case
   assert.equal(dossier.portfolio.status, 'PLANNED');
 });
 
+test('project story shows a synthetic plan without implying completed field activity', async () => {
+  for (const filename of ['project-dossier-v1.json', 'project-dossier-002-v1.json']) {
+    const dossier = JSON.parse(await read(filename));
+    assert.equal(dossier.projectPlan.status, 'SYNTHETIC_VALUE');
+    assert.ok(dossier.projectPlan.objective);
+    assert.equal(dossier.projectPlan.phases.length, 3);
+    assert.ok(dossier.projectPlan.phases.every((phase) => phase.name && phase.description && phase.timeframe));
+    const invalidPlan = JSON.parse(JSON.stringify(dossier));
+    invalidPlan.projectPlan.phases[0].timeframe = '';
+    assert.equal(validateDossier(invalidPlan, dossier.projectRef).reason, 'PROJECT_PLAN_INVALID');
+  }
+  const html = await read('index.html');
+  const app = await read('app.mjs');
+  assert.match(html, /Qué haría el proyecto, paso a paso/);
+  assert.match(html, /no describen actividades realizadas/);
+  assert.match(app, /renderProjectPlan\(profile\.projectPlan\)/);
+  assert.match(app, /status\.textContent = 'Fase ilustrativa'/);
+});
+
 test('synthetic due diligence lists evidence to request without scoring or implying review', () => {
   for (const projectRef of ['sana-demo-project-001', 'sana-demo-project-002']) {
     const checklist = createSyntheticDueDiligence(projectRef);
