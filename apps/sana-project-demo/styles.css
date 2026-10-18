@@ -972,3 +972,11 @@ h1, h2, h3 { color: var(--route-dark); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
 }
+
+/* Respect device cutouts while keeping anchor offsets aligned to the header. */
+:root { --header-height: calc(76px + env(safe-area-inset-top, 0px)); }
+.site-header { min-height: var(--header-height); padding-top: env(safe-area-inset-top, 0px); }
+@media (max-width: 760px) {
+  :root { --header-height: calc(66px + env(safe-area-inset-top, 0px)); }
+  .site-header { min-height: var(--header-height); }
+}
