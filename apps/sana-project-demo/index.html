@@ -44,7 +44,16 @@
         <span class="section-count" id="catalog-count">02 proyectos · Ficticios</span>
       </div>
 
-      <div class="project-compare-grid" aria-label="Proyectos agrícolas ficticios para comparar">
+      <div class="catalog-tools" role="search" aria-label="Buscar proyectos de muestra">
+        <label for="project-search">Encuentra un proyecto</label>
+        <div class="catalog-tools__controls">
+          <input id="project-search" type="search" autocomplete="off" placeholder="Cultivo, productor, zona o escala" aria-describedby="catalog-results-status">
+          <button id="clear-project-search" class="text-button" type="button" hidden>Limpiar</button>
+        </div>
+        <p id="catalog-results-status" role="status" aria-live="polite">Dos proyectos ficticios disponibles.</p>
+      </div>
+      <p id="catalog-empty" class="catalog-empty" hidden>No encontramos proyectos con esos datos. <button class="text-button" id="clear-project-search-empty" type="button">Ver todos</button></p>
+      <div id="catalog-projects-grid" class="project-compare-grid" aria-label="Proyectos agrícolas ficticios para comparar">
       <article class="featured-project">
         <div class="featured-art">
           <svg viewBox="0 0 640 470" role="img" aria-labelledby="catalog-art-title catalog-art-desc">
