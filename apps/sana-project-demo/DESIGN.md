@@ -12,7 +12,7 @@ SANA hace visibles proyectos productivos para que una persona pueda entender qui
 - Do not inherit GREENATICS website layouts. GREENATICS puede aparecer como afiliación institucional discreta cuando haga falta; no gobierna la identidad de esta interfaz.
 - Usar SANA como marca tipográfica hasta encontrar un logo independiente aprobado. No se encontró un activo autónomo validado; no se inventa un símbolo oficial.
 - Basar la composición en contexto y procedencia: una ficha editorial principal, una lista comparativa compacta, ilustración vectorial agrícola, datos agrupados y estados escritos. No usar fotos de archivo, geolocalizaciones, métricas de popularidad, testimonios ni progreso de financiación que no existan en los fixtures.
-- El canon SANA/AgroWay nombra Forest, Earth, Ivory, Growth y Signal, y orienta hacia Sofia Pro y Merriweather. Los valores CSS y las fuentes de sistema de esta demo son provisionales; no representan activos ni tokens aprobados.
+- Esta propuesta explora una identidad SANA propia con azul medianoche, azul profundo, océano, coral y señal dorada sobre papel cálido. Es una dirección provisional para revisión, no un canon aprobado. Las fuentes de sistema son sustitutos provisionales; los binarios no están disponibles.
 - Tomar como referencia de arquitectura de información los proyectos publicados por FarmTogether y AcreTrader: contexto del activo/cultivo, ubicación, escala, estructura del proyecto, supuestos y divulgaciones. Son ofertas reales de otros servicios; no trasladar a SANA rentabilidades, términos, estados, métricas ni promesas.
 
 ## Referentes de arquitectura de información
@@ -47,4 +47,9 @@ Estos referentes no acreditan la situación jurídica de SANA ni recomiendan inv
 
 ## Tokens provisionales de la demo
 
-La página usa papel cálido, tinta oscura, Forest, Earth, Clay y Signal como acentos. Los valores exactos viven en styles.css y .impeccable/design.json y solo describen esta propuesta local. No llamarlos colores oficiales.
+La página usa papel cálido, azul medianoche, océano, coral y señal dorada. Los valores exactos viven en styles.css y .impeccable/design.json y solo describen esta propuesta local. No llamarlos colores oficiales.
+
+
+## Revisión de esta iteración
+
+El recorrido del dossier usa cuatro pasos anclados a contenido visible: proyecto, capital y producción, lectura AgroWay y seguimiento. El resumen de proyecto, la atribución de la lectura y los estados ficticios se mantienen visibles. Los intereses permanecen temporales y separados de cualquier compromiso o aporte.

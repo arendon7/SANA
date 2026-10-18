@@ -3,24 +3,61 @@
   "projectRef": "sana-demo-project-001",
   "status": "SYNTHETIC",
   "title": "Cacao bajo sombra",
-  "summary": "Caso didáctico ficticio para mostrar cómo SANA puede ordenar el proyecto, su estructura productiva, sus supuestos económicos y la lectura agrícola que AgroWay autorice compartir.",
-  "crop": { "value": "Cacao", "status": "SYNTHETIC_VALUE" },
-  "promoter": { "value": "Elena Ríos · personaje ficticio", "status": "SYNTHETIC_VALUE" },
-  "property": { "value": "Finca La Esperanza · predio ficticio", "status": "SYNTHETIC_VALUE" },
-  "location": { "value": "Vereda ilustrativa · Colombia", "status": "SYNTHETIC_VALUE" },
-  "areaHa": { "value": 1.8, "unit": "ha", "status": "SYNTHETIC_VALUE" },
-  "plantCount": { "value": 1980, "unit": "plantas", "status": "SYNTHETIC_VALUE", "densityPlantsPerHa": 1100, "basis": "1.100 plantas/ha × 1,8 ha; supuesto de muestra, no inventario AgroWay" },
+  "summary": "Proyecto sintético de cacao bajo sombra. Explora quién lo impulsa, el predio, la escala productiva, los usos del capital y el escenario económico; consulta aparte la lectura agrícola que AgroWay autorizó para esta muestra.",
+  "crop": {
+    "value": "Cacao",
+    "status": "SYNTHETIC_VALUE"
+  },
+  "promoter": {
+    "value": "Elena Ríos · personaje ficticio",
+    "status": "SYNTHETIC_VALUE"
+  },
+  "property": {
+    "value": "Finca La Esperanza · predio ficticio",
+    "status": "SYNTHETIC_VALUE"
+  },
+  "location": {
+    "value": "Vereda ilustrativa · Colombia",
+    "status": "SYNTHETIC_VALUE"
+  },
+  "areaHa": {
+    "value": 1.8,
+    "unit": "ha",
+    "status": "SYNTHETIC_VALUE"
+  },
+  "plantCount": {
+    "value": 1980,
+    "unit": "plantas",
+    "status": "SYNTHETIC_VALUE",
+    "densityPlantsPerHa": 1100,
+    "basis": "1.100 plantas/ha × 1,8 ha; supuesto de muestra, no inventario AgroWay"
+  },
   "capitalNeed": {
     "amount": 48000000,
     "currency": "COP",
     "period": "Primeros 24 meses · supuesto ficticio",
     "status": "SYNTHETIC_VALUE",
     "useOfFunds": [
-      { "label": "Establecimiento y sombra", "amount": 15000000 },
-      { "label": "Agua y riego", "amount": 7000000 },
-      { "label": "Mano de obra y mantenimiento", "amount": 16000000 },
-      { "label": "Beneficio y poscosecha", "amount": 6000000 },
-      { "label": "Reserva operativa", "amount": 4000000 }
+      {
+        "label": "Establecimiento y sombra",
+        "amount": 15000000
+      },
+      {
+        "label": "Agua y riego",
+        "amount": 7000000
+      },
+      {
+        "label": "Mano de obra y mantenimiento",
+        "amount": 16000000
+      },
+      {
+        "label": "Beneficio y poscosecha",
+        "amount": 6000000
+      },
+      {
+        "label": "Reserva operativa",
+        "amount": 4000000
+      }
     ]
   },
   "productionEstimate": {
@@ -28,7 +65,11 @@
     "unit": "kg de cacao seco/año",
     "period": "Año 5 · escenario didáctico",
     "status": "SYNTHETIC_VALUE",
-    "basis": { "areaHa": 1.8, "yieldKgPerHa": 850, "formula": "1,8 ha × 850 kg/ha/año" }
+    "basis": {
+      "areaHa": 1.8,
+      "yieldKgPerHa": 850,
+      "formula": "1,8 ha × 850 kg/ha/año"
+    }
   },
   "economicScenario": {
     "period": "Año 5 · escenario didáctico",
@@ -41,7 +82,11 @@
     "formula": "1.530 kg × COP 15.000/kg − COP 12.000.000 de costos operativos",
     "excludes": "Financiación, impuestos, administración, pérdidas, logística comercial y distribución. No es utilidad neta ni retorno para participantes."
   },
-  "netUtilityEstimate": { "amount": null, "currency": "COP", "status": "NOT_CALCULATED" },
+  "netUtilityEstimate": {
+    "amount": null,
+    "currency": "COP",
+    "status": "NOT_CALCULATED"
+  },
   "portfolio": {
     "status": "PLANNED",
     "description": "Un espacio privado para consultar proyectos vinculados, compromisos, aportes conciliados y lecturas agrícolas aprobadas. No está conectado en esta demo."

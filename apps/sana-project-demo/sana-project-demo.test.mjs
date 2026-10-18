@@ -246,8 +246,19 @@ test('accessible screen states avoid real contact fields and disclose the synthe
   assert.match(html, /<main\b/);
   assert.match(html, /id="explore-view"[^>]*aria-labelledby="explore-title"/);
   assert.match(html, /id="open-project-card"/);
+  assert.match(html, /Conoce el proyecto detrás de cada cultivo/);
+  assert.match(html, /Explorar proyectos de muestra/);
+  assert.match(html, /aria-label="Recorrido de la ficha del proyecto"/);
+  for (const anchor of ['project-structure', 'capital-model', 'field-reading', 'participant-space']) {
+    assert.match(html, new RegExp(`href="#${anchor}"`));
+    assert.match(html, new RegExp(`id="${anchor}"`));
+  }
+  const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map((match) => match[1]);
+  assert.equal(ids.length, new Set(ids).size, 'HTML views must not duplicate element IDs');
+  assert.match(html, /persona productora, el predio asociado y la escala del cultivo/);
+  assert.match(html, /No se envió al equipo, no crea una solicitud ni representa una inversión/);
   assert.match(html, /id="participant-view"[^>]*aria-labelledby="space-title"/);
-  assert.match(html, /Tu espacio está vacío/);
+  assert.match(html, /Aquí empieza tu seguimiento/);
   assert.match(html, /id="empty-space"/);
   assert.match(html, /id="session-space"/);
   assert.match(server, /participant-session\.mjs/);
@@ -262,10 +273,10 @@ test('accessible screen states avoid real contact fields and disclose the synthe
   assert.doesNotMatch(html, /type="(?:email|password|file)"|name="(?:email|full-name|phone|document)"/i);
   assert.match(html, /mi selección no equivale a una solicitud o inversión/i);
   assert.match(html, /no llega a un servidor/i);
-  assert.match(html, /Capital, producción y límites del modelo/);
-  assert.match(html, /no son parámetros técnicos validados|no es un benchmark agronómico/i);
+  assert.match(html, /En qué se usaría y qué podría producir/);
+  assert.match(html, /no un pronóstico ni una promesa/i);
   assert.match(html, /Excedente operativo/);
-  assert.match(html, /Cómo se construiría la relación/);
+  assert.match(html, /De conocerlo a acompañar su avance/);
   assert.match(html, /Validación humana y documentos del proyecto/);
   assert.match(html, /avance autorizado de AgroWay/);
   assert.match(design, /Do not inherit GREENATICS website layouts/);

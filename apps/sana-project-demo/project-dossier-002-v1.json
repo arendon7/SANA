@@ -3,24 +3,61 @@
   "projectRef": "sana-demo-project-002",
   "status": "SYNTHETIC",
   "title": "Café de ladera y poscosecha comunitaria",
-  "summary": "Caso didáctico ficticio para entender cómo se describirían el predio, el cultivo, una necesidad de capital, el escenario productivo y el seguimiento agrícola de un proyecto asociado.",
-  "crop": { "value": "Café", "status": "SYNTHETIC_VALUE" },
-  "promoter": { "value": "Asociación Sendero Alto · nombre ficticio", "status": "SYNTHETIC_VALUE" },
-  "property": { "value": "Predio Las Lomas · predio ficticio", "status": "SYNTHETIC_VALUE" },
-  "location": { "value": "Vereda ilustrativa · Colombia", "status": "SYNTHETIC_VALUE" },
-  "areaHa": { "value": 2.4, "unit": "ha", "status": "SYNTHETIC_VALUE" },
-  "plantCount": { "value": 4320, "unit": "plantas", "status": "SYNTHETIC_VALUE", "densityPlantsPerHa": 1800, "basis": "1.800 plantas/ha × 2,4 ha; supuesto de muestra, no inventario AgroWay" },
+  "summary": "Proyecto sintético de café de ladera y poscosecha comunitaria. Explora su organización, predio, escala productiva, usos del capital y escenario económico; consulta aparte la lectura agrícola que AgroWay autorizó para esta muestra.",
+  "crop": {
+    "value": "Café",
+    "status": "SYNTHETIC_VALUE"
+  },
+  "promoter": {
+    "value": "Asociación Sendero Alto · nombre ficticio",
+    "status": "SYNTHETIC_VALUE"
+  },
+  "property": {
+    "value": "Predio Las Lomas · predio ficticio",
+    "status": "SYNTHETIC_VALUE"
+  },
+  "location": {
+    "value": "Vereda ilustrativa · Colombia",
+    "status": "SYNTHETIC_VALUE"
+  },
+  "areaHa": {
+    "value": 2.4,
+    "unit": "ha",
+    "status": "SYNTHETIC_VALUE"
+  },
+  "plantCount": {
+    "value": 4320,
+    "unit": "plantas",
+    "status": "SYNTHETIC_VALUE",
+    "densityPlantsPerHa": 1800,
+    "basis": "1.800 plantas/ha × 2,4 ha; supuesto de muestra, no inventario AgroWay"
+  },
   "capitalNeed": {
     "amount": 56000000,
     "currency": "COP",
     "period": "Primeros 18 meses · supuesto ficticio",
     "status": "SYNTHETIC_VALUE",
     "useOfFunds": [
-      { "label": "Renovación y establecimiento", "amount": 18000000 },
-      { "label": "Agua y conservación de suelo", "amount": 10000000 },
-      { "label": "Mano de obra y mantenimiento", "amount": 14000000 },
-      { "label": "Beneficio y poscosecha", "amount": 9000000 },
-      { "label": "Reserva operativa", "amount": 5000000 }
+      {
+        "label": "Renovación y establecimiento",
+        "amount": 18000000
+      },
+      {
+        "label": "Agua y conservación de suelo",
+        "amount": 10000000
+      },
+      {
+        "label": "Mano de obra y mantenimiento",
+        "amount": 14000000
+      },
+      {
+        "label": "Beneficio y poscosecha",
+        "amount": 9000000
+      },
+      {
+        "label": "Reserva operativa",
+        "amount": 5000000
+      }
     ]
   },
   "productionEstimate": {
@@ -28,7 +65,11 @@
     "unit": "kg de café pergamino seco/año",
     "period": "Año 4 · escenario didáctico",
     "status": "SYNTHETIC_VALUE",
-    "basis": { "areaHa": 2.4, "yieldKgPerHa": 800, "formula": "2,4 ha × 800 kg/ha/año" }
+    "basis": {
+      "areaHa": 2.4,
+      "yieldKgPerHa": 800,
+      "formula": "2,4 ha × 800 kg/ha/año"
+    }
   },
   "economicScenario": {
     "period": "Año 4 · escenario didáctico",
@@ -41,7 +82,11 @@
     "formula": "1.920 kg × COP 25.000/kg − COP 27.000.000 de costos operativos",
     "excludes": "Financiación, impuestos, administración, pérdidas, logística comercial y distribución. No es utilidad neta ni retorno para participantes."
   },
-  "netUtilityEstimate": { "amount": null, "currency": "COP", "status": "NOT_CALCULATED" },
+  "netUtilityEstimate": {
+    "amount": null,
+    "currency": "COP",
+    "status": "NOT_CALCULATED"
+  },
   "portfolio": {
     "status": "PLANNED",
     "description": "Un espacio privado para consultar proyectos vinculados, compromisos, aportes conciliados y lecturas agrícolas aprobadas. No está conectado en esta demo."

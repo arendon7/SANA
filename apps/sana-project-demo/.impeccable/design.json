@@ -1,51 +1,59 @@
 {
   "product": "SANA",
   "surface": "synthetic-project-marketplace-and-dossier",
-  "version": "0.2.0-proposed",
+  "version": "0.3.0-proposed",
   "status": "PROVISIONAL_DEMO_DIRECTION",
   "identity": {
     "wordmark": "SANA as a typographic wordmark; no validated standalone logo found",
     "parentBrand": "GREENATICS is an optional institutional affiliation only; it does not govern the product surface"
   },
   "palette": {
-    "forest": {
-      "value": "#344b3b",
+    "midnight": {
+      "value": "#10263a",
       "status": "prototype-only"
     },
-    "forestDeep": {
-      "value": "#263b31",
+    "blue": {
+      "value": "#18364f",
       "status": "prototype-only"
     },
-    "earth": {
-      "value": "#8d6849",
+    "ocean": {
+      "value": "#1c6a70",
       "status": "prototype-only"
     },
-    "clay": {
-      "value": "#a35f36",
+    "coral": {
+      "value": "#b24740",
       "status": "prototype-only"
     },
     "signal": {
-      "value": "#d9b36f",
+      "value": "#f0c978",
       "status": "prototype-only"
     },
     "paper": {
-      "value": "#f8f5ed",
+      "value": "#f6f3ed",
       "status": "prototype-only"
     },
     "surface": {
-      "value": "#fffdf8",
+      "value": "#fffefa",
       "status": "prototype-only"
     },
     "ink": {
-      "value": "#20251f",
+      "value": "#14263a",
       "status": "prototype-only"
     },
     "muted": {
-      "value": "#5f6860",
+      "value": "#586878",
       "status": "prototype-only"
     },
     "line": {
-      "value": "#d9d5ca",
+      "value": "#d5dce0",
+      "status": "prototype-only"
+    },
+    "softAqua": {
+      "value": "#e4f0ee",
+      "status": "prototype-only"
+    },
+    "softCoral": {
+      "value": "#f7e7e2",
       "status": "prototype-only"
     }
   },
@@ -54,7 +62,7 @@
     "secondaryDirection": "Merriweather",
     "assetStatus": "font binaries not present; local system fallbacks remain provisional"
   },
-  "composition": "SANA product catalogue leading into a project dossier with promoter/property identity, agricultural scale, capital allocation, production assumptions and approved AgroWay progress; participant space empty state or ephemeral simulated-interest card; in-memory intent followed by a represented human-review step.",
+  "composition": "SANA own product identity with a project-route first: catalogue, project dossier with named route steps (producer/property/crop, capital/production, authorized AgroWay reading, personal project follow-up), and a separate simulated-interest path. Every project has its own synthetic dossier and reading.",
   "stateVocabulary": [
     "synthetic",
     "observed",
@@ -65,8 +73,9 @@
     "planned"
   ],
   "referencePatterns": [
-    "Farm Fractions project property/scale/capital context",
-    "iGrow crop/location/duration project discovery"
+    "AcreTrader: offering cards with explicit project state, crop, location context and disclosure",
+    "Cropital: explain the stages from exploration to human review and project monitoring",
+    "Agrapp Colombia: separate agricultural credit from public investment; do not imply a verified investment marketplace"
   ],
   "excludedPatterns": [
     "unverified testimonials",
