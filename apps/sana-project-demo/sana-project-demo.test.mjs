@@ -300,7 +300,8 @@ test('accessible screen states avoid real contact fields and disclose the synthe
   assert.match(html, /id="catalog-surplus"/);
   assert.match(html, /Conoce el proyecto detrás de cada cultivo/);
   assert.match(html, /Explorar proyectos de muestra/);
-  assert.match(html, /aria-label="Recorrido de la ficha del proyecto"/);
+  assert.match(html, /aria-label="Secciones de la ficha del proyecto"/);
+  assert.match(html, /id="profile-production-quick"/);
   for (const anchor of ['project-structure', 'capital-model', 'due-diligence', 'field-reading', 'participant-space']) {
     assert.match(html, new RegExp(`href="#${anchor}"`));
     assert.match(html, new RegExp(`id="${anchor}"`));
@@ -343,6 +344,8 @@ test('accessible screen states avoid real contact fields and disclose the synthe
   assert.match(app, /Excedente operativo/);
   assert.match(styles, /\.project-compare-grid/);
   assert.match(app, /Evidencia por solicitar/);
+  assert.match(app, /createElement\('details'\)/);
+  assert.match(app, /profile-production-quick/);
   assert.match(styles, /data-state--unassessed/);
   assert.match(html, /En qué se usaría y qué podría producir/);
   assert.match(html, /no un pronóstico ni una promesa/i);

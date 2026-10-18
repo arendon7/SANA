@@ -39,6 +39,27 @@ let projectProfiles = [];
 const participantFieldReadings = new Map();
 let activeProject;
 
+const projectSections = [...document.querySelectorAll('.project-nav a')]
+  .map((link) => ({ link, section: document.querySelector(link.getAttribute('href')) }))
+  .filter(({ section }) => section);
+const projectSectionObserver = 'IntersectionObserver' in window
+  ? new IntersectionObserver((entries) => {
+    const current = entries
+      .filter((entry) => entry.isIntersecting)
+      .sort((left, right) => left.boundingClientRect.top - right.boundingClientRect.top)[0];
+    if (!current) return;
+    projectSections.forEach(({ link, section }) => {
+      if (section === current.target) link.setAttribute('aria-current', 'location');
+      else link.removeAttribute('aria-current');
+    });
+  }, { rootMargin: '-120px 0px -62% 0px', threshold: 0 })
+  : null;
+projectSections.forEach(({ section }) => projectSectionObserver?.observe(section));
+projectSections.forEach(({ link }) => link.addEventListener('click', () => {
+  projectSections.forEach(({ link: candidate }) => candidate.removeAttribute('aria-current'));
+  link.setAttribute('aria-current', 'location');
+}));
+
 function showView(step, { focus = false, historyAction = 'push' } = {}) {
   const views = {
     catalog: elements.catalog,
@@ -353,14 +374,18 @@ function renderDueDiligence(projectRef) {
   model.topics.forEach((topic, index) => {
     const item = document.createElement('li');
     item.className = 'due-diligence-item';
+    const details = document.createElement('details');
+    details.open = index === 0;
     const heading = document.createElement('div');
     heading.className = 'due-diligence-item__heading';
     const title = document.createElement('h3');
-    title.textContent = String(index + 1).padStart(2, '0') + ' · ' + topic.title;
+    title.textContent = topic.title;
     const status = document.createElement('span');
     status.className = 'data-state data-state--unassessed';
     status.textContent = 'Sin evaluar';
     heading.append(title, status);
+    const summary = document.createElement('summary');
+    summary.append(heading);
     const question = document.createElement('p');
     question.className = 'due-diligence-item__question';
     question.textContent = topic.question;
@@ -371,7 +396,11 @@ function renderDueDiligence(projectRef) {
     const evidenceText = document.createElement('span');
     evidenceText.textContent = topic.evidenceNeeded;
     evidence.append(evidenceLabel, evidenceText);
-    item.append(heading, question, evidence);
+    const content = document.createElement('div');
+    content.className = 'due-diligence-item__content';
+    content.append(question, evidence);
+    details.append(summary, content);
+    item.append(details);
     list.append(item);
   });
 }
@@ -416,6 +445,7 @@ function renderDossier(profile) {
   document.querySelector('#capital-period-copy').textContent = capital.period;
   const formattedProduction = `${formatCount(production.quantity)} ${production.unit} · ${production.period}`;
   document.querySelector('#profile-production').textContent = formattedProduction;
+  document.querySelector('#profile-production-quick').textContent = `${formatCount(production.quantity)} ${production.unit}`;
   document.querySelector('#catalog-production').textContent = `${formatCount(production.quantity)} ${production.unit}`;
   document.querySelector('#catalog-production-period').textContent = production.period;
   document.querySelector('#catalog-surplus').textContent = `${formatCop(economics.operatingSurplus)}/año`;
