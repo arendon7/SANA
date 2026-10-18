@@ -741,3 +741,8 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 @media (max-width: 760px) {
   .session-interest-card__heading .data-state { width: fit-content; }
 }
+
+
+/* Keep the participant workspace status readable on its dark surface. */
+.space-stamp span, .space-stamp small { color: #e0d7cc; }
+.space-stamp strong { color: #fff5e8; }
