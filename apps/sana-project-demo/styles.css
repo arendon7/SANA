@@ -1270,25 +1270,27 @@ h1, h2, h3 { color: var(--route-dark); }
   .project-compare-grid .project-shelf-row__open { margin-inline: 19px; }
 }
 
-/* SANA synthetic project plan: explain the work without implying execution. */
-.project-plan { margin-top: 18px; padding: 20px; border: 1px solid #d2dcda; border-radius: 14px; background: #f5f8f6; }
-.project-plan__heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
-.project-plan__heading .eyebrow { margin-bottom: 5px; }
-.project-plan__heading h3 { margin: 0; color: #10263a; font-size: clamp(18px,2vw,23px); line-height: 1.25; }
+/* SANA project plan: an editorial sequence, not a nested card stack. */
+.project-plan { margin-top: 28px; padding-top: 24px; border-top: 1px solid #cbd7d3; }
+.project-plan__heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.project-plan__heading h3 { margin: 0; color: #10263a; font-size: clamp(19px,2vw,24px); line-height: 1.25; text-wrap: balance; }
 .project-plan__objective { max-width: 70ch; margin: 12px 0 0; color: #425b62; font-size: 14px; line-height: 1.6; }
-.project-plan__phases { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; margin: 18px 0 0; padding: 0; list-style: none; }
-.project-plan__phases li { display: grid; grid-template-columns: 28px minmax(0,1fr); align-content: start; gap: 10px; min-width: 0; padding: 15px; border: 1px solid #d9e1de; border-radius: 11px; background: #fffefa; }
-.project-plan__number { display: grid; width: 28px; height: 28px; place-items: center; border: 1px solid #c4d9d4; border-radius: 9px; background: #edf4f1; color: #1c6a70; font-size: 10px; font-weight: 750; }
-.project-plan__content { display: grid; gap: 6px; min-width: 0; }
-.project-plan__content strong { color: #10263a; font-size: 13px; line-height: 1.35; }
-.project-plan__content p { margin: 0; color: #53676b; font-size: 11px; line-height: 1.5; }
-.project-plan__content small { color: #607478; font-size: 10px; font-weight: 700; }
-.project-plan__phases .planned-tag { grid-column: 2; width: max-content; font-size: 9px; }
-.project-plan__note { margin: 12px 0 0; color: #64777a; font-size: 10px; line-height: 1.45; }
-@media (max-width: 1120px) { .project-plan__phases { grid-template-columns: 1fr; } }
+.project-plan__phases { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 0; margin: 22px 0 0; padding: 0; list-style: none; }
+.project-plan__phases li { display: grid; grid-template-rows: auto 1fr; align-content: start; gap: 12px; min-width: 0; padding: 15px 18px 12px 0; border: 0; border-top: 1px solid #cbd7d3; background: transparent; }
+.project-plan__phases li + li { padding-left: 18px; border-left: 1px solid #d9e1de; }
+.project-plan__number { display: grid; width: 30px; height: 30px; place-items: center; border: 1px solid #c4d9d4; border-radius: 50%; background: #edf4f1; color: #1c6a70; font-size: 12px; font-weight: 750; }
+.project-plan__content { display: grid; align-content: start; gap: 7px; min-width: 0; }
+.project-plan__content strong { color: #10263a; font-size: 15px; line-height: 1.35; }
+.project-plan__content p { margin: 0; color: #465d62; font-size: 13px; line-height: 1.55; }
+.project-plan__content small { color: #50666a; font-size: 12px; font-weight: 700; line-height: 1.4; }
+.project-plan__note { margin: 14px 0 0; color: #53676b; font-size: 12px; line-height: 1.5; }
+@media (max-width: 1120px) {
+  .project-plan__phases { grid-template-columns: 1fr; }
+  .project-plan__phases li { grid-template-columns: 30px minmax(0,1fr); grid-template-rows: auto; gap: 12px; padding: 14px 0; }
+  .project-plan__phases li + li { padding-left: 0; border-left: 0; }
+}
 @media (max-width: 760px) {
-  .project-plan { padding: 16px; }
-  .project-plan__heading { flex-direction: column; }
-  .project-plan__phases li { padding: 13px; }
+  .project-plan { margin-top: 24px; padding-top: 20px; }
+  .project-plan__heading { align-items: flex-start; flex-direction: column; }
 }
 
