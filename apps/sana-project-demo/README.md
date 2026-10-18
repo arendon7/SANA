@@ -29,7 +29,7 @@ Abrir `http://127.0.0.1:4175/`. El servidor Node integrado se vincula a loopback
 
 `project-projection-v1.json` y `project-projection-002-v1.json` son fixtures AgroWay separados y sintéticos que validan `apps/sana-project-read/reader-v1.mjs`; las lecturas vencidas o mal mapeadas se ocultan. Los eventos de cosecha son observaciones sintéticas separadas y no alimentan los escenarios de producción estimada. En cada proyecto seguido, “Mi espacio” usa la misma validación para mostrar el resumen de ciclo de solo lectura y su fecha; si faltan valores, los conserva como desconocidos. Interés, revisión y compromiso de muestra viven solo en memoria de la pestaña. No solicitan datos personales o financieros, no crean una solicitud real, no llaman a servicios y se borran al recargar. La revisión es una transición visual que el visitante activa, no una evaluación humana. El monto es un ejercicio no vinculante; aportes y pagos no se registran.
 
-`DESIGN.md` y `.impeccable/design.json` documentan una dirección específica de SANA, independiente de la identidad GREENATICS. El wordmark tipográfico es provisional; no se encontró un logo autónomo validado. La paleta y las fuentes de respaldo tampoco están aprobadas.
+La demo conserva una dirección visual propia de SANA, independiente de GREENATICS. Usa un wordmark tipográfico y una paleta provisional; todavía no hay logo autónomo aprobado.
 
 Esta entrega es una demo candidata, no una aplicación productiva ni un despliegue. No habilita audiencia, cuentas, inversiones, pagos, datos reales o servicios adicionales.
 
