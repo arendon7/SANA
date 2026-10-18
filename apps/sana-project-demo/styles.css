@@ -576,7 +576,8 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 .page-kicker { margin-bottom: 15px; }
 .project-hero { grid-template-columns: minmax(0,1.08fr) minmax(300px,.92fr); gap: clamp(26px,4vw,54px); min-height: 0; padding: clamp(28px,4vw,52px); border: 1px solid #15171a; border-radius: 2px; background: var(--route-dark); box-shadow: 0 18px 40px rgba(35,38,43,.14); }
 .project-hero::before { top: -180px; right: 30%; border-color: rgba(200,58,66,.22); box-shadow: 0 0 0 28px rgba(200,58,66,.04), 0 0 0 58px rgba(200,58,66,.025); }
-.project-hero__meta { color: #d9b995; }
+.project-hero__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; color: #d9b995; }
+.meta-divider { display: inline-block; width: 24px; height: 1px; flex: 0 0 24px; background: currentColor; opacity: .7; }
 .project-status { border: 1px solid rgba(255,245,232,.28); border-radius: 1px; background: rgba(255,245,232,.08); color: #fff5e8; }
 .status-mark { background: #e87075; box-shadow: 0 0 0 4px rgba(200,58,66,.2); }
 .project-hero h1 { color: #fff5e8; font-family: var(--serif); font-size: clamp(48px,6vw,76px); font-weight: 480; }
