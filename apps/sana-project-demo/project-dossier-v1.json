@@ -90,5 +90,26 @@
   "portfolio": {
     "status": "PLANNED",
     "description": "Un espacio privado para consultar proyectos vinculados, compromisos, aportes conciliados y lecturas agrícolas aprobadas. No está conectado en esta demo."
+  },
+  "projectPlan": {
+    "status": "SYNTHETIC_VALUE",
+    "objective": "Establecer cacao bajo sombra y preparar una ruta de cosecha y poscosecha por lotes.",
+    "phases": [
+      {
+        "name": "Organizar el predio",
+        "description": "Definir la distribución ilustrativa del cultivo y revisar suelo y agua como parte de la planeación.",
+        "timeframe": "Antes del establecimiento"
+      },
+      {
+        "name": "Establecer y cuidar",
+        "description": "Representar la siembra y el seguimiento de labores, observaciones e incidencias durante el ciclo.",
+        "timeframe": "Primeros 24 meses"
+      },
+      {
+        "name": "Cosechar y beneficiar",
+        "description": "Separar lotes de cosecha y documentar el proceso de fermentación y secado.",
+        "timeframe": "Cuando inicie la producción"
+      }
+    ]
   }
 }
