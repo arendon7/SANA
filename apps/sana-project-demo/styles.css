@@ -253,7 +253,15 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 .session-interest-card__details > div { min-width: 0; padding: 13px 0; border-top: 1px solid var(--line); }
 .session-interest-card__details dt { color: var(--muted); font-size: 11px; }
 .session-interest-card__details dd { margin: 5px 0 0; color: var(--forest-deep); font-size: 13px; font-weight: 650; overflow-wrap: anywhere; }
-.session-interest-card__disclosure { margin: 0 0 15px; padding: 12px 14px; border-left: 2px solid var(--sun); background: #f7f0de; color: #51472f; font-size: 12px; line-height: 1.5; }
+.session-field-reading { margin: 19px 0 16px; padding-top: 16px; border-top: 1px solid var(--line); }
+.session-field-reading h4 { margin: 0 0 5px; color: var(--forest-deep); font-size: 15px; font-weight: 700; }
+.session-field-reading__source { margin: 0 0 12px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.session-field-reading > p:not(.session-field-reading__source) { margin: 0 0 12px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.session-field-reading__facts { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; margin: 0; }
+.session-field-reading__facts > div { min-width: 0; padding-top: 9px; border-top: 1px solid var(--line); }
+.session-field-reading__facts dt { color: var(--muted); font-size: 11px; }
+.session-field-reading__facts dd { margin: 4px 0 0; color: var(--forest-deep); font-size: 13px; font-weight: 650; line-height: 1.4; overflow-wrap: anywhere; }
+.session-interest-card__disclosure { margin: 0 0 15px; padding: 12px 0 0; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; line-height: 1.5; }
 .space-features { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }
 .space-features article { min-width: 0; padding: 20px; border: 1px solid var(--line); background: rgba(255,253,248,.56); }
 .feature-index { color: var(--clay); font-size: 11px; font-weight: 750; }
@@ -378,6 +386,7 @@ button:disabled { cursor: not-allowed; opacity: .55; }
   .session-space__heading, .session-interest-card__heading { align-items: start; flex-direction: column; }
   .session-space__actions { align-items: start; flex-direction: column; gap: 8px; }
   .session-interest-card__details { grid-template-columns: 1fr; gap: 0; }
+  .session-field-reading__facts { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 11px 14px; }
   .confirmation-actions .button { width: 100%; }
   .journey-view { padding: 4px 0 45px; }
   .journey-progress { margin-bottom: 25px; }

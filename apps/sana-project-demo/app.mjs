@@ -3,6 +3,7 @@ import { createInterestFlow, openInterest, resetInterestFlow, submitInterest } f
 import { displayProjectField, validateDossier } from './project-dossier.mjs';
 import { projectionDisplayPolicy } from './presentation-policy.mjs';
 import { clearParticipantSession, createParticipantSession, recordSimulatedInterest } from './participant-session.mjs';
+import { createParticipantFieldReading } from './participant-field-reading.mjs';
 import { validateProjectCatalog } from './project-catalog.mjs';
 
 const elements = {
@@ -35,6 +36,7 @@ let flow = createInterestFlow();
 let participantSession = createParticipantSession();
 let catalog;
 let projectProfiles = [];
+const participantFieldReadings = new Map();
 let activeProject;
 
 function showView(step, { focus = false, historyAction = 'push' } = {}) {
@@ -110,6 +112,7 @@ function renderParticipantSpace() {
     stageValue.textContent = 'Revisión humana antes de cualquier contacto';
     stage.append(stageLabel, stageValue);
     details.append(reason, stage);
+    const fieldReading = renderParticipantFieldReading(participantFieldReadings.get(item.projectRef), item.projectRef);
     const disclosure = document.createElement('p');
     disclosure.className = 'session-interest-card__disclosure';
     disclosure.textContent = 'No hay una solicitud real, un compromiso ni aportes. Nadie recibió esta selección; se borrará al recargar o cerrar la demo.';
@@ -118,9 +121,76 @@ function renderParticipantSpace() {
     openProject.type = 'button';
     openProject.textContent = 'Volver a la ficha del proyecto ↗';
     openProject.addEventListener('click', () => selectProject(item.projectRef, 'project'));
-    card.append(heading, details, disclosure, openProject);
+    card.append(heading, details, fieldReading, disclosure, openProject);
     list.append(card);
   });
+}
+
+function renderParticipantFieldReading(reading, projectRef) {
+  const section = document.createElement('section');
+  section.className = 'session-field-reading';
+  section.setAttribute('aria-labelledby', `field-reading-${projectRef}`);
+  const title = document.createElement('h4');
+  title.id = `field-reading-${projectRef}`;
+  title.textContent = 'Avance agrícola asociado';
+  section.append(title);
+
+  const source = document.createElement('p');
+  source.className = 'session-field-reading__source';
+  if (reading?.state === 'FRESH' && reading.summary) {
+    source.textContent = `AgroWay FIELD · lectura sintética de solo lectura · corte ${formatDate(reading.sourceAsOf, { dateOnly: true })}`;
+    const summary = reading.summary;
+    const cycleNames = { PLANNED: 'Planeado', ACTIVE: 'Activo', PAUSED: 'En pausa', CLOSED: 'Cerrado' };
+    const facts = document.createElement('dl');
+    facts.className = 'session-field-reading__facts';
+    const taskValue = summary.tasks.done === null || summary.tasks.planned === null
+      ? 'Dato incompleto'
+      : `${formatCount(summary.tasks.done)} de ${formatCount(summary.tasks.planned)} completadas`;
+    const alertValue = summary.alerts.open === null
+      ? 'Dato incompleto'
+      : `${formatCount(summary.alerts.open)} ${summary.alerts.open === 1 ? 'abierta' : 'abiertas'}`;
+    let harvestValue = 'Estado sin informar';
+    if (summary.harvest.status === 'RECORDED') {
+      harvestValue = summary.harvest.quantity === null
+        ? 'Registrada · cantidad sin informar'
+        : `${formatCount(summary.harvest.quantity)} ${summary.harvest.unit ?? ''}`.trim();
+    } else if (summary.harvest.status === 'NONE' && summary.completeness.harvest === 'COMPLETE') {
+      harvestValue = 'Sin cosecha registrada';
+    }
+    const values = [
+      ['Ciclo', cycleNames[summary.cycleState] ?? 'Estado sin informar'],
+      ['Labores del ciclo', taskValue],
+      ['Alertas abiertas', alertValue],
+      ['Cosecha del ciclo', harvestValue],
+    ];
+    values.forEach(([label, value]) => {
+      const row = document.createElement('div');
+      const term = document.createElement('dt');
+      term.textContent = label;
+      const detail = document.createElement('dd');
+      detail.textContent = value;
+      row.append(term, detail);
+      facts.append(row);
+    });
+    section.append(source, facts);
+    return section;
+  }
+
+  if (reading?.state === 'STALE') {
+    source.textContent = reading.sourceAsOf
+      ? `La lectura venció · último corte ${formatDate(reading.sourceAsOf, { dateOnly: true })}`
+      : 'La lectura aprobada está vencida.';
+    const message = document.createElement('p');
+    message.textContent = 'Ocultamos sus indicadores hasta contar con una actualización aprobada.';
+    section.append(source, message);
+    return section;
+  }
+
+  source.textContent = 'No hay una lectura AgroWay aprobada disponible en esta sesión.';
+  const message = document.createElement('p');
+  message.textContent = 'No mostramos cifras que no hayan pasado la validación del proyecto.';
+  section.append(source, message);
+  return section;
 }
 
 function openInterestView() {
@@ -351,6 +421,7 @@ async function loadProjection(entry) {
   elements.readContent.hidden = true;
   elements.readLoading.textContent = 'Validando la lectura AgroWay sintética de este proyecto…';
   if (!entry.projectionPath) {
+    participantFieldReadings.set(entry.projectRef, createParticipantFieldReading(null));
     elements.sourceStatus.className = 'data-state data-state--stale';
     elements.sourceStatus.dataset.state = 'unavailable';
     elements.sourceStatus.textContent = 'Sin lectura disponible';
@@ -366,9 +437,11 @@ async function loadProjection(entry) {
     const input = await response.json();
     const checked = await validateProjection(input, { expectedSanaProjectRef: entry.projectRef });
     if (!checked.ok) throw new Error('FIXTURE_NOT_APPROVED');
+    participantFieldReadings.set(entry.projectRef, createParticipantFieldReading(checked));
     renderProjection(input, checked.model);
     return true;
   } catch {
+    participantFieldReadings.set(entry.projectRef, createParticipantFieldReading(null));
     elements.sourceStatus.className = 'data-state data-state--error';
     elements.sourceStatus.dataset.state = 'error';
     elements.sourceStatus.textContent = 'Lectura no disponible';

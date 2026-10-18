@@ -8,6 +8,7 @@ import { createInterestFlow, openInterest, resetInterestFlow, submitInterest } f
 import { displayProjectField, validateDossier } from './project-dossier.mjs';
 import { projectionDisplayPolicy } from './presentation-policy.mjs';
 import { clearParticipantSession, createParticipantSession, recordSimulatedInterest } from './participant-session.mjs';
+import { createParticipantFieldReading } from './participant-field-reading.mjs';
 import { validateProjectCatalog } from './project-catalog.mjs';
 
 const appDirectory = fileURLToPath(new URL('.', import.meta.url));
@@ -130,6 +131,49 @@ test('stale AgroWay projection is hidden until a fresh approved read is availabl
   assert.deepEqual(projectionDisplayPolicy({ ...checked.model, freshness: { ...checked.model.freshness, status: 'FRESH' } }), { state: 'FRESH', showSummary: true });
 });
 
+test('Mi espacio shows a fresh read-only AgroWay summary for each linked synthetic project', async () => {
+  const catalog = JSON.parse(await read('project-catalog-v1.json'));
+  for (const entry of catalog.projects) {
+    const fixture = JSON.parse(await read(entry.projectionPath.slice(2)));
+    const checked = await validateProjection(fixture, {
+      expectedSanaProjectRef: entry.projectRef,
+      now: Date.parse(fixture.generatedAt) + 60 * 60 * 1000,
+    });
+    const reading = createParticipantFieldReading(checked);
+    assert.equal(reading.state, 'FRESH', entry.projectRef);
+    assert.equal(reading.summary.cycleState, 'ACTIVE');
+    assert.equal(reading.summary.harvest.quantity, fixture.summary.harvest.quantity);
+    assert.equal(reading.summary.harvest.unit, fixture.summary.harvest.unit);
+    assert.equal(Object.isFrozen(reading.summary), true);
+  }
+});
+
+test('Mi espacio hides stale or unapproved readings and preserves unknown quantities', async () => {
+  const fixture = await loadFixture();
+  const stale = await validateProjection({
+    ...fixture,
+    freshness: { ...fixture.freshness, status: 'STALE' },
+  }, { expectedSanaProjectRef: 'sana-demo-project-001', now: Date.parse(fixture.generatedAt) });
+  assert.equal(createParticipantFieldReading(stale).state, 'STALE');
+  assert.equal(createParticipantFieldReading(stale).summary, null);
+  assert.deepEqual(createParticipantFieldReading({ ok: false, model: null }).summary, null);
+
+  const partial = await validateProjection({
+    ...fixture,
+    completeness: { tasks: 'PARTIAL', alerts: 'PARTIAL', harvest: 'PARTIAL' },
+    summary: {
+      tasks: { ...fixture.summary.tasks, done: null },
+      alerts: { ...fixture.summary.alerts, open: null },
+      harvest: { status: 'UNKNOWN', lotCount: null, quantity: null, unit: null },
+    },
+  }, { expectedSanaProjectRef: 'sana-demo-project-001', now: Date.parse(fixture.generatedAt) });
+  assert.equal(partial.ok, true);
+  const reading = createParticipantFieldReading(partial);
+  assert.equal(reading.summary.tasks.done, null);
+  assert.equal(reading.summary.alerts.open, null);
+  assert.equal(reading.summary.harvest.quantity, null);
+});
+
 test('interest flow requires an explicit motive and demo acknowledgment', () => {
   const initial = createInterestFlow();
   assert.equal(initial.step, 'project');
@@ -198,6 +242,7 @@ test('accessible screen states avoid real contact fields and disclose the synthe
   const styles = await read('styles.css');
   const design = await read('DESIGN.md');
   const policy = await read('presentation-policy.mjs');
+  const server = await read('server.mjs');
   assert.match(html, /<main\b/);
   assert.match(html, /id="explore-view"[^>]*aria-labelledby="explore-title"/);
   assert.match(html, /id="open-project-card"/);
@@ -205,7 +250,7 @@ test('accessible screen states avoid real contact fields and disclose the synthe
   assert.match(html, /Sin proyectos asociados/);
   assert.match(html, /id="empty-space"/);
   assert.match(html, /id="session-space"/);
-  assert.match(await read('server.mjs'), /participant-session\.mjs/);
+  assert.match(server, /participant-session\.mjs/);
   assert.match(app, /Nadie recibió esta selección/);
   assert.match(html, /commitments|Compromisos revisados/);
   assert.match(html, /aria-live|role="alert"/);
@@ -229,6 +274,8 @@ test('accessible screen states avoid real contact fields and disclose the synthe
   assert.match(html, /id="catalog-project-list"/);
   assert.match(html, /id="catalog-count"/);
   assert.match(app, /projectionDisplayPolicy\(model\)/);
+  assert.match(app, /renderParticipantFieldReading/);
+  assert.match(server, /participant-field-reading\.mjs/);
   assert.match(app, /searchParams\.set\('view', step\)/);
   assert.match(app, /allocation-width/);
   assert.match(policy, /STALE.*showSummary: false/);

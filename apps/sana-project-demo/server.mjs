@@ -14,6 +14,7 @@ const routes = new Map([
   ['/apps/sana-project-demo/project-catalog.mjs', [resolve(app, 'project-catalog.mjs'), 'text/javascript; charset=utf-8']],
   ['/apps/sana-project-demo/interest-flow.mjs', [resolve(app, 'interest-flow.mjs'), 'text/javascript; charset=utf-8']],
   ['/apps/sana-project-demo/participant-session.mjs', [resolve(app, 'participant-session.mjs'), 'text/javascript; charset=utf-8']],
+  ['/apps/sana-project-demo/participant-field-reading.mjs', [resolve(app, 'participant-field-reading.mjs'), 'text/javascript; charset=utf-8']],
   ['/apps/sana-project-demo/project-dossier.mjs', [resolve(app, 'project-dossier.mjs'), 'text/javascript; charset=utf-8']],
   ['/apps/sana-project-demo/presentation-policy.mjs', [resolve(app, 'presentation-policy.mjs'), 'text/javascript; charset=utf-8']],
   ['/apps/sana-project-demo/project-dossier-v1.json', [resolve(app, 'project-dossier-v1.json'), 'application/json; charset=utf-8']],
