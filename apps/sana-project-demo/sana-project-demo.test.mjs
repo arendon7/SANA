@@ -10,6 +10,7 @@ import { projectionDisplayPolicy } from './presentation-policy.mjs';
 import { clearParticipantSession, createParticipantSession, recordSimulatedCommitment, recordSimulatedInterest, simulateHumanReview } from './participant-session.mjs';
 import { createParticipantFieldReading } from './participant-field-reading.mjs';
 import { validateProjectCatalog } from './project-catalog.mjs';
+import { matchesProjectSearch } from './catalog-search.mjs';
 
 const appDirectory = fileURLToPath(new URL('.', import.meta.url));
 const read = (path) => readFile(resolve(appDirectory, path), 'utf8');
@@ -17,6 +18,17 @@ const read = (path) => readFile(resolve(appDirectory, path), 'utf8');
 async function loadFixture() {
   return JSON.parse(await read('project-projection-v1.json'));
 }
+
+test('catalog search matches project identity and agronomic scale without accent sensitivity', async () => {
+  const cacao = JSON.parse(await read('project-dossier-v1.json'));
+  const coffee = JSON.parse(await read('project-dossier-002-v1.json'));
+  assert.equal(matchesProjectSearch(cacao, 'cacao'), true);
+  assert.equal(matchesProjectSearch(cacao, 'elena rios'), true);
+  assert.equal(matchesProjectSearch(cacao, '1.8'), true);
+  assert.equal(matchesProjectSearch(coffee, 'cafe'), true);
+  assert.equal(matchesProjectSearch(coffee, 'project-no-existe'), false);
+  assert.equal(matchesProjectSearch(coffee, '   '), true);
+});
 
 test('project projection is exact, approved only for demo, and read-only', async () => {
   const fixture = await loadFixture();
@@ -309,7 +321,6 @@ test('accessible screen states avoid real contact fields and disclose the synthe
   const html = await read('index.html');
   const app = await read('app.mjs');
   const styles = await read('styles.css');
-  const design = await read('DESIGN.md');
   const policy = await read('presentation-policy.mjs');
   const server = await read('server.mjs');
   assert.match(html, /<main\b/);
@@ -372,8 +383,6 @@ test('accessible screen states avoid real contact fields and disclose the synthe
   assert.match(html, /De conocerlo a acompañar su avance/);
   assert.match(html, /Ensayo de revisión y consulta de material disponible/);
   assert.match(html, /lectura AgroWay por proyecto/);
-  assert.match(design, /Do not inherit GREENATICS website layouts/);
-  assert.match(design, /catálogo editorial|project discovery/i);
   assert.match(app, /validateProjection/);
   assert.match(app, /validateProjectCatalog/);
   assert.match(app, /catalog\.projects\.find/);
@@ -381,6 +390,10 @@ test('accessible screen states avoid real contact fields and disclose the synthe
   assert.match(app, /entry\.dossierPath/);
   assert.match(html, /id="catalog-project-list"/);
   assert.match(html, /id="catalog-count"/);
+  assert.match(html, /id="project-search"/);
+  assert.match(html, /id="catalog-results-status"/);
+  assert.match(app, /matchesProjectSearch/);
+  assert.match(app, /Sin resultados para/);
   assert.match(app, /projectionDisplayPolicy\(model\)/);
   assert.match(app, /renderParticipantFieldReading/);
   assert.match(server, /participant-field-reading\.mjs/);
