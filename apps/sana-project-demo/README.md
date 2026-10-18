@@ -1,15 +1,15 @@
 # SANA · proyectos productivos
 
-Demo local para recorrer la primera experiencia propia de SANA: explorar un proyecto ficticio, abrir una ficha con predio y escala, revisar la necesidad de capital y el modelo productivo, consultar una lectura AgroWay sintética y simular interés para revisión humana.
+Demo local para recorrer la primera experiencia propia de SANA: comparar dos proyectos agrícolas ficticios, abrir sus fichas con productor/a, predio y escala, revisar necesidades de capital y supuestos productivos, consultar lecturas AgroWay sintéticas y reunir intereses simulados por proyecto en “Mi espacio”.
 
 ## Recorrido
 
-1. Explorar un caso de muestra en el catálogo.
+1. Comparar dos casos de muestra de cultivos distintos en el catálogo editorial.
 2. Revisar productora, predio, cultivo, área y número de plantas.
 3. Ver uso del capital, supuestos de producción y valores aún no calculados.
 4. Consultar la procedencia y vigencia de la lectura aprobada de AgroWay.
 5. Simular una intención y terminar en una revisión humana.
-6. Abrir “Mi espacio”: primero muestra el estado vacío y, después de enviar la simulación, conserva una tarjeta efímera de interés para recorrer el seguimiento previsto sin inventar cuentas o inversiones.
+6. Abrir “Mi espacio”: primero muestra el estado vacío y, después de simular interés por uno o más proyectos, reúne tarjetas efímeras por proyecto para recorrer el seguimiento previsto sin inventar cuentas o inversiones.
 
 ## Ejecutar localmente
 
@@ -23,9 +23,9 @@ Abrir `http://127.0.0.1:4175/`. El servidor Node integrado se vincula a loopback
 
 ## Datos y límites
 
-`project-dossier-v1.json` contiene una productora y un predio ficticios, área, cantidad de plantas, usos de capital y un escenario ilustrativo. Las cifras demuestran cómo una ficha puede mostrar supuestos y su aritmética; no son benchmarks agronómicos, presupuestos reales, pronósticos validados, oferta de inversión, utilidad neta, dividendos ni retorno para participantes. `netUtilityEstimate` no se calcula porque la muestra no modela todos los costos ni términos.
+`project-catalog-v1.json` contiene una lista local de proyectos sintéticos y enlaza cada uno con su propio dossier y proyección AgroWay aprobada para demo. Los dos dossiers contienen nombres de personas y predios ficticios, área, cantidad de plantas, usos de capital y escenarios ilustrativos. Las cifras demuestran cómo una ficha podría exponer supuestos y aritmética; no son benchmarks agronómicos, presupuestos reales, pronósticos validados, oferta de inversión, utilidad neta, dividendos ni retorno para participantes. `netUtilityEstimate` no se calcula porque los modelos no recogen todos los costos ni términos.
 
-`project-projection-v1.json` es un fixture AgroWay separado y sintético que valida `apps/sana-project-read/reader-v1.mjs`; las lecturas vencidas o mal mapeadas se ocultan. La cosecha sintética de 12 kg no alimenta el escenario del año cinco. La intención simulada permanece solo en memoria de la pestaña, no solicita datos personales o financieros, no crea una solicitud ni llama a servicios. “Mi espacio” muestra el estado vacío o una tarjeta temporal de interés simulado; nunca una posición, compromiso o aporte ficticio.
+`project-projection-v1.json` y `project-projection-002-v1.json` son fixtures AgroWay separados y sintéticos que validan `apps/sana-project-read/reader-v1.mjs`; las lecturas vencidas o mal mapeadas se ocultan. Los eventos de cosecha son observaciones sintéticas separadas y no alimentan los escenarios de producción estimada. La intención simulada permanece solo en memoria de la pestaña, no solicita datos personales o financieros, no crea una solicitud ni llama a servicios. “Mi espacio” muestra intereses temporales; nunca una posición, compromiso o aporte.
 
 `DESIGN.md` y `.impeccable/design.json` documentan una dirección específica de SANA, independiente de la identidad GREENATICS. El wordmark tipográfico es provisional; no se encontró un logo autónomo validado. La paleta y las fuentes de respaldo tampoco están aprobadas.
 

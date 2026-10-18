@@ -8,6 +8,7 @@ import { createInterestFlow, openInterest, resetInterestFlow, submitInterest } f
 import { displayProjectField, validateDossier } from './project-dossier.mjs';
 import { projectionDisplayPolicy } from './presentation-policy.mjs';
 import { clearParticipantSession, createParticipantSession, recordSimulatedInterest } from './participant-session.mjs';
+import { validateProjectCatalog } from './project-catalog.mjs';
 
 const appDirectory = fileURLToPath(new URL('.', import.meta.url));
 const read = (path) => readFile(resolve(appDirectory, path), 'utf8');
@@ -48,6 +49,49 @@ test('project dossier presents a fully synthetic, arithmetically consistent case
   assert.equal(dossier.netUtilityEstimate.amount, null);
   assert.equal(displayProjectField(dossier.productionEstimate, 'Sin modelo validado'), '1.530 kg de cacao seco/año');
   assert.equal(dossier.portfolio.status, 'PLANNED');
+});
+
+test('catalog binds each synthetic project to its own dossier and approved AgroWay projection', async () => {
+  const catalog = JSON.parse(await read('project-catalog-v1.json'));
+  const checkedCatalog = validateProjectCatalog(catalog);
+  assert.equal(checkedCatalog.ok, true);
+  assert.equal(catalog.projects.length, 2);
+  assert.equal(new Set(catalog.projects.map((project) => project.projectRef)).size, 2);
+  assert.equal(new Set(catalog.projects.map((project) => project.projectionPath)).size, 2);
+  for (const entry of catalog.projects) {
+    const dossier = JSON.parse(await read(entry.dossierPath.slice(2)));
+    const checkedDossier = validateDossier(dossier, entry.projectRef);
+    assert.equal(checkedDossier.ok, true, entry.projectRef);
+    assert.equal(dossier.status, 'SYNTHETIC');
+    const projection = JSON.parse(await read(entry.projectionPath.slice(2)));
+    const checkedProjection = await validateProjection(projection, { expectedSanaProjectRef: entry.projectRef });
+    assert.equal(checkedProjection.ok, true, entry.projectRef);
+    assert.equal(projection.projectMapping.sanaProjectRef, entry.projectRef);
+  }
+  const second = JSON.parse(await read('project-dossier-002-v1.json'));
+  assert.equal(second.crop.value, 'Café');
+  assert.equal(second.areaHa.value, 2.4);
+  assert.equal(second.plantCount.value, 4320);
+  assert.equal(second.capitalNeed.amount, 56000000);
+  assert.equal(second.productionEstimate.quantity, 1920);
+  assert.equal(second.economicScenario.operatingSurplus, 21000000);
+  assert.equal(second.netUtilityEstimate.amount, null);
+});
+
+test('catalog rejects project injection targets and duplicate fixture paths', () => {
+  const catalog = {
+    schema: 'sana.project-catalog/1.0.0', status: 'SYNTHETIC', defaultProjectRef: 'sana-demo-project-001',
+    projects: [
+      { projectRef: 'sana-demo-project-001', dossierPath: './project-dossier-v1.json', projectionPath: './project-projection-v1.json' },
+      { projectRef: 'sana-demo-project-002', dossierPath: '../private.json', projectionPath: './project-projection-002-v1.json' },
+    ],
+  };
+  assert.equal(validateProjectCatalog(catalog).reason, 'DOSSIER_PATH_INVALID');
+  catalog.projects[1].dossierPath = './project-dossier-v1.json';
+  assert.equal(validateProjectCatalog(catalog).reason, 'DOSSIER_PATH_DUPLICATED');
+  catalog.projects[1].dossierPath = './project-dossier-002-v1.json';
+  catalog.projects[1].projectionPath = './project-projection-v1.json';
+  assert.equal(validateProjectCatalog(catalog).reason, 'PROJECTION_PATH_DUPLICATED');
 });
 
 test('synthetic dossier rejects inconsistent capital or economic arithmetic', async () => {
@@ -123,6 +167,14 @@ test('simulated interest appears in Mi espacio only in volatile session state', 
   assert.equal(first.item.status, 'SIMULATED_HUMAN_REVIEW');
   assert.equal(first.state.simulatedInterests.length, 1);
   assert.equal(first.state.simulatedInterests[0].projectTitle, 'Cacao bajo sombra');
+  const second = recordSimulatedInterest(first.state, {
+    projectRef: 'sana-demo-project-002',
+    projectTitle: 'Café de ladera y poscosecha comunitaria',
+    intent: 'project-structure',
+  });
+  assert.equal(second.ok, true);
+  assert.equal(second.state.simulatedInterests.length, 2);
+  assert.deepEqual(second.state.simulatedInterests.map((item) => item.projectRef), ['sana-demo-project-001', 'sana-demo-project-002']);
   const invalid = recordSimulatedInterest(first.state, {
     projectRef: 'sana-demo-project-001',
     projectTitle: 'Cacao bajo sombra',
@@ -170,13 +222,18 @@ test('accessible screen states avoid real contact fields and disclose the synthe
   assert.match(design, /Do not inherit GREENATICS website layouts/);
   assert.match(design, /catálogo editorial|project discovery/i);
   assert.match(app, /validateProjection/);
-  assert.match(app, /fetch\('\.\/project-projection-v1\.json'/);
-  assert.match(app, /fetch\('\.\/project-dossier-v1\.json'/);
+  assert.match(app, /validateProjectCatalog/);
+  assert.match(app, /catalog\.projects\.find/);
+  assert.match(app, /entry\.projectionPath/);
+  assert.match(app, /entry\.dossierPath/);
+  assert.match(html, /id="catalog-project-list"/);
+  assert.match(html, /id="catalog-count"/);
   assert.match(app, /projectionDisplayPolicy\(model\)/);
   assert.match(app, /searchParams\.set\('view', step\)/);
   assert.match(app, /allocation-width/);
   assert.match(policy, /STALE.*showSummary: false/);
   assert.doesNotMatch(app, /localStorage|sessionStorage|fetch\(['"]https?:/i);
+  assert.doesNotMatch(app, /innerHTML/);
   assert.doesNotMatch(await read('participant-session.mjs'), /localStorage|sessionStorage|fetch\(/i);
   assert.match(styles, /:focus-visible/);
   assert.match(styles, /prefers-reduced-motion/);

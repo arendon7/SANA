@@ -3,8 +3,8 @@ import { createInterestFlow, openInterest, resetInterestFlow, submitInterest } f
 import { displayProjectField, validateDossier } from './project-dossier.mjs';
 import { projectionDisplayPolicy } from './presentation-policy.mjs';
 import { clearParticipantSession, createParticipantSession, recordSimulatedInterest } from './participant-session.mjs';
+import { validateProjectCatalog } from './project-catalog.mjs';
 
-const PROJECT_REF = 'sana-demo-project-001';
 const elements = {
   catalog: document.querySelector('#explore-view'),
   project: document.querySelector('#project-view'),
@@ -18,6 +18,8 @@ const elements = {
   spaceTitle: document.querySelector('#space-title'),
   interestTitle: document.querySelector('#interest-title'),
   confirmationTitle: document.querySelector('#confirmation-title'),
+  catalogCount: document.querySelector('#catalog-count'),
+  catalogList: document.querySelector('#catalog-project-list'),
   projectProfileStatus: document.querySelector('#project-profile-status'),
   sourceStatus: document.querySelector('#source-status'),
   readLoading: document.querySelector('#read-loading'),
@@ -31,6 +33,9 @@ const elements = {
 };
 let flow = createInterestFlow();
 let participantSession = createParticipantSession();
+let catalog;
+let projectProfiles = [];
+let activeProject;
 
 function showView(step, { focus = false, historyAction = 'push' } = {}) {
   const views = {
@@ -47,6 +52,8 @@ function showView(step, { focus = false, historyAction = 'push' } = {}) {
   if (historyAction !== 'none') {
     const url = new URL(window.location.href);
     url.searchParams.set('view', step);
+    if (step === 'catalog' || !activeProject) url.searchParams.delete('project');
+    else url.searchParams.set('project', activeProject.projectRef);
     url.hash = '';
     if (historyAction === 'replace') window.history.replaceState({ sanaView: step }, '', url);
     else window.history.pushState({ sanaView: step }, '', url);
@@ -80,7 +87,7 @@ function renderParticipantSpace() {
     const copy = document.createElement('div');
     const eyebrow = document.createElement('p');
     eyebrow.className = 'eyebrow';
-    eyebrow.textContent = 'SANA · SANA-DEM-001';
+    eyebrow.textContent = `SANA · ${item.projectRef.replace('sana-demo-project-', 'SANA-DEM-')}`;
     const title = document.createElement('h3');
     title.textContent = item.projectTitle;
     copy.append(eyebrow, title);
@@ -110,14 +117,14 @@ function renderParticipantSpace() {
     openProject.className = 'text-button';
     openProject.type = 'button';
     openProject.textContent = 'Volver a la ficha del proyecto ↗';
-    openProject.addEventListener('click', () => showView('project', { focus: true }));
+    openProject.addEventListener('click', () => selectProject(item.projectRef, 'project'));
     card.append(heading, details, disclosure, openProject);
     list.append(card);
   });
 }
 
 function openInterestView() {
-  flow = openInterest(flow);
+  flow = openInterest(resetInterestFlow());
   showView('interest', { focus: true });
 }
 
@@ -140,16 +147,26 @@ function formatDate(value, { dateOnly = false } = {}) {
 }
 
 function renderDossier(profile) {
+  const projectCode = profile.projectRef.replace('sana-demo-project-', 'SANA-DEM-');
+  const crop = displayProjectField(profile.crop, 'Cultivo no informado');
   elements.projectTitle.textContent = profile.title;
   document.querySelector('#profile-title').textContent = profile.title;
   document.querySelector('#project-summary').textContent = profile.summary;
   document.querySelector('#catalog-title').textContent = profile.title;
+  document.querySelector('#catalog-project-ref').textContent = projectCode;
+  document.querySelector('#catalog-crop').textContent = crop;
+  document.querySelector('#detail-crop').textContent = crop;
+  document.querySelector('#detail-project-ref').textContent = projectCode;
+  document.querySelector('#panel-project-ref').textContent = projectCode;
   document.querySelector('#catalog-summary').textContent = profile.summary;
   document.querySelector('#catalog-promoter').textContent = displayProjectField(profile.promoter, 'Dato no incluido');
   document.querySelector('#catalog-property').textContent = displayProjectField(profile.property, 'Predio no informado');
   document.querySelector('#profile-promoter').textContent = displayProjectField(profile.promoter, 'Dato no incluido');
+  document.querySelector('#profile-promoter-detail').textContent = displayProjectField(profile.promoter, 'Dato no incluido');
   document.querySelector('#profile-property').textContent = displayProjectField(profile.property, 'Predio no informado');
+  document.querySelector('#profile-property-detail').textContent = displayProjectField(profile.property, 'Predio no informado');
   document.querySelector('#profile-location').textContent = displayProjectField(profile.location, 'No informada');
+  document.querySelector('#profile-crop').textContent = crop;
   document.querySelector('#profile-area').textContent = displayProjectField(profile.areaHa, 'No aportada');
   document.querySelector('#profile-plants').textContent = displayProjectField(profile.plantCount, 'No informadas');
   document.querySelectorAll('.profile-area-copy').forEach((node) => { node.textContent = displayProjectField(profile.areaHa, 'No aportada'); });
@@ -170,6 +187,8 @@ function renderDossier(profile) {
   const formattedProduction = `${formatCount(production.quantity)} ${production.unit} · ${production.period}`;
   document.querySelector('#profile-production').textContent = formattedProduction;
   document.querySelector('#catalog-production').textContent = `${formatCount(production.quantity)} ${production.unit}`;
+  document.querySelector('#catalog-production-period').textContent = production.period;
+  document.querySelector('#production-basis').textContent = `${new Intl.NumberFormat('es-CO').format(production.basis.areaHa)} ha × ${new Intl.NumberFormat('es-CO').format(production.basis.yieldKgPerHa)} kg/ha/año = ${formatCount(production.quantity)} kg/año · supuesto didáctico`;
   document.querySelector('#production-basis').textContent = `${new Intl.NumberFormat('es-CO').format(production.basis.areaHa)} ha × ${new Intl.NumberFormat('es-CO').format(production.basis.yieldKgPerHa)} kg/ha/año = ${formatCount(production.quantity)} kg/año · supuesto didáctico`;
   document.querySelector('#price-per-kg').textContent = `${formatCop(economics.pricePerKg)}/kg`;
   document.querySelector('#gross-sales').textContent = `${formatCop(economics.grossSales)}/año`;
@@ -197,6 +216,51 @@ function renderDossier(profile) {
     item.append(label, amount, track);
     fundsList.append(item);
   });
+}
+
+function renderProjectShelf(activeRef) {
+  const alternatives = projectProfiles.filter(({ profile }) => profile.projectRef !== activeRef);
+  elements.catalogCount.textContent = `${projectProfiles.length} proyectos · Ficticios`;
+  elements.catalogList.replaceChildren();
+  alternatives.forEach(({ profile }) => {
+    const projectCode = profile.projectRef.replace('sana-demo-project-', 'SANA-DEM-');
+    const row = document.createElement('article');
+    row.className = 'project-shelf-row';
+    const copy = document.createElement('div');
+    copy.className = 'project-shelf-row__copy';
+    const eyebrow = document.createElement('p');
+    eyebrow.className = 'eyebrow';
+    eyebrow.textContent = `FICHA SANA · ${projectCode} · ${displayProjectField(profile.crop, 'Cultivo')}`;
+    const title = document.createElement('h3');
+    title.textContent = profile.title;
+    const description = document.createElement('p');
+    description.textContent = profile.summary;
+    copy.append(eyebrow, title, description);
+    const facts = document.createElement('dl');
+    facts.className = 'project-shelf-row__facts';
+    [
+      ['Escala', `${displayProjectField(profile.areaHa, 'Sin dato')} · ${displayProjectField(profile.plantCount, 'Sin dato')}`],
+      ['Necesidad de muestra', formatCop(profile.capitalNeed.amount)],
+      ['Producción estimada', `${formatCount(profile.productionEstimate.quantity)} ${profile.productionEstimate.unit}`],
+    ].forEach(([label, value]) => {
+      const item = document.createElement('div');
+      const term = document.createElement('dt');
+      term.textContent = label;
+      const detail = document.createElement('dd');
+      detail.textContent = value;
+      item.append(term, detail);
+      facts.append(item);
+    });
+    const open = document.createElement('button');
+    open.className = 'text-button project-shelf-row__open';
+    open.type = 'button';
+    open.textContent = 'Abrir ficha';
+    open.setAttribute('aria-label', `Abrir ficha de ${profile.title}`);
+    open.addEventListener('click', () => selectProject(profile.projectRef, 'project'));
+    row.append(copy, facts, open);
+    elements.catalogList.append(row);
+  });
+  document.querySelector('#catalog-art-title').textContent = `Diagrama de un proyecto agrícola de muestra ${activeRef.slice(-3)}`;
 }
 
 function humanizeMilestone(value) {
@@ -240,7 +304,8 @@ function renderProjection(input, model) {
   document.querySelector('#alerts-open').textContent = formatCount(model.summary.alerts.open);
   document.querySelector('#harvest-summary').textContent = harvestText;
   const cycle = input.cycle;
-  document.querySelector('#cycle-label').textContent = `${cycle.crop[0].toUpperCase()}${cycle.crop.slice(1)} · ${cycle.state === 'ACTIVE' ? 'ciclo activo' : 'estado no disponible'}`;
+  const crop = displayProjectField(projectProfiles.find(({ profile }) => profile.projectRef === activeProject.projectRef)?.profile.crop, `${cycle.crop[0].toUpperCase()}${cycle.crop.slice(1)}`);
+  document.querySelector('#cycle-label').textContent = `${crop} · ${cycle.state === 'ACTIVE' ? 'ciclo activo' : 'estado no disponible'}`;
   const milestoneList = document.querySelector('#milestones-list');
   milestoneList.replaceChildren();
   if (model.milestones.length === 0) {
@@ -261,29 +326,48 @@ function renderProjection(input, model) {
   elements.readContent.hidden = false;
 }
 
-async function loadDossier() {
+async function loadDossier(entry) {
   try {
-    const response = await fetch('./project-dossier-v1.json', { cache: 'no-store' });
+    const response = await fetch(entry.dossierPath, { cache: 'no-store' });
     if (!response.ok) throw new Error('DOSSIER_UNAVAILABLE');
     const profile = await response.json();
-    const checked = validateDossier(profile, PROJECT_REF);
+    const checked = validateDossier(profile, entry.projectRef);
     if (!checked.ok) throw new Error(checked.reason);
     renderDossier(checked.model);
+    elements.projectProfileStatus.dataset.state = 'synthetic';
+    elements.projectProfileStatus.classList.remove('data-state--error');
+    return checked.model;
   } catch {
     elements.projectProfileStatus.dataset.state = 'error';
     elements.projectProfileStatus.textContent = 'Ficha de muestra no disponible';
     elements.projectProfileStatus.classList.add('data-state--error');
+    return null;
   }
 }
 
-async function loadProjection() {
+async function loadProjection(entry) {
+  elements.readLoading.hidden = false;
+  elements.readError.hidden = true;
+  elements.readContent.hidden = true;
+  elements.readLoading.textContent = 'Validando la lectura AgroWay sintética de este proyecto…';
+  if (!entry.projectionPath) {
+    elements.sourceStatus.className = 'data-state data-state--stale';
+    elements.sourceStatus.dataset.state = 'unavailable';
+    elements.sourceStatus.textContent = 'Sin lectura disponible';
+    elements.readLoading.hidden = true;
+    elements.readContent.hidden = true;
+    elements.readError.textContent = 'Este proyecto no tiene una lectura AgroWay aprobada para mostrar.';
+    elements.readError.hidden = false;
+    return false;
+  }
   try {
-    const response = await fetch('./project-projection-v1.json', { cache: 'no-store' });
+    const response = await fetch(entry.projectionPath, { cache: 'no-store' });
     if (!response.ok) throw new Error('FIXTURE_UNAVAILABLE');
     const input = await response.json();
-    const checked = await validateProjection(input, { expectedSanaProjectRef: PROJECT_REF });
+    const checked = await validateProjection(input, { expectedSanaProjectRef: entry.projectRef });
     if (!checked.ok) throw new Error('FIXTURE_NOT_APPROVED');
     renderProjection(input, checked.model);
+    return true;
   } catch {
     elements.sourceStatus.className = 'data-state data-state--error';
     elements.sourceStatus.dataset.state = 'error';
@@ -291,6 +375,56 @@ async function loadProjection() {
     elements.readLoading.hidden = true;
     elements.readError.hidden = false;
     elements.readContent.hidden = true;
+    return false;
+  }
+}
+
+async function selectProject(projectRef, view = 'project', { historyAction = 'push' } = {}) {
+  const entry = catalog?.projects.find((project) => project.projectRef === projectRef);
+  if (!entry) return;
+  const profile = await loadDossier(entry);
+  if (!profile) return;
+  activeProject = entry;
+  renderProjectShelf(projectRef);
+  await loadProjection(entry);
+  if (view === 'interest') {
+    flow = openInterest(resetInterestFlow());
+  }
+  showView(view, { focus: true, historyAction });
+}
+
+async function loadCatalog() {
+  try {
+    const response = await fetch('./project-catalog-v1.json', { cache: 'no-store' });
+    if (!response.ok) throw new Error('CATALOG_UNAVAILABLE');
+    const checkedCatalog = validateProjectCatalog(await response.json());
+    if (!checkedCatalog.ok) throw new Error(checkedCatalog.reason);
+    catalog = checkedCatalog.model;
+    const validated = await Promise.all(catalog.projects.map(async (entry) => {
+      try {
+        const response = await fetch(entry.dossierPath, { cache: 'no-store' });
+        if (!response.ok) return null;
+        const checked = validateDossier(await response.json(), entry.projectRef);
+        return checked.ok ? { entry, profile: checked.model } : null;
+      } catch {
+        return null;
+      }
+    }));
+    projectProfiles = validated.filter(Boolean);
+    const defaultEntry = catalog.projects.find((entry) => entry.projectRef === catalog.defaultProjectRef);
+    if (!defaultEntry || !projectProfiles.some(({ entry }) => entry.projectRef === defaultEntry.projectRef)) throw new Error('DEFAULT_PROJECT_UNAVAILABLE');
+    const requestedProject = new URLSearchParams(window.location.search).get('project');
+    const initialEntry = catalog.projects.find((entry) => entry.projectRef === requestedProject)
+      ?? defaultEntry;
+    await selectProject(initialEntry.projectRef, 'catalog', { historyAction: 'none' });
+    renderProjectShelf(initialEntry.projectRef);
+    return true;
+  } catch {
+    elements.projectProfileStatus.dataset.state = 'error';
+    elements.projectProfileStatus.textContent = 'Catálogo de muestra no disponible';
+    elements.projectProfileStatus.classList.add('data-state--error');
+    elements.catalogList.textContent = 'No se pudieron validar los proyectos de muestra. Recarga para intentarlo de nuevo.';
+    return false;
   }
 }
 
@@ -332,7 +466,7 @@ function handleInterestSubmission(event) {
   flow = result.state;
   elements.confirmedIntent.textContent = intentLabel(flow.intent);
   const recorded = recordSimulatedInterest(participantSession, {
-    projectRef: PROJECT_REF,
+    projectRef: activeProject.projectRef,
     projectTitle: document.querySelector('#profile-title').textContent,
     intent: flow.intent,
   });
@@ -347,6 +481,7 @@ document.querySelector('#view-demo-space').addEventListener('click', () => {
   renderParticipantSpace();
   showView('participant', { focus: true });
 });
+document.querySelector('#continue-exploring').addEventListener('click', () => showView('catalog', { focus: true }));
 document.querySelector('#restart-demo').addEventListener('click', () => {
   flow = resetInterestFlow();
   participantSession = clearParticipantSession();
@@ -356,15 +491,18 @@ document.querySelector('#restart-demo').addEventListener('click', () => {
   showView('catalog', { focus: true });
 });
 
-window.addEventListener('popstate', () => {
+window.addEventListener('popstate', async () => {
   const requested = new URLSearchParams(window.location.search).get('view');
-  const allowed = ['catalog', 'project', 'participant'];
+  const allowed = ['catalog', 'project', 'participant', 'interest', 'confirmation'];
+  const requestedProject = new URLSearchParams(window.location.search).get('project');
+  if (requestedProject && requestedProject !== activeProject?.projectRef) await selectProject(requestedProject, 'catalog', { historyAction: 'none' });
   if (requested === 'participant') renderParticipantSpace();
   showView(allowed.includes(requested) ? requested : 'catalog', { focus: true, historyAction: 'none' });
 });
 
-loadDossier();
-loadProjection();
 const requestedView = new URLSearchParams(window.location.search).get('view');
-if (requestedView === 'participant') renderParticipantSpace();
-showView(['project', 'participant'].includes(requestedView) ? requestedView : 'catalog', { historyAction: 'replace' });
+loadCatalog().then((loaded) => {
+  if (!loaded) return;
+  if (requestedView === 'participant') renderParticipantSpace();
+  showView(['project', 'participant'].includes(requestedView) ? requestedView : 'catalog', { historyAction: 'replace' });
+});

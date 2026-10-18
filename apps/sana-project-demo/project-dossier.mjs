@@ -1,6 +1,7 @@
 export const PROJECT_DOSSIER_SCHEMA = 'sana.project-dossier/1.0.0';
 
 const requiredFieldStatuses = {
+  crop: ['NOT_PROVIDED', 'SYNTHETIC_VALUE', 'AVAILABLE'],
   promoter: ['NOT_INCLUDED', 'NOT_PROVIDED', 'SYNTHETIC_VALUE', 'AVAILABLE'],
   property: ['NOT_PROVIDED', 'SYNTHETIC_VALUE', 'AVAILABLE'],
   location: ['NOT_PROVIDED', 'SYNTHETIC_VALUE', 'AVAILABLE'],

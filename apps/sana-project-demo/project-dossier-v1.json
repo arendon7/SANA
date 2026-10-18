@@ -4,6 +4,7 @@
   "status": "SYNTHETIC",
   "title": "Cacao bajo sombra",
   "summary": "Caso didáctico ficticio para mostrar cómo SANA puede ordenar el proyecto, su estructura productiva, sus supuestos económicos y la lectura agrícola que AgroWay autorice compartir.",
+  "crop": { "value": "Cacao", "status": "SYNTHETIC_VALUE" },
   "promoter": { "value": "Elena Ríos · personaje ficticio", "status": "SYNTHETIC_VALUE" },
   "property": { "value": "Finca La Esperanza · predio ficticio", "status": "SYNTHETIC_VALUE" },
   "location": { "value": "Vereda ilustrativa · Colombia", "status": "SYNTHETIC_VALUE" },
