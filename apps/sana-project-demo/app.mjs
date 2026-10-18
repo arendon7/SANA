@@ -405,6 +405,36 @@ function renderDueDiligence(projectRef) {
   });
 }
 
+function renderProjectPlan(plan) {
+  const objective = document.querySelector('#project-plan-objective');
+  const phases = document.querySelector('#project-plan-phases');
+  objective.textContent = plan?.objective ?? 'El plan productivo aún no está incluido en esta ficha.';
+  phases.replaceChildren();
+  if (!Array.isArray(plan?.phases)) return;
+
+  plan.phases.forEach((phase, index) => {
+    const item = document.createElement('li');
+    const number = document.createElement('span');
+    number.className = 'project-plan__number';
+    number.setAttribute('aria-hidden', 'true');
+    number.textContent = String(index + 1).padStart(2, '0');
+    const content = document.createElement('div');
+    content.className = 'project-plan__content';
+    const title = document.createElement('strong');
+    title.textContent = phase.name;
+    const description = document.createElement('p');
+    description.textContent = phase.description;
+    const timeframe = document.createElement('small');
+    timeframe.textContent = phase.timeframe;
+    const status = document.createElement('span');
+    status.className = 'planned-tag';
+    status.textContent = 'Fase ilustrativa';
+    content.append(title, description, timeframe);
+    item.append(number, content, status);
+    phases.append(item);
+  });
+}
+
 function renderDossier(profile) {
   const projectCode = profile.projectRef.replace('sana-demo-project-', 'SANA-DEM-');
   const crop = displayProjectField(profile.crop, 'Cultivo no informado');
@@ -432,6 +462,7 @@ function renderDossier(profile) {
   document.querySelectorAll('.profile-plants-copy').forEach((node) => { node.textContent = displayProjectField(profile.plantCount, 'No informadas'); });
   const scale = [displayProjectField(profile.areaHa, 'Área no aportada'), displayProjectField(profile.plantCount, 'Plantas no informadas')].join(' · ');
   document.querySelector('#catalog-scale').textContent = scale;
+  renderProjectPlan(profile.projectPlan);
 
   const capital = profile.capitalNeed;
   const production = profile.productionEstimate;
@@ -449,7 +480,6 @@ function renderDossier(profile) {
   document.querySelector('#catalog-production').textContent = `${formatCount(production.quantity)} ${production.unit}`;
   document.querySelector('#catalog-production-period').textContent = production.period;
   document.querySelector('#catalog-surplus').textContent = `${formatCop(economics.operatingSurplus)}/año`;
-  document.querySelector('#production-basis').textContent = `${new Intl.NumberFormat('es-CO').format(production.basis.areaHa)} ha × ${new Intl.NumberFormat('es-CO').format(production.basis.yieldKgPerHa)} kg/ha/año = ${formatCount(production.quantity)} kg/año · supuesto didáctico`;
   document.querySelector('#production-basis').textContent = `${new Intl.NumberFormat('es-CO').format(production.basis.areaHa)} ha × ${new Intl.NumberFormat('es-CO').format(production.basis.yieldKgPerHa)} kg/ha/año = ${formatCount(production.quantity)} kg/año · supuesto didáctico`;
   document.querySelector('#price-per-kg').textContent = `${formatCop(economics.pricePerKg)}/kg`;
   document.querySelector('#gross-sales').textContent = `${formatCop(economics.grossSales)}/año`;
