@@ -2,6 +2,8 @@
 
 Demo local para recorrer la primera experiencia propia de SANA: comparar dos proyectos agrícolas ficticios, abrir sus fichas con productor/a, predio y escala, revisar necesidades de capital y supuestos productivos, consultar lecturas AgroWay sintéticas y avanzar por un seguimiento de muestra por proyecto.
 
+El catálogo compara ambas fichas con la misma jerarquía: responsable, predio, superficie, número de plantas, necesidad de capital, producción estimada y excedente operativo ilustrativo. La utilidad neta y el retorno personal permanecen sin calcular. La dirección toma patrones de descubrimiento de proyectos observados en MiiMOSA y AcreTrader, sin importar sus ofertas o condiciones.
+
 ## Recorrido
 
 1. Comparar dos casos de muestra de cultivos distintos en el catálogo editorial.

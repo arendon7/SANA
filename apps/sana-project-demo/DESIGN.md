@@ -35,6 +35,12 @@ Estos referentes no acreditan la situación jurídica de SANA ni recomiendan inv
 
 La interfaz de SANA no debe copiar la forma de una oferta financiera habilitada: el recorrido simulado deja visibles documentos que faltan, el estado real de los aportes (ninguno) y la lectura AgroWay de solo consulta. La persona puede avanzar el ejemplo, pero cada transición sigue marcada como ficticia y no vinculante.
 
+### Catálogo de proyectos: contraste revisado el 18 de octubre de 2026
+
+- [MiiMOSA](https://miimosa.com/) presenta agricultura y alimentación por tipos de proyectos y separa a quienes exploran de quienes quieren financiar un proyecto. En SANA, esto respalda abrir con la historia de la persona productora y el proyecto concreto antes de mostrar el flujo de interés.
+- [AcreTrader · ofertas vigentes](https://acretrader.com/investments/primary-offerings) resume cada finca con estado, ubicación y cultivos; al profundizar separa contexto, mapas, datos financieros y documentos, y mantiene divulgaciones de riesgo visibles. SANA usa tarjetas comparables y una ficha por capas, pero no presenta un estado como “abierto” ni adopta mínimos, ofertas, retornos o términos ajenos.
+- Las dos tarjetas de muestra presentan a la misma altura productor/a, predio, hectáreas, plantas, necesidad de capital y producción estimada. El excedente operativo aparece como escenario didáctico y la utilidad neta como no calculada. Los documentos y lecturas de AgroWay permanecen separados y cada valor conserva su procedencia y estado.
+
 ## Información y estados
 
 - La demo abre en explorar proyectos y compara dos casos sintéticos. La lista es ilustrativa, no un catálogo abierto ni una convocatoria.

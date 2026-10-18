@@ -418,6 +418,7 @@ function renderDossier(profile) {
   document.querySelector('#profile-production').textContent = formattedProduction;
   document.querySelector('#catalog-production').textContent = `${formatCount(production.quantity)} ${production.unit}`;
   document.querySelector('#catalog-production-period').textContent = production.period;
+  document.querySelector('#catalog-surplus').textContent = `${formatCop(economics.operatingSurplus)}/año`;
   document.querySelector('#production-basis').textContent = `${new Intl.NumberFormat('es-CO').format(production.basis.areaHa)} ha × ${new Intl.NumberFormat('es-CO').format(production.basis.yieldKgPerHa)} kg/ha/año = ${formatCount(production.quantity)} kg/año · supuesto didáctico`;
   document.querySelector('#production-basis').textContent = `${new Intl.NumberFormat('es-CO').format(production.basis.areaHa)} ha × ${new Intl.NumberFormat('es-CO').format(production.basis.yieldKgPerHa)} kg/ha/año = ${formatCount(production.quantity)} kg/año · supuesto didáctico`;
   document.querySelector('#price-per-kg').textContent = `${formatCop(economics.pricePerKg)}/kg`;
@@ -457,22 +458,35 @@ function renderProjectShelf(activeRef) {
     const projectCode = profile.projectRef.replace('sana-demo-project-', 'SANA-DEM-');
     const row = document.createElement('article');
     row.className = 'project-shelf-row';
+    const art = document.createElement('div');
+    art.className = 'project-shelf-row__art';
+    art.setAttribute('aria-hidden', 'true');
+    const artCrop = document.createElement('span');
+    artCrop.textContent = displayProjectField(profile.crop, 'Cultivo');
+    const artCode = document.createElement('span');
+    artCode.textContent = projectCode;
+    art.append(artCrop, artCode);
     const copy = document.createElement('div');
     copy.className = 'project-shelf-row__copy';
     const eyebrow = document.createElement('p');
     eyebrow.className = 'eyebrow';
-    eyebrow.textContent = `FICHA SANA · ${projectCode} · ${displayProjectField(profile.crop, 'Cultivo')}`;
+    eyebrow.textContent = `PROYECTO DE MUESTRA · ${projectCode}`;
     const title = document.createElement('h3');
     title.textContent = profile.title;
     const description = document.createElement('p');
     description.textContent = profile.summary;
-    copy.append(eyebrow, title, description);
+    const promoter = document.createElement('p');
+    promoter.className = 'project-shelf-row__promoter';
+    promoter.textContent = `${displayProjectField(profile.promoter, 'Productor/a no informado')} · ${displayProjectField(profile.property, 'Predio no informado')}`;
+    copy.append(eyebrow, title, promoter, description);
     const facts = document.createElement('dl');
     facts.className = 'project-shelf-row__facts';
     [
-      ['Escala', `${displayProjectField(profile.areaHa, 'Sin dato')} · ${displayProjectField(profile.plantCount, 'Sin dato')}`],
+      ['Área productiva', displayProjectField(profile.areaHa, 'Sin dato')],
+      ['Plantas asociadas', displayProjectField(profile.plantCount, 'Sin dato')],
       ['Necesidad de muestra', formatCop(profile.capitalNeed.amount)],
-      ['Producción estimada', `${formatCount(profile.productionEstimate.quantity)} ${profile.productionEstimate.unit}`],
+      ['Producción estimada', `${formatCount(profile.productionEstimate.quantity)} ${profile.productionEstimate.unit} · ${profile.productionEstimate.period}`],
+      ['Excedente operativo', `${formatCop(profile.economicScenario.operatingSurplus)}/año · escenario didáctico`],
     ].forEach(([label, value]) => {
       const item = document.createElement('div');
       const term = document.createElement('dt');
@@ -485,10 +499,13 @@ function renderProjectShelf(activeRef) {
     const open = document.createElement('button');
     open.className = 'text-button project-shelf-row__open';
     open.type = 'button';
-    open.textContent = 'Abrir ficha';
+    open.textContent = 'Explorar proyecto ↗';
     open.setAttribute('aria-label', `Abrir ficha de ${profile.title}`);
     open.addEventListener('click', () => selectProject(profile.projectRef, 'project'));
-    row.append(copy, facts, open);
+    const disclosure = document.createElement('p');
+    disclosure.className = 'project-shelf-row__disclosure';
+    disclosure.textContent = 'Cifras ficticias. El excedente no es utilidad neta ni retorno; el resultado neto no está calculado.';
+    row.append(art, copy, facts, disclosure, open);
     elements.catalogList.append(row);
   });
   document.querySelector('#catalog-art-title').textContent = `Diagrama de un proyecto agrícola de muestra ${activeRef.slice(-3)}`;

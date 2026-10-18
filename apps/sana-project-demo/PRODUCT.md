@@ -31,6 +31,7 @@ La persona primero compara proyectos y revisa su expediente; la demo deja ensaya
 - La acción “Simular revisión humana” avanza una etapa didáctica y no significa que una persona haya revisado el expediente.
 - Los montos permitidos son ejemplos fijos para enseñar el recorrido; no equivalen a una oferta ni generan obligación. La demo no procesa pagos ni concilia aportes.
 - Los documentos visibles son contenido representado en la ficha. Contratos firmados, documentos del productor y soportes reales requieren revisión y autorización fuera de esta demo.
+- El catálogo compara los proyectos en tarjetas equivalentes: productor/a, predio, superficie, plantas, necesidad de capital, producción estimada y excedente operativo de muestra. La utilidad neta y el retorno personal permanecen sin calcular.
 - Diferenciar datos observados, supuestos de cálculo, proyecciones, datos desconocidos y etapas futuras. No presentar utilidad neta ni retorno personal sin estructura, costos y validación suficientes.
 - Las lecturas de AgroWay son versionadas, aprobadas y de solo lectura. SANA nunca escribe registros de campo.
 - No introducir cuentas reales, pagos, inversiones, ofertas al público, datos de productores ni infraestructura con costo durante la demo.
