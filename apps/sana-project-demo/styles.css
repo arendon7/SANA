@@ -1006,6 +1006,10 @@ h1, h2, h3 { color: var(--route-dark); }
 .sample-document-list strong { font-size: 13px; }
 .sample-document-list small { font-size: 12px; }
 .sample-commitment-amount { font-size: 18px; }
+@media (max-width: 1020px) {
+  /* Keep project follow-up cards readable before the compact mobile layout. */
+  .session-space__list { grid-template-columns: minmax(0, 1fr); }
+}
 @media (max-width: 680px) {
   .participation-stage .button { width: 100%; justify-self: stretch; }
   .sample-document-list li { align-items: flex-start; flex-direction: column; gap: 3px; }
