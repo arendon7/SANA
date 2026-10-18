@@ -13,6 +13,7 @@ const elements = {
   interest: document.querySelector('#interest-view'),
   confirmation: document.querySelector('#confirmation-view'),
   navExplore: document.querySelector('#nav-explore'),
+  navMethodology: document.querySelector('#nav-methodology'),
   navSpace: document.querySelector('#nav-space'),
   projectTitle: document.querySelector('#project-title'),
   exploreTitle: document.querySelector('#explore-title'),
@@ -50,6 +51,7 @@ function showView(step, { focus = false, historyAction = 'push' } = {}) {
   if (!Object.hasOwn(views, step)) step = 'catalog';
   Object.entries(views).forEach(([name, view]) => { view.hidden = name !== step; });
   elements.navExplore.setAttribute('aria-current', ['catalog', 'project', 'interest', 'confirmation'].includes(step) ? 'page' : 'false');
+  elements.navMethodology.setAttribute('aria-current', 'false');
   elements.navSpace.setAttribute('aria-current', step === 'participant' ? 'page' : 'false');
   if (historyAction !== 'none') {
     const url = new URL(window.location.href);
@@ -71,6 +73,24 @@ function showView(step, { focus = false, historyAction = 'push' } = {}) {
     heading?.focus();
   }
   window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+}
+
+function scrollToPublicSection(id, { updateHistory = true } = {}) {
+  const target = document.getElementById(id);
+  if (!target) return;
+  if (updateHistory) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('view', 'catalog');
+    url.searchParams.delete('project');
+    url.hash = id;
+    window.history.replaceState({ sanaView: 'catalog' }, '', url);
+  }
+  elements.navExplore.setAttribute('aria-current', 'false');
+  elements.navMethodology.setAttribute('aria-current', 'location');
+  window.requestAnimationFrame(() => {
+    target.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    target.querySelector('h2')?.focus({ preventScroll: true });
+  });
 }
 
 function renderParticipantSpace() {
@@ -544,7 +564,9 @@ document.querySelector('#open-project-card').addEventListener('click', () => sho
 document.querySelectorAll('[data-view-link]').forEach((link) => link.addEventListener('click', (event) => {
   event.preventDefault();
   if (link.dataset.viewLink === 'participant') renderParticipantSpace();
-  showView(link.dataset.viewLink, { focus: true });
+  const anchorId = link.dataset.viewAnchor;
+  showView(link.dataset.viewLink, { focus: !anchorId });
+  if (anchorId) scrollToPublicSection(anchorId);
 }));
 document.querySelector('#back-to-catalog').addEventListener('click', () => showView('catalog', { focus: true }));
 document.querySelector('#back-to-catalog-space').addEventListener('click', () => showView('catalog', { focus: true }));
@@ -598,7 +620,9 @@ window.addEventListener('popstate', async () => {
   const requestedProject = new URLSearchParams(window.location.search).get('project');
   if (requestedProject && requestedProject !== activeProject?.projectRef) await selectProject(requestedProject, 'catalog', { historyAction: 'none' });
   if (requested === 'participant') renderParticipantSpace();
-  showView(allowed.includes(requested) ? requested : 'catalog', { focus: true, historyAction: 'none' });
+  const publicAnchor = requested === 'catalog' && window.location.hash === '#ecosystem-overview';
+  showView(allowed.includes(requested) ? requested : 'catalog', { focus: !publicAnchor, historyAction: 'none' });
+  if (publicAnchor) scrollToPublicSection('ecosystem-overview', { updateHistory: false });
 });
 
 const requestedView = new URLSearchParams(window.location.search).get('view');
@@ -606,4 +630,7 @@ loadCatalog().then((loaded) => {
   if (!loaded) return;
   if (requestedView === 'participant') renderParticipantSpace();
   showView(['project', 'participant'].includes(requestedView) ? requestedView : 'catalog', { historyAction: 'replace' });
+  if (!['project', 'participant'].includes(requestedView) && window.location.hash === '#ecosystem-overview') {
+    scrollToPublicSection('ecosystem-overview', { updateHistory: false });
+  }
 });

@@ -245,7 +245,19 @@ test('accessible screen states avoid real contact fields and disclose the synthe
   assert.match(html, /<main\b/);
   assert.match(html, /id="explore-view"[^>]*aria-labelledby="explore-title"/);
   assert.match(html, /id="open-project-card"/);
-  assert.match(html, /Conoce el proyecto detrás de cada cultivo/);
+  assert.match(html, /Conoce quién impulsa cada proyecto y cómo avanza/);
+  assert.ok(html.includes('Explora sin cuenta'));
+  assert.match(html, /id="nav-methodology"[^>]*data-view-anchor="ecosystem-overview"/);
+  assert.ok(app.includes('function scrollToPublicSection'));
+  assert.ok(html.includes('Un proyecto necesita contexto, trazabilidad y evidencia'));
+  assert.ok(html.includes('plantas con QR, labores, observaciones y cosecha'));
+  assert.match(html, /class="ecosystem-node ecosystem-node--sana"/);
+  assert.match(html, /class="ecosystem-node ecosystem-node--agroway"/);
+  assert.match(html, /class="ecosystem-evidence"/);
+  assert.ok(html.includes('lectura sintética por ciclo'));
+  assert.ok(html.includes('no registran ni atribuyen productos aplicados'));
+  assert.ok(html.includes('periodo, unidad, procedencia y estado de revisión'));
+  assert.ok(html.includes('El espacio personal para participantes llegará en una etapa privada con cuenta, permisos y seguimiento revisado'));
   assert.match(html, /Explorar proyectos de muestra/);
   assert.match(html, /aria-label="Recorrido de la ficha del proyecto"/);
   for (const anchor of ['project-structure', 'capital-model', 'field-reading', 'participant-space']) {
@@ -296,6 +308,11 @@ test('accessible screen states avoid real contact fields and disclose the synthe
   assert.doesNotMatch(await read('participant-session.mjs'), /localStorage|sessionStorage|fetch\(/i);
   assert.match(styles, /:focus-visible/);
   assert.match(styles, /prefers-reduced-motion/);
+  assert.match(styles, /Public SANA ecosystem layer/);
+  assert.match(styles, /box-shadow: 0 10px 26px/);
+  assert.doesNotMatch(styles, /box-shadow:\s*\d+px\s*\d+px\s*0/);
+  assert.doesNotMatch(styles, /box-shadow:\s*\d+px\s*\d+px\s*0/);
+  assert.doesNotMatch(styles, /greenatics-brand-system/);
   assert.match(styles, /max-width: 1020px/);
   assert.match(styles, /max-width: 760px/);
   assert.match(styles, /scroll-margin-top/);

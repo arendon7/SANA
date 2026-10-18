@@ -39,3 +39,13 @@ La fuente Fraunces se distribuye localmente junto con su licencia SIL Open Font 
 ## Límites visibles
 
 Marcar nombres y cifras como sintéticos; separar hechos de muestra, proyecciones y datos no calculados. No presentar interés como solicitud, compromiso, aporte, inversión o pago. AgroWay conserva la fuente agrícola; SANA muestra solo lecturas aprobadas y no las modifica.
+
+
+## Entrada pública del ecosistema
+
+- La exploración de SANA es pública y no requiere cuenta; el encabezado debe explicar esa condición sin presentar la demo de “Mi espacio” como autenticación real.
+- La primera pantalla presenta la relación entre proyecto, trazabilidad agrícola, productos o acompañamientos documentados e impacto verificable. La identidad SANA es propia; no hereda el sistema visual de GREENATICS.
+- AgroWay conserva los registros de campo. SANA solo muestra lecturas autorizadas. Si la demo usa una proyección sintética por ciclo, no describirla como seguimiento real por planta o QR.
+- Un producto GREENATICS solo se atribuye a un proyecto cuando su uso está registrado y respaldado. Las fichas ficticias deben decir explícitamente que no tienen productos aplicados asociados.
+- Los indicadores de impacto requieren fuente, periodo, unidad y revisión. Si no existen, no crear cifras de muestra que parezcan resultados reales.
+- El espacio de participantes será una etapa privada futura; no habilitar login, pagos, solicitudes o persistencia en esta demo.

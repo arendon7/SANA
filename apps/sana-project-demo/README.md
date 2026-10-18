@@ -36,3 +36,8 @@ Esta entrega es una demo candidata, no una aplicación productiva ni un desplieg
 La visión es que, cuando exista una cuenta y un vínculo formal verificados, cada persona pueda consultar por proyecto su estado, documentos revisados, compromisos aprobados, aportes realmente conciliados y lecturas AgroWay autorizadas. Esos estados nunca se mezclan: un interés no es un compromiso ni un aporte, y el excedente del escenario agrícola no es utilidad neta o retorno personal.
 
 Esta demo solo prueba la navegación entre proyectos, la lectura sintética de solo consulta y un interés temporal que desaparece al recargar. No crea una cartera real, cuentas, solicitudes o movimientos de dinero. Activar ese siguiente nivel requiere decisiones de producto, identidad y permisos, persistencia con recuperación, reglas de revisión y estructura jurídica aprobada; queda fuera de esta entrega.
+
+
+## Entrada pública del ecosistema
+
+La página inicial explica SANA, AgroWay, la relación verificable con productos o servicios GREENATICS y los requisitos de evidencia para publicar impacto. La exploración pública no necesita cuenta. Los proyectos de muestra son ficticios; sus fichas no tienen productos aplicados asociados y solo consultan una proyección AgroWay sintética por ciclo. “Mi espacio” sigue siendo una simulación de sesión, no un acceso autenticado.
