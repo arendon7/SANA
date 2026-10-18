@@ -426,11 +426,8 @@ function renderProjectPlan(plan) {
     description.textContent = phase.description;
     const timeframe = document.createElement('small');
     timeframe.textContent = phase.timeframe;
-    const status = document.createElement('span');
-    status.className = 'planned-tag';
-    status.textContent = 'Fase ilustrativa';
     content.append(title, description, timeframe);
-    item.append(number, content, status);
+    item.append(number, content);
     phases.append(item);
   });
 }
