@@ -360,7 +360,6 @@ function renderProjectShelf(activeRef) {
     row.append(copy, facts, open);
     elements.catalogList.append(row);
   });
-  document.querySelector('#catalog-art-title').textContent = `Diagrama de un proyecto agrícola de muestra ${activeRef.slice(-3)}`;
 }
 
 function humanizeMilestone(value) {
