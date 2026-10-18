@@ -90,5 +90,26 @@
   "portfolio": {
     "status": "PLANNED",
     "description": "Un espacio privado para consultar proyectos vinculados, compromisos, aportes conciliados y lecturas agrícolas aprobadas. No está conectado en esta demo."
+  },
+  "projectPlan": {
+    "status": "SYNTHETIC_VALUE",
+    "objective": "Renovar café de ladera y organizar una poscosecha comunitaria con trazabilidad por lote.",
+    "phases": [
+      {
+        "name": "Preparar la renovación",
+        "description": "Representar la planeación del área, la conservación del suelo y la disponibilidad de agua.",
+        "timeframe": "Antes de renovar"
+      },
+      {
+        "name": "Renovar y registrar",
+        "description": "Mostrar el registro de plantas, labores, observaciones e incidencias por ciclo.",
+        "timeframe": "Durante el establecimiento"
+      },
+      {
+        "name": "Cosechar y beneficiar",
+        "description": "Vincular la cosecha con sus lotes y el proceso de beneficio antes de definir su salida comercial.",
+        "timeframe": "Al inicio de cada cosecha"
+      }
+    ]
   }
 }
