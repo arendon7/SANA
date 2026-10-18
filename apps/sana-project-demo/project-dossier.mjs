@@ -16,6 +16,17 @@ function isFiniteNonNegative(value) {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0;
 }
 
+function validateProjectPlan(plan) {
+  if (!plan || plan.status !== 'SYNTHETIC_VALUE' || typeof plan.objective !== 'string' || !plan.objective.trim()) return false;
+  if (!Array.isArray(plan.phases) || plan.phases.length < 2 || plan.phases.length > 5) return false;
+  return plan.phases.every((phase) => (
+    phase
+    && typeof phase.name === 'string' && phase.name.trim()
+    && typeof phase.description === 'string' && phase.description.trim()
+    && typeof phase.timeframe === 'string' && phase.timeframe.trim()
+  ));
+}
+
 function validateSyntheticModel(model) {
   const hasSyntheticModel = model.capitalNeed.status === 'SYNTHETIC_VALUE'
     || model.productionEstimate.status === 'SYNTHETIC_VALUE'
@@ -59,6 +70,7 @@ export function validateDossier(input, expectedProjectRef) {
       if (!isFiniteNonNegative(value)) return { ok: false, reason: `SYNTHETIC_VALUE_INVALID:${name}` };
     }
   }
+  if (input.projectPlan !== undefined && !validateProjectPlan(input.projectPlan)) return { ok: false, reason: 'PROJECT_PLAN_INVALID' };
   if (!validateSyntheticModel(input)) return { ok: false, reason: 'SYNTHETIC_MODEL_INCONSISTENT' };
   if (input.portfolio?.status !== 'PLANNED' || typeof input.portfolio.description !== 'string') {
     return { ok: false, reason: 'PORTFOLIO_NOT_PLANNED' };
