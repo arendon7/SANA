@@ -7,6 +7,7 @@ import { validateProjection } from '../sana-project-read/reader-v1.mjs';
 import { createInterestFlow, openInterest, resetInterestFlow, submitInterest } from './interest-flow.mjs';
 import { displayProjectField, validateDossier } from './project-dossier.mjs';
 import { projectionDisplayPolicy } from './presentation-policy.mjs';
+import { clearParticipantSession, createParticipantSession, recordSimulatedInterest } from './participant-session.mjs';
 
 const appDirectory = fileURLToPath(new URL('.', import.meta.url));
 const read = (path) => readFile(resolve(appDirectory, path), 'utf8');
@@ -110,6 +111,35 @@ test('accepted intent reaches human-review-pending without persistence or extern
   assert.deepEqual(resetInterestFlow(), createInterestFlow());
 });
 
+test('simulated interest appears in Mi espacio only in volatile session state', () => {
+  const empty = createParticipantSession();
+  assert.deepEqual(empty.simulatedInterests, []);
+  const first = recordSimulatedInterest(empty, {
+    projectRef: 'sana-demo-project-001',
+    projectTitle: 'Cacao bajo sombra',
+    intent: 'agricultural-follow-up',
+  });
+  assert.equal(first.ok, true);
+  assert.equal(first.item.status, 'SIMULATED_HUMAN_REVIEW');
+  assert.equal(first.state.simulatedInterests.length, 1);
+  assert.equal(first.state.simulatedInterests[0].projectTitle, 'Cacao bajo sombra');
+  const invalid = recordSimulatedInterest(first.state, {
+    projectRef: 'sana-demo-project-001',
+    projectTitle: 'Cacao bajo sombra',
+    intent: 'invest-now',
+  });
+  assert.equal(invalid.ok, false);
+  assert.equal(invalid.reason, 'INTENT_REQUIRED');
+  const replaced = recordSimulatedInterest(first.state, {
+    projectRef: 'sana-demo-project-001',
+    projectTitle: 'Cacao bajo sombra',
+    intent: 'project-structure',
+  });
+  assert.equal(replaced.state.simulatedInterests.length, 1);
+  assert.equal(replaced.state.simulatedInterests[0].intent, 'project-structure');
+  assert.deepEqual(clearParticipantSession().simulatedInterests, []);
+});
+
 test('accessible screen states avoid real contact fields and disclose the synthetic, non-persistent action', async () => {
   const html = await read('index.html');
   const app = await read('app.mjs');
@@ -121,6 +151,10 @@ test('accessible screen states avoid real contact fields and disclose the synthe
   assert.match(html, /id="open-project-card"/);
   assert.match(html, /id="participant-view"[^>]*aria-labelledby="space-title"/);
   assert.match(html, /Sin proyectos asociados/);
+  assert.match(html, /id="empty-space"/);
+  assert.match(html, /id="session-space"/);
+  assert.match(await read('server.mjs'), /participant-session\.mjs/);
+  assert.match(app, /Nadie recibió esta selección/);
   assert.match(html, /commitments|Compromisos revisados/);
   assert.match(html, /aria-live|role="alert"/);
   assert.match(html, /id="source-status"[^>]*aria-live="polite"/);
@@ -143,6 +177,7 @@ test('accessible screen states avoid real contact fields and disclose the synthe
   assert.match(app, /allocation-width/);
   assert.match(policy, /STALE.*showSummary: false/);
   assert.doesNotMatch(app, /localStorage|sessionStorage|fetch\(['"]https?:/i);
+  assert.doesNotMatch(await read('participant-session.mjs'), /localStorage|sessionStorage|fetch\(/i);
   assert.match(styles, /:focus-visible/);
   assert.match(styles, /prefers-reduced-motion/);
   assert.match(styles, /max-width: 1020px/);

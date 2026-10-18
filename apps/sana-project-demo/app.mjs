@@ -2,6 +2,7 @@ import { validateProjection } from '../sana-project-read/reader-v1.mjs';
 import { createInterestFlow, openInterest, resetInterestFlow, submitInterest } from './interest-flow.mjs';
 import { displayProjectField, validateDossier } from './project-dossier.mjs';
 import { projectionDisplayPolicy } from './presentation-policy.mjs';
+import { clearParticipantSession, createParticipantSession, recordSimulatedInterest } from './participant-session.mjs';
 
 const PROJECT_REF = 'sana-demo-project-001';
 const elements = {
@@ -29,6 +30,7 @@ const elements = {
   confirmedIntent: document.querySelector('#confirmed-intent'),
 };
 let flow = createInterestFlow();
+let participantSession = createParticipantSession();
 
 function showView(step, { focus = false, historyAction = 'push' } = {}) {
   const views = {
@@ -60,6 +62,58 @@ function showView(step, { focus = false, historyAction = 'push' } = {}) {
     heading?.focus();
   }
   window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+}
+
+function renderParticipantSpace() {
+  const items = participantSession.simulatedInterests;
+  const empty = document.querySelector('#empty-space');
+  const sessionSpace = document.querySelector('#session-space');
+  const list = document.querySelector('#session-space-list');
+  empty.hidden = items.length > 0;
+  sessionSpace.hidden = items.length === 0;
+  list.replaceChildren();
+  items.forEach((item) => {
+    const card = document.createElement('article');
+    card.className = 'session-interest-card';
+    const heading = document.createElement('div');
+    heading.className = 'session-interest-card__heading';
+    const copy = document.createElement('div');
+    const eyebrow = document.createElement('p');
+    eyebrow.className = 'eyebrow';
+    eyebrow.textContent = 'SANA · SANA-DEM-001';
+    const title = document.createElement('h3');
+    title.textContent = item.projectTitle;
+    copy.append(eyebrow, title);
+    const status = document.createElement('span');
+    status.className = 'data-state data-state--synthetic';
+    status.textContent = 'Interés simulado';
+    heading.append(copy, status);
+    const details = document.createElement('dl');
+    details.className = 'session-interest-card__details';
+    const reason = document.createElement('div');
+    const reasonLabel = document.createElement('dt');
+    reasonLabel.textContent = 'Te gustaría conocer';
+    const reasonValue = document.createElement('dd');
+    reasonValue.textContent = intentLabel(item.intent);
+    reason.append(reasonLabel, reasonValue);
+    const stage = document.createElement('div');
+    const stageLabel = document.createElement('dt');
+    stageLabel.textContent = 'Etapa representada';
+    const stageValue = document.createElement('dd');
+    stageValue.textContent = 'Revisión humana antes de cualquier contacto';
+    stage.append(stageLabel, stageValue);
+    details.append(reason, stage);
+    const disclosure = document.createElement('p');
+    disclosure.className = 'session-interest-card__disclosure';
+    disclosure.textContent = 'No hay una solicitud real, un compromiso ni aportes. Nadie recibió esta selección; se borrará al recargar o cerrar la demo.';
+    const openProject = document.createElement('button');
+    openProject.className = 'text-button';
+    openProject.type = 'button';
+    openProject.textContent = 'Volver a la ficha del proyecto ↗';
+    openProject.addEventListener('click', () => showView('project', { focus: true }));
+    card.append(heading, details, disclosure, openProject);
+    list.append(card);
+  });
 }
 
 function openInterestView() {
@@ -252,18 +306,19 @@ document.querySelectorAll('#open-interest, #open-interest-secondary, #open-inter
 document.querySelector('#open-project-card').addEventListener('click', () => showView('project', { focus: true }));
 document.querySelectorAll('[data-view-link]').forEach((link) => link.addEventListener('click', (event) => {
   event.preventDefault();
+  if (link.dataset.viewLink === 'participant') renderParticipantSpace();
   showView(link.dataset.viewLink, { focus: true });
 }));
 document.querySelector('#back-to-catalog').addEventListener('click', () => showView('catalog', { focus: true }));
 document.querySelector('#back-to-catalog-space').addEventListener('click', () => showView('catalog', { focus: true }));
 document.querySelector('#back-to-projects-empty').addEventListener('click', () => showView('catalog', { focus: true }));
-document.querySelector('#open-participant-space').addEventListener('click', () => showView('participant', { focus: true }));
+document.querySelector('#open-participant-space').addEventListener('click', () => { renderParticipantSpace(); showView('participant', { focus: true }); });
 document.querySelectorAll('#back-to-project, #cancel-interest').forEach((button) => button.addEventListener('click', () => showView('project', { focus: true })));
 document.querySelector('#interest-form').addEventListener('change', (event) => {
   if (event.target.name === 'interest-intent') elements.formError.hidden = true;
   if (event.target.id === 'demo-acknowledgment') elements.ackError.hidden = true;
 });
-document.querySelector('#interest-form').addEventListener('submit', (event) => {
+function handleInterestSubmission(event) {
   event.preventDefault();
   const intent = document.querySelector('input[name="interest-intent"]:checked')?.value;
   const result = submitInterest(flow, { intent, acknowledged: elements.acknowledgment.checked });
@@ -276,10 +331,25 @@ document.querySelector('#interest-form').addEventListener('submit', (event) => {
   }
   flow = result.state;
   elements.confirmedIntent.textContent = intentLabel(flow.intent);
+  const recorded = recordSimulatedInterest(participantSession, {
+    projectRef: PROJECT_REF,
+    projectTitle: document.querySelector('#profile-title').textContent,
+    intent: flow.intent,
+  });
+  if (recorded.ok) participantSession = recorded.state;
+  renderParticipantSpace();
   showView('confirmation', { focus: true });
+}
+const interestForm = document.querySelector('#interest-form');
+interestForm.addEventListener('submit', handleInterestSubmission);
+interestForm.querySelector('button[type="submit"]').addEventListener('click', handleInterestSubmission);
+document.querySelector('#view-demo-space').addEventListener('click', () => {
+  renderParticipantSpace();
+  showView('participant', { focus: true });
 });
 document.querySelector('#restart-demo').addEventListener('click', () => {
   flow = resetInterestFlow();
+  participantSession = clearParticipantSession();
   document.querySelector('#interest-form').reset();
   elements.formError.hidden = true;
   elements.ackError.hidden = true;
@@ -289,10 +359,12 @@ document.querySelector('#restart-demo').addEventListener('click', () => {
 window.addEventListener('popstate', () => {
   const requested = new URLSearchParams(window.location.search).get('view');
   const allowed = ['catalog', 'project', 'participant'];
+  if (requested === 'participant') renderParticipantSpace();
   showView(allowed.includes(requested) ? requested : 'catalog', { focus: true, historyAction: 'none' });
 });
 
 loadDossier();
 loadProjection();
 const requestedView = new URLSearchParams(window.location.search).get('view');
+if (requestedView === 'participant') renderParticipantSpace();
 showView(['project', 'participant'].includes(requestedView) ? requestedView : 'catalog', { historyAction: 'replace' });

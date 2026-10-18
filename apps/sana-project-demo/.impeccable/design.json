@@ -54,7 +54,7 @@
     "secondaryDirection": "Merriweather",
     "assetStatus": "font binaries not present; local system fallbacks remain provisional"
   },
-  "composition": "SANA product catalogue leading into a project dossier with promoter/property identity, agricultural scale, capital allocation, production assumptions and approved AgroWay progress; participant space empty state; in-memory simulated interest followed by human review.",
+  "composition": "SANA product catalogue leading into a project dossier with promoter/property identity, agricultural scale, capital allocation, production assumptions and approved AgroWay progress; participant space empty state or ephemeral simulated-interest card; in-memory intent followed by a represented human-review step.",
   "stateVocabulary": [
     "synthetic",
     "observed",

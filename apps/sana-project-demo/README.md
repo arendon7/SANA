@@ -9,7 +9,7 @@ Demo local para recorrer la primera experiencia propia de SANA: explorar un proy
 3. Ver uso del capital, supuestos de producción y valores aún no calculados.
 4. Consultar la procedencia y vigencia de la lectura aprobada de AgroWay.
 5. Simular una intención y terminar en una revisión humana.
-6. Abrir “Mi espacio” para conocer la vista futura de seguimiento, sin inventar cuentas o inversiones.
+6. Abrir “Mi espacio”: primero muestra el estado vacío y, después de enviar la simulación, conserva una tarjeta efímera de interés para recorrer el seguimiento previsto sin inventar cuentas o inversiones.
 
 ## Ejecutar localmente
 
@@ -25,7 +25,7 @@ Abrir `http://127.0.0.1:4175/`. El servidor Node integrado se vincula a loopback
 
 `project-dossier-v1.json` contiene una productora y un predio ficticios, área, cantidad de plantas, usos de capital y un escenario ilustrativo. Las cifras demuestran cómo una ficha puede mostrar supuestos y su aritmética; no son benchmarks agronómicos, presupuestos reales, pronósticos validados, oferta de inversión, utilidad neta, dividendos ni retorno para participantes. `netUtilityEstimate` no se calcula porque la muestra no modela todos los costos ni términos.
 
-`project-projection-v1.json` es un fixture AgroWay separado y sintético que valida `apps/sana-project-read/reader-v1.mjs`; las lecturas vencidas o mal mapeadas se ocultan. La cosecha sintética de 12 kg no alimenta el escenario del año cinco. La intención simulada se descarta al recargar, no solicita datos personales o financieros, no crea una solicitud ni llama a servicios. “Mi espacio” describe capacidades previstas y permanece sin posiciones.
+`project-projection-v1.json` es un fixture AgroWay separado y sintético que valida `apps/sana-project-read/reader-v1.mjs`; las lecturas vencidas o mal mapeadas se ocultan. La cosecha sintética de 12 kg no alimenta el escenario del año cinco. La intención simulada permanece solo en memoria de la pestaña, no solicita datos personales o financieros, no crea una solicitud ni llama a servicios. “Mi espacio” muestra el estado vacío o una tarjeta temporal de interés simulado; nunca una posición, compromiso o aporte ficticio.
 
 `DESIGN.md` y `.impeccable/design.json` documentan una dirección específica de SANA, independiente de la identidad GREENATICS. El wordmark tipográfico es provisional; no se encontró un logo autónomo validado. La paleta y las fuentes de respaldo tampoco están aprobadas.
 

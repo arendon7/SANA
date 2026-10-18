@@ -22,8 +22,8 @@ SANA hace visibles proyectos productivos para que una persona pueda entender qui
 - Mantener separados valores observados, supuestos, proyecciones, valores ausentes y alcance futuro con texto y etiquetas, nunca solo con color.
 - No calcular utilidad neta, dividendo ni retorno cuando falten costos, estructura contractual y revisión humana.
 - La lectura de AgroWay es de solo lectura, versionada y aprobada solo para la demostración. Una lectura caducada, no aprobada o mal mapeada se oculta.
-- “Mi espacio” es una vista vacía de producto previsto. No mostrar cuentas, posiciones, aportes o resultados ficticios.
-- El interés simulado permanece en memoria, no solicita datos personales, no llega a un servidor y no modifica AgroWay.
+- “Mi espacio” conserva un estado vacío si no hay interacción. Después de simular interés muestra una tarjeta temporal en memoria, distinguida de una posición o inversión; no muestra cuentas, aportes ni resultados ficticios.
+- El interés simulado permanece en memoria de la pestaña, no solicita datos personales, no llega a un servidor y no modifica AgroWay. La tarjeta explica que nadie recibió la selección y que desaparece al recargar.
 
 ## Interacción y accesibilidad
 

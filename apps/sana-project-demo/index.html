@@ -251,12 +251,16 @@
         <div><p class="eyebrow">SANA <span aria-hidden="true">/</span> Mi espacio</p><h1 id="space-title" tabindex="-1">Tus proyectos, con seguimiento claro.</h1><p class="explore-lead">La experiencia completa podrá reunir el avance productivo, los acuerdos y la información financiera de cada proyecto asociado a una persona.</p></div>
         <div class="space-stamp"><span>Diseño de producto</span><strong>En construcción</strong><small>Esta demo no crea usuarios ni posiciones.</small></div>
       </div>
-      <section class="empty-space" aria-labelledby="empty-space-title">
+      <section id="empty-space" class="empty-space" aria-labelledby="empty-space-title">
         <div class="empty-space__mark" aria-hidden="true"><span></span><span></span><span></span></div>
         <p class="eyebrow">Sin proyectos asociados</p>
         <h2 id="empty-space-title">Aquí verías lo que has decidido acompañar.</h2>
         <p>Cuando exista un acuerdo real revisado por las personas responsables, cada proyecto podrá mostrar sus hitos, documentos, compromisos y aportes conciliados. La lectura agronómica llegaría desde AgroWay con su fuente, fecha y autorización.</p>
         <button class="button button-secondary" id="back-to-projects-empty" type="button">Volver a los proyectos</button>
+      </section>
+      <section id="session-space" class="session-space" aria-labelledby="session-space-title" hidden>
+        <div class="session-space__heading"><div><p class="eyebrow">Recorrido de esta sesión</p><h2 id="session-space-title">Intereses de demostración</h2></div><span class="data-state data-state--synthetic">Temporal · no enviado</span></div>
+        <div id="session-space-list" class="session-space__list" aria-live="polite"></div>
       </section>
       <div class="space-features">
         <article><span class="feature-index">01</span><p class="eyebrow">Acuerdos</p><h3>Compromisos revisados</h3><p>Separados de los aportes efectivamente registrados.</p><span class="planned-tag">Previsto</span></article>
@@ -288,9 +292,9 @@
       <div class="confirmation-rule" aria-hidden="true"></div>
       <p class="eyebrow">SANA · Demo</p>
       <h1 id="confirmation-title" tabindex="-1">Siguiente paso: revisión humana.</h1>
-      <p>La selección fue simulada y no se guardó. En una experiencia real, el equipo revisaría el proyecto antes de iniciar una conversación o gestionar cualquier aporte.</p>
+      <p>La selección aparece en “Mi espacio” solo durante esta sesión. No se envió al equipo, no crea una solicitud ni representa una inversión.</p>
       <div class="confirmation-detail"><span>Te gustaría conocer</span><strong id="confirmed-intent">—</strong></div>
-      <button class="button button-primary" id="restart-demo" type="button">Volver a explorar proyectos</button>
+      <div class="form-actions confirmation-actions"><button class="button button-secondary" id="restart-demo" type="button">Volver a explorar</button><button class="button button-primary" id="view-demo-space" type="button">Ver Mi espacio</button></div>
     </section>
   </main>
 
