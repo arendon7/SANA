@@ -1,0 +1,28 @@
+{
+  "product": "SANA",
+  "surface": "synthetic-project-dossier",
+  "version": "0.1.0-proposed",
+  "status": "PROVISIONAL_DEMO_DIRECTION",
+  "identity": {
+    "wordmark": "SANA as typographic text; no unverified logo",
+    "parentBrand": "GREENATICS may appear only as a discreet institutional affiliation when context requires it; it does not govern this surface"
+  },
+  "palette": {
+    "forest": { "value": "#15392d", "status": "prototype-only" },
+    "forestSoft": { "value": "#214b3b", "status": "prototype-only" },
+    "growth": { "value": "#8fbb57", "status": "prototype-only" },
+    "growthPale": { "value": "#eaf1dc", "status": "prototype-only" },
+    "ivory": { "value": "#f6f2e9", "status": "prototype-only" },
+    "paper": { "value": "#ffffff", "status": "proposed-canvas" },
+    "ink": { "value": "#1d2823", "status": "prototype-only" },
+    "muted": { "value": "#52625a", "status": "prototype-only" },
+    "signal": { "value": "#d9a441", "status": "prototype-only" }
+  },
+  "typography": {
+    "primaryDirection": "Sofia Pro",
+    "secondaryDirection": "Merriweather",
+    "assetStatus": "font binaries not present; local system fallbacks remain provisional"
+  },
+  "composition": "Editorial project dossier: project identity and purpose, structured project facts, capital and production assumptions, approved AgroWay field reading, then a simulated human-review step.",
+  "stateVocabulary": ["synthetic", "observed", "projected", "not provided", "not modeled", "not calculated", "planned"]
+}
