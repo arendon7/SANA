@@ -248,6 +248,8 @@ test('accessible screen states avoid real contact fields and disclose the synthe
   assert.match(html, /Conoce quién impulsa cada proyecto y cómo avanza/);
   assert.ok(html.includes('Explora sin cuenta'));
   assert.match(html, /id="nav-methodology"[^>]*data-view-anchor="ecosystem-overview"/);
+  assert.match(html, /<ol class="ecosystem-project-path" aria-label="Contenido de una ficha SANA">/);
+  assert.match(html, /<li>Proyecto<\/li>/);
   assert.ok(app.includes('function scrollToPublicSection'));
   assert.ok(html.includes('Un proyecto necesita contexto, trazabilidad y evidencia'));
   assert.ok(html.includes('plantas con QR, labores, observaciones y cosecha'));
