@@ -3,7 +3,7 @@ import test from 'node:test';
 import { readFile, stat } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { validateProjection } from '../sana-project-read/reader-v1.mjs';
+import { applyProjection, createIdempotencyKey, validateProjection } from '../sana-project-read/reader-v1.mjs';
 import { createInterestFlow, openInterest, resetInterestFlow, submitInterest } from './interest-flow.mjs';
 import { displayProjectField, validateDossier } from './project-dossier.mjs';
 import { projectionDisplayPolicy } from './presentation-policy.mjs';
@@ -30,6 +30,82 @@ test('project projection is exact, approved only for demo, and read-only', async
   assert.equal(checked.model.summary.harvest.quantity, 12);
   assert.equal(fixture.approval.scope, 'SYNTHETIC_FIXTURE');
   assert.equal(fixture.projectMapping.status, 'SYNTHETIC');
+});
+
+test('AgroWay projection application is idempotent and requires explicit correction lineage', async () => {
+  const fixture = await loadFixture();
+  const expectedSanaProjectRef = 'sana-demo-project-001';
+  const options = {
+    expectedSanaProjectRef,
+    now: Date.parse(fixture.generatedAt) + 60 * 60 * 1000,
+  };
+  const first = await applyProjection(null, fixture, options);
+  assert.equal(first.accepted, true);
+  assert.equal(first.state.latest.provenance.projectionId, fixture.projectionId);
+
+  const replay = await applyProjection(first.state, fixture, options);
+  assert.equal(replay.outcome, 'duplicate');
+  assert.equal(replay.reason, 'DUPLICATE_PROJECTION');
+  assert.equal(replay.state, first.state);
+
+  const issueProjection = async ({ projectionId, sourceAsOf, generatedAt, supersedesProjectionId = null }) => {
+    const next = {
+      ...fixture,
+      projectionId,
+      sourceAsOf,
+      generatedAt,
+      freshness: { ...fixture.freshness, sourceAsOf },
+      approval: { ...fixture.approval, reviewedAt: generatedAt },
+      supersedesProjectionId,
+    };
+    next.idempotencyKey = await createIdempotencyKey({
+      schema: next.schema,
+      sanaProjectRef: expectedSanaProjectRef,
+      projectionId,
+      sourceAsOf,
+    });
+    return next;
+  };
+  const oneHour = 60 * 60 * 1000;
+  const newer = await issueProjection({
+    projectionId: 'aw-demo-projection-001-v2',
+    sourceAsOf: new Date(Date.parse(fixture.sourceAsOf) + oneHour).toISOString(),
+    generatedAt: new Date(Date.parse(fixture.generatedAt) + 2 * oneHour).toISOString(),
+  });
+  const advanced = await applyProjection(first.state, newer, {
+    expectedSanaProjectRef,
+    now: Date.parse(newer.generatedAt) + oneHour,
+  });
+  assert.equal(advanced.accepted, true);
+  assert.equal(advanced.state.history[0].projectionId, fixture.projectionId);
+  assert.equal(advanced.state.latest.provenance.projectionId, newer.projectionId);
+
+  const correction = await issueProjection({
+    projectionId: 'aw-demo-projection-001-v2-correction',
+    sourceAsOf: newer.sourceAsOf,
+    generatedAt: new Date(Date.parse(newer.generatedAt) + oneHour).toISOString(),
+    supersedesProjectionId: newer.projectionId,
+  });
+  const corrected = await applyProjection(advanced.state, correction, {
+    expectedSanaProjectRef,
+    now: Date.parse(correction.generatedAt) + oneHour,
+  });
+  assert.equal(corrected.accepted, true);
+  assert.equal(corrected.state.history.at(-1).supersededBy, correction.projectionId);
+
+  const wrongTarget = await issueProjection({
+    projectionId: 'aw-demo-projection-001-v3-wrong-target',
+    sourceAsOf: new Date(Date.parse(correction.sourceAsOf) + oneHour).toISOString(),
+    generatedAt: new Date(Date.parse(correction.generatedAt) + 2 * oneHour).toISOString(),
+    supersedesProjectionId: newer.projectionId,
+  });
+  const rejected = await applyProjection(corrected.state, wrongTarget, {
+    expectedSanaProjectRef,
+    now: Date.parse(wrongTarget.generatedAt) + oneHour,
+  });
+  assert.equal(rejected.accepted, false);
+  assert.equal(rejected.reason, 'CORRECTION_TARGET_MISMATCH');
+  assert.equal(rejected.state, corrected.state);
 });
 
 test('project dossier presents a fully synthetic, arithmetically consistent case without calling it a real offer', async () => {
