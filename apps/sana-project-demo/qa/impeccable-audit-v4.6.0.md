@@ -13,6 +13,20 @@ Corte: 19 de octubre de 2026. Alcance: interfaz pública de apps/sana-project-de
 | Integridad de implementación | 3 | Dirección específica documentada y límites de demo visibles; hallazgos puntuales se corrigieron en esta pasada. Tres avisos restantes son falsos positivos confirmados contra el sistema aprobado. |
 | **Total** | **15/20 · Bueno** | |
 
+## Resumen ejecutivo
+
+Puntaje: **15/20 · Bueno**. No quedan issues verificados abiertos en la UI. Se resolvieron dos grupos de hallazgos P3: nueve rótulos redundantes y el padding de la ficha de confirmación. Conteo final: P0 **0**, P1 **0**, P2 **0**, P3 **2 categorías resueltas**. Los tres avisos deliberados del detector no se cuentan como issues.
+
+## Patrones y puntos fuertes
+
+La primera pasada mostró una tendencia a anteponer etiquetas a títulos que ya explicaban el contenido; la revisión manual corrigió ese patrón en catálogo, sesión y recorrido. Se mantienen la identidad SANA propia, fuentes locales, textos sintéticos visibles, estados de lectura de solo consulta y control por teclado. El adaptador exige una proyección válida de solo lectura y aplica una política de presentación antes de exponer el resumen.
+
+## Acciones recomendadas
+
+1. **P2 · Validación de accesibilidad externa:** completar VoiceOver/lector de pantalla y prueba en dispositivo físico antes de ampliar audiencia o afirmar conformidad.
+2. **P2 · Preview del commit:** verificar el SHA exacto en un preview remoto ya disponible antes de integrar; esta tarea no crea despliegues.
+3. No quedan recomendaciones de diseño que requieran más comandos Impeccable. Fraunces y el papel #FFF5E8 son decisiones del sistema vigente, no cambios sugeridos por el detector.
+
 ## Veredicto de integridad
 
 La implementación expresa un sistema coherente de demo agrícola: papel cálido, Fraunces local, jerarquía editorial y estados sintéticos explícitos, según DESIGN.md. El diagnóstico marcó cuatro rótulos redundantes y el espaciado de confirmación; la revisión manual de Mi espacio, catálogo y recorrido encontró otras cinco redundancias. Se retiraron los nueve rótulos sin perder contexto. El detector también marcó Fraunces y el fondo RGB(255,245,232); ambos son decisiones explícitas del sistema visual, así que se registran como falsos positivos, no como deuda.
