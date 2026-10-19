@@ -1,0 +1,24 @@
+{
+  "checks": [
+    "catalog shows only after validation",
+    "project title receives focus",
+    "missing motive focuses radio",
+    "missing acknowledgment is invalid",
+    "interest reaches temporary space",
+    "reset prevents phantom confirmation",
+    "direct confirmation cannot claim submitted interest",
+    "second project keeps own data",
+    "mobile has no horizontal overflow",
+    "empty space after reload",
+    "no runtime errors",
+    "catalog failure hides all fixture figures",
+    "retry recovers catalog without reload",
+    "failed default dossier falls back to validated project",
+    "unvalidated dossier excluded",
+    "projection failure hides field indicators",
+    "reopening project retries its reading",
+    "late first-project response cannot overwrite second project",
+    "keyboard navigation focuses destination heading"
+  ],
+  "passed": 19
+}

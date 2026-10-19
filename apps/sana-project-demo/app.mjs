@@ -39,6 +39,28 @@ let catalog;
 let projectProfiles = [];
 const participantFieldReadings = new Map();
 let activeProject;
+let selectionVersion = 0;
+let catalogLoading = false;
+const feedback = document.querySelector('#catalog-feedback');
+const retryCatalog = document.querySelector('#retry-catalog');
+
+function showCatalogFeedback(message, { loading = false } = {}) {
+  Object.values({ catalog: elements.catalog, project: elements.project, participant: elements.participant,
+    interest: elements.interest, confirmation: elements.confirmation }).forEach((view) => { view.hidden = true; });
+  feedback.hidden = false;
+  feedback.setAttribute('aria-busy', String(loading));
+  document.querySelector('#catalog-feedback-title').textContent = loading
+    ? 'Preparando los proyectos de muestra…' : 'Los proyectos no están disponibles';
+  document.querySelector('#catalog-feedback-message').textContent = message;
+  retryCatalog.hidden = loading;
+  if (!loading) document.querySelector('#catalog-feedback-title').focus();
+}
+
+function catalogNotice(message) {
+  const notice = document.querySelector('#catalog-notice');
+  notice.textContent = message;
+  notice.hidden = !message;
+}
 
 function showView(step, { focus = false, historyAction = 'push' } = {}) {
   const views = {
@@ -49,6 +71,13 @@ function showView(step, { focus = false, historyAction = 'push' } = {}) {
     confirmation: elements.confirmation,
   };
   if (!Object.hasOwn(views, step)) step = 'catalog';
+  if (!activeProject) return;
+  if (step === 'confirmation') {
+    const interest = participantSession.simulatedInterests.find((item) => item.projectRef === activeProject.projectRef);
+    if (!interest) step = 'project';
+    else elements.confirmedIntent.textContent = intentLabel(interest.intent);
+  }
+  feedback.hidden = true;
   Object.entries(views).forEach(([name, view]) => { view.hidden = name !== step; });
   elements.navExplore.setAttribute('aria-current', ['catalog', 'project', 'interest', 'confirmation'].includes(step) ? 'page' : 'false');
   elements.navMethodology.setAttribute('aria-current', 'false');
@@ -240,9 +269,12 @@ function resetInterestForm() {
   document.querySelector('#interest-form').reset();
   elements.formError.hidden = true;
   elements.ackError.hidden = true;
+  elements.fieldset.removeAttribute('aria-invalid');
+  elements.acknowledgment.removeAttribute('aria-invalid');
 }
 
 function openInterestView() {
+  if (!activeProject) return;
   resetInterestForm();
   flow = openInterest(resetInterestFlow());
   showView('interest', { focus: true });
@@ -309,7 +341,6 @@ function renderDossier(profile) {
   document.querySelector('#catalog-production').textContent = `${formatCount(production.quantity)} ${production.unit}`;
   document.querySelector('#catalog-production-period').textContent = production.period;
   document.querySelector('#production-basis').textContent = `${new Intl.NumberFormat('es-CO').format(production.basis.areaHa)} ha × ${new Intl.NumberFormat('es-CO').format(production.basis.yieldKgPerHa)} kg/ha/año = ${formatCount(production.quantity)} kg/año · supuesto didáctico`;
-  document.querySelector('#production-basis').textContent = `${new Intl.NumberFormat('es-CO').format(production.basis.areaHa)} ha × ${new Intl.NumberFormat('es-CO').format(production.basis.yieldKgPerHa)} kg/ha/año = ${formatCount(production.quantity)} kg/año · supuesto didáctico`;
   document.querySelector('#price-per-kg').textContent = `${formatCop(economics.pricePerKg)}/kg`;
   document.querySelector('#gross-sales').textContent = `${formatCop(economics.grossSales)}/año`;
   document.querySelector('#operating-costs').textContent = `${formatCop(economics.operatingCosts)}/año`;
@@ -340,7 +371,7 @@ function renderDossier(profile) {
 
 function renderProjectShelf(activeRef) {
   const alternatives = projectProfiles.filter(({ profile }) => profile.projectRef !== activeRef);
-  elements.catalogCount.textContent = `${projectProfiles.length} proyectos · Ficticios`;
+  elements.catalogCount.textContent = `${projectProfiles.length} ${projectProfiles.length === 1 ? 'proyecto · Ficticio' : 'proyectos · Ficticios'}`;
   elements.catalogList.replaceChildren();
   alternatives.forEach(({ profile }) => {
     const projectCode = profile.projectRef.replace('sana-demo-project-', 'SANA-DEM-');
@@ -445,29 +476,13 @@ function renderProjection(input, model) {
   elements.readContent.hidden = false;
 }
 
-async function loadDossier(entry) {
-  try {
-    const response = await fetch(entry.dossierPath, { cache: 'no-store' });
-    if (!response.ok) throw new Error('DOSSIER_UNAVAILABLE');
-    const profile = await response.json();
-    const checked = validateDossier(profile, entry.projectRef);
-    if (!checked.ok) throw new Error(checked.reason);
-    renderDossier(checked.model);
-    elements.projectProfileStatus.dataset.state = 'synthetic';
-    elements.projectProfileStatus.classList.remove('data-state--error');
-    return checked.model;
-  } catch {
-    elements.projectProfileStatus.dataset.state = 'error';
-    elements.projectProfileStatus.textContent = 'Ficha de muestra no disponible';
-    elements.projectProfileStatus.classList.add('data-state--error');
-    return null;
-  }
-}
-
-async function loadProjection(entry) {
+async function loadProjection(entry, version) {
   elements.readLoading.hidden = false;
   elements.readError.hidden = true;
   elements.readContent.hidden = true;
+  elements.sourceStatus.textContent = 'Validando lectura';
+  elements.sourceStatus.dataset.state = 'loading';
+  elements.readError.textContent = 'No se pudo validar la lectura de este proyecto. Vuelve a abrir su ficha para intentarlo de nuevo.';
   elements.readLoading.textContent = 'Validando la lectura AgroWay sintética de este proyecto…';
   if (!entry.projectionPath) {
     participantFieldReadings.set(entry.projectRef, createParticipantFieldReading(null));
@@ -485,11 +500,13 @@ async function loadProjection(entry) {
     if (!response.ok) throw new Error('FIXTURE_UNAVAILABLE');
     const input = await response.json();
     const checked = await validateProjection(input, { expectedSanaProjectRef: entry.projectRef });
+    if (version !== selectionVersion) return false;
     if (!checked.ok) throw new Error('FIXTURE_NOT_APPROVED');
     participantFieldReadings.set(entry.projectRef, createParticipantFieldReading(checked));
     renderProjection(input, checked.model);
     return true;
   } catch {
+    if (version !== selectionVersion) return false;
     participantFieldReadings.set(entry.projectRef, createParticipantFieldReading(null));
     elements.sourceStatus.className = 'data-state data-state--error';
     elements.sourceStatus.dataset.state = 'error';
@@ -502,21 +519,36 @@ async function loadProjection(entry) {
 }
 
 async function selectProject(projectRef, view = 'project', { historyAction = 'push' } = {}) {
-  const entry = catalog?.projects.find((project) => project.projectRef === projectRef);
-  if (!entry) return;
-  const profile = await loadDossier(entry);
-  if (!profile) return;
+  const available = projectProfiles.find(({ entry }) => entry.projectRef === projectRef);
+  if (!available) {
+    catalogNotice('La ficha solicitada no está disponible. Puedes explorar los proyectos validados.');
+    showView('catalog', { focus: true, historyAction: 'replace' });
+    return false;
+  }
+  const { entry, profile } = available;
+  const version = ++selectionVersion;
   activeProject = entry;
+  renderDossier(profile);
+  elements.projectProfileStatus.textContent = 'Proyecto ficticio · sin oferta de inversión';
+  elements.projectProfileStatus.dataset.state = 'synthetic';
+  elements.projectProfileStatus.classList.remove('data-state--error');
   renderProjectShelf(projectRef);
-  await loadProjection(entry);
   if (view === 'interest') {
     resetInterestForm();
     flow = openInterest(resetInterestFlow());
   }
   showView(view, { focus: true, historyAction });
+  await loadProjection(entry, version);
+  return true;
 }
 
 async function loadCatalog() {
+  if (catalogLoading) return false;
+  catalogLoading = true;
+  activeProject = undefined;
+  projectProfiles = [];
+  ++selectionVersion;
+  showCatalogFeedback('Validamos cada ficha antes de mostrar sus cifras.', { loading: true });
   try {
     const response = await fetch('./project-catalog-v1.json', { cache: 'no-store' });
     if (!response.ok) throw new Error('CATALOG_UNAVAILABLE');
@@ -534,20 +566,24 @@ async function loadCatalog() {
       }
     }));
     projectProfiles = validated.filter(Boolean);
-    const defaultEntry = catalog.projects.find((entry) => entry.projectRef === catalog.defaultProjectRef);
-    if (!defaultEntry || !projectProfiles.some(({ entry }) => entry.projectRef === defaultEntry.projectRef)) throw new Error('DEFAULT_PROJECT_UNAVAILABLE');
+    if (!projectProfiles.length) throw new Error('NO_VALID_PROJECTS');
+    const defaultEntry = projectProfiles.find(({ entry }) => entry.projectRef === catalog.defaultProjectRef)?.entry ?? projectProfiles[0].entry;
+    catalogNotice(projectProfiles.length < catalog.projects.length
+      ? 'Algunas fichas no están disponibles. Solo mostramos proyectos que se pudieron validar.' : '');
     const requestedProject = new URLSearchParams(window.location.search).get('project');
-    const initialEntry = catalog.projects.find((entry) => entry.projectRef === requestedProject)
-      ?? defaultEntry;
-    await selectProject(initialEntry.projectRef, 'catalog', { historyAction: 'none' });
+    const initialEntry = projectProfiles.find(({ entry }) => entry.projectRef === requestedProject)?.entry ?? defaultEntry;
+    if (requestedProject && requestedProject !== initialEntry.projectRef) catalogNotice('La ficha solicitada no está disponible. Mostramos una alternativa de muestra validada.');
+    selectProject(initialEntry.projectRef, 'catalog', { historyAction: 'none' });
     renderProjectShelf(initialEntry.projectRef);
     return true;
   } catch {
     elements.projectProfileStatus.dataset.state = 'error';
     elements.projectProfileStatus.textContent = 'Catálogo de muestra no disponible';
     elements.projectProfileStatus.classList.add('data-state--error');
-    elements.catalogList.textContent = 'No se pudieron validar los proyectos de muestra. Recarga para intentarlo de nuevo.';
+    showCatalogFeedback('No pudimos validar las fichas. Vuelve a cargar los proyectos para intentarlo de nuevo.');
     return false;
+  } finally {
+    catalogLoading = false;
   }
 }
 
@@ -560,7 +596,7 @@ function intentLabel(value) {
 }
 
 document.querySelectorAll('#open-interest, #open-interest-secondary, #open-interest-panel').forEach((button) => button.addEventListener('click', openInterestView));
-document.querySelector('#open-project-card').addEventListener('click', () => showView('project', { focus: true }));
+document.querySelector('#open-project-card').addEventListener('click', () => { if (activeProject) selectProject(activeProject.projectRef); });
 document.querySelectorAll('[data-view-link]').forEach((link) => link.addEventListener('click', (event) => {
   event.preventDefault();
   if (link.dataset.viewLink === 'participant') renderParticipantSpace();
@@ -574,15 +610,18 @@ document.querySelector('#back-to-projects-empty').addEventListener('click', () =
 document.querySelector('#open-participant-space').addEventListener('click', () => { renderParticipantSpace(); showView('participant', { focus: true }); });
 document.querySelectorAll('#back-to-project, #cancel-interest').forEach((button) => button.addEventListener('click', () => showView('project', { focus: true })));
 document.querySelector('#interest-form').addEventListener('change', (event) => {
-  if (event.target.name === 'interest-intent') elements.formError.hidden = true;
-  if (event.target.id === 'demo-acknowledgment') elements.ackError.hidden = true;
+  if (event.target.name === 'interest-intent') { elements.formError.hidden = true; elements.fieldset.removeAttribute('aria-invalid'); }
+  if (event.target.id === 'demo-acknowledgment') { elements.ackError.hidden = true; elements.acknowledgment.removeAttribute('aria-invalid'); }
 });
 function handleInterestSubmission(event) {
   event.preventDefault();
+  if (!activeProject) return;
   const intent = document.querySelector('input[name="interest-intent"]:checked')?.value;
   const result = submitInterest(flow, { intent, acknowledged: elements.acknowledgment.checked });
   elements.formError.hidden = result.reason !== 'INTENT_REQUIRED';
   elements.ackError.hidden = result.reason !== 'DEMO_ACKNOWLEDGMENT_REQUIRED';
+  elements.fieldset.setAttribute('aria-invalid', String(result.reason === 'INTENT_REQUIRED'));
+  elements.acknowledgment.setAttribute('aria-invalid', String(result.reason === 'DEMO_ACKNOWLEDGMENT_REQUIRED'));
   if (!result.ok) {
     const firstMissing = result.reason === 'INTENT_REQUIRED' ? elements.fieldset.querySelector('input') : elements.acknowledgment;
     firstMissing.focus();
@@ -601,7 +640,6 @@ function handleInterestSubmission(event) {
 }
 const interestForm = document.querySelector('#interest-form');
 interestForm.addEventListener('submit', handleInterestSubmission);
-interestForm.querySelector('button[type="submit"]').addEventListener('click', handleInterestSubmission);
 document.querySelector('#view-demo-space').addEventListener('click', () => {
   renderParticipantSpace();
   showView('participant', { focus: true });
@@ -618,19 +656,25 @@ window.addEventListener('popstate', async () => {
   const requested = new URLSearchParams(window.location.search).get('view');
   const allowed = ['catalog', 'project', 'participant', 'interest', 'confirmation'];
   const requestedProject = new URLSearchParams(window.location.search).get('project');
-  if (requestedProject && requestedProject !== activeProject?.projectRef) await selectProject(requestedProject, 'catalog', { historyAction: 'none' });
+  if (!activeProject) return;
+  if (requestedProject && requestedProject !== activeProject.projectRef) { await selectProject(requestedProject, requested, { historyAction: 'none' }); return; }
+  if (requested === 'interest') { resetInterestForm(); flow = openInterest(resetInterestFlow()); }
   if (requested === 'participant') renderParticipantSpace();
   const publicAnchor = requested === 'catalog' && window.location.hash === '#ecosystem-overview';
   showView(allowed.includes(requested) ? requested : 'catalog', { focus: !publicAnchor, historyAction: 'none' });
   if (publicAnchor) scrollToPublicSection('ecosystem-overview', { updateHistory: false });
 });
 
-const requestedView = new URLSearchParams(window.location.search).get('view');
-loadCatalog().then((loaded) => {
+async function startCatalog() {
+  const requestedView = new URLSearchParams(window.location.search).get('view');
+  const publicHash = window.location.hash;
+  const loaded = await loadCatalog();
   if (!loaded) return;
   if (requestedView === 'participant') renderParticipantSpace();
   showView(['project', 'participant'].includes(requestedView) ? requestedView : 'catalog', { historyAction: 'replace' });
-  if (!['project', 'participant'].includes(requestedView) && window.location.hash === '#ecosystem-overview') {
+  if (!['project', 'participant'].includes(requestedView) && publicHash === '#ecosystem-overview') {
     scrollToPublicSection('ecosystem-overview', { updateHistory: false });
   }
-});
+}
+retryCatalog.addEventListener('click', startCatalog);
+startCatalog();

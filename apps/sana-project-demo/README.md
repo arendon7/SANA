@@ -41,3 +41,9 @@ Esta demo solo prueba la navegación entre proyectos, la lectura sintética de s
 ## Entrada pública del ecosistema
 
 La página inicial explica SANA, AgroWay, la relación verificable con productos o servicios GREENATICS y los requisitos de evidencia para publicar impacto. La exploración pública no necesita cuenta. Los proyectos de muestra son ficticios; sus fichas no tienen productos aplicados asociados y solo consultan una proyección AgroWay sintética por ciclo. “Mi espacio” sigue siendo una simulación de sesión, no un acceso autenticado.
+
+## Carga y recuperación
+
+La demo oculta las fichas mientras valida el catálogo. Si falla, muestra un reintento; si falla una ficha, solo ofrece alternativas validadas. Cada selección reutiliza su dossier validado durante esta carga y consulta su propia lectura AgroWay; las respuestas tardías no pueden reemplazar indicadores de otro proyecto. Recargar vuelve a validar los fixtures y borra los intereses de sesión. Reiniciar evita recuperar una confirmación inexistente desde el historial.
+
+El [roadmap y ficha de avance](ROADMAP.md) mantiene el alcance completo y los gates pendientes. La regresión opcional `browser-qa.cjs` requiere Playwright ya disponible y el servidor local en 4175; no agrega servicios ni dependencias al producto.

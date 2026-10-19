@@ -947,3 +947,9 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 .project-hero .project-byline span { color: #d2c7bb; }
 .project-hero .project-byline strong { color: #fff5e8; }
 .project-hero .hero-note, .project-illustration figcaption { color: #c7bcae; }
+
+/* Validation and recovery use the existing paper surface. */
+.catalog-feedback { max-width: 44rem; padding-block: clamp(3rem, 8vw, 7rem); }
+.catalog-feedback h1 { font-size: clamp(2rem, 5vw, 3.5rem); }
+.catalog-feedback p { margin-block: 1.5rem; }
+#catalog-notice { padding-block: 1rem; border-block: 1px solid var(--rule, #d8c8b2); }

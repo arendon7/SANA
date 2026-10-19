@@ -294,7 +294,7 @@ test('accessible screen states avoid real contact fields and disclose the synthe
   assert.match(html, /avance autorizado de AgroWay/);
   assert.match(app, /validateProjection/);
   assert.match(app, /validateProjectCatalog/);
-  assert.match(app, /catalog\.projects\.find/);
+  assert.match(app, /projectProfiles\.find/);
   assert.match(app, /entry\.projectionPath/);
   assert.match(app, /entry\.dossierPath/);
   assert.match(html, /id="catalog-project-list"/);

@@ -26,10 +26,16 @@
   </header>
 
   <main id="main-content" class="page-shell">
-    <section id="explore-view" class="explore-view" aria-labelledby="explore-title">
+    <section id="catalog-feedback" class="catalog-feedback" aria-labelledby="catalog-feedback-title">
+      <h1 id="catalog-feedback-title" tabindex="-1">Preparando los proyectos de muestra…</h1>
+      <p id="catalog-feedback-message" role="status">Validamos cada ficha antes de mostrar sus cifras.</p>
+      <button id="retry-catalog" class="button button-primary" type="button" hidden>Volver a cargar proyectos</button>
+    </section>
+    <noscript><p>Activa JavaScript para validar y explorar las fichas sintéticas. Esta demo no admite solicitudes ni pagos.</p></noscript>
+    <section id="explore-view" class="explore-view" hidden aria-labelledby="explore-title">
       <div class="explore-intro">
         <div class="explore-intro__copy">
-          <h1 id="explore-title">Conoce quién impulsa cada proyecto y cómo avanza.</h1>
+          <h1 id="explore-title" tabindex="-1">Conoce quién impulsa cada proyecto y cómo avanza.</h1>
           <p class="explore-lead">Entiende quién lo impulsa, cómo se organiza la producción y qué información respalda su avance. Puedes recorrer la parte pública sin iniciar sesión.</p>
         </div>
         <aside class="explore-note" aria-label="Alcance de esta demostración">
@@ -85,6 +91,7 @@
           <a class="button button-light" href="#catalog-projects">Explorar proyectos <span aria-hidden="true">↓</span></a>
         </div>
       </section>
+      <p id="catalog-notice" role="status" hidden></p>
       <div id="catalog-projects" class="section-label">
         <div><p class="eyebrow">Portafolio de muestra</p><h2>Proyectos para conocer</h2></div>
         <span class="section-count" id="catalog-count">02 proyectos · Ficticios</span>
@@ -301,12 +308,12 @@
       <form id="interest-form" novalidate>
         <fieldset id="intent-fieldset" class="intent-fieldset">
           <legend>Quiero conocer…</legend>
-          <label class="intent-option"><input type="radio" name="interest-intent" value="project-structure"><span><strong>La estructura del proyecto</strong><small>Qué se propone, quién lo impulsa y cuáles serían sus etapas.</small></span></label>
-          <label class="intent-option"><input type="radio" name="interest-intent" value="agricultural-follow-up"><span><strong>El seguimiento agrícola</strong><small>Cómo consultar hitos de campo aprobados desde AgroWay.</small></span></label>
-          <label class="intent-option"><input type="radio" name="interest-intent" value="human-conversation"><span><strong>Una conversación con el equipo</strong><small>El siguiente paso requeriría revisión y contacto humanos.</small></span></label>
+          <label class="intent-option"><input type="radio" name="interest-intent" aria-describedby="form-error" value="project-structure"><span><strong>La estructura del proyecto</strong><small>Qué se propone, quién lo impulsa y cuáles serían sus etapas.</small></span></label>
+          <label class="intent-option"><input type="radio" name="interest-intent" aria-describedby="form-error" value="agricultural-follow-up"><span><strong>El seguimiento agrícola</strong><small>Cómo consultar hitos de campo aprobados desde AgroWay.</small></span></label>
+          <label class="intent-option"><input type="radio" name="interest-intent" aria-describedby="form-error" value="human-conversation"><span><strong>Una conversación con el equipo</strong><small>El siguiente paso requeriría revisión y contacto humanos.</small></span></label>
         </fieldset>
         <p id="form-error" class="form-error" role="alert" hidden>Selecciona qué te gustaría conocer.</p>
-        <label class="demo-acknowledgment"><input id="demo-acknowledgment" name="demo-acknowledgment" type="checkbox"><span>Confirmo que es una demostración ficticia y que mi selección no equivale a una solicitud o inversión.</span></label>
+        <label class="demo-acknowledgment"><input id="demo-acknowledgment" aria-describedby="ack-error" name="demo-acknowledgment" type="checkbox"><span>Confirmo que es una demostración ficticia y que mi selección no equivale a una solicitud o inversión.</span></label>
         <p id="ack-error" class="form-error" role="alert" hidden>Confirma que se trata solo de una demostración.</p>
         <div class="form-actions"><button class="button button-secondary" type="button" id="cancel-interest">Cancelar</button><button class="button button-primary" type="submit">Ver confirmación simulada</button></div>
         <p class="privacy-note">No solicitamos datos personales ni financieros. La selección queda en esta sesión, se descarta al recargar y no llega a un servidor.</p>
