@@ -32,6 +32,7 @@ Avisos restantes del detector (no son issues): Fraunces aparece en dos reglas y 
 - node --test apps/sana-project-demo/sana-project-demo.test.mjs: 17/17.
 - browser-qa.cjs: 24/24 en Chromium headless 1.63.0; escritorio y viewport móvil emulado, teclado, estados de error, reintento, respuestas tardías y ausencia de overflow.
 - node --check de módulos app/QA/contrato y git diff --check: sin errores en la pasada local.
+- Revisión manual del árbol de accesibilidad de Chromium en el preview local (proyecto, interés inválido y confirmación): el grupo conserva su nombre, cada radio y checkbox expone su descripción, el error se anuncia y el foco llega a la primera opción; al confirmar, el foco pasa al encabezado y solo aparece la selección de muestra. Es evidencia de Chromium AX, no una lectura por VoiceOver ni una prueba física.
 - Sin medición Lighthouse/perfil de rendimiento, prueba con VoiceOver/lector de pantalla, dispositivo físico ni preview remoto del SHA candidato.
 
 ## Siguiente paso
