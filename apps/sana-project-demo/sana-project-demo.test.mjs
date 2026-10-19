@@ -48,6 +48,14 @@ test('project dossier presents a fully synthetic, arithmetically consistent case
   assert.equal(dossier.economicScenario.grossSales, 22950000);
   assert.equal(dossier.economicScenario.operatingSurplus, 10950000);
   assert.equal(dossier.netUtilityEstimate.amount, null);
+  assert.equal(dossier.productUse.status, 'NO_ASSOCIATION_IN_DEMO');
+  assert.deepEqual(dossier.productUse.records, []);
+  assert.match(dossier.productUse.note.toLowerCase(), /no tiene productos ni acompañamientos aplicados asociados en esta demo/);
+  assert.equal(dossier.impactAssessment.status, 'NOT_CALCULATED');
+  assert.deepEqual(dossier.impactAssessment.indicators, []);
+  assert.equal(dossier.impactAssessment.methodology, null);
+  assert.equal(dossier.impactAssessment.period, null);
+  assert.match(dossier.impactAssessment.reason, /metodología y versión de cálculo, línea base, unidad y periodo, fuente de evidencia y revisión y aprobación/);
   assert.equal(displayProjectField(dossier.productionEstimate, 'Sin modelo validado'), '1.530 kg de cacao seco/año');
   assert.equal(dossier.portfolio.status, 'PLANNED');
 });
@@ -77,6 +85,8 @@ test('catalog binds each synthetic project to its own dossier and approved AgroW
   assert.equal(second.productionEstimate.quantity, 1920);
   assert.equal(second.economicScenario.operatingSurplus, 21000000);
   assert.equal(second.netUtilityEstimate.amount, null);
+  assert.match(second.productUse.note.toLowerCase(), /esta ficha de café no tiene productos ni acompañamientos aplicados asociados en esta demo/);
+  assert.match(second.impactAssessment.reason, /unidad y periodo, fuente de evidencia/);
 });
 
 test('catalog rejects project injection targets and duplicate fixture paths', () => {
@@ -101,6 +111,14 @@ test('synthetic dossier rejects inconsistent capital or economic arithmetic', as
   const badProjection = { ...dossier, productionEstimate: { ...dossier.productionEstimate, quantity: 1600 } };
   assert.equal(validateDossier(badCapital, 'sana-demo-project-001').reason, 'SYNTHETIC_MODEL_INCONSISTENT');
   assert.equal(validateDossier(badProjection, 'sana-demo-project-001').reason, 'SYNTHETIC_MODEL_INCONSISTENT');
+});
+
+test('dossier rejects unattributed product use or unsupported impact indicators', async () => {
+  const dossier = JSON.parse(await read('project-dossier-v1.json'));
+  const productClaim = { ...dossier, productUse: { ...dossier.productUse, status: 'RECORDED', records: [{ name: '2GROW' }] } };
+  const impactClaim = { ...dossier, impactAssessment: { ...dossier.impactAssessment, status: 'CALCULATED', indicators: [{ name: 'impacto', value: 1 }] } };
+  assert.equal(validateDossier(productClaim, dossier.projectRef).reason, 'PRODUCT_ATTRIBUTION_UNVERIFIED');
+  assert.equal(validateDossier(impactClaim, dossier.projectRef).reason, 'IMPACT_ESTIMATE_UNVERIFIED');
 });
 
 test('dossier rejects a mismapped project or data not marked synthetic', async () => {
@@ -258,6 +276,9 @@ test('accessible screen states avoid real contact fields and disclose the synthe
   assert.match(html, /class="ecosystem-evidence"/);
   assert.ok(html.includes('lectura sintética por ciclo'));
   assert.ok(html.includes('no registran ni atribuyen productos aplicados'));
+  assert.match(html, /Productos utilizados/);
+  assert.match(html, /Impacto estimado/);
+  assert.match(html, /El escenario de producción no es una medición de impacto/);
   assert.ok(html.includes('periodo, unidad, procedencia y estado de revisión'));
   assert.ok(html.includes('El espacio personal para participantes llegará en una etapa privada con cuenta, permisos y seguimiento revisado'));
   assert.match(html, /Explorar proyectos de muestra/);
@@ -271,7 +292,7 @@ test('accessible screen states avoid real contact fields and disclose the synthe
   assert.match(html, /persona productora, el predio asociado y la escala del cultivo/);
   assert.match(html, /No se envió al equipo, no crea una solicitud ni representa una inversión/);
   assert.match(html, /id="participant-view"[^>]*aria-labelledby="space-title"/);
-  assert.match(html, /Aquí empieza tu seguimiento/);
+  assert.match(html, /Primero, explora una iniciativa\./);
   assert.match(html, /id="empty-space"/);
   assert.match(html, /id="session-space"/);
   assert.match(server, /participant-session\.mjs/);

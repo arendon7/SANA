@@ -1,4 +1,4 @@
-export const PROJECT_DOSSIER_SCHEMA = 'sana.project-dossier/1.0.0';
+export const PROJECT_DOSSIER_SCHEMA = 'sana.project-dossier/1.1.0';
 
 const requiredFieldStatuses = {
   crop: ['NOT_PROVIDED', 'SYNTHETIC_VALUE', 'AVAILABLE'],
@@ -58,6 +58,22 @@ export function validateDossier(input, expectedProjectRef) {
       const value = name === 'capitalNeed' ? field.amount : name === 'productionEstimate' ? field.quantity : field.value;
       if (!isFiniteNonNegative(value)) return { ok: false, reason: `SYNTHETIC_VALUE_INVALID:${name}` };
     }
+  }
+  if (input.productUse?.status !== 'NO_ASSOCIATION_IN_DEMO'
+    || !Array.isArray(input.productUse.records)
+    || input.productUse.records.length !== 0
+    || typeof input.productUse.note !== 'string'
+    || !input.productUse.note.trim()) {
+    return { ok: false, reason: 'PRODUCT_ATTRIBUTION_UNVERIFIED' };
+  }
+  if (input.impactAssessment?.status !== 'NOT_CALCULATED'
+    || !Array.isArray(input.impactAssessment.indicators)
+    || input.impactAssessment.indicators.length !== 0
+    || input.impactAssessment.methodology !== null
+    || input.impactAssessment.period !== null
+    || typeof input.impactAssessment.reason !== 'string'
+    || !input.impactAssessment.reason.trim()) {
+    return { ok: false, reason: 'IMPACT_ESTIMATE_UNVERIFIED' };
   }
   if (!validateSyntheticModel(input)) return { ok: false, reason: 'SYNTHETIC_MODEL_INCONSISTENT' };
   if (input.portfolio?.status !== 'PLANNED' || typeof input.portfolio.description !== 'string') {

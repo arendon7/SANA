@@ -341,6 +341,10 @@ function renderDossier(profile) {
   const capital = profile.capitalNeed;
   const production = profile.productionEstimate;
   const economics = profile.economicScenario;
+  document.querySelector('#product-use-status').textContent = profile.productUse.note;
+  document.querySelector('#impact-assessment-status').textContent = profile.impactAssessment.status === 'NOT_CALCULATED'
+    ? `No calculado. ${profile.impactAssessment.reason} El escenario de producción no es una medición de impacto.`
+    : 'Estado de impacto no disponible.';
   const formattedCapital = formatCop(capital.amount);
   document.querySelector('#profile-capital').textContent = formattedCapital;
   document.querySelector('#panel-capital').textContent = formattedCapital;

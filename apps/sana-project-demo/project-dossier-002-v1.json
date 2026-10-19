@@ -1,5 +1,5 @@
 {
-  "schema": "sana.project-dossier/1.0.0",
+  "schema": "sana.project-dossier/1.1.0",
   "projectRef": "sana-demo-project-002",
   "status": "SYNTHETIC",
   "title": "Café de ladera y poscosecha comunitaria",
@@ -86,6 +86,18 @@
     "amount": null,
     "currency": "COP",
     "status": "NOT_CALCULATED"
+  },
+  "productUse": {
+    "status": "NO_ASSOCIATION_IN_DEMO",
+    "records": [],
+    "note": "Esta ficha de café no tiene productos ni acompañamientos aplicados asociados en esta demo."
+  },
+  "impactAssessment": {
+    "status": "NOT_CALCULATED",
+    "indicators": [],
+    "methodology": null,
+    "period": null,
+    "reason": "Faltan metodología y versión de cálculo, línea base, unidad y periodo, fuente de evidencia y revisión y aprobación del resultado."
   },
   "portfolio": {
     "status": "PLANNED",

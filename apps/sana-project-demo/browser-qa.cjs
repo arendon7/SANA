@@ -21,6 +21,19 @@ const output = process.env.SANA_QA_OUTPUT || '/private/tmp/sana-qa';
     await capture(page,'desktop-catalog');
     await page.locator('#open-project-card').click();
     check('project title receives focus', await page.locator('#project-title').evaluate(el=>el===document.activeElement));
+    check('project dossier separates product use from uncalculated impact',
+      (await page.locator('#product-use-status').innerText()).toLowerCase().includes('no tiene productos ni acompañamientos aplicados asociados en esta demo')
+      && (await page.locator('#impact-assessment-status').innerText()).includes('No calculado')
+      && (await page.locator('#impact-assessment-status').innerText()).includes('unidad y periodo')
+      && (await page.locator('#impact-assessment-status').innerText()).includes('fuente de evidencia')
+      && (await page.locator('#impact-assessment-status').innerText()).includes('no es una medición de impacto'));
+    const axSession = await ctx.newCDPSession(page);
+    const {nodes: axNodes} = await axSession.send('Accessibility.getFullAXTree');
+    check('product and impact disclosure has named group and headings in the accessibility tree',
+      axNodes.some(node=>node.role?.value==='group'&&node.name?.value==='Productos utilizados e impacto estimado')
+      && axNodes.some(node=>node.role?.value==='heading'&&node.name?.value==='Productos utilizados')
+      && axNodes.some(node=>node.role?.value==='heading'&&node.name?.value==='Impacto estimado'));
+    await axSession.detach();
     await capture(page,'desktop-project');
     await page.locator('#open-interest-secondary').click();
     await page.getByRole('button',{name:'Ver confirmación simulada'}).click();
@@ -47,9 +60,14 @@ const output = process.env.SANA_QA_OUTPUT || '/private/tmp/sana-qa';
     await capture(page,'mobile-catalog');
     await page.locator('#open-project-card').click();
     check('second project keeps own data', /Café/.test(await page.locator('#project-title').innerText()));
+    check('second project shows its own product-use and impact disclosure',
+      (await page.locator('#product-use-status').innerText()).toLowerCase().includes('esta ficha de café no tiene productos ni acompañamientos aplicados asociados en esta demo')
+      && (await page.locator('#impact-assessment-status').innerText()).includes('fuente de evidencia'));
     check('mobile has no horizontal overflow', await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
     await capture(page,'mobile-project');
     await page.screenshot({path:`${output}/mobile-project-viewport.png`});
+    await page.locator('#product-use-status').scrollIntoViewIfNeeded();
+    await page.screenshot({path:`${output}/mobile-evidence-status.png`});
     await page.locator('#open-interest-secondary').click();
     await capture(page,'mobile-interest');
     await page.locator('#cancel-interest').click();

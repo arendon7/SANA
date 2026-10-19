@@ -2,6 +2,8 @@
   "checks": [
     "catalog shows only after validation",
     "project title receives focus",
+    "project dossier separates product use from uncalculated impact",
+    "product and impact disclosure has named group and headings in the accessibility tree",
     "missing motive focuses radio",
     "validation describes the missing motive",
     "corrected motive no longer announces an error",
@@ -10,6 +12,7 @@
     "reset prevents phantom confirmation",
     "direct confirmation cannot claim submitted interest",
     "second project keeps own data",
+    "second project shows its own product-use and impact disclosure",
     "mobile has no horizontal overflow",
     "empty space after reload",
     "no runtime errors",
@@ -22,5 +25,5 @@
     "late first-project response cannot overwrite second project",
     "keyboard navigation focuses destination heading"
   ],
-  "passed": 21
+  "passed": 24
 }
