@@ -10,25 +10,25 @@ Corte: 19 de octubre de 2026. Alcance: interfaz pública de apps/sana-project-de
 | Rendimiento | 3 | HTML/CSS/JS local, sin servicios ni dependencias de ejecución externas en la demo; no se ejecutó una medición de rendimiento en navegador. |
 | Theming | 3 | Tokens centrales y paleta coherente; la superficie es deliberadamente de tema claro y hay valores puntuales fuera de token. |
 | Diseño adaptable | 3 | Reflow y overflow comprobados a 320, 390, 768 y 1280 px en Chromium emulado; falta validación en dispositivo físico. |
-| Integridad de implementación | 3 | Dirección específica documentada y límites de demo visibles; cuatro hallazgos pequeños se corrigieron en esta pasada. Tres avisos restantes son falsos positivos confirmados contra el sistema aprobado. |
+| Integridad de implementación | 3 | Dirección específica documentada y límites de demo visibles; hallazgos puntuales se corrigieron en esta pasada. Tres avisos restantes son falsos positivos confirmados contra el sistema aprobado. |
 | **Total** | **15/20 · Bueno** | |
 
 ## Veredicto de integridad
 
-La implementación expresa un sistema coherente de demo agrícola: papel cálido, Fraunces local, jerarquía editorial y estados sintéticos explícitos, según DESIGN.md. El detector encontró cuatro rótulos redundantes sobre encabezados o contenido ya identificado; se retiraron sin perder contexto. El detector también marcó Fraunces y el fondo RGB(255,245,232); ambos son decisiones explícitas del sistema visual, así que se registran como falsos positivos, no como deuda.
+La implementación expresa un sistema coherente de demo agrícola: papel cálido, Fraunces local, jerarquía editorial y estados sintéticos explícitos, según DESIGN.md. El diagnóstico marcó cuatro rótulos redundantes y el espaciado de confirmación; la inspección manual de Mi espacio encontró otras dos redundancias. Se retiraron los seis rótulos sin perder contexto. El detector también marcó Fraunces y el fondo RGB(255,245,232); ambos son decisiones explícitas del sistema visual, así que se registran como falsos positivos, no como deuda.
 
 ## Hallazgos
 
-No quedan hallazgos verificados abiertos en el alcance de esta pasada. Se resolvieron los cuatro candidatos siguientes:
+No quedan hallazgos verificados abiertos en el alcance de esta pasada. Se corrigieron los rótulos señalados por el detector y dos redundancias identificadas en revisión manual:
 
-- **[Resuelto · P3] Rótulos redundantes sobre títulos.** index.html: “Lectura recibida”, “SANA / Tu seguimiento”, “Paso 2 · Interés” y “SANA · Demo” repetían un estado o una idea ya expresados por el título o el contenido contiguo. Se quitaron; el estado de lectura sigue junto a los hitos.
+- **[Resuelto · P3] Rótulos redundantes sobre títulos.** index.html: “Lectura recibida”, “SANA / Tu seguimiento”, “Paso 2 · Interés” y “SANA · Demo” repetían un estado o una idea ya expresados por el título o el contenido contiguo. La revisión manual encontró también “Actividad de esta pestaña” y “Resumen de la sesión”. Se retiraron los seis; el título ahora dice “Proyectos que sigues en esta pestaña”, el texto explica que el interés desaparece al recargar y el estado de lectura sigue junto a los hitos.
 - **[Resuelto · P3] Padding horizontal ausente.** styles.css, .confirmation-detail: el detector identificó padding: 16px 0 como contenido apretado. Se cambió a padding: 16px.
 
 Avisos restantes del detector (no son issues): Fraunces aparece en dos reglas y el color de papel es #FFF5E8; el token y la fuente local están definidos por DESIGN.md.
 
 ## Evidencia y límites
 
-- Impeccable 4.6.0 fijado: un diagnóstico inicial marcó siete candidatos; tras la corrección, la repetición dejó solo los tres avisos deliberados indicados arriba.
+- Impeccable 4.6.0 fijado: el rerun posterior a las correcciones automáticas dejó tres avisos deliberados; la inspección manual posterior de Mi espacio identificó y corrigió otras dos redundancias.
 - node --test apps/sana-project-demo/sana-project-demo.test.mjs: 17/17.
 - browser-qa.cjs: 24/24 en Chromium headless 1.63.0; escritorio y viewport móvil emulado, teclado, estados de error, reintento, respuestas tardías y ausencia de overflow.
 - node --check de módulos app/QA/contrato y git diff --check: sin errores en la pasada local.
