@@ -15,20 +15,20 @@ Corte: 19 de octubre de 2026. Alcance: interfaz pública de apps/sana-project-de
 
 ## Veredicto de integridad
 
-La implementación expresa un sistema coherente de demo agrícola: papel cálido, Fraunces local, jerarquía editorial y estados sintéticos explícitos, según DESIGN.md. El diagnóstico marcó cuatro rótulos redundantes y el espaciado de confirmación; la inspección manual de Mi espacio encontró otras dos redundancias. Se retiraron los seis rótulos sin perder contexto. El detector también marcó Fraunces y el fondo RGB(255,245,232); ambos son decisiones explícitas del sistema visual, así que se registran como falsos positivos, no como deuda.
+La implementación expresa un sistema coherente de demo agrícola: papel cálido, Fraunces local, jerarquía editorial y estados sintéticos explícitos, según DESIGN.md. El diagnóstico marcó cuatro rótulos redundantes y el espaciado de confirmación; la revisión manual de Mi espacio, catálogo y recorrido encontró otras cinco redundancias. Se retiraron los nueve rótulos sin perder contexto. El detector también marcó Fraunces y el fondo RGB(255,245,232); ambos son decisiones explícitas del sistema visual, así que se registran como falsos positivos, no como deuda.
 
 ## Hallazgos
 
-No quedan hallazgos verificados abiertos en el alcance de esta pasada. Se corrigieron los rótulos señalados por el detector y dos redundancias identificadas en revisión manual:
+No quedan hallazgos verificados abiertos en el alcance de esta pasada. Se corrigieron los rótulos señalados por el detector y cinco redundancias identificadas en la revisión manual del catálogo, Mi espacio y recorrido:
 
-- **[Resuelto · P3] Rótulos redundantes sobre títulos.** index.html: “Lectura recibida”, “SANA / Tu seguimiento”, “Paso 2 · Interés” y “SANA · Demo” repetían un estado o una idea ya expresados por el título o el contenido contiguo. La revisión manual encontró también “Actividad de esta pestaña” y “Resumen de la sesión”. Se retiraron los seis; el título ahora dice “Proyectos que sigues en esta pestaña”, el texto explica que el interés desaparece al recargar y el estado de lectura sigue junto a los hitos.
+- **[Resuelto · P3] Rótulos redundantes sobre títulos.** index.html: “Lectura recibida”, “SANA / Tu seguimiento”, “Paso 2 · Interés” y “SANA · Demo” repetían un estado o una idea ya expresados por el título o el contenido contiguo. La revisión manual encontró también “Actividad de esta pestaña”, “Resumen de la sesión”, “Portafolio de muestra”, “Otras iniciativas” y “Cómo se construiría la relación”. Se retiraron los nueve rótulos y se integró el contexto en los títulos: catálogo “Proyectos de muestra para conocer”, shelf “Otras iniciativas de muestra”, y Mi espacio “Proyectos que sigues en esta pestaña”. El texto explica que el interés desaparece al recargar; el estado de lectura sigue junto a los hitos.
 - **[Resuelto · P3] Padding horizontal ausente.** styles.css, .confirmation-detail: el detector identificó padding: 16px 0 como contenido apretado. Se cambió a padding: 16px.
 
 Avisos restantes del detector (no son issues): Fraunces aparece en dos reglas y el color de papel es #FFF5E8; el token y la fuente local están definidos por DESIGN.md.
 
 ## Evidencia y límites
 
-- Impeccable 4.6.0 fijado: el rerun posterior a las correcciones automáticas dejó tres avisos deliberados; la inspección manual posterior de Mi espacio identificó y corrigió otras dos redundancias.
+- Impeccable 4.6.0 fijado: el diagnóstico inicial encontró ocho candidatos: cuatro rótulos y el padding como hallazgos, más tres falsos positivos verificados. Tras corregir los cinco hallazgos automáticos, el rerun dejó solo los tres avisos aprobados. La revisión manual posterior del catálogo, Mi espacio y recorrido encontró otras cinco redundancias; las cinco se retiraron.
 - node --test apps/sana-project-demo/sana-project-demo.test.mjs: 17/17.
 - browser-qa.cjs: 24/24 en Chromium headless 1.63.0; escritorio y viewport móvil emulado, teclado, estados de error, reintento, respuestas tardías y ausencia de overflow.
 - node --check de módulos app/QA/contrato y git diff --check: sin errores en la pasada local.
