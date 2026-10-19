@@ -25,7 +25,7 @@
     </div>
   </header>
 
-  <main id="main-content" class="page-shell">
+  <main id="main-content" class="page-shell" tabindex="-1">
     <section id="catalog-feedback" class="catalog-feedback" aria-labelledby="catalog-feedback-title">
       <h1 id="catalog-feedback-title" tabindex="-1">Preparando los proyectos de muestra…</h1>
       <p id="catalog-feedback-message" role="status">Validamos cada ficha antes de mostrar sus cifras.</p>
@@ -131,7 +131,7 @@
         <div id="catalog-project-list" class="project-shelf__list" aria-live="polite"></div>
       </section>
 
-      <div class="explore-steps" aria-label="Cómo recorrer la ficha">
+      <div class="explore-steps" role="group" aria-label="Cómo recorrer la ficha">
         <div><span>01</span><p><strong>Conoce el origen</strong>Productor, predio, cultivo y área.</p></div>
         <div><span>02</span><p><strong>Entiende el escenario</strong>Necesidades y supuestos explícitos.</p></div>
         <div><span>03</span><p><strong>Revisa el avance</strong>Lecturas sintéticas de AgroWay.</p></div>
@@ -167,7 +167,7 @@
         </figure>
       </section>
 
-      <div class="project-summary-grid" aria-label="Datos rápidos del proyecto ficticio">
+      <div class="project-summary-grid" role="group" aria-label="Datos rápidos del proyecto ficticio">
         <article><span>Área productiva</span><strong id="profile-area">1,8 ha</strong><small>Supuesto de la ficha SANA</small></article>
         <article><span>Plantas asociadas</span><strong id="profile-plants">1.980 plantas</strong><small>No es inventario de AgroWay</small></article>
         <article><span>Necesidad estimada</span><strong id="profile-capital">COP 48.000.000</strong><small id="capital-period">Primeros 24 meses · supuesto ficticio</small></article>
@@ -182,20 +182,20 @@
 
       <div class="content-layout">
         <div class="main-column">
-          <section id="project-structure" class="content-section project-story" aria-labelledby="structure-title">
+          <section id="project-structure" class="content-section project-story" aria-labelledby="structure-title" tabindex="-1">
             <div class="section-heading">
               <div><p class="eyebrow">01 · Proyecto</p><h2 id="structure-title">Quién lo impulsa y dónde crece.</h2></div>
               <span class="data-state data-state--synthetic">Datos ficticios</span>
             </div>
             <p class="section-intro">Conoce a la persona productora, el predio asociado y la escala del cultivo. Los nombres, el predio y la ubicación son ficticios; en un proyecto real requerirían validación y autorización.</p>
             <dl class="project-profile">
-              <div><dt>Proyecto</dt><dd id="profile-title">Cacao bajo sombra</dd><small>Identificador de muestra</small></div>
-              <div><dt>Productor</dt><dd id="profile-promoter-detail">Elena Ríos · personaje ficticio</dd><small>Personaje ficticio</small></div>
-              <div><dt>Predio</dt><dd id="profile-property-detail">Finca La Esperanza · predio ficticio</dd><small>Predio de muestra, sin registro real</small></div>
-              <div><dt>Ubicación</dt><dd id="profile-location">Vereda ilustrativa · Colombia</dd><small>Sin georreferencia</small></div>
-              <div><dt>Cultivo</dt><dd id="profile-crop">Cacao</dd><small>Según el ciclo agrícola sintético</small></div>
+              <div><dt>Proyecto</dt><dd id="profile-title">Cacao bajo sombra</dd><dd class="definition-note"><small>Identificador de muestra</small></dd></div>
+              <div><dt>Productor</dt><dd id="profile-promoter-detail">Elena Ríos · personaje ficticio</dd><dd class="definition-note"><small>Personaje ficticio</small></dd></div>
+              <div><dt>Predio</dt><dd id="profile-property-detail">Finca La Esperanza · predio ficticio</dd><dd class="definition-note"><small>Predio de muestra, sin registro real</small></dd></div>
+              <div><dt>Ubicación</dt><dd id="profile-location">Vereda ilustrativa · Colombia</dd><dd class="definition-note"><small>Sin georreferencia</small></dd></div>
+              <div><dt>Cultivo</dt><dd id="profile-crop">Cacao</dd><dd class="definition-note"><small>Según el ciclo agrícola sintético</small></dd></div>
             </dl>
-            <div class="crop-schematic" aria-label="Escala productiva de muestra">
+            <div class="crop-schematic" role="group" aria-label="Escala productiva de muestra">
               <div class="crop-schematic__label"><span>Escala del cultivo</span><span class="data-state data-state--synthetic">Supuesto SANA</span></div>
               <div class="crop-schematic__row"><span>Área productiva</span><strong class="profile-area-copy">1,8 ha</strong><small>Valor ficticio de la ficha</small></div>
               <div class="crop-schematic__row"><span>Plantas asociadas</span><strong class="profile-plants-copy">1.980 plantas</strong><small>Supuesto de densidad; no es conteo de campo</small></div>
@@ -203,7 +203,7 @@
             </div>
           </section>
 
-          <section id="capital-model" class="content-section capital-section" aria-labelledby="capital-title">
+          <section id="capital-model" class="content-section capital-section" aria-labelledby="capital-title" tabindex="-1">
             <div class="section-heading">
               <div><p class="eyebrow">02 · Capital y producción</p><h2 id="capital-title">En qué se usaría y qué podría producir.</h2></div>
               <span class="data-state data-state--synthetic">Supuestos ficticios</span>
@@ -214,7 +214,7 @@
               <div class="funds-heading"><div><h3>Uso propuesto del capital</h3><p>Usos propuestos · total asignado: 100%</p></div><span>100% <span class="sr-only">del presupuesto ficticio</span></span></div>
               <ul id="capital-use-list" aria-label="Usos ficticios del capital"></ul>
             </div>
-            <div class="model-ledger" aria-label="Escenario económico sintético">
+            <div class="model-ledger" role="group" aria-label="Escenario económico sintético">
               <div class="model-row"><div><strong>Producción estimada</strong><span id="production-basis">1,8 ha × 850 kg/ha/año · escenario ilustrativo</span></div><b id="profile-production">1.530 kg de cacao seco/año</b></div>
               <div class="model-row"><div><strong>Ventas brutas del escenario</strong><span><span id="price-per-kg">COP 15.000/kg</span> · precio supuesto, no cotización</span></div><b id="gross-sales">COP 22.950.000/año</b></div>
               <div class="model-row"><div><strong>Costos operativos ilustrativos</strong><span>Presupuesto anual ficticio</span></div><b id="operating-costs">COP 12.000.000/año</b></div>
@@ -224,7 +224,7 @@
             <p id="model-note" class="model-note"><strong>Alcance:</strong> el excedente no es utilidad neta, dividendo, tasa de retorno ni monto a recibir. Los eventos agrícolas de AgroWay son registros de una demo independiente; no validan ni alimentan este escenario.</p>
           </section>
 
-          <section id="field-reading" class="content-section field-section" aria-labelledby="field-title">
+          <section id="field-reading" class="content-section field-section" aria-labelledby="field-title" tabindex="-1">
             <div class="section-heading">
               <div><p class="eyebrow">03 · Lectura agrícola</p><h2 id="field-title">El avance agrícola conserva su origen.</h2></div>
               <span id="source-status" class="data-state data-state--loading" data-state="loading" role="status" aria-live="polite">Validando lectura…</span>
@@ -244,7 +244,7 @@
             </div>
           </section>
 
-          <section id="participant-space" class="content-section participant-section" aria-labelledby="participant-title">
+          <section id="participant-space" class="content-section participant-section" aria-labelledby="participant-title" tabindex="-1">
             <div class="section-heading">
               <div><p class="eyebrow">04 · Tu espacio</p><h2 id="participant-title">Cada proyecto tendría su propio seguimiento.</h2></div>
               <span class="planned-tag">Roadmap</span>
@@ -270,7 +270,7 @@
       <div class="page-kicker"><button class="text-button" id="back-to-catalog-space" type="button"><span aria-hidden="true">←</span> Explorar proyectos</button><span>Mi espacio <span aria-hidden="true">·</span> demo</span></div>
       <div class="space-intro">
         <div><p class="eyebrow">SANA <span aria-hidden="true">/</span> Tu seguimiento</p><h1 id="space-title" tabindex="-1">Los proyectos que sigues, organizados por iniciativa.</h1><p class="explore-lead">En una experiencia completa, cada proyecto tendría estado, documentos y novedades de campo propios. Por ahora esta demo conserva solo tus intereses de muestra en esta pestaña.</p></div>
-        <div class="space-stamp" aria-label="Límites de esta demostración"><span>Estado de esta demo</span><strong>Sin inversiones registradas</strong><small>No hay cuenta, pagos ni datos persistentes.</small></div>
+        <div class="space-stamp" role="group" aria-label="Límites de esta demostración"><span>Estado de esta demo</span><strong>Sin inversiones registradas</strong><small>No hay cuenta, pagos ni datos persistentes.</small></div>
       </div>
       <section id="empty-space" class="empty-space" aria-labelledby="empty-space-title">
         <div class="empty-space__mark" aria-hidden="true"><span></span><span></span><span></span></div>
@@ -284,9 +284,9 @@
         <section id="session-overview" class="session-overview" aria-labelledby="session-overview-title" hidden>
           <div class="session-overview__heading"><p class="eyebrow">Resumen de la sesión</p><h3 id="session-overview-title">Una ficha por proyecto, con su propia lectura agrícola.</h3></div>
           <dl class="session-overview__metrics">
-            <div><dt>Proyectos seguidos</dt><dd id="session-project-count">0</dd><small>Intereses locales de muestra</small></div>
-            <div><dt>Lecturas vigentes</dt><dd id="session-reading-count">0 de 0</dd><small>Proyecciones AgroWay aprobadas</small></div>
-            <div><dt>Acuerdos y aportes</dt><dd>No habilitados</dd><small>La demo no registra inversiones</small></div>
+            <div><dt>Proyectos seguidos</dt><dd id="session-project-count">0</dd><dd class="definition-note"><small>Intereses locales de muestra</small></dd></div>
+            <div><dt>Lecturas vigentes</dt><dd id="session-reading-count">0 de 0</dd><dd class="definition-note"><small>Proyecciones AgroWay aprobadas</small></dd></div>
+            <div><dt>Acuerdos y aportes</dt><dd>No habilitados</dd><dd class="definition-note"><small>La demo no registra inversiones</small></dd></div>
           </dl>
         </section>
         <div id="session-space-list" class="session-space__list" aria-live="polite"></div>
@@ -302,18 +302,18 @@
     </section>
 
     <section id="interest-view" class="journey-view" aria-labelledby="interest-title" hidden>
-      <div class="journey-progress" aria-label="Recorrido de la demostración"><span>Proyecto</span><span aria-hidden="true"></span><span aria-current="step">Interés simulado</span></div>
+      <div class="journey-progress" role="group" aria-label="Recorrido de la demostración"><span>Proyecto</span><span aria-hidden="true"></span><span aria-current="step">Interés simulado</span></div>
       <button class="text-button" type="button" id="back-to-project"><span aria-hidden="true">←</span> Volver a la ficha</button>
       <div class="journey-heading"><p class="eyebrow">Paso 2 · Interés</p><h1 id="interest-title" tabindex="-1">¿Qué te gustaría conocer del proyecto?</h1><p>Elige una opción para ver cómo podría empezar una conversación. Tu selección solo vive en esta sesión de demostración.</p></div>
       <form id="interest-form" novalidate>
         <fieldset id="intent-fieldset" class="intent-fieldset">
           <legend>Quiero conocer…</legend>
-          <label class="intent-option"><input type="radio" name="interest-intent" aria-describedby="form-error" value="project-structure"><span><strong>La estructura del proyecto</strong><small>Qué se propone, quién lo impulsa y cuáles serían sus etapas.</small></span></label>
-          <label class="intent-option"><input type="radio" name="interest-intent" aria-describedby="form-error" value="agricultural-follow-up"><span><strong>El seguimiento agrícola</strong><small>Cómo consultar hitos de campo aprobados desde AgroWay.</small></span></label>
-          <label class="intent-option"><input type="radio" name="interest-intent" aria-describedby="form-error" value="human-conversation"><span><strong>Una conversación con el equipo</strong><small>El siguiente paso requeriría revisión y contacto humanos.</small></span></label>
+          <label class="intent-option"><input type="radio" name="interest-intent" value="project-structure"><span><strong>La estructura del proyecto</strong><small>Qué se propone, quién lo impulsa y cuáles serían sus etapas.</small></span></label>
+          <label class="intent-option"><input type="radio" name="interest-intent" value="agricultural-follow-up"><span><strong>El seguimiento agrícola</strong><small>Cómo consultar hitos de campo aprobados desde AgroWay.</small></span></label>
+          <label class="intent-option"><input type="radio" name="interest-intent" value="human-conversation"><span><strong>Una conversación con el equipo</strong><small>El siguiente paso requeriría revisión y contacto humanos.</small></span></label>
         </fieldset>
         <p id="form-error" class="form-error" role="alert" hidden>Selecciona qué te gustaría conocer.</p>
-        <label class="demo-acknowledgment"><input id="demo-acknowledgment" aria-describedby="ack-error" name="demo-acknowledgment" type="checkbox"><span>Confirmo que es una demostración ficticia y que mi selección no equivale a una solicitud o inversión.</span></label>
+        <label class="demo-acknowledgment"><input id="demo-acknowledgment" name="demo-acknowledgment" type="checkbox"><span>Confirmo que es una demostración ficticia y que mi selección no equivale a una solicitud o inversión.</span></label>
         <p id="ack-error" class="form-error" role="alert" hidden>Confirma que se trata solo de una demostración.</p>
         <div class="form-actions"><button class="button button-secondary" type="button" id="cancel-interest">Cancelar</button><button class="button button-primary" type="submit">Ver confirmación simulada</button></div>
         <p class="privacy-note">No solicitamos datos personales ni financieros. La selección queda en esta sesión, se descarta al recargar y no llega a un servidor.</p>

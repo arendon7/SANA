@@ -7,15 +7,15 @@ Corte: 19 de octubre de 2026. Fuente de esta unidad: PR [SANA #172](https://gith
 | Dimensión | Avance | Criterios cerrados / total y evidencia | Pendiente |
 |---|---:|---|---|
 | Contenido | 75% (6/8) | Ecosistema público; productor/propósito; área/cultivo/plantas; necesidad y producción con supuestos; lectura con fuente/fecha/hitos; límites y revisión humana. `index.html`, dossiers y 15 pruebas focales. | Ficha de impacto estimado con metodología/unidades/periodo y evidencia sintética; productos utilizados con trazabilidad propia por proyecto (hoy solo se declara su ausencia). |
-| Recorrido y módulos | 33% (3/9) | Explorar sin login, interés simulado, Mi espacio de sesión. `app.mjs`, `browser-qa.cjs`, 19 comprobaciones. | Acceso seguro; proyectos privados; cartera; compromisos y aportes conciliados; documentos; informes. Todos proyectados y sujetos a sus gates. |
+| Recorrido y módulos | 33% (3/9) | Explorar sin login, interés simulado, Mi espacio de sesión. `app.mjs`, `browser-qa.cjs`, 21 comprobaciones. | Acceso seguro; proyectos privados; cartera; compromisos y aportes conciliados; documentos; informes. Todos proyectados y sujetos a sus gates. |
 | UX e identidad | 60% (3/5) | Dirección propia documentada; composición de escritorio; composición móvil. `DESIGN.md`, QA local a 1280×900 y 390×844, capturas de esta unidad. | Identidad corporativa/activos aprobados para distribución; revisión editorial y de usabilidad con usuarios. La demo conserva su propuesta visual. |
-| Calidad y accesibilidad | 50% (3/6) | Sintaxis/contratos/aritmética; regresión de navegador y errores; foco, teclado y validación asociada a campos. | Lector de pantalla formal; contraste/legibilidad y escalado completos; QA remota del SHA exacto. El detector encuentra texto pequeño heredado: no se declara conformidad WCAG. |
+| Calidad y accesibilidad | 67% (4/6) | Sintaxis/contratos/aritmética; regresión de navegador y errores; foco, teclado y validación asociada a campos; reflow a 320/390/768/1280 px, texto visible mínimo de 14 px y axe 4.13.0 sin infracciones detectadas en 32 estados. | Revisión manual de contraste en fondos complejos y con lector de pantalla; QA remota del SHA exacto. axe deja contraste manual pendiente donde hay ilustraciones; esto no declara conformidad WCAG. |
 | Persistencia | 0% (0/5) | La selección vive solo en memoria. No es persistencia. | Identidad/roles; almacenamiento segregado; integridad y conciliación; recuperación; operación verificable. No activar en esta etapa. |
 | Integración | 33% (2/6) | Contrato sintético versionado validado; procedencia y clave idempotente validadas por el lector existente. | Fuente AgroWay real aprobada; operación y permisos separados comprobados; preview remoto exacto; integración aceptada por coordinación. CI de la unidad se registra en el PR, separado de estos criterios. |
 
 ## Unidades y gates
 
-1. **Demo pública revisable (en curso).** Ecosistema → catálogo → ficha → lectura agrícola → interés ficticio → Mi espacio. Esta unidad cierra carga, recuperación y coherencia de navegación. Siguiente: legibilidad, contraste, escalado, lector de pantalla y fuente/preview exactos para coordinación.
+1. **Demo pública revisable (en curso).** Ecosistema → catálogo → ficha → lectura agrícola → interés ficticio → Mi espacio. Esta unidad cierra carga, recuperación, navegación y reflow local. Siguiente: revisión de contraste y lector de pantalla, y después fuente/preview exactos para coordinación.
 2. **Ficha pública completa.** Completar impacto y productos utilizados con fixtures explícitos, metodología, unidades, periodo y procedencia; conservar estimaciones separadas de observaciones. No inventar avales, productos aplicados ni beneficios garantizados.
 3. **Lecturas AgroWay autorizadas.** Validar envelope, mapeo por proyecto, aprobación, versión, procedencia, vigencia e idempotencia. Solo fixtures por ahora. SANA nunca escribe en campo; no exponer credenciales. Una lectura fallida o vencida oculta indicadores; su ausencia no significa cero.
 4. **Acceso seguro y proyectos privados (proyectado).** Decidir identidad, permisos, segregación y recuperación antes de habilitar cuentas u onboarding. No reutilizar bases por nombre ni compartir credenciales entre productos.
@@ -26,11 +26,12 @@ Corte: 19 de octubre de 2026. Fuente de esta unidad: PR [SANA #172](https://gith
 ## Evidencia de esta unidad
 
 - `node --test apps/sana-project-demo/sana-project-demo.test.mjs`: 15/15.
-- `node --check apps/sana-project-demo/app.mjs`: PASS.
-- `SANA_PLAYWRIGHT_PATH=<instalación existente de playwright> node apps/sana-project-demo/browser-qa.cjs`: 19/19 en Chromium headless, con movimiento reducido. Requiere servidor loopback existente y dependencia local; no instala nada ni forma parte aún del job remoto.
-- [Resultado de navegador](qa/browser-result.json), [ficha móvil](qa/mobile-project.png), [recuperación móvil](qa/mobile-catalog-error.png). Las capturas son QA local, no despliegue ni datos reales.
+- `node --check` sobre `app.mjs`, `browser-qa.cjs` y `accessibility-qa.cjs`: PASS.
+- `browser-qa.cjs`: 21/21 en Chromium headless; incluye asociación y limpieza de errores accesibles. Requiere servidor loopback y Playwright ya instalado; aún no forma parte del job remoto.
+- `accessibility-qa.cjs`: 32 estados (8 por viewport, en 320/390/768/1280 px), cero infracciones detectadas, sin desborde horizontal y mínimo visible de 14 px. Requiere Playwright y axe-core 4.13.0 preinstalados; axe deja contraste manual pendiente para texto sobre ilustración y elementos decorativos. No equivale a prueba con lector de pantalla ni a conformidad WCAG.
+- [Resultado de navegador](qa/browser-result.json), [ficha móvil](qa/mobile-project.png), [viewport móvil](qa/mobile-project-viewport.png) y [recuperación móvil](qa/mobile-catalog-error.png). Las capturas son QA local, no despliegue ni datos reales.
 - QA exploratorio: catálogo 503; dossier por defecto 404 con alternativa validada; lectura 500 y reintento; respuesta tardía del primer proyecto; historial tras reiniciar; confirmación directa sin interés. Sin desborde horizontal observado a 390 px ni errores JavaScript en el recorrido principal.
-- Impeccable 4.6.0: detector ejecutado una vez sobre HTML, CSS y app. Advierte texto pequeño, etiquetas y patrones existentes. Se conserva la identidad de demostración; queda una unidad explícita de legibilidad. No sustituye una auditoría de accesibilidad ni prueba en dispositivo físico.
+- Impeccable 4.6.0: detector ejecutado una vez sobre HTML, CSS y app. Se elevó el texto secundario a un mínimo de 14 px y se añadieron agrupaciones semánticas a regiones con nombre. La identidad de demostración se conserva; siguen pendientes contraste manual, lector de pantalla y prueba en dispositivo físico.
 
 ## Activos
 

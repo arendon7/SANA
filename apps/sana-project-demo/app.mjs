@@ -265,12 +265,24 @@ function renderParticipantFieldReading(reading, projectRef) {
   return section;
 }
 
+function updateInterestErrors(reason) {
+  const intentMissing = reason === 'INTENT_REQUIRED';
+  const acknowledgmentMissing = reason === 'DEMO_ACKNOWLEDGMENT_REQUIRED';
+  elements.formError.hidden = !intentMissing;
+  elements.ackError.hidden = !acknowledgmentMissing;
+  elements.fieldset.setAttribute('aria-invalid', String(intentMissing));
+  elements.fieldset.querySelectorAll('input').forEach((input) => {
+    if (intentMissing) input.setAttribute('aria-describedby', 'form-error');
+    else input.removeAttribute('aria-describedby');
+  });
+  elements.acknowledgment.setAttribute('aria-invalid', String(acknowledgmentMissing));
+  if (acknowledgmentMissing) elements.acknowledgment.setAttribute('aria-describedby', 'ack-error');
+  else elements.acknowledgment.removeAttribute('aria-describedby');
+}
+
 function resetInterestForm() {
   document.querySelector('#interest-form').reset();
-  elements.formError.hidden = true;
-  elements.ackError.hidden = true;
-  elements.fieldset.removeAttribute('aria-invalid');
-  elements.acknowledgment.removeAttribute('aria-invalid');
+  updateInterestErrors(null);
 }
 
 function openInterestView() {
@@ -610,18 +622,14 @@ document.querySelector('#back-to-projects-empty').addEventListener('click', () =
 document.querySelector('#open-participant-space').addEventListener('click', () => { renderParticipantSpace(); showView('participant', { focus: true }); });
 document.querySelectorAll('#back-to-project, #cancel-interest').forEach((button) => button.addEventListener('click', () => showView('project', { focus: true })));
 document.querySelector('#interest-form').addEventListener('change', (event) => {
-  if (event.target.name === 'interest-intent') { elements.formError.hidden = true; elements.fieldset.removeAttribute('aria-invalid'); }
-  if (event.target.id === 'demo-acknowledgment') { elements.ackError.hidden = true; elements.acknowledgment.removeAttribute('aria-invalid'); }
+  if (event.target.name === 'interest-intent' || event.target.id === 'demo-acknowledgment') updateInterestErrors(null);
 });
 function handleInterestSubmission(event) {
   event.preventDefault();
   if (!activeProject) return;
   const intent = document.querySelector('input[name="interest-intent"]:checked')?.value;
   const result = submitInterest(flow, { intent, acknowledged: elements.acknowledgment.checked });
-  elements.formError.hidden = result.reason !== 'INTENT_REQUIRED';
-  elements.ackError.hidden = result.reason !== 'DEMO_ACKNOWLEDGMENT_REQUIRED';
-  elements.fieldset.setAttribute('aria-invalid', String(result.reason === 'INTENT_REQUIRED'));
-  elements.acknowledgment.setAttribute('aria-invalid', String(result.reason === 'DEMO_ACKNOWLEDGMENT_REQUIRED'));
+  updateInterestErrors(result.reason);
   if (!result.ok) {
     const firstMissing = result.reason === 'INTENT_REQUIRED' ? elements.fieldset.querySelector('input') : elements.acknowledgment;
     firstMissing.focus();

@@ -1,0 +1,31 @@
+{
+  "axe_core": "4.13.0",
+  "viewports_px": [
+    320,
+    390,
+    768,
+    1280
+  ],
+  "states_per_viewport": 8,
+  "states_checked": 32,
+  "violations": 0,
+  "horizontal_overflow_states": 0,
+  "minimum_visible_text_px": 14,
+  "manual_review_rule_ids": [
+    "color-contrast"
+  ],
+  "manual_review_targets": [
+    "#back-to-catalog > span[aria-hidden=\"true\"]",
+    "#back-to-catalog-space > span[aria-hidden=\"true\"]",
+    "#back-to-project > span[aria-hidden=\"true\"]",
+    "#session-project-count",
+    "#session-reading-count",
+    ".art-caption > span:nth-child(1)",
+    ".art-caption > span:nth-child(2)",
+    ".session-overview__metrics > div:nth-child(3) > dd:nth-child(2)",
+    "a[href$=\"#catalog-projects\"] > span[aria-hidden=\"true\"]",
+    "li:nth-child(2) > .flow-arrow[aria-hidden=\"true\"]",
+    "li:nth-child(3) > .flow-arrow[aria-hidden=\"true\"]"
+  ],
+  "scope": "Local Chromium demo states; not a screen-reader or WCAG conformance audit."
+}

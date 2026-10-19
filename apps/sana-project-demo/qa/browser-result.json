@@ -3,6 +3,8 @@
     "catalog shows only after validation",
     "project title receives focus",
     "missing motive focuses radio",
+    "validation describes the missing motive",
+    "corrected motive no longer announces an error",
     "missing acknowledgment is invalid",
     "interest reaches temporary space",
     "reset prevents phantom confirmation",
@@ -20,5 +22,5 @@
     "late first-project response cannot overwrite second project",
     "keyboard navigation focuses destination heading"
   ],
-  "passed": 19
+  "passed": 21
 }
