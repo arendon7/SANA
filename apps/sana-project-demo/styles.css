@@ -309,7 +309,7 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 .privacy-note { max-width: 65ch; margin: 15px 0 0; font-size: 14px; }
 .confirmation-view { max-width: 780px; margin: 40px auto 0; padding: 25px 0 65px; }
 .confirmation-rule { width: 68px; height: 4px; margin-bottom: 25px; background: var(--sun); }
-.confirmation-detail { display: flex; flex-direction: column; gap: 4px; max-width: 650px; margin: 25px 0; padding: 16px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.confirmation-detail { display: flex; flex-direction: column; gap: 4px; max-width: 650px; margin: 25px 0; padding: 16px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .confirmation-detail span { color: var(--muted); font-size: 14px; }
 .confirmation-detail strong { color: var(--forest-deep); }
 .confirmation-actions { justify-content: flex-start; flex-wrap: wrap; }
