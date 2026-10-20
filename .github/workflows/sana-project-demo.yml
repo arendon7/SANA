@@ -19,8 +19,6 @@ jobs:
         with:
           node-version: 24
       - name: Check browser modules
-        run: |
-          node --check apps/sana-project-demo/app.mjs
-          node --check apps/sana-project-demo/interest-flow.mjs
+        run: find apps/sana-project-demo apps/sana-project-read -type f -name '*.mjs' -print0 | xargs -0 -r -n1 node --check
       - name: Validate synthetic contract and interest journey
         run: node --test apps/sana-project-demo/sana-project-demo.test.mjs
