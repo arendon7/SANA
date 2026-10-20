@@ -1,0 +1,92 @@
+{
+  "schema": "greenatics.sana.agroway-progress-read/1.0.0",
+  "projectionId": "aw-demo-project-002:cycle-2026-02:snapshot-0001",
+  "idempotencyKey": "0bf3742fd43b4ffa0d8629cf633b4f18b8573bb023cef841fed3e96c6d75432f",
+  "generatedAt": "2026-10-17T20:20:00.000Z",
+  "sourceAsOf": "2026-10-17T18:00:00.000Z",
+  "source": {
+    "product": "AGROWAY_FIELD",
+    "version": "0.21.0-alpha10-reconstructed",
+    "commit": "1819f226390256b59dffdd117e853196304f49b9",
+    "contract": "cycle-summary-v1"
+  },
+  "projectMapping": {
+    "status": "SYNTHETIC",
+    "sanaProjectRef": "sana-demo-project-002",
+    "agrowayProjectRef": "aw-demo-project-002",
+    "cropCycleRef": "aw-cycle-demo-002"
+  },
+  "approval": {
+    "status": "APPROVED_FOR_DEMO_ONLY",
+    "scope": "SYNTHETIC_FIXTURE",
+    "approvalRef": "SYNTHETIC-AGROWAY-SANA-002",
+    "reviewedAt": "2026-10-17T18:00:00.000Z"
+  },
+  "freshness": {
+    "status": "FRESH",
+    "sourceAsOf": "2026-10-17T18:00:00.000Z",
+    "maxAgeHours": 72
+  },
+  "cycle": {
+    "crop": "cafe",
+    "state": "ACTIVE",
+    "periodStart": "2026-03-01",
+    "periodEnd": null
+  },
+  "completeness": {
+    "tasks": "COMPLETE",
+    "alerts": "COMPLETE",
+    "harvest": "COMPLETE"
+  },
+  "summary": {
+    "tasks": {
+      "planned": 4,
+      "inProgress": 1,
+      "done": 3,
+      "cancelled": 0
+    },
+    "alerts": {
+      "open": 0,
+      "acknowledged": 0,
+      "closed": 1
+    },
+    "harvest": {
+      "status": "RECORDED",
+      "lotCount": 1,
+      "quantity": 86,
+      "unit": "kg de café pergamino seco"
+    }
+  },
+  "milestones": [
+    {
+      "eventRef": "demo-cycle-started-002",
+      "kind": "CROP_CYCLE_ACTIVE",
+      "status": "OBSERVED",
+      "occurredAt": "2026-03-01T12:00:00.000Z",
+      "sourceRecordRef": "demo-cycle-002"
+    },
+    {
+      "eventRef": "demo-task-done-002",
+      "kind": "FIELD_TASK_DONE",
+      "status": "OBSERVED",
+      "occurredAt": "2026-10-03T15:30:00.000Z",
+      "sourceRecordRef": "demo-execution-002"
+    }
+  ],
+  "sourceRecords": {
+    "taskRefs": [
+      "demo-task-002"
+    ],
+    "executionRefs": [
+      "demo-execution-002"
+    ],
+    "alertRefs": [
+      "demo-alert-002"
+    ],
+    "harvestLotRefs": [
+      "demo-harvest-002"
+    ],
+    "passportRef": null
+  },
+  "supersedesProjectionId": null
+}

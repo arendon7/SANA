@@ -1,0 +1,70 @@
+{
+  "schema": "greenatics.sana.agroway-progress-read/1.0.0",
+  "projectionId": "aw-demo-project-001:cycle-2026-01:snapshot-0001",
+  "idempotencyKey": "90de73ad3ead1029cf77f42f8f161928d55975cffdaf0092aa2076a7c56593e7",
+  "generatedAt": "2026-10-17T20:20:00.000Z",
+  "sourceAsOf": "2026-10-17T18:00:00.000Z",
+  "source": {
+    "product": "AGROWAY_FIELD",
+    "version": "0.21.0-alpha10-reconstructed",
+    "commit": "1819f226390256b59dffdd117e853196304f49b9",
+    "contract": "cycle-summary-v1"
+  },
+  "projectMapping": {
+    "status": "SYNTHETIC",
+    "sanaProjectRef": "sana-demo-project-001",
+    "agrowayProjectRef": "aw-demo-project-001",
+    "cropCycleRef": "aw-cycle-demo-001"
+  },
+  "approval": {
+    "status": "APPROVED_FOR_DEMO_ONLY",
+    "scope": "SYNTHETIC_FIXTURE",
+    "approvalRef": "SYNTHETIC-AGROWAY-SANA-001",
+    "reviewedAt": "2026-10-17T18:00:00.000Z"
+  },
+  "freshness": {
+    "status": "FRESH",
+    "sourceAsOf": "2026-10-17T18:00:00.000Z",
+    "maxAgeHours": 72
+  },
+  "cycle": {
+    "crop": "cacao",
+    "state": "ACTIVE",
+    "periodStart": "2026-02-18",
+    "periodEnd": null
+  },
+  "completeness": {
+    "tasks": "COMPLETE",
+    "alerts": "COMPLETE",
+    "harvest": "COMPLETE"
+  },
+  "summary": {
+    "tasks": { "planned": 1, "inProgress": 0, "done": 1, "cancelled": 0 },
+    "alerts": { "open": 1, "acknowledged": 0, "closed": 0 },
+    "harvest": { "status": "RECORDED", "lotCount": 1, "quantity": 12, "unit": "kg" }
+  },
+  "milestones": [
+    {
+      "eventRef": "demo-cycle-started-001",
+      "kind": "CROP_CYCLE_ACTIVE",
+      "status": "OBSERVED",
+      "occurredAt": "2026-02-18T12:00:00.000Z",
+      "sourceRecordRef": "demo-cycle-001"
+    },
+    {
+      "eventRef": "demo-task-done-001",
+      "kind": "FIELD_TASK_DONE",
+      "status": "OBSERVED",
+      "occurredAt": "2026-10-02T15:30:00.000Z",
+      "sourceRecordRef": "demo-execution-001"
+    }
+  ],
+  "sourceRecords": {
+    "taskRefs": ["demo-task-001"],
+    "executionRefs": ["demo-execution-001"],
+    "alertRefs": ["demo-alert-001"],
+    "harvestLotRefs": ["demo-harvest-001"],
+    "passportRef": null
+  },
+  "supersedesProjectionId": null
+}

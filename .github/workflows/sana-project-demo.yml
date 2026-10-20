@@ -1,0 +1,24 @@
+name: SANA synthetic project demo
+
+on:
+  pull_request:
+    paths:
+      - 'apps/sana-project-demo/**'
+      - 'apps/sana-project-read/reader-v1.mjs'
+      - '.github/workflows/sana-project-demo.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Check browser modules
+        run: find apps/sana-project-demo apps/sana-project-read -type f -name '*.mjs' -print0 | xargs -0 -r -n1 node --check
+      - name: Validate synthetic contract and interest journey
+        run: node --test apps/sana-project-demo/sana-project-demo.test.mjs
