@@ -1,0 +1,131 @@
+// Optional local browser regression. Requires an existing loopback demo and Playwright.
+const { chromium } = require(process.env.SANA_PLAYWRIGHT_PATH || 'playwright');
+const assert = require('node:assert/strict');
+const fs = require('node:fs/promises');
+const base = 'http://127.0.0.1:4175/apps/sana-project-demo/';
+const output = process.env.SANA_QA_OUTPUT || '/private/tmp/sana-qa';
+(async () => {
+  await fs.mkdir(output, { recursive: true });
+  const browser = await chromium.launch({ headless: true });
+  const checks = [];
+  const capture = async (page, name) => page.screenshot({path:`${output}/${name}.png`,fullPage:true});
+  const check = (name, value) => { assert.ok(value, name); checks.push(name); };
+  try {
+    const ctx = await browser.newContext({viewport:{width:1280,height:900},reducedMotion:'reduce'});
+    const page = await ctx.newPage();
+    const errors = [];
+    page.on('pageerror', e => errors.push(e.message));
+    await page.goto(base);
+    await page.locator('#catalog-project-list button').waitFor();
+    check('catalog shows only after validation', await page.locator('#catalog-feedback').isHidden());
+    await capture(page,'desktop-catalog');
+    await page.locator('#open-project-card').click();
+    check('project title receives focus', await page.locator('#project-title').evaluate(el=>el===document.activeElement));
+    check('project dossier separates product use from uncalculated impact',
+      (await page.locator('#product-use-status').innerText()).toLowerCase().includes('no tiene productos ni acompañamientos aplicados asociados en esta demo')
+      && (await page.locator('#impact-assessment-status').innerText()).includes('No calculado')
+      && (await page.locator('#impact-assessment-status').innerText()).includes('unidad y periodo')
+      && (await page.locator('#impact-assessment-status').innerText()).includes('fuente de evidencia')
+      && (await page.locator('#impact-assessment-status').innerText()).includes('no es una medición de impacto'));
+    const axSession = await ctx.newCDPSession(page);
+    const {nodes: axNodes} = await axSession.send('Accessibility.getFullAXTree');
+    check('product and impact disclosure has named group and headings in the accessibility tree',
+      axNodes.some(node=>node.role?.value==='group'&&node.name?.value==='Productos utilizados e impacto estimado')
+      && axNodes.some(node=>node.role?.value==='heading'&&node.name?.value==='Productos utilizados')
+      && axNodes.some(node=>node.role?.value==='heading'&&node.name?.value==='Impacto estimado'));
+    await axSession.detach();
+    await capture(page,'desktop-project');
+    await page.locator('#open-interest-secondary').click();
+    await page.getByRole('button',{name:'Ver confirmación simulada'}).click();
+    check('missing motive focuses radio', await page.locator('input[name="interest-intent"]').first().evaluate(el=>el===document.activeElement));
+    check('validation describes the missing motive', await page.locator('input[value="project-structure"]').getAttribute('aria-describedby')==='form-error');
+    await page.locator('input[value="project-structure"]').check();
+    check('corrected motive no longer announces an error', await page.locator('input[value="project-structure"]').getAttribute('aria-describedby')===null);
+    await page.getByRole('button',{name:'Ver confirmación simulada'}).click();
+    check('missing acknowledgment is invalid', await page.locator('#demo-acknowledgment').getAttribute('aria-invalid')==='true');
+    await page.locator('#demo-acknowledgment').check();
+    await page.getByRole('button',{name:'Ver confirmación simulada'}).click();
+    await page.locator('#confirmation-view').waitFor({state:'visible'});
+    await page.locator('#view-demo-space').click();
+    check('interest reaches temporary space', await page.locator('.session-interest-card').count()===1);
+    await capture(page,'desktop-space');
+    await page.locator('#restart-demo').click();
+    await page.goBack();
+    await page.goBack();
+    check('reset prevents phantom confirmation', await page.locator('#confirmation-view').isHidden());
+    await page.goto(base+'?view=confirmation&project=sana-demo-project-002');
+    check('direct confirmation cannot claim submitted interest', await page.locator('#confirmation-view').isHidden());
+    await page.setViewportSize({width:390,height:844});
+    await page.locator('#catalog-project-list button').waitFor();
+    await capture(page,'mobile-catalog');
+    await page.locator('#open-project-card').click();
+    check('second project keeps own data', /Café/.test(await page.locator('#project-title').innerText()));
+    check('second project shows its own product-use and impact disclosure',
+      (await page.locator('#product-use-status').innerText()).toLowerCase().includes('esta ficha de café no tiene productos ni acompañamientos aplicados asociados en esta demo')
+      && (await page.locator('#impact-assessment-status').innerText()).includes('fuente de evidencia'));
+    check('mobile has no horizontal overflow', await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+    await capture(page,'mobile-project');
+    await page.screenshot({path:`${output}/mobile-project-viewport.png`});
+    await page.locator('#product-use-status').scrollIntoViewIfNeeded();
+    await page.screenshot({path:`${output}/mobile-evidence-status.png`});
+    await page.locator('#open-interest-secondary').click();
+    await capture(page,'mobile-interest');
+    await page.locator('#cancel-interest').click();
+    await page.locator('#nav-space').click();
+    await capture(page,'mobile-empty');
+    check('empty space after reload', await page.locator('#empty-space').isVisible());
+    check('no runtime errors', errors.length===0);
+    await ctx.close();
+
+    const failCtx = await browser.newContext({viewport:{width:390,height:844},reducedMotion:'reduce'});
+    const failed = await failCtx.newPage();
+    let catalogFails = true;
+    await failed.route('**/project-catalog-v1.json', route => catalogFails ? route.fulfill({status:503,body:'unavailable'}) : route.continue());
+    await failed.goto(base);
+    await failed.locator('#retry-catalog').waitFor({state:'visible'});
+    check('catalog failure hides all fixture figures', await failed.locator('#explore-view').isHidden() && await failed.locator('#project-view').isHidden());
+    await capture(failed,'mobile-catalog-error');
+    catalogFails = false;
+    await failed.locator('#retry-catalog').click();
+    await failed.locator('#catalog-project-list button').waitFor();
+    check('retry recovers catalog without reload', await failed.locator('#explore-view').isVisible());
+    await failed.route('**/project-dossier-v1.json', route=>route.fulfill({status:404,body:'missing'}));
+    await failed.route('**/project-projection-002-v1.json', route=>route.fulfill({status:500,body:'missing'}));
+    await failed.reload();
+    await failed.locator('#catalog-notice').waitFor({state:'visible'});
+    check('failed default dossier falls back to validated project', /Café/.test(await failed.locator('#catalog-title').innerText()));
+    check('unvalidated dossier excluded', /1 proyecto/.test(await failed.locator('#catalog-count').innerText()));
+    await failed.locator('#open-project-card').click();
+    await failed.locator('#read-error').waitFor({state:'visible'});
+    check('projection failure hides field indicators', await failed.locator('#read-content').isHidden());
+    await capture(failed,'mobile-reading-error');
+    await failed.unroute('**/project-projection-002-v1.json');
+    await failed.locator('#back-to-catalog').click();
+    await failed.locator('#open-project-card').click();
+    await failed.locator('#read-content').waitFor({state:'visible'});
+    check('reopening project retries its reading', await failed.locator('#read-error').isHidden());
+    await failCtx.close();
+    const raceCtx = await browser.newContext({viewport:{width:1280,height:900},reducedMotion:'reduce'});
+    const race = await raceCtx.newPage();
+    let releaseFirst;
+    const firstHeld = new Promise(resolve=>{releaseFirst=resolve;});
+    let firstReturned;
+    const firstDone = new Promise(resolve=>{firstReturned=resolve;});
+    await race.route('**/project-projection-v1.json', async route=>{await firstHeld; await route.continue(); firstReturned();});
+    await race.goto(base);
+    await race.locator('#catalog-project-list button').waitFor();
+    await race.locator('#catalog-project-list button').click();
+    await race.locator('#read-content').waitFor({state:'visible'});
+    releaseFirst();
+    await firstDone;
+    await race.waitForLoadState('networkidle');
+    check('late first-project response cannot overwrite second project',
+      /Café/.test(await race.locator('#project-title').innerText()) && /86/.test(await race.locator('#harvest-summary').innerText()));
+    await race.locator('#nav-space').press('Enter');
+    await race.locator('#empty-space').waitFor({state:'visible'});
+    check('keyboard navigation focuses destination heading', await race.locator('#space-title').evaluate(el=>el===document.activeElement));
+    await raceCtx.close();
+    await fs.writeFile(`${output}/result.json`,JSON.stringify({checks,passed:checks.length},null,2));
+    console.log(JSON.stringify({passed:checks.length,checks,output},null,2));
+  } finally { await browser.close(); }
+})().catch(e=>{console.error(e);process.exitCode=1;});

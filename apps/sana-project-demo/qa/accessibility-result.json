@@ -1,0 +1,54 @@
+{
+  "axe_core": "4.13.0",
+  "viewports_px": [
+    320,
+    390,
+    768,
+    1280
+  ],
+  "states_per_viewport": 8,
+  "states_checked": 32,
+  "violations": 0,
+  "horizontal_overflow_states": 0,
+  "minimum_visible_text_px": 14,
+  "axe_incomplete_rule_ids": [
+    "color-contrast"
+  ],
+  "manual_contrast_review": {
+    "method": "Computed foreground/background colors with alpha compositing and WCAG relative-luminance ratio.",
+    "minimum_ratio": 14.08,
+    "threshold_ratio": 4.5,
+    "checks": {
+      ".art-caption": {
+        "foreground": "rgb(255, 245, 232)",
+        "background": "rgb(35, 38, 43)",
+        "ratio": 14.08
+      },
+      "#session-project-count": {
+        "foreground": "rgb(35, 38, 43)",
+        "background": "rgb(255, 253, 248)",
+        "ratio": 14.93
+      },
+      "#session-reading-count": {
+        "foreground": "rgb(35, 38, 43)",
+        "background": "rgb(255, 253, 248)",
+        "ratio": 14.93
+      },
+      ".session-overview__metrics > div:nth-child(3) > dd:nth-child(2)": {
+        "foreground": "rgb(35, 38, 43)",
+        "background": "rgb(255, 253, 248)",
+        "ratio": 14.93
+      }
+    },
+    "decorative_non_text_nodes": [
+      "#back-to-catalog > span[aria-hidden=\"true\"]",
+      "#back-to-catalog-space > span[aria-hidden=\"true\"]",
+      "#back-to-project > span[aria-hidden=\"true\"]",
+      "a[href$=\"#catalog-projects\"] > span[aria-hidden=\"true\"]",
+      "li:nth-child(2) > .flow-arrow[aria-hidden=\"true\"]",
+      "li:nth-child(3) > .flow-arrow[aria-hidden=\"true\"]"
+    ]
+  },
+  "screen_reader_test": "PENDING",
+  "scope": "Local Chromium demo states; not a screen-reader or WCAG conformance audit."
+}
