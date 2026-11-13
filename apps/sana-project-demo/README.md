@@ -27,7 +27,7 @@ Abrir `http://127.0.0.1:4175/`. El servidor Node integrado se vincula a loopback
 
 `project-projection-v1.json` y `project-projection-002-v1.json` son fixtures AgroWay separados y sintéticos que validan `apps/sana-project-read/reader-v1.mjs`; las lecturas vencidas o mal mapeadas se ocultan. Los eventos de cosecha son observaciones sintéticas separadas y no alimentan los escenarios de producción estimada. En cada proyecto interesado, “Mi espacio” usa la misma validación para mostrar el resumen de ciclo de solo lectura y su fecha; si faltan valores, los conserva como desconocidos. La intención simulada permanece solo en memoria de la pestaña, no solicita datos personales o financieros, no crea una solicitud ni llama a servicios. “Mi espacio” muestra intereses temporales; nunca una posición, compromiso o aporte.
 
-La demo conserva una dirección visual propia de SANA, independiente de GREENATICS. Usa un wordmark tipográfico y una paleta provisional; todavía no hay logo autónomo aprobado.
+La demo usa la dirección visual propia de SANA **Proyecto desplegable**, independiente de GREENATICS. `DESIGN.md` resume sus reglas para futuras pantallas. `assets/sana-fold-mark.svg` es una propuesta de símbolo solo para la demo, no un logo corporativo aprobado; `assets/sana-paper-project.jpg` es una ilustración sintética y no representa una finca ni a una persona real. La fuente Fraunces se sirve desde el propio proyecto con su licencia en `assets/fonts/OFL.txt`.
 
 Esta entrega es una demo candidata, no una aplicación productiva ni un despliegue. No habilita audiencia, cuentas, inversiones, pagos, datos reales o servicios adicionales.
 

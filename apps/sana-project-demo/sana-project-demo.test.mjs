@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { readFile } from 'node:fs/promises';
+import { readFile, stat } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { validateProjection } from '../sana-project-read/reader-v1.mjs';
@@ -299,4 +299,30 @@ test('accessible screen states avoid real contact fields and disclose the synthe
   assert.match(styles, /max-width: 1020px/);
   assert.match(styles, /max-width: 760px/);
   assert.match(styles, /scroll-margin-top/);
+});
+
+test('SANA visual assets are local, labeled, and follow the reduced-motion preference', async () => {
+  const html = await read('index.html');
+  const styles = await read('styles.css');
+  const server = await read('server.mjs');
+  const mark = await stat(resolve(appDirectory, 'assets/sana-fold-mark.svg'));
+  const image = await stat(resolve(appDirectory, 'assets/sana-paper-project.jpg'));
+  const font = await stat(resolve(appDirectory, 'assets/fonts/fraunces-variable.ttf'));
+  const fontLicense = await stat(resolve(appDirectory, 'assets/fonts/OFL.txt'));
+
+  assert.match(html, /assets\/sana-fold-mark\.svg[^>]+alt=""[^>]+aria-hidden="true"/);
+  assert.equal((html.match(/class="paper-project-image"/g) ?? []).length, 2);
+  assert.match(html, /fetchpriority="high"/);
+  assert.match(html, /loading="lazy"/);
+  assert.ok(mark.size > 100, 'demo mark is a local vector asset');
+  assert.ok(image.size > 100_000 && image.size < 600_000, 'project illustration stays optimized for the demo');
+  assert.ok(font.size > 200_000 && font.size < 500_000, 'font is bundled locally instead of fetched at runtime');
+  assert.ok(fontLicense.size > 3_000, 'font distribution includes its SIL license');
+  assert.match(styles, /font-family:\s*"Fraunces"/);
+  assert.match(styles, /prefers-reduced-motion:\s*reduce/);
+  assert.doesNotMatch(styles, /transition:\s*all\b/i);
+  for (const asset of ['sana-fold-mark.svg', 'sana-paper-project.jpg', 'fraunces-variable.ttf', 'OFL.txt']) {
+    assert.match(server, new RegExp(asset.replaceAll('.', '\\.'), 'i'), `${asset} is served by the local demo`);
+  }
+  assert.match(server, /font-src 'self'/);
 });
