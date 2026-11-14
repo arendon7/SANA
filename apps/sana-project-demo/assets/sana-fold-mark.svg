@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="Símbolo de papel plegado de SANA">
+  <path d="M5 7h28l10 7-10 7H5Z" fill="#FFF5E8" stroke="#FFF5E8" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M5 21h18l20 7-10 7H5Z" fill="#C83A42" stroke="#FFF5E8" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M5 35h28l10 6H5Z" fill="#B89A78" stroke="#FFF5E8" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="m33 7 10 7-10 7" fill="none" stroke="#FFF5E8" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="m23 21 20 7-10 7" fill="none" stroke="#FFF5E8" stroke-width="1.5" stroke-linejoin="round"/>
+</svg>
