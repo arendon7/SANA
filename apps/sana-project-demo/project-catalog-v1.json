@@ -1,0 +1,17 @@
+{
+  "schema": "sana.project-catalog/1.0.0",
+  "status": "SYNTHETIC",
+  "defaultProjectRef": "sana-demo-project-001",
+  "projects": [
+    {
+      "projectRef": "sana-demo-project-001",
+      "dossierPath": "./project-dossier-v1.json",
+      "projectionPath": "./project-projection-v1.json"
+    },
+    {
+      "projectRef": "sana-demo-project-002",
+      "dossierPath": "./project-dossier-002-v1.json",
+      "projectionPath": "./project-projection-002-v1.json"
+    }
+  ]
+}
